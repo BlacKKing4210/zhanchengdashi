@@ -1,0 +1,5 @@
+action_id,currency,base_amount,scaling_formula,daily_limit,notes
+stage_clear_gold,gold,30,base_amount + chapter * 12,0,关卡通关金币基准
+daily_login_gold,gold,80,,1,每日登录奖励
+energy_recover,energy,1,one_per_300_sec,0,自然恢复
+hero_upgrade_exp,exp,20,base_amount * level,0,角色升级经验消耗参考

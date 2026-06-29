@@ -1,0 +1,67 @@
+[
+  {
+    "key": "unit_guardian_name",
+    "zh_cn": "守城先锋",
+    "en_us": "Wall Guardian"
+  },
+  {
+    "key": "unit_ranger_name",
+    "zh_cn": "游击弩手",
+    "en_us": "Roving Ranger"
+  },
+  {
+    "key": "enemy_grunt_name",
+    "zh_cn": "荒地喽兵",
+    "en_us": "Wasteland Grunt"
+  },
+  {
+    "key": "enemy_brute_name",
+    "zh_cn": "重甲蛮兵",
+    "en_us": "Armored Brute"
+  },
+  {
+    "key": "skill_guardian_slam_desc",
+    "zh_cn": "向前重击并短暂击退敌人",
+    "en_us": "Slam forward and briefly knock enemies back"
+  },
+  {
+    "key": "skill_ranger_shot_desc",
+    "zh_cn": "射击最近的敌人并造成稳定伤害",
+    "en_us": "Fire at the nearest enemy for steady damage"
+  },
+  {
+    "key": "skill_grunt_claw_desc",
+    "zh_cn": "近距离挥击目标",
+    "en_us": "Swipe a nearby target"
+  },
+  {
+    "key": "skill_brute_charge_desc",
+    "zh_cn": "向前冲撞并造成范围伤害",
+    "en_us": "Charge forward and deal area damage"
+  },
+  {
+    "key": "item_training_blade_name",
+    "zh_cn": "训练短刃",
+    "en_us": "Training Blade"
+  },
+  {
+    "key": "item_guard_charm_name",
+    "zh_cn": "守备护符",
+    "en_us": "Guard Charm"
+  },
+  {
+    "key": "item_energy_ration_name",
+    "zh_cn": "行军口粮",
+    "en_us": "Energy Ration"
+  },
+  {
+    "key": "stage_tutorial_01_name",
+    "zh_cn": "城门试炼",
+    "en_us": "Gate Trial"
+  },
+  {
+    "key": "stage_field_01_name",
+    "zh_cn": "荒原巡防",
+    "en_us": "Wasteland Patrol"
+  }
+]

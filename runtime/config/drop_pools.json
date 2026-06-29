@@ -1,0 +1,58 @@
+[
+  {
+    "pool_id": "enemy_pool_tutorial",
+    "entry_id": "enemy_grunt",
+    "entry_type": "unit",
+    "weight": 100,
+    "min_count": 3,
+    "max_count": 5
+  },
+  {
+    "pool_id": "enemy_pool_field_01",
+    "entry_id": "enemy_grunt",
+    "entry_type": "unit",
+    "weight": 80,
+    "min_count": 5,
+    "max_count": 8
+  },
+  {
+    "pool_id": "enemy_pool_field_01",
+    "entry_id": "enemy_brute",
+    "entry_type": "unit",
+    "weight": 20,
+    "min_count": 1,
+    "max_count": 2
+  },
+  {
+    "pool_id": "reward_pool_tutorial",
+    "entry_id": "gold",
+    "entry_type": "currency",
+    "weight": 100,
+    "min_count": 30,
+    "max_count": 45
+  },
+  {
+    "pool_id": "reward_pool_tutorial",
+    "entry_id": "item_training_blade",
+    "entry_type": "item",
+    "weight": 20,
+    "min_count": 1,
+    "max_count": 1
+  },
+  {
+    "pool_id": "reward_pool_field_01",
+    "entry_id": "gold",
+    "entry_type": "currency",
+    "weight": 100,
+    "min_count": 45,
+    "max_count": 70
+  },
+  {
+    "pool_id": "reward_pool_field_01",
+    "entry_id": "item_guard_charm",
+    "entry_type": "item",
+    "weight": 15,
+    "min_count": 1,
+    "max_count": 1
+  }
+]

@@ -1,0 +1,8 @@
+pool_id,entry_id,entry_type,weight,min_count,max_count
+enemy_pool_tutorial,enemy_grunt,unit,100,3,5
+enemy_pool_field_01,enemy_grunt,unit,80,5,8
+enemy_pool_field_01,enemy_brute,unit,20,1,2
+reward_pool_tutorial,gold,currency,100,30,45
+reward_pool_tutorial,item_training_blade,item,20,1,1
+reward_pool_field_01,gold,currency,100,45,70
+reward_pool_field_01,item_guard_charm,item,15,1,1

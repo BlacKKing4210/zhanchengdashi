@@ -1,0 +1,5 @@
+id,name_key,role,rarity,max_hp,move_speed,attack_range,base_damage,attack_cooldown_sec,skill_id,unlock_stage,tags
+hero_guardian,unit_guardian_name,hero,common,180,3.2,1.5,18,1.4,skill_guardian_slam,stage_tutorial_01,frontline|melee
+hero_ranger,unit_ranger_name,hero,rare,110,3.8,5.0,14,1.2,skill_ranger_shot,stage_field_01,ranged|single_target
+enemy_grunt,enemy_grunt_name,enemy,common,70,2.8,1.1,8,1.6,skill_grunt_claw,,melee|swarm
+enemy_brute,enemy_brute_name,enemy,rare,220,2.2,1.4,20,2.0,skill_brute_charge,,elite|melee

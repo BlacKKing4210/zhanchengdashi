@@ -1,0 +1,133 @@
+{
+  "version": 1,
+  "id_pattern": "^[a-z][a-z0-9_]*$",
+  "tables": {
+    "global": {
+      "file": "config/tables/global.csv",
+      "unique": "key",
+      "fields": {
+        "key": { "type": "id", "required": true },
+        "type": { "type": "enum", "required": true, "values": ["string", "int", "float", "bool"] },
+        "value": { "type": "string", "required": true },
+        "description": { "type": "string", "required": false }
+      }
+    },
+    "skills": {
+      "file": "config/tables/skills.csv",
+      "unique": "id",
+      "fields": {
+        "id": { "type": "id", "required": true },
+        "type": { "type": "enum", "required": true, "values": ["attack", "active", "passive", "ultimate"] },
+        "targeting": { "type": "enum", "required": true, "values": ["self", "nearest_enemy", "area", "forward", "random_enemy"] },
+        "cooldown_sec": { "type": "float", "required": true },
+        "power": { "type": "float", "required": true },
+        "range": { "type": "float", "required": true },
+        "radius": { "type": "float", "required": true },
+        "duration_sec": { "type": "float", "required": true },
+        "effect_tags": { "type": "list", "required": false },
+        "vfx_key": { "type": "id", "required": false },
+        "description_key": { "type": "id", "required": true }
+      },
+      "references": [
+        { "field": "description_key", "table": "localization_zh", "column": "key" }
+      ]
+    },
+    "units": {
+      "file": "config/tables/units.csv",
+      "unique": "id",
+      "fields": {
+        "id": { "type": "id", "required": true },
+        "name_key": { "type": "id", "required": true },
+        "role": { "type": "enum", "required": true, "values": ["hero", "enemy", "summon", "boss"] },
+        "rarity": { "type": "enum", "required": true, "values": ["common", "rare", "epic", "legendary"] },
+        "max_hp": { "type": "int", "required": true },
+        "move_speed": { "type": "float", "required": true },
+        "attack_range": { "type": "float", "required": true },
+        "base_damage": { "type": "int", "required": true },
+        "attack_cooldown_sec": { "type": "float", "required": true },
+        "skill_id": { "type": "id", "required": true },
+        "unlock_stage": { "type": "id", "required": false },
+        "tags": { "type": "list", "required": false }
+      },
+      "references": [
+        { "field": "name_key", "table": "localization_zh", "column": "key" },
+        { "field": "skill_id", "table": "skills", "column": "id" },
+        { "field": "unlock_stage", "table": "stages", "column": "id", "allow_empty": true }
+      ]
+    },
+    "items": {
+      "file": "config/tables/items.csv",
+      "unique": "id",
+      "fields": {
+        "id": { "type": "id", "required": true },
+        "name_key": { "type": "id", "required": true },
+        "slot": { "type": "enum", "required": true, "values": ["weapon", "armor", "trinket", "consumable", "upgrade"] },
+        "rarity": { "type": "enum", "required": true, "values": ["common", "rare", "epic", "legendary"] },
+        "price": { "type": "int", "required": true },
+        "stat_key": { "type": "id", "required": true },
+        "stat_value": { "type": "float", "required": true },
+        "stack_limit": { "type": "int", "required": true },
+        "unlock_stage": { "type": "id", "required": false },
+        "tags": { "type": "list", "required": false }
+      },
+      "references": [
+        { "field": "name_key", "table": "localization_zh", "column": "key" },
+        { "field": "unlock_stage", "table": "stages", "column": "id", "allow_empty": true }
+      ]
+    },
+    "stages": {
+      "file": "config/tables/stages.csv",
+      "unique": "id",
+      "fields": {
+        "id": { "type": "id", "required": true },
+        "name_key": { "type": "id", "required": true },
+        "chapter": { "type": "int", "required": true },
+        "difficulty": { "type": "enum", "required": true, "values": ["tutorial", "normal", "hard", "elite"] },
+        "time_limit_sec": { "type": "int", "required": true },
+        "map_key": { "type": "id", "required": true },
+        "enemy_pool_id": { "type": "id", "required": true },
+        "reward_pool_id": { "type": "id", "required": true },
+        "recommended_power": { "type": "int", "required": true },
+        "unlock_condition": { "type": "string", "required": false }
+      },
+      "references": [
+        { "field": "name_key", "table": "localization_zh", "column": "key" },
+        { "field": "enemy_pool_id", "table": "drop_pools", "column": "pool_id" },
+        { "field": "reward_pool_id", "table": "drop_pools", "column": "pool_id" }
+      ]
+    },
+    "drop_pools": {
+      "file": "config/tables/drop_pools.csv",
+      "unique_group": ["pool_id", "entry_id"],
+      "fields": {
+        "pool_id": { "type": "id", "required": true },
+        "entry_id": { "type": "id", "required": true },
+        "entry_type": { "type": "enum", "required": true, "values": ["unit", "item", "currency", "stage"] },
+        "weight": { "type": "int", "required": true },
+        "min_count": { "type": "int", "required": true },
+        "max_count": { "type": "int", "required": true }
+      }
+    },
+    "economy": {
+      "file": "config/tables/economy.csv",
+      "unique": "action_id",
+      "fields": {
+        "action_id": { "type": "id", "required": true },
+        "currency": { "type": "enum", "required": true, "values": ["gold", "gem", "energy", "exp"] },
+        "base_amount": { "type": "int", "required": true },
+        "scaling_formula": { "type": "string", "required": false },
+        "daily_limit": { "type": "int", "required": false },
+        "notes": { "type": "string", "required": false }
+      }
+    },
+    "localization_zh": {
+      "file": "config/tables/localization_zh.csv",
+      "unique": "key",
+      "fields": {
+        "key": { "type": "id", "required": true },
+        "zh_cn": { "type": "string", "required": true },
+        "en_us": { "type": "string", "required": false }
+      }
+    }
+  }
+}

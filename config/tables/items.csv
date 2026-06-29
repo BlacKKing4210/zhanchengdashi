@@ -1,0 +1,4 @@
+id,name_key,slot,rarity,price,stat_key,stat_value,stack_limit,unlock_stage,tags
+item_training_blade,item_training_blade_name,weapon,common,80,base_damage,6,1,stage_tutorial_01,starter|damage
+item_guard_charm,item_guard_charm_name,trinket,rare,160,max_hp,35,1,stage_field_01,defense|survival
+item_energy_ration,item_energy_ration_name,consumable,common,40,energy_restore,10,99,stage_tutorial_01,resource|consumable

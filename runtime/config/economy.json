@@ -1,0 +1,34 @@
+[
+  {
+    "action_id": "stage_clear_gold",
+    "currency": "gold",
+    "base_amount": 30,
+    "scaling_formula": "base_amount + chapter * 12",
+    "daily_limit": 0,
+    "notes": "关卡通关金币基准"
+  },
+  {
+    "action_id": "daily_login_gold",
+    "currency": "gold",
+    "base_amount": 80,
+    "scaling_formula": null,
+    "daily_limit": 1,
+    "notes": "每日登录奖励"
+  },
+  {
+    "action_id": "energy_recover",
+    "currency": "energy",
+    "base_amount": 1,
+    "scaling_formula": "one_per_300_sec",
+    "daily_limit": 0,
+    "notes": "自然恢复"
+  },
+  {
+    "action_id": "hero_upgrade_exp",
+    "currency": "exp",
+    "base_amount": 20,
+    "scaling_formula": "base_amount * level",
+    "daily_limit": 0,
+    "notes": "角色升级经验消耗参考"
+  }
+]

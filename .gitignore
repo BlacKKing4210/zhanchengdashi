@@ -1,0 +1,67 @@
+# OS and editors
+.DS_Store
+Thumbs.db
+desktop.ini
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Logs and temp
+*.log
+tmp/
+temp/
+.cache/
+
+# Python tooling
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.venv/
+venv/
+
+# Node tooling
+node_modules/
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Build outputs
+build/
+builds/
+dist/
+release/
+releases/
+
+# Godot generated files
+.godot/
+/android/
+.import/
+export.cfg
+export_presets.cfg
+
+# Godot imports CSV files as translations by default. The source CSV
+# config tables are versioned, but these generated import products are not.
+config/tables/*.csv.import
+config/tables/*.translation
+
+# Unity generated files
+Library/
+Temp/
+Obj/
+Logs/
+UserSettings/
+MemoryCaptures/
+
+# Unreal generated files
+Binaries/
+DerivedDataCache/
+Intermediate/
+Saved/
+*.sln
+*.VC.db
+*.opensdf
+*.sdf

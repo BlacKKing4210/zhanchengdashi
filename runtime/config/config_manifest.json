@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "generated_by": "tools/export_config.py",
+  "tables": [
+    "runtime/config/global.json",
+    "runtime/config/skills.json",
+    "runtime/config/units.json",
+    "runtime/config/items.json",
+    "runtime/config/stages.json",
+    "runtime/config/drop_pools.json",
+    "runtime/config/economy.json",
+    "runtime/config/localization_zh.json"
+  ]
+}

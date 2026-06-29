@@ -1,0 +1,70 @@
+[
+  {
+    "id": "hero_guardian",
+    "name_key": "unit_guardian_name",
+    "role": "hero",
+    "rarity": "common",
+    "max_hp": 180,
+    "move_speed": 3.2,
+    "attack_range": 1.5,
+    "base_damage": 18,
+    "attack_cooldown_sec": 1.4,
+    "skill_id": "skill_guardian_slam",
+    "unlock_stage": "stage_tutorial_01",
+    "tags": [
+      "frontline",
+      "melee"
+    ]
+  },
+  {
+    "id": "hero_ranger",
+    "name_key": "unit_ranger_name",
+    "role": "hero",
+    "rarity": "rare",
+    "max_hp": 110,
+    "move_speed": 3.8,
+    "attack_range": 5.0,
+    "base_damage": 14,
+    "attack_cooldown_sec": 1.2,
+    "skill_id": "skill_ranger_shot",
+    "unlock_stage": "stage_field_01",
+    "tags": [
+      "ranged",
+      "single_target"
+    ]
+  },
+  {
+    "id": "enemy_grunt",
+    "name_key": "enemy_grunt_name",
+    "role": "enemy",
+    "rarity": "common",
+    "max_hp": 70,
+    "move_speed": 2.8,
+    "attack_range": 1.1,
+    "base_damage": 8,
+    "attack_cooldown_sec": 1.6,
+    "skill_id": "skill_grunt_claw",
+    "unlock_stage": null,
+    "tags": [
+      "melee",
+      "swarm"
+    ]
+  },
+  {
+    "id": "enemy_brute",
+    "name_key": "enemy_brute_name",
+    "role": "enemy",
+    "rarity": "rare",
+    "max_hp": 220,
+    "move_speed": 2.2,
+    "attack_range": 1.4,
+    "base_damage": 20,
+    "attack_cooldown_sec": 2.0,
+    "skill_id": "skill_brute_charge",
+    "unlock_stage": null,
+    "tags": [
+      "elite",
+      "melee"
+    ]
+  }
+]

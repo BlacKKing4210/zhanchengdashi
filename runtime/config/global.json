@@ -1,0 +1,11 @@
+{
+  "game_name": "战城大师",
+  "config_version": 1,
+  "target_fps": 60,
+  "starting_gold": 120,
+  "starting_energy": 30,
+  "default_stage_time_sec": 180,
+  "max_party_size": 3,
+  "camera_follow_smoothing": 0.12,
+  "enable_debug_menu": true
+}

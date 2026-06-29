@@ -1,0 +1,47 @@
+[
+  {
+    "id": "item_training_blade",
+    "name_key": "item_training_blade_name",
+    "slot": "weapon",
+    "rarity": "common",
+    "price": 80,
+    "stat_key": "base_damage",
+    "stat_value": 6.0,
+    "stack_limit": 1,
+    "unlock_stage": "stage_tutorial_01",
+    "tags": [
+      "starter",
+      "damage"
+    ]
+  },
+  {
+    "id": "item_guard_charm",
+    "name_key": "item_guard_charm_name",
+    "slot": "trinket",
+    "rarity": "rare",
+    "price": 160,
+    "stat_key": "max_hp",
+    "stat_value": 35.0,
+    "stack_limit": 1,
+    "unlock_stage": "stage_field_01",
+    "tags": [
+      "defense",
+      "survival"
+    ]
+  },
+  {
+    "id": "item_energy_ration",
+    "name_key": "item_energy_ration_name",
+    "slot": "consumable",
+    "rarity": "common",
+    "price": 40,
+    "stat_key": "energy_restore",
+    "stat_value": 10.0,
+    "stack_limit": 99,
+    "unlock_stage": "stage_tutorial_01",
+    "tags": [
+      "resource",
+      "consumable"
+    ]
+  }
+]

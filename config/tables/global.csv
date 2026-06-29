@@ -1,0 +1,10 @@
+key,type,value,description
+game_name,string,战城大师,项目显示名
+config_version,int,1,配置表版本
+target_fps,int,60,目标帧率
+starting_gold,int,120,新账号初始金币
+starting_energy,int,30,新账号初始体力
+default_stage_time_sec,int,180,默认关卡时长
+max_party_size,int,3,默认出战单位上限
+camera_follow_smoothing,float,0.12,相机跟随平滑系数
+enable_debug_menu,bool,true,开发期调试菜单开关

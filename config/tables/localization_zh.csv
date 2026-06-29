@@ -1,0 +1,14 @@
+key,zh_cn,en_us
+unit_guardian_name,守城先锋,Wall Guardian
+unit_ranger_name,游击弩手,Roving Ranger
+enemy_grunt_name,荒地喽兵,Wasteland Grunt
+enemy_brute_name,重甲蛮兵,Armored Brute
+skill_guardian_slam_desc,向前重击并短暂击退敌人,Slam forward and briefly knock enemies back
+skill_ranger_shot_desc,射击最近的敌人并造成稳定伤害,Fire at the nearest enemy for steady damage
+skill_grunt_claw_desc,近距离挥击目标,Swipe a nearby target
+skill_brute_charge_desc,向前冲撞并造成范围伤害,Charge forward and deal area damage
+item_training_blade_name,训练短刃,Training Blade
+item_guard_charm_name,守备护符,Guard Charm
+item_energy_ration_name,行军口粮,Energy Ration
+stage_tutorial_01_name,城门试炼,Gate Trial
+stage_field_01_name,荒原巡防,Wasteland Patrol

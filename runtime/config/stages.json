@@ -1,0 +1,26 @@
+[
+  {
+    "id": "stage_tutorial_01",
+    "name_key": "stage_tutorial_01_name",
+    "chapter": 1,
+    "difficulty": "tutorial",
+    "time_limit_sec": 120,
+    "map_key": "map_gate_trial",
+    "enemy_pool_id": "enemy_pool_tutorial",
+    "reward_pool_id": "reward_pool_tutorial",
+    "recommended_power": 0,
+    "unlock_condition": null
+  },
+  {
+    "id": "stage_field_01",
+    "name_key": "stage_field_01_name",
+    "chapter": 1,
+    "difficulty": "normal",
+    "time_limit_sec": 180,
+    "map_key": "map_wasteland_patrol",
+    "enemy_pool_id": "enemy_pool_field_01",
+    "reward_pool_id": "reward_pool_field_01",
+    "recommended_power": 120,
+    "unlock_condition": "clear:stage_tutorial_01"
+  }
+]

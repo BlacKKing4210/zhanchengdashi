@@ -1,0 +1,5 @@
+id,type,targeting,cooldown_sec,power,range,radius,duration_sec,effect_tags,vfx_key,description_key
+skill_guardian_slam,active,forward,5.0,1.4,2.2,1.3,0.35,damage|knockback,vfx_slam,skill_guardian_slam_desc
+skill_ranger_shot,attack,nearest_enemy,1.2,1.0,5.0,0.0,0.0,damage|projectile,vfx_arrow,skill_ranger_shot_desc
+skill_grunt_claw,attack,nearest_enemy,1.6,0.8,1.2,0.0,0.0,damage,vfx_claw,skill_grunt_claw_desc
+skill_brute_charge,active,forward,6.5,1.6,3.0,1.0,0.45,damage|dash|knockback,vfx_charge,skill_brute_charge_desc
