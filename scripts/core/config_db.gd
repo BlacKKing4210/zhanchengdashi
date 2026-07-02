@@ -11,15 +11,15 @@ func _ready() -> void:
 
 func reload() -> void:
   tables.clear()
-  var manifest := _load_json(CONFIG_MANIFEST_PATH)
+  var manifest: Variant = _load_json(CONFIG_MANIFEST_PATH)
   if typeof(manifest) != TYPE_DICTIONARY:
     push_error("Config manifest is missing or invalid: %s" % CONFIG_MANIFEST_PATH)
     return
 
   for relative_path in manifest.get("tables", []):
-    var path := "res://%s" % relative_path
+    var path: String = "res://%s" % relative_path
     var table_name := String(relative_path).get_file().get_basename()
-    var payload := _load_json(path)
+    var payload: Variant = _load_json(path)
     if payload != null:
       tables[table_name] = payload
 
@@ -33,14 +33,14 @@ func get_table(table_name: String) -> Variant:
 
 
 func get_global(key: String, default_value: Variant = null) -> Variant:
-  var global := tables.get("global", {})
+  var global: Variant = tables.get("global", {})
   if typeof(global) != TYPE_DICTIONARY:
     return default_value
   return global.get(key, default_value)
 
 
 func get_by_id(table_name: String, id_value: String, id_field: String = "id") -> Dictionary:
-  var table := get_table(table_name)
+  var table: Variant = get_table(table_name)
   if typeof(table) != TYPE_ARRAY:
     return {}
 
@@ -61,7 +61,7 @@ func _load_json(path: String) -> Variant:
     return null
 
   var text := file.get_as_text()
-  var parsed := JSON.parse_string(text)
+  var parsed: Variant = JSON.parse_string(text)
   if parsed == null:
     push_error("Config file is not valid JSON: %s" % path)
   return parsed

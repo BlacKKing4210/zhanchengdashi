@@ -3,3 +3,8 @@ stage_clear_gold,gold,30,base_amount + chapter * 12,0,关卡通关金币基准
 daily_login_gold,gold,80,,1,每日登录奖励
 energy_recover,energy,1,one_per_300_sec,0,自然恢复
 hero_upgrade_exp,exp,20,base_amount * level,0,角色升级经验消耗参考
+question_cell_cost,gold,25,fixed,0,问号地块价格永远25
+unit_defense_price_roll,gold,0,30%:50|50%:100|20%:250,0,单位和防御地块在开局随机价格，具体卡池看 cell_price_pools
+gold_mine_cell_cost,gold,50,fixed,0,金矿价格永远50，默认只有 cell_gold_mine 一种金矿
+home_base_income,gold,12,every_3_sec,0,大本营每3秒产出12金币
+gold_mine_income,gold,10,every_3_sec,0,金矿每3秒产出10金币

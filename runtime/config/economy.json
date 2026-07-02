@@ -30,5 +30,45 @@
     "scaling_formula": "base_amount * level",
     "daily_limit": 0,
     "notes": "角色升级经验消耗参考"
+  },
+  {
+    "action_id": "question_cell_cost",
+    "currency": "gold",
+    "base_amount": 25,
+    "scaling_formula": "fixed",
+    "daily_limit": 0,
+    "notes": "问号地块价格永远25"
+  },
+  {
+    "action_id": "unit_defense_price_roll",
+    "currency": "gold",
+    "base_amount": 0,
+    "scaling_formula": "30%:50|50%:100|20%:250",
+    "daily_limit": 0,
+    "notes": "单位和防御地块在开局随机价格，具体卡池看 cell_price_pools"
+  },
+  {
+    "action_id": "gold_mine_cell_cost",
+    "currency": "gold",
+    "base_amount": 50,
+    "scaling_formula": "fixed",
+    "daily_limit": 0,
+    "notes": "金矿价格永远50，默认只有 cell_gold_mine 一种金矿"
+  },
+  {
+    "action_id": "home_base_income",
+    "currency": "gold",
+    "base_amount": 12,
+    "scaling_formula": "every_3_sec",
+    "daily_limit": 0,
+    "notes": "大本营每3秒产出12金币"
+  },
+  {
+    "action_id": "gold_mine_income",
+    "currency": "gold",
+    "base_amount": 10,
+    "scaling_formula": "every_3_sec",
+    "daily_limit": 0,
+    "notes": "金矿每3秒产出10金币"
   }
 ]

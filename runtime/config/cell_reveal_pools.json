@@ -1,0 +1,82 @@
+[
+  {
+    "pool_id": "reveal_pool_question",
+    "entry_id": "empty",
+    "entry_type": "empty",
+    "weight": 70,
+    "probability_pct": 70.0,
+    "min_count": 0,
+    "max_count": 0,
+    "notes": "问号购买后70%为空，只播放翻开反馈"
+  },
+  {
+    "pool_id": "reveal_pool_question",
+    "entry_id": "defense_cards_question",
+    "entry_type": "defense_pool",
+    "weight": 10,
+    "probability_pct": 10.0,
+    "min_count": 1,
+    "max_count": 1,
+    "notes": "问号购买后10%抽一张基础防御塔卡"
+  },
+  {
+    "pool_id": "reveal_pool_question",
+    "entry_id": "unit_cards_question",
+    "entry_type": "unit_pool",
+    "weight": 10,
+    "probability_pct": 10.0,
+    "min_count": 1,
+    "max_count": 1,
+    "notes": "问号购买后10%抽一张基础单位卡"
+  },
+  {
+    "pool_id": "reveal_pool_question",
+    "entry_id": "gold",
+    "entry_type": "currency",
+    "weight": 10,
+    "probability_pct": 10.0,
+    "min_count": 25,
+    "max_count": 40,
+    "notes": "问号购买后10%直接给金币"
+  },
+  {
+    "pool_id": "reveal_pool_unit_tile",
+    "entry_id": "selected_price_unit_pool",
+    "entry_type": "unit_pool",
+    "weight": 100,
+    "probability_pct": 100.0,
+    "min_count": 1,
+    "max_count": 1,
+    "notes": "单位地块购买后，根据开局已随机出的价格行选择对应 unit_card_pool_id"
+  },
+  {
+    "pool_id": "reveal_pool_defense_tile",
+    "entry_id": "selected_price_defense_pool",
+    "entry_type": "defense_pool",
+    "weight": 100,
+    "probability_pct": 100.0,
+    "min_count": 1,
+    "max_count": 1,
+    "notes": "防御地块购买后，根据开局已随机出的价格行选择对应 defense_card_pool_id"
+  },
+  {
+    "pool_id": "reveal_pool_gold_mine",
+    "entry_id": "cell_gold_mine",
+    "entry_type": "gold_mine",
+    "weight": 100,
+    "probability_pct": 100.0,
+    "min_count": 1,
+    "max_count": 1,
+    "notes": "金矿固定结果，价格50，占领后每3秒10金币"
+  },
+  {
+    "pool_id": "reveal_pool_home_base",
+    "entry_id": "cell_home_base",
+    "entry_type": "fixed",
+    "weight": 100,
+    "probability_pct": 100.0,
+    "min_count": 1,
+    "max_count": 1,
+    "notes": "大本营固定存在，不参与普通随机，默认每3秒12金币"
+  }
+]

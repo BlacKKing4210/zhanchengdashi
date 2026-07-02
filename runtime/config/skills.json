@@ -13,7 +13,8 @@
       "knockback"
     ],
     "vfx_key": "vfx_slam",
-    "description_key": "skill_guardian_slam_desc"
+    "description_key": "skill_guardian_slam_desc",
+    "design_notes": "前排保护技能，击退用 Tween 位移和短白闪即可"
   },
   {
     "id": "skill_ranger_shot",
@@ -29,7 +30,8 @@
       "projectile"
     ],
     "vfx_key": "vfx_arrow",
-    "description_key": "skill_ranger_shot_desc"
+    "description_key": "skill_ranger_shot_desc",
+    "design_notes": "基础远程模板，弹道和命中闪光可程序化"
   },
   {
     "id": "skill_grunt_claw",
@@ -44,7 +46,8 @@
       "damage"
     ],
     "vfx_key": "vfx_claw",
-    "description_key": "skill_grunt_claw_desc"
+    "description_key": "skill_grunt_claw_desc",
+    "design_notes": "低威胁近战普攻，适合大量刷出"
   },
   {
     "id": "skill_brute_charge",
@@ -61,6 +64,539 @@
       "knockback"
     ],
     "vfx_key": "vfx_charge",
-    "description_key": "skill_brute_charge_desc"
+    "description_key": "skill_brute_charge_desc",
+    "design_notes": "精英冲撞，前摇压缩身体，冲刺后击退"
+  },
+  {
+    "id": "skill_quick_bite",
+    "type": "attack",
+    "targeting": "nearest_enemy",
+    "cooldown_sec": 0.9,
+    "power": 0.9,
+    "range": 1.2,
+    "radius": 0.0,
+    "duration_sec": 0.0,
+    "effect_tags": [
+      "damage",
+      "haste"
+    ],
+    "vfx_key": "vfx_bite",
+    "description_key": "skill_quick_bite_desc",
+    "design_notes": "快跑单位普攻，命中后给自己极短加速表现"
+  },
+  {
+    "id": "skill_alpha_howl",
+    "type": "active",
+    "targeting": "self",
+    "cooldown_sec": 7.0,
+    "power": 0.18,
+    "range": 4.0,
+    "radius": 4.0,
+    "duration_sec": 4.0,
+    "effect_tags": [
+      "buff",
+      "attack_speed",
+      "pack"
+    ],
+    "vfx_key": "vfx_howl",
+    "description_key": "skill_alpha_howl_desc",
+    "design_notes": "稀有野兽核心技能，附近同族短时加攻速"
+  },
+  {
+    "id": "skill_thunder_maul",
+    "type": "active",
+    "targeting": "area",
+    "cooldown_sec": 6.0,
+    "power": 1.65,
+    "range": 1.8,
+    "radius": 1.6,
+    "duration_sec": 0.6,
+    "effect_tags": [
+      "damage",
+      "stun",
+      "shock"
+    ],
+    "vfx_key": "vfx_thunder_maul",
+    "description_key": "skill_thunder_maul_desc",
+    "design_notes": "史诗野兽重击，落点震屏和短眩晕"
+  },
+  {
+    "id": "skill_scorch_claw",
+    "type": "attack",
+    "targeting": "nearest_enemy",
+    "cooldown_sec": 1.0,
+    "power": 1.0,
+    "range": 1.2,
+    "radius": 0.0,
+    "duration_sec": 2.0,
+    "effect_tags": [
+      "damage",
+      "burn"
+    ],
+    "vfx_key": "vfx_scorch_claw",
+    "description_key": "skill_scorch_claw_desc",
+    "design_notes": "邪裔低费灼烧普攻，伤害不高但持续压血"
+  },
+  {
+    "id": "skill_blood_pact",
+    "type": "active",
+    "targeting": "self",
+    "cooldown_sec": 8.0,
+    "power": 0.25,
+    "range": 0.0,
+    "radius": 0.0,
+    "duration_sec": 4.0,
+    "effect_tags": [
+      "lifesteal",
+      "rage",
+      "self_damage"
+    ],
+    "vfx_key": "vfx_blood_pact",
+    "description_key": "skill_blood_pact_desc",
+    "design_notes": "稀有邪裔卖血换吸血和攻速，形成高风险收益"
+  },
+  {
+    "id": "skill_rift_overlord",
+    "type": "ultimate",
+    "targeting": "area",
+    "cooldown_sec": 12.0,
+    "power": 2.0,
+    "range": 4.0,
+    "radius": 3.0,
+    "duration_sec": 4.0,
+    "effect_tags": [
+      "summon",
+      "damage",
+      "rift"
+    ],
+    "vfx_key": "vfx_rift_overlord",
+    "description_key": "skill_rift_overlord_desc",
+    "design_notes": "传说邪裔开裂隙，召唤小怪并造成范围爆发"
+  },
+  {
+    "id": "skill_ember_spit",
+    "type": "attack",
+    "targeting": "nearest_enemy",
+    "cooldown_sec": 1.3,
+    "power": 1.0,
+    "range": 3.8,
+    "radius": 0.8,
+    "duration_sec": 0.0,
+    "effect_tags": [
+      "damage",
+      "splash",
+      "burn"
+    ],
+    "vfx_key": "vfx_ember_spit",
+    "description_key": "skill_ember_spit_desc",
+    "design_notes": "龙裔远程普攻，小半径溅射用于清群"
+  },
+  {
+    "id": "skill_flame_fan",
+    "type": "active",
+    "targeting": "forward",
+    "cooldown_sec": 7.5,
+    "power": 1.45,
+    "range": 4.8,
+    "radius": 2.0,
+    "duration_sec": 0.8,
+    "effect_tags": [
+      "damage",
+      "burn",
+      "cone"
+    ],
+    "vfx_key": "vfx_flame_fan",
+    "description_key": "skill_flame_fan_desc",
+    "design_notes": "史诗龙裔扇形火焰，要求站位和朝向"
+  },
+  {
+    "id": "skill_meteor_breath",
+    "type": "ultimate",
+    "targeting": "area",
+    "cooldown_sec": 11.0,
+    "power": 2.2,
+    "range": 5.8,
+    "radius": 2.4,
+    "duration_sec": 1.2,
+    "effect_tags": [
+      "damage",
+      "burn",
+      "stun"
+    ],
+    "vfx_key": "vfx_meteor_breath",
+    "description_key": "skill_meteor_breath_desc",
+    "design_notes": "传说龙裔大招，远程范围爆发加短控"
+  },
+  {
+    "id": "skill_spark_arc",
+    "type": "attack",
+    "targeting": "nearest_enemy",
+    "cooldown_sec": 0.95,
+    "power": 0.75,
+    "range": 4.2,
+    "radius": 0.0,
+    "duration_sec": 0.0,
+    "effect_tags": [
+      "damage",
+      "chain"
+    ],
+    "vfx_key": "vfx_spark_arc",
+    "description_key": "skill_spark_arc_desc",
+    "design_notes": "元素快攻弹射，低单发高频率"
+  },
+  {
+    "id": "skill_stone_skin",
+    "type": "active",
+    "targeting": "self",
+    "cooldown_sec": 9.0,
+    "power": 0.35,
+    "range": 0.0,
+    "radius": 0.0,
+    "duration_sec": 5.0,
+    "effect_tags": [
+      "shield",
+      "armor"
+    ],
+    "vfx_key": "vfx_stone_skin",
+    "description_key": "skill_stone_skin_desc",
+    "design_notes": "稀有元素护盾，适合当低速前排"
+  },
+  {
+    "id": "skill_chain_storm",
+    "type": "active",
+    "targeting": "random_enemy",
+    "cooldown_sec": 6.5,
+    "power": 1.2,
+    "range": 5.0,
+    "radius": 0.0,
+    "duration_sec": 0.0,
+    "effect_tags": [
+      "damage",
+      "chain",
+      "shock"
+    ],
+    "vfx_key": "vfx_chain_storm",
+    "description_key": "skill_chain_storm_desc",
+    "design_notes": "史诗元素链闪，多目标弹射爆发"
+  },
+  {
+    "id": "skill_gear_punch",
+    "type": "attack",
+    "targeting": "nearest_enemy",
+    "cooldown_sec": 1.2,
+    "power": 1.0,
+    "range": 1.3,
+    "radius": 0.0,
+    "duration_sec": 0.0,
+    "effect_tags": [
+      "damage"
+    ],
+    "vfx_key": "vfx_gear_punch",
+    "description_key": "skill_gear_punch_desc",
+    "design_notes": "机械近战普攻，表现用齿轮抖动"
+  },
+  {
+    "id": "skill_cannon_blast",
+    "type": "active",
+    "targeting": "nearest_enemy",
+    "cooldown_sec": 5.5,
+    "power": 1.8,
+    "range": 5.8,
+    "radius": 1.3,
+    "duration_sec": 0.0,
+    "effect_tags": [
+      "damage",
+      "aoe",
+      "projectile"
+    ],
+    "vfx_key": "vfx_cannon_blast",
+    "description_key": "skill_cannon_blast_desc",
+    "design_notes": "稀有机械远程炮击，高伤低频"
+  },
+  {
+    "id": "skill_repair_field",
+    "type": "active",
+    "targeting": "area",
+    "cooldown_sec": 8.0,
+    "power": 0.22,
+    "range": 3.0,
+    "radius": 3.0,
+    "duration_sec": 4.0,
+    "effect_tags": [
+      "heal",
+      "shield",
+      "repair"
+    ],
+    "vfx_key": "vfx_repair_field",
+    "description_key": "skill_repair_field_desc",
+    "design_notes": "史诗机械辅助，范围修复和护盾"
+  },
+  {
+    "id": "skill_tide_dash",
+    "type": "active",
+    "targeting": "forward",
+    "cooldown_sec": 4.5,
+    "power": 1.1,
+    "range": 3.0,
+    "radius": 0.6,
+    "duration_sec": 0.25,
+    "effect_tags": [
+      "damage",
+      "dash"
+    ],
+    "vfx_key": "vfx_tide_dash",
+    "description_key": "skill_tide_dash_desc",
+    "design_notes": "沼泽族突刺，短冲刺贴近残血目标"
+  },
+  {
+    "id": "skill_mire_totem",
+    "type": "active",
+    "targeting": "area",
+    "cooldown_sec": 8.0,
+    "power": 0.12,
+    "range": 4.0,
+    "radius": 2.5,
+    "duration_sec": 5.0,
+    "effect_tags": [
+      "poison",
+      "regen",
+      "zone"
+    ],
+    "vfx_key": "vfx_mire_totem",
+    "description_key": "skill_mire_totem_desc",
+    "design_notes": "稀有沼泽图腾，毒敌并给友军回复"
+  },
+  {
+    "id": "skill_mud_wave",
+    "type": "active",
+    "targeting": "forward",
+    "cooldown_sec": 7.0,
+    "power": 1.1,
+    "range": 3.8,
+    "radius": 1.8,
+    "duration_sec": 1.4,
+    "effect_tags": [
+      "slow",
+      "damage",
+      "wave"
+    ],
+    "vfx_key": "vfx_mud_wave",
+    "description_key": "skill_mud_wave_desc",
+    "design_notes": "史诗沼泽控场，前方泥浪减速"
+  },
+  {
+    "id": "skill_reef_javelin",
+    "type": "attack",
+    "targeting": "forward",
+    "cooldown_sec": 1.2,
+    "power": 1.0,
+    "range": 3.8,
+    "radius": 0.4,
+    "duration_sec": 0.0,
+    "effect_tags": [
+      "damage",
+      "pierce",
+      "projectile"
+    ],
+    "vfx_key": "vfx_reef_javelin",
+    "description_key": "skill_reef_javelin_desc",
+    "design_notes": "海蛇族标枪，直线穿透"
+  },
+  {
+    "id": "skill_siren_focus",
+    "type": "active",
+    "targeting": "self",
+    "cooldown_sec": 6.0,
+    "power": 0.25,
+    "range": 0.0,
+    "radius": 0.0,
+    "duration_sec": 3.0,
+    "effect_tags": [
+      "buff",
+      "damage",
+      "focus"
+    ],
+    "vfx_key": "vfx_siren_focus",
+    "description_key": "skill_siren_focus_desc",
+    "design_notes": "稀有海蛇射手专注，短时提高远程伤害"
+  },
+  {
+    "id": "skill_tide_oracle_barrier",
+    "type": "active",
+    "targeting": "area",
+    "cooldown_sec": 8.5,
+    "power": 0.24,
+    "range": 4.8,
+    "radius": 3.0,
+    "duration_sec": 4.0,
+    "effect_tags": [
+      "shield",
+      "slow",
+      "water"
+    ],
+    "vfx_key": "vfx_tide_oracle_barrier",
+    "description_key": "skill_tide_oracle_barrier_desc",
+    "design_notes": "史诗海蛇辅助，范围护盾并减速敌人"
+  },
+  {
+    "id": "skill_cutlass_combo",
+    "type": "attack",
+    "targeting": "nearest_enemy",
+    "cooldown_sec": 1.05,
+    "power": 1.05,
+    "range": 1.3,
+    "radius": 0.0,
+    "duration_sec": 0.0,
+    "effect_tags": [
+      "damage",
+      "combo"
+    ],
+    "vfx_key": "vfx_cutlass_combo",
+    "description_key": "skill_cutlass_combo_desc",
+    "design_notes": "海盗连击普攻，高攻速近战模板"
+  },
+  {
+    "id": "skill_powder_keg",
+    "type": "active",
+    "targeting": "area",
+    "cooldown_sec": 6.5,
+    "power": 1.55,
+    "range": 5.0,
+    "radius": 1.6,
+    "duration_sec": 0.8,
+    "effect_tags": [
+      "damage",
+      "aoe",
+      "bomb"
+    ],
+    "vfx_key": "vfx_powder_keg",
+    "description_key": "skill_powder_keg_desc",
+    "design_notes": "稀有海盗爆桶，范围伤害和短延迟爆炸"
+  },
+  {
+    "id": "skill_admiral_barrage",
+    "type": "ultimate",
+    "targeting": "area",
+    "cooldown_sec": 10.0,
+    "power": 1.85,
+    "range": 5.5,
+    "radius": 3.0,
+    "duration_sec": 3.0,
+    "effect_tags": [
+      "damage",
+      "aura",
+      "barrage"
+    ],
+    "vfx_key": "vfx_admiral_barrage",
+    "description_key": "skill_admiral_barrage_desc",
+    "design_notes": "传说海盗弹幕，范围炮击并提高友军开火节奏"
+  },
+  {
+    "id": "skill_tusk_charge",
+    "type": "active",
+    "targeting": "forward",
+    "cooldown_sec": 5.0,
+    "power": 1.25,
+    "range": 3.0,
+    "radius": 0.8,
+    "duration_sec": 0.35,
+    "effect_tags": [
+      "damage",
+      "dash",
+      "knockback"
+    ],
+    "vfx_key": "vfx_tusk_charge",
+    "description_key": "skill_tusk_charge_desc",
+    "design_notes": "豪猪族冲锋，切入并小幅击退"
+  },
+  {
+    "id": "skill_bristle_wall",
+    "type": "passive",
+    "targeting": "self",
+    "cooldown_sec": 4.0,
+    "power": 0.18,
+    "range": 0.0,
+    "radius": 1.5,
+    "duration_sec": 3.0,
+    "effect_tags": [
+      "armor",
+      "retaliate",
+      "thorns"
+    ],
+    "vfx_key": "vfx_bristle_wall",
+    "description_key": "skill_bristle_wall_desc",
+    "design_notes": "稀有豪猪坦克，受击反刺并短时加甲"
+  },
+  {
+    "id": "skill_quill_volley",
+    "type": "active",
+    "targeting": "area",
+    "cooldown_sec": 6.5,
+    "power": 1.2,
+    "range": 4.2,
+    "radius": 2.4,
+    "duration_sec": 0.8,
+    "effect_tags": [
+      "damage",
+      "projectile",
+      "retaliate"
+    ],
+    "vfx_key": "vfx_quill_volley",
+    "description_key": "skill_quill_volley_desc",
+    "design_notes": "史诗豪猪齐射，远程群伤并强化反击主题"
+  },
+  {
+    "id": "skill_bone_swarm",
+    "type": "active",
+    "targeting": "area",
+    "cooldown_sec": 5.0,
+    "power": 0.8,
+    "range": 2.0,
+    "radius": 2.0,
+    "duration_sec": 0.6,
+    "effect_tags": [
+      "summon",
+      "swarm",
+      "damage"
+    ],
+    "vfx_key": "vfx_bone_swarm",
+    "description_key": "skill_bone_swarm_desc",
+    "design_notes": "亡灵小怪群涌，数量感优先于单体强度"
+  },
+  {
+    "id": "skill_grave_arrow",
+    "type": "attack",
+    "targeting": "nearest_enemy",
+    "cooldown_sec": 1.4,
+    "power": 1.15,
+    "range": 5.2,
+    "radius": 0.0,
+    "duration_sec": 3.0,
+    "effect_tags": [
+      "damage",
+      "curse",
+      "projectile"
+    ],
+    "vfx_key": "vfx_grave_arrow",
+    "description_key": "skill_grave_arrow_desc",
+    "design_notes": "稀有亡灵远程，命中后诅咒降防"
+  },
+  {
+    "id": "skill_wraith_return",
+    "type": "passive",
+    "targeting": "self",
+    "cooldown_sec": 12.0,
+    "power": 0.45,
+    "range": 0.0,
+    "radius": 0.0,
+    "duration_sec": 4.0,
+    "effect_tags": [
+      "revive",
+      "ghost",
+      "haste"
+    ],
+    "vfx_key": "vfx_wraith_return",
+    "description_key": "skill_wraith_return_desc",
+    "design_notes": "史诗亡灵第一次死亡后返场，持续时间结束再消散"
   }
 ]

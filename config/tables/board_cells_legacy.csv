@@ -1,0 +1,13 @@
+id,name_key,terrain_type,unlock_stage,reveal_pool_id,base_reveal_cost,cost_growth,appearance_weight,appearance_probability_pct,risk_level,effect_tags,notes
+cell_grassland,cell_grassland_name,plain,stage_tutorial_01,reveal_pool_early,3,1.10,24,24.0,1,safe|resource,基础展开格，低价高概率，常出金币或继续扩张
+cell_forest_den,cell_forest_den_name,forest,stage_tutorial_01,reveal_pool_beast,5,1.12,14,14.0,2,beast|spawn,野兽主题格，翻出快跑或同族光环单位
+cell_swamp_pool,cell_swamp_pool_name,swamp,stage_field_01,reveal_pool_marsh,6,1.14,10,10.0,2,slow|poison|regen,沼泽主题格，偏毒和回复，适合反推拖场效果
+cell_ruined_cache,cell_ruined_cache_name,ruin,stage_field_01,reveal_pool_treasure,8,1.18,9,9.0,1,treasure|item,奖励格，价格较高但主要出装备和资源
+cell_crystal_vein,cell_crystal_vein_name,crystal,stage_field_01,reveal_pool_crystal,9,1.20,8,8.0,1,currency|elemental,晶矿格，出宝石和元素单位，适合做亮闪反馈
+cell_ambush_pit,cell_ambush_pit_name,hazard,stage_field_01,reveal_pool_ambush,4,1.12,9,9.0,3,trap|enemy,危险低价格，容易翻出伏击和敌人
+cell_tide_shore,cell_tide_shore_name,water,stage_field_01,reveal_pool_tide,7,1.15,7,7.0,2,water|ranged,水岸格，偏远程和减速护盾
+cell_bone_field,cell_bone_field_name,bone,stage_field_01,reveal_pool_undead,8,1.16,6,6.0,3,undead|curse,亡灵格，出复活和诅咒效果，风险偏高
+cell_workshop_ruins,cell_workshop_ruins_name,workshop,stage_field_01,reveal_pool_workshop,7,1.16,5,5.0,2,clockwork|repair,机械格，出炮台和修复核心
+cell_dragon_roost,cell_dragon_roost_name,nest,stage_field_01,reveal_pool_dragon,10,1.22,3,3.0,3,dragonkin|aoe,龙巢高价低概率，出强范围爆发单位
+cell_bristle_camp,cell_bristle_camp_name,forest,stage_field_01,reveal_pool_bristle,6,1.15,3,3.0,2,boarfolk|retaliate,豪猪营地，突出冲锋和反刺
+cell_fiend_rift,cell_fiend_rift_name,hazard,stage_field_01,reveal_pool_fiend,9,1.20,2,2.0,4,fiend|risk|burst,邪裔裂隙，低出现率高波动，适合视频里的惊喜翻格

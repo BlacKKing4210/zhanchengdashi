@@ -1,0 +1,9 @@
+pool_id,entry_id,entry_type,weight,probability_pct,min_count,max_count,notes
+reveal_pool_question,empty,empty,70,70.0,0,0,问号购买后70%为空，只播放翻开反馈
+reveal_pool_question,defense_cards_question,defense_pool,10,10.0,1,1,问号购买后10%抽一张基础防御塔卡
+reveal_pool_question,unit_cards_question,unit_pool,10,10.0,1,1,问号购买后10%抽一张基础单位卡
+reveal_pool_question,gold,currency,10,10.0,25,40,问号购买后10%直接给金币
+reveal_pool_unit_tile,selected_price_unit_pool,unit_pool,100,100.0,1,1,单位地块购买后，根据开局已随机出的价格行选择对应 unit_card_pool_id
+reveal_pool_defense_tile,selected_price_defense_pool,defense_pool,100,100.0,1,1,防御地块购买后，根据开局已随机出的价格行选择对应 defense_card_pool_id
+reveal_pool_gold_mine,cell_gold_mine,gold_mine,100,100.0,1,1,金矿固定结果，价格50，占领后每3秒10金币
+reveal_pool_home_base,cell_home_base,fixed,100,100.0,1,1,大本营固定存在，不参与普通随机，默认每3秒12金币

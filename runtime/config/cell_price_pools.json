@@ -1,0 +1,32 @@
+[
+  {
+    "pool_id": "price_pool_unit_defense",
+    "price": 50,
+    "weight": 30,
+    "probability_pct": 30.0,
+    "quality_tier": "low",
+    "unit_card_pool_id": "unit_cards_price_50",
+    "defense_card_pool_id": "defense_cards_price_50",
+    "notes": "低价地块，常见卡权重大，少量稀有和史诗"
+  },
+  {
+    "pool_id": "price_pool_unit_defense",
+    "price": 100,
+    "weight": 50,
+    "probability_pct": 50.0,
+    "quality_tier": "mid",
+    "unit_card_pool_id": "unit_cards_price_100",
+    "defense_card_pool_id": "defense_cards_price_100",
+    "notes": "中价地块，稀有和史诗权重明显提高"
+  },
+  {
+    "pool_id": "price_pool_unit_defense",
+    "price": 250,
+    "weight": 20,
+    "probability_pct": 20.0,
+    "quality_tier": "high",
+    "unit_card_pool_id": "unit_cards_price_250",
+    "defense_card_pool_id": "defense_cards_price_250",
+    "notes": "高价地块，史诗和传说权重最高"
+  }
+]

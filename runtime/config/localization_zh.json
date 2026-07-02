@@ -6,7 +6,7 @@
   },
   {
     "key": "unit_ranger_name",
-    "zh_cn": "游击弩手",
+    "zh_cn": "游击弓手",
     "en_us": "Roving Ranger"
   },
   {
@@ -20,9 +20,179 @@
     "en_us": "Armored Brute"
   },
   {
+    "key": "unit_beast_swift_fox_name",
+    "zh_cn": "疾步狐",
+    "en_us": "Swift Fox"
+  },
+  {
+    "key": "unit_beast_alpha_wolf_name",
+    "zh_cn": "领嚎狼",
+    "en_us": "Alpha Wolf"
+  },
+  {
+    "key": "unit_beast_thunder_bear_name",
+    "zh_cn": "雷掌熊",
+    "en_us": "Thunder Bear"
+  },
+  {
+    "key": "unit_fiend_imp_runner_name",
+    "zh_cn": "烬爪小邪裔",
+    "en_us": "Ember Imp Runner"
+  },
+  {
+    "key": "unit_fiend_pact_bruiser_name",
+    "zh_cn": "血契蛮徒",
+    "en_us": "Pact Bruiser"
+  },
+  {
+    "key": "unit_fiend_rift_lord_name",
+    "zh_cn": "裂隙领主",
+    "en_us": "Rift Lord"
+  },
+  {
+    "key": "unit_dragonkin_spark_whelp_name",
+    "zh_cn": "火星幼龙",
+    "en_us": "Spark Whelp"
+  },
+  {
+    "key": "unit_dragonkin_sky_drake_name",
+    "zh_cn": "天焰飞龙",
+    "en_us": "Sky Drake"
+  },
+  {
+    "key": "unit_dragonkin_ancient_wyrm_name",
+    "zh_cn": "古老巨龙",
+    "en_us": "Ancient Wyrm"
+  },
+  {
+    "key": "unit_elemental_spark_name",
+    "zh_cn": "电火元素",
+    "en_us": "Spark Elemental"
+  },
+  {
+    "key": "unit_elemental_stone_name",
+    "zh_cn": "磐石元素",
+    "en_us": "Stone Elemental"
+  },
+  {
+    "key": "unit_elemental_storm_name",
+    "zh_cn": "风暴元素",
+    "en_us": "Storm Elemental"
+  },
+  {
+    "key": "unit_clockwork_gearling_name",
+    "zh_cn": "齿轮兵",
+    "en_us": "Gearling"
+  },
+  {
+    "key": "unit_clockwork_cannon_walker_name",
+    "zh_cn": "炮台步机",
+    "en_us": "Cannon Walker"
+  },
+  {
+    "key": "unit_clockwork_repair_core_name",
+    "zh_cn": "修复核心",
+    "en_us": "Repair Core"
+  },
+  {
+    "key": "unit_marshkin_tide_scout_name",
+    "zh_cn": "潮泽斥候",
+    "en_us": "Tide Scout"
+  },
+  {
+    "key": "unit_marshkin_bog_shaman_name",
+    "zh_cn": "泥沼萨满",
+    "en_us": "Bog Shaman"
+  },
+  {
+    "key": "unit_marshkin_mud_champion_name",
+    "zh_cn": "泥浪斗士",
+    "en_us": "Mud Champion"
+  },
+  {
+    "key": "unit_serpentfolk_reef_lancer_name",
+    "zh_cn": "礁枪卫",
+    "en_us": "Reef Lancer"
+  },
+  {
+    "key": "unit_serpentfolk_siren_archer_name",
+    "zh_cn": "鸣潮射手",
+    "en_us": "Siren Archer"
+  },
+  {
+    "key": "unit_serpentfolk_tide_oracle_name",
+    "zh_cn": "潮汐先知",
+    "en_us": "Tide Oracle"
+  },
+  {
+    "key": "unit_pirate_corsair_name",
+    "zh_cn": "弯刀海盗",
+    "en_us": "Corsair"
+  },
+  {
+    "key": "unit_pirate_bombardier_name",
+    "zh_cn": "火药炮手",
+    "en_us": "Bombardier"
+  },
+  {
+    "key": "unit_pirate_admiral_name",
+    "zh_cn": "舰队统领",
+    "en_us": "Fleet Admiral"
+  },
+  {
+    "key": "unit_boarfolk_tusk_runner_name",
+    "zh_cn": "冲牙奔袭者",
+    "en_us": "Tusk Runner"
+  },
+  {
+    "key": "unit_boarfolk_bristle_guard_name",
+    "zh_cn": "钢鬃守卫",
+    "en_us": "Bristle Guard"
+  },
+  {
+    "key": "unit_boarfolk_quill_captain_name",
+    "zh_cn": "刺羽队长",
+    "en_us": "Quill Captain"
+  },
+  {
+    "key": "unit_undead_bone_minion_name",
+    "zh_cn": "碎骨仆从",
+    "en_us": "Bone Minion"
+  },
+  {
+    "key": "unit_undead_grave_archer_name",
+    "zh_cn": "墓地射手",
+    "en_us": "Grave Archer"
+  },
+  {
+    "key": "unit_undead_wraith_knight_name",
+    "zh_cn": "幽魂骑士",
+    "en_us": "Wraith Knight"
+  },
+  {
+    "key": "defense_watch_tower_name",
+    "zh_cn": "哨戒箭塔",
+    "en_us": "Watch Tower"
+  },
+  {
+    "key": "defense_cannon_tower_name",
+    "zh_cn": "火炮塔",
+    "en_us": "Cannon Tower"
+  },
+  {
+    "key": "defense_repair_beacon_name",
+    "zh_cn": "修复信标",
+    "en_us": "Repair Beacon"
+  },
+  {
+    "key": "defense_storm_obelisk_name",
+    "zh_cn": "风暴方尖碑",
+    "en_us": "Storm Obelisk"
+  },
+  {
     "key": "skill_guardian_slam_desc",
     "zh_cn": "向前重击并短暂击退敌人",
-    "en_us": "Slam forward and briefly knock enemies back"
+    "en_us": "Slam forward and knock enemies back"
   },
   {
     "key": "skill_ranger_shot_desc",
@@ -31,7 +201,7 @@
   },
   {
     "key": "skill_grunt_claw_desc",
-    "zh_cn": "近距离挥击目标",
+    "zh_cn": "近距离抓击目标",
     "en_us": "Swipe a nearby target"
   },
   {
@@ -40,8 +210,158 @@
     "en_us": "Charge forward and deal area damage"
   },
   {
+    "key": "skill_quick_bite_desc",
+    "zh_cn": "快速撕咬敌人并短暂加速",
+    "en_us": "Bite quickly and gain a brief speed burst"
+  },
+  {
+    "key": "skill_alpha_howl_desc",
+    "zh_cn": "嚎叫提升附近同族的攻击速度",
+    "en_us": "Howl to boost nearby pack attack speed"
+  },
+  {
+    "key": "skill_thunder_maul_desc",
+    "zh_cn": "重击地面造成伤害和短暂眩晕",
+    "en_us": "Slam the ground for damage and a short stun"
+  },
+  {
+    "key": "skill_scorch_claw_desc",
+    "zh_cn": "爪击附带持续灼烧",
+    "en_us": "Claw with a burning wound"
+  },
+  {
+    "key": "skill_blood_pact_desc",
+    "zh_cn": "牺牲少量生命换取吸血和狂暴",
+    "en_us": "Trade health for lifesteal and rage"
+  },
+  {
+    "key": "skill_rift_overlord_desc",
+    "zh_cn": "打开裂隙召唤援兵并造成爆发",
+    "en_us": "Open a rift to summon allies and burst damage"
+  },
+  {
+    "key": "skill_ember_spit_desc",
+    "zh_cn": "喷吐火星造成小范围溅射",
+    "en_us": "Spit embers with small splash damage"
+  },
+  {
+    "key": "skill_flame_fan_desc",
+    "zh_cn": "向前喷出扇形火焰",
+    "en_us": "Breathe a cone of flame forward"
+  },
+  {
+    "key": "skill_meteor_breath_desc",
+    "zh_cn": "召下陨火造成大范围伤害",
+    "en_us": "Call meteor fire over a large area"
+  },
+  {
+    "key": "skill_spark_arc_desc",
+    "zh_cn": "电弧弹射到额外目标",
+    "en_us": "Arc lightning to extra targets"
+  },
+  {
+    "key": "skill_stone_skin_desc",
+    "zh_cn": "生成岩壳护盾抵挡伤害",
+    "en_us": "Gain a rocky shield"
+  },
+  {
+    "key": "skill_chain_storm_desc",
+    "zh_cn": "召唤链式风暴打击多个敌人",
+    "en_us": "Call a chained storm against several enemies"
+  },
+  {
+    "key": "skill_gear_punch_desc",
+    "zh_cn": "齿轮拳击造成近战伤害",
+    "en_us": "Punch with gear driven force"
+  },
+  {
+    "key": "skill_cannon_blast_desc",
+    "zh_cn": "发射炮弹造成远程范围伤害",
+    "en_us": "Fire a shell for ranged area damage"
+  },
+  {
+    "key": "skill_repair_field_desc",
+    "zh_cn": "展开修复场治疗并提供护盾",
+    "en_us": "Create a repair field with healing and shields"
+  },
+  {
+    "key": "skill_tide_dash_desc",
+    "zh_cn": "向前潮涌突刺并造成伤害",
+    "en_us": "Dash forward with a tide strike"
+  },
+  {
+    "key": "skill_mire_totem_desc",
+    "zh_cn": "放置泥沼图腾让敌人中毒并回复友军",
+    "en_us": "Place a mire totem that poisons enemies and heals allies"
+  },
+  {
+    "key": "skill_mud_wave_desc",
+    "zh_cn": "推出泥浪伤害并减速敌人",
+    "en_us": "Send a mud wave that damages and slows"
+  },
+  {
+    "key": "skill_reef_javelin_desc",
+    "zh_cn": "投出穿透直线的礁枪",
+    "en_us": "Throw a piercing reef javelin"
+  },
+  {
+    "key": "skill_siren_focus_desc",
+    "zh_cn": "短暂专注以提高远程伤害",
+    "en_us": "Focus briefly to increase ranged damage"
+  },
+  {
+    "key": "skill_tide_oracle_barrier_desc",
+    "zh_cn": "为友军加盾并减速附近敌人",
+    "en_us": "Shield allies and slow nearby enemies"
+  },
+  {
+    "key": "skill_cutlass_combo_desc",
+    "zh_cn": "连续挥砍造成高频近战伤害",
+    "en_us": "Slash in a fast cutlass combo"
+  },
+  {
+    "key": "skill_powder_keg_desc",
+    "zh_cn": "投掷火药桶延迟爆炸",
+    "en_us": "Throw a powder keg that explodes after a delay"
+  },
+  {
+    "key": "skill_admiral_barrage_desc",
+    "zh_cn": "呼叫炮击并提升友军开火节奏",
+    "en_us": "Call a barrage and quicken allied fire"
+  },
+  {
+    "key": "skill_tusk_charge_desc",
+    "zh_cn": "向前冲锋并击退敌人",
+    "en_us": "Charge forward and knock enemies back"
+  },
+  {
+    "key": "skill_bristle_wall_desc",
+    "zh_cn": "进入防御姿态并反刺攻击者",
+    "en_us": "Brace up and retaliate with bristles"
+  },
+  {
+    "key": "skill_quill_volley_desc",
+    "zh_cn": "齐射尖刺造成范围伤害",
+    "en_us": "Volley quills over an area"
+  },
+  {
+    "key": "skill_bone_swarm_desc",
+    "zh_cn": "唤起碎骨群涌向敌人",
+    "en_us": "Raise a swarm of bones"
+  },
+  {
+    "key": "skill_grave_arrow_desc",
+    "zh_cn": "射出诅咒箭降低目标防御",
+    "en_us": "Fire a cursed arrow that weakens defense"
+  },
+  {
+    "key": "skill_wraith_return_desc",
+    "zh_cn": "首次倒下后化为幽魂短暂返场",
+    "en_us": "Return as a wraith after first defeat"
+  },
+  {
     "key": "item_training_blade_name",
-    "zh_cn": "训练短刃",
+    "zh_cn": "训练短刀",
     "en_us": "Training Blade"
   },
   {
@@ -63,5 +383,30 @@
     "key": "stage_field_01_name",
     "zh_cn": "荒原巡防",
     "en_us": "Wasteland Patrol"
+  },
+  {
+    "key": "cell_question_name",
+    "zh_cn": "神秘问号",
+    "en_us": "Mystery Cell"
+  },
+  {
+    "key": "cell_unit_name",
+    "zh_cn": "招募地块",
+    "en_us": "Unit Cell"
+  },
+  {
+    "key": "cell_defense_name",
+    "zh_cn": "防御地块",
+    "en_us": "Defense Cell"
+  },
+  {
+    "key": "cell_gold_mine_name",
+    "zh_cn": "金矿",
+    "en_us": "Gold Mine"
+  },
+  {
+    "key": "cell_home_base_name",
+    "zh_cn": "大本营",
+    "en_us": "Home Base"
   }
 ]

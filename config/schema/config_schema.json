@@ -26,11 +26,44 @@
         "duration_sec": { "type": "float", "required": true },
         "effect_tags": { "type": "list", "required": false },
         "vfx_key": { "type": "id", "required": false },
-        "description_key": { "type": "id", "required": true }
+        "description_key": { "type": "id", "required": true },
+        "design_notes": { "type": "string", "required": false }
       },
       "references": [
         { "field": "description_key", "table": "localization_zh", "column": "key" }
       ]
+    },
+    "cards": {
+      "file": "config/tables/cards.csv",
+      "unique": "id",
+      "fields": {
+        "id": { "type": "id", "required": true },
+        "name": { "type": "string", "required": true },
+        "rarity": { "type": "enum", "required": true, "values": ["common", "rare", "epic", "legendary"] },
+        "tier": { "type": "int", "required": true },
+        "art_path": { "type": "string", "required": true },
+        "attack": { "type": "int", "required": true },
+        "max_hp": { "type": "int", "required": true },
+        "move_speed": { "type": "float", "required": true },
+        "attack_range": { "type": "float", "required": true },
+        "summon_interval_sec": { "type": "float", "required": true },
+        "skill_id": { "type": "id", "required": false },
+        "skill_trigger": {
+          "type": "enum",
+          "required": false,
+          "values": ["on_spawn", "on_attack", "on_death", "aura", "on_interval", "on_damage", "on_capture"]
+        },
+        "skill_effect": {
+          "type": "enum",
+          "required": false,
+          "values": ["damage", "shield", "heal", "buff_attack", "buff_hp", "buff_speed", "slow", "stun", "summon", "gold", "repair", "thorns", "execute", "copy", "revive"]
+        },
+        "skill_power": { "type": "float", "required": false },
+        "skill_cooldown_sec": { "type": "float", "required": false },
+        "skill_text": { "type": "string", "required": false },
+        "tags": { "type": "list", "required": false },
+        "design_notes": { "type": "string", "required": false }
+      }
     },
     "units": {
       "file": "config/tables/units.csv",
@@ -40,14 +73,55 @@
         "name_key": { "type": "id", "required": true },
         "role": { "type": "enum", "required": true, "values": ["hero", "enemy", "summon", "boss"] },
         "rarity": { "type": "enum", "required": true, "values": ["common", "rare", "epic", "legendary"] },
+        "species": {
+          "type": "enum",
+          "required": true,
+          "values": [
+            "human",
+            "beast",
+            "fiend",
+            "dragonkin",
+            "elemental",
+            "clockwork",
+            "marshkin",
+            "serpentfolk",
+            "pirate",
+            "boarfolk",
+            "undead"
+          ]
+        },
         "max_hp": { "type": "int", "required": true },
         "move_speed": { "type": "float", "required": true },
         "attack_range": { "type": "float", "required": true },
         "base_damage": { "type": "int", "required": true },
         "attack_cooldown_sec": { "type": "float", "required": true },
         "skill_id": { "type": "id", "required": true },
+        "shop_cost": { "type": "int", "required": true },
         "unlock_stage": { "type": "id", "required": false },
-        "tags": { "type": "list", "required": false }
+        "tags": { "type": "list", "required": false },
+        "design_notes": { "type": "string", "required": false }
+      },
+      "references": [
+        { "field": "name_key", "table": "localization_zh", "column": "key" },
+        { "field": "skill_id", "table": "skills", "column": "id" },
+        { "field": "unlock_stage", "table": "stages", "column": "id", "allow_empty": true }
+      ]
+    },
+    "defenses": {
+      "file": "config/tables/defenses.csv",
+      "unique": "id",
+      "fields": {
+        "id": { "type": "id", "required": true },
+        "name_key": { "type": "id", "required": true },
+        "rarity": { "type": "enum", "required": true, "values": ["common", "rare", "epic", "legendary"] },
+        "max_hp": { "type": "int", "required": true },
+        "attack_range": { "type": "float", "required": true },
+        "base_damage": { "type": "int", "required": true },
+        "attack_cooldown_sec": { "type": "float", "required": true },
+        "skill_id": { "type": "id", "required": true },
+        "unlock_stage": { "type": "id", "required": false },
+        "tags": { "type": "list", "required": false },
+        "design_notes": { "type": "string", "required": false }
       },
       "references": [
         { "field": "name_key", "table": "localization_zh", "column": "key" },
@@ -96,6 +170,102 @@
         { "field": "reward_pool_id", "table": "drop_pools", "column": "pool_id" }
       ]
     },
+    "board_rules": {
+      "file": "config/tables/board_rules.csv",
+      "unique": "id",
+      "fields": {
+        "id": { "type": "id", "required": true },
+        "map_key": { "type": "id", "required": true },
+        "randomize_cell_type_at_start": { "type": "bool", "required": true },
+        "randomize_price_at_start": { "type": "bool", "required": true },
+        "lock_cell_type_after_generation": { "type": "bool", "required": true },
+        "lock_price_after_generation": { "type": "bool", "required": true },
+        "mirror_axis": { "type": "enum", "required": true, "values": ["horizontal", "vertical", "none"] },
+        "mirror_anchor": { "type": "enum", "required": true, "values": ["map_center", "none"] },
+        "mirror_source": { "type": "enum", "required": true, "values": ["upper_to_lower", "lower_to_upper", "paired_rng", "none"] },
+        "cell_type_weight_table": { "type": "id", "required": true },
+        "notes": { "type": "string", "required": false }
+      }
+    },
+    "board_cells": {
+      "file": "config/tables/board_cell_types.csv",
+      "unique": "id",
+      "fields": {
+        "id": { "type": "id", "required": true },
+        "name_key": { "type": "id", "required": true },
+        "cell_type": { "type": "enum", "required": true, "values": ["question", "unit", "defense", "gold_mine", "home_base"] },
+        "unlock_stage": { "type": "id", "required": false },
+        "reveal_pool_id": { "type": "id", "required": true },
+        "price_mode": { "type": "enum", "required": true, "values": ["fixed", "random_pool", "free"] },
+        "fixed_price": { "type": "int", "required": true },
+        "price_pool_id": { "type": "id", "required": false },
+        "income_currency": { "type": "enum", "required": true, "values": ["none", "gold", "gem", "energy", "exp"] },
+        "income_amount": { "type": "int", "required": true },
+        "income_interval_sec": { "type": "float", "required": true },
+        "appearance_weight": { "type": "int", "required": true },
+        "appearance_probability_pct": { "type": "float", "required": true },
+        "risk_level": { "type": "int", "required": true },
+        "effect_tags": { "type": "list", "required": false },
+        "notes": { "type": "string", "required": false }
+      },
+      "references": [
+        { "field": "name_key", "table": "localization_zh", "column": "key" },
+        { "field": "unlock_stage", "table": "stages", "column": "id", "allow_empty": true },
+        { "field": "reveal_pool_id", "table": "cell_reveal_pools", "column": "pool_id" },
+        { "field": "price_pool_id", "table": "cell_price_pools", "column": "pool_id", "allow_empty": true }
+      ]
+    },
+    "cell_price_pools": {
+      "file": "config/tables/cell_price_pools.csv",
+      "unique_group": ["pool_id", "price"],
+      "fields": {
+        "pool_id": { "type": "id", "required": true },
+        "price": { "type": "int", "required": true },
+        "weight": { "type": "int", "required": true },
+        "probability_pct": { "type": "float", "required": true },
+        "quality_tier": { "type": "enum", "required": true, "values": ["low", "mid", "high"] },
+        "unit_card_pool_id": { "type": "id", "required": true },
+        "defense_card_pool_id": { "type": "id", "required": true },
+        "notes": { "type": "string", "required": false }
+      },
+      "references": [
+        { "field": "unit_card_pool_id", "table": "card_random_pools", "column": "pool_id" },
+        { "field": "defense_card_pool_id", "table": "card_random_pools", "column": "pool_id" }
+      ]
+    },
+    "cell_reveal_pools": {
+      "file": "config/tables/cell_reveal_rules.csv",
+      "unique_group": ["pool_id", "entry_id", "entry_type"],
+      "fields": {
+        "pool_id": { "type": "id", "required": true },
+        "entry_id": { "type": "id", "required": true },
+        "entry_type": {
+          "type": "enum",
+          "required": true,
+          "values": ["empty", "unit_pool", "defense_pool", "currency", "gold_mine", "fixed", "buff", "trap"]
+        },
+        "weight": { "type": "int", "required": true },
+        "probability_pct": { "type": "float", "required": true },
+        "min_count": { "type": "int", "required": true },
+        "max_count": { "type": "int", "required": true },
+        "notes": { "type": "string", "required": false }
+      }
+    },
+    "card_random_pools": {
+      "file": "config/tables/card_random_pools.csv",
+      "unique_group": ["pool_id", "entry_id", "entry_type"],
+      "fields": {
+        "pool_id": { "type": "id", "required": true },
+        "entry_id": { "type": "id", "required": true },
+        "entry_type": { "type": "enum", "required": true, "values": ["unit", "defense"] },
+        "rarity": { "type": "enum", "required": true, "values": ["common", "rare", "epic", "legendary"] },
+        "weight": { "type": "int", "required": true },
+        "probability_pct": { "type": "float", "required": true },
+        "min_count": { "type": "int", "required": true },
+        "max_count": { "type": "int", "required": true },
+        "notes": { "type": "string", "required": false }
+      }
+    },
     "drop_pools": {
       "file": "config/tables/drop_pools.csv",
       "unique_group": ["pool_id", "entry_id"],
@@ -121,7 +291,7 @@
       }
     },
     "localization_zh": {
-      "file": "config/tables/localization_zh.csv",
+      "file": "config/tables/localization_zh_runtime.csv",
       "unique": "key",
       "fields": {
         "key": { "type": "id", "required": true },

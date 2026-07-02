@@ -1,0 +1,2 @@
+id,map_key,randomize_cell_type_at_start,randomize_price_at_start,lock_cell_type_after_generation,lock_price_after_generation,mirror_axis,mirror_anchor,mirror_source,cell_type_weight_table,notes
+default_board,map_default,true,true,true,true,horizontal,map_center,upper_to_lower,board_cells,每局开始时先在上半地图按 board_cells.appearance_weight 随机类型和价格，再以地图中心水平轴镜像到下半地图；地块一旦生成类型和价格，本局内不因解锁其他地块而重新随机

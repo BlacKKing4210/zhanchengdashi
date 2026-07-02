@@ -4,9 +4,16 @@
   "tables": [
     "runtime/config/global.json",
     "runtime/config/skills.json",
+    "runtime/config/cards.json",
     "runtime/config/units.json",
+    "runtime/config/defenses.json",
     "runtime/config/items.json",
     "runtime/config/stages.json",
+    "runtime/config/board_rules.json",
+    "runtime/config/board_cells.json",
+    "runtime/config/cell_price_pools.json",
+    "runtime/config/cell_reveal_pools.json",
+    "runtime/config/card_random_pools.json",
     "runtime/config/drop_pools.json",
     "runtime/config/economy.json",
     "runtime/config/localization_zh.json"

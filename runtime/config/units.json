@@ -4,67 +4,703 @@
     "name_key": "unit_guardian_name",
     "role": "hero",
     "rarity": "common",
+    "species": "human",
     "max_hp": 180,
     "move_speed": 3.2,
     "attack_range": 1.5,
     "base_damage": 18,
     "attack_cooldown_sec": 1.4,
     "skill_id": "skill_guardian_slam",
+    "shop_cost": 0,
     "unlock_stage": "stage_tutorial_01",
     "tags": [
       "frontline",
-      "melee"
-    ]
+      "melee",
+      "tank"
+    ],
+    "design_notes": "新手前排模板，血量稳定，技能负责击退和保护后排"
   },
   {
     "id": "hero_ranger",
     "name_key": "unit_ranger_name",
     "role": "hero",
     "rarity": "rare",
+    "species": "human",
     "max_hp": 110,
     "move_speed": 3.8,
     "attack_range": 5.0,
     "base_damage": 14,
     "attack_cooldown_sec": 1.2,
     "skill_id": "skill_ranger_shot",
+    "shop_cost": 0,
     "unlock_stage": "stage_field_01",
     "tags": [
       "ranged",
-      "single_target"
-    ]
+      "single_target",
+      "kite"
+    ],
+    "design_notes": "远程英雄模板，移动略快，负责持续点杀"
   },
   {
     "id": "enemy_grunt",
     "name_key": "enemy_grunt_name",
     "role": "enemy",
     "rarity": "common",
+    "species": "human",
     "max_hp": 70,
     "move_speed": 2.8,
     "attack_range": 1.1,
     "base_damage": 8,
     "attack_cooldown_sec": 1.6,
     "skill_id": "skill_grunt_claw",
+    "shop_cost": 0,
     "unlock_stage": null,
     "tags": [
       "melee",
       "swarm"
-    ]
+    ],
+    "design_notes": "基础近战敌人，用于校验低压群怪节奏"
   },
   {
     "id": "enemy_brute",
     "name_key": "enemy_brute_name",
     "role": "enemy",
     "rarity": "rare",
+    "species": "human",
     "max_hp": 220,
     "move_speed": 2.2,
     "attack_range": 1.4,
     "base_damage": 20,
     "attack_cooldown_sec": 2.0,
     "skill_id": "skill_brute_charge",
+    "shop_cost": 0,
     "unlock_stage": null,
     "tags": [
       "elite",
+      "melee",
+      "charge"
+    ],
+    "design_notes": "精英近战敌人，慢速高血并带冲撞压迫"
+  },
+  {
+    "id": "unit_beast_swift_fox",
+    "name_key": "unit_beast_swift_fox_name",
+    "role": "summon",
+    "rarity": "common",
+    "species": "beast",
+    "max_hp": 85,
+    "move_speed": 5.0,
+    "attack_range": 1.1,
+    "base_damage": 10,
+    "attack_cooldown_sec": 0.9,
+    "skill_id": "skill_quick_bite",
+    "shop_cost": 2,
+    "unlock_stage": "stage_tutorial_01",
+    "tags": [
+      "fast",
+      "melee",
+      "flanker"
+    ],
+    "design_notes": "野兽低费快跑单位，用速度绕后但身板较脆"
+  },
+  {
+    "id": "unit_beast_alpha_wolf",
+    "name_key": "unit_beast_alpha_wolf_name",
+    "role": "summon",
+    "rarity": "rare",
+    "species": "beast",
+    "max_hp": 135,
+    "move_speed": 4.2,
+    "attack_range": 1.2,
+    "base_damage": 18,
+    "attack_cooldown_sec": 1.1,
+    "skill_id": "skill_alpha_howl",
+    "shop_cost": 4,
+    "unlock_stage": "stage_field_01",
+    "tags": [
+      "aura",
+      "melee",
+      "pack"
+    ],
+    "design_notes": "野兽稀有核心，给附近同族加攻速，适合成组出现"
+  },
+  {
+    "id": "unit_beast_thunder_bear",
+    "name_key": "unit_beast_thunder_bear_name",
+    "role": "summon",
+    "rarity": "epic",
+    "species": "beast",
+    "max_hp": 360,
+    "move_speed": 2.4,
+    "attack_range": 1.5,
+    "base_damage": 34,
+    "attack_cooldown_sec": 1.8,
+    "skill_id": "skill_thunder_maul",
+    "shop_cost": 6,
+    "unlock_stage": "stage_field_01",
+    "tags": [
+      "tank",
+      "stun",
+      "high_hp"
+    ],
+    "design_notes": "史诗野兽，高血高伤，重击带短眩晕"
+  },
+  {
+    "id": "unit_fiend_imp_runner",
+    "name_key": "unit_fiend_imp_runner_name",
+    "role": "summon",
+    "rarity": "common",
+    "species": "fiend",
+    "max_hp": 70,
+    "move_speed": 4.7,
+    "attack_range": 1.2,
+    "base_damage": 13,
+    "attack_cooldown_sec": 1.0,
+    "skill_id": "skill_scorch_claw",
+    "shop_cost": 2,
+    "unlock_stage": "stage_tutorial_01",
+    "tags": [
+      "fast",
+      "fragile",
+      "burn"
+    ],
+    "design_notes": "邪裔低费突进，速度快并带微弱灼烧"
+  },
+  {
+    "id": "unit_fiend_pact_bruiser",
+    "name_key": "unit_fiend_pact_bruiser_name",
+    "role": "summon",
+    "rarity": "rare",
+    "species": "fiend",
+    "max_hp": 165,
+    "move_speed": 3.3,
+    "attack_range": 1.4,
+    "base_damage": 27,
+    "attack_cooldown_sec": 1.4,
+    "skill_id": "skill_blood_pact",
+    "shop_cost": 4,
+    "unlock_stage": "stage_field_01",
+    "tags": [
+      "high_attack",
+      "lifesteal",
+      "risk"
+    ],
+    "design_notes": "邪裔高攻单位，吸血换生存，适合反推高风险高收益"
+  },
+  {
+    "id": "unit_fiend_rift_lord",
+    "name_key": "unit_fiend_rift_lord_name",
+    "role": "summon",
+    "rarity": "legendary",
+    "species": "fiend",
+    "max_hp": 430,
+    "move_speed": 2.7,
+    "attack_range": 2.0,
+    "base_damage": 48,
+    "attack_cooldown_sec": 1.9,
+    "skill_id": "skill_rift_overlord",
+    "shop_cost": 8,
+    "unlock_stage": "stage_field_01",
+    "tags": [
+      "legendary",
+      "summon",
+      "burst"
+    ],
+    "design_notes": "传说邪裔，周期召唤小怪并爆发压场"
+  },
+  {
+    "id": "unit_dragonkin_spark_whelp",
+    "name_key": "unit_dragonkin_spark_whelp_name",
+    "role": "summon",
+    "rarity": "common",
+    "species": "dragonkin",
+    "max_hp": 120,
+    "move_speed": 3.3,
+    "attack_range": 3.8,
+    "base_damage": 15,
+    "attack_cooldown_sec": 1.3,
+    "skill_id": "skill_ember_spit",
+    "shop_cost": 3,
+    "unlock_stage": "stage_tutorial_01",
+    "tags": [
+      "ranged",
+      "splash"
+    ],
+    "design_notes": "龙裔低费远程，射程中等，带轻微溅射"
+  },
+  {
+    "id": "unit_dragonkin_sky_drake",
+    "name_key": "unit_dragonkin_sky_drake_name",
+    "role": "summon",
+    "rarity": "epic",
+    "species": "dragonkin",
+    "max_hp": 260,
+    "move_speed": 3.5,
+    "attack_range": 4.5,
+    "base_damage": 30,
+    "attack_cooldown_sec": 1.5,
+    "skill_id": "skill_flame_fan",
+    "shop_cost": 6,
+    "unlock_stage": "stage_field_01",
+    "tags": [
+      "ranged",
+      "cone",
+      "aoe"
+    ],
+    "design_notes": "史诗龙裔，扇形火焰清群，站位价值高"
+  },
+  {
+    "id": "unit_dragonkin_ancient_wyrm",
+    "name_key": "unit_dragonkin_ancient_wyrm_name",
+    "role": "summon",
+    "rarity": "legendary",
+    "species": "dragonkin",
+    "max_hp": 520,
+    "move_speed": 2.6,
+    "attack_range": 5.2,
+    "base_damage": 42,
+    "attack_cooldown_sec": 2.0,
+    "skill_id": "skill_meteor_breath",
+    "shop_cost": 9,
+    "unlock_stage": "stage_field_01",
+    "tags": [
+      "legendary",
+      "ranged",
+      "aoe"
+    ],
+    "design_notes": "传说龙裔，超远程大范围爆发，费用最高"
+  },
+  {
+    "id": "unit_elemental_spark",
+    "name_key": "unit_elemental_spark_name",
+    "role": "summon",
+    "rarity": "common",
+    "species": "elemental",
+    "max_hp": 90,
+    "move_speed": 3.9,
+    "attack_range": 4.2,
+    "base_damage": 12,
+    "attack_cooldown_sec": 0.95,
+    "skill_id": "skill_spark_arc",
+    "shop_cost": 2,
+    "unlock_stage": "stage_tutorial_01",
+    "tags": [
+      "ranged",
+      "chain"
+    ],
+    "design_notes": "元素低费远程，攻速快，弹射伤害低"
+  },
+  {
+    "id": "unit_elemental_stone",
+    "name_key": "unit_elemental_stone_name",
+    "role": "summon",
+    "rarity": "rare",
+    "species": "elemental",
+    "max_hp": 310,
+    "move_speed": 2.0,
+    "attack_range": 1.2,
+    "base_damage": 20,
+    "attack_cooldown_sec": 1.7,
+    "skill_id": "skill_stone_skin",
+    "shop_cost": 4,
+    "unlock_stage": "stage_field_01",
+    "tags": [
+      "tank",
+      "shield",
+      "slow"
+    ],
+    "design_notes": "元素坦克，移动慢但护盾厚"
+  },
+  {
+    "id": "unit_elemental_storm",
+    "name_key": "unit_elemental_storm_name",
+    "role": "summon",
+    "rarity": "epic",
+    "species": "elemental",
+    "max_hp": 210,
+    "move_speed": 3.4,
+    "attack_range": 4.8,
+    "base_damage": 26,
+    "attack_cooldown_sec": 1.2,
+    "skill_id": "skill_chain_storm",
+    "shop_cost": 6,
+    "unlock_stage": "stage_field_01",
+    "tags": [
+      "ranged",
+      "chain",
+      "burst"
+    ],
+    "design_notes": "史诗元素，链式闪电打多目标"
+  },
+  {
+    "id": "unit_clockwork_gearling",
+    "name_key": "unit_clockwork_gearling_name",
+    "role": "summon",
+    "rarity": "common",
+    "species": "clockwork",
+    "max_hp": 150,
+    "move_speed": 2.8,
+    "attack_range": 1.3,
+    "base_damage": 14,
+    "attack_cooldown_sec": 1.2,
+    "skill_id": "skill_gear_punch",
+    "shop_cost": 2,
+    "unlock_stage": "stage_tutorial_01",
+    "tags": [
+      "sturdy",
       "melee"
-    ]
+    ],
+    "design_notes": "机械低费，属性均衡且比普通单位更耐打"
+  },
+  {
+    "id": "unit_clockwork_cannon_walker",
+    "name_key": "unit_clockwork_cannon_walker_name",
+    "role": "summon",
+    "rarity": "rare",
+    "species": "clockwork",
+    "max_hp": 180,
+    "move_speed": 2.3,
+    "attack_range": 5.4,
+    "base_damage": 32,
+    "attack_cooldown_sec": 1.9,
+    "skill_id": "skill_cannon_blast",
+    "shop_cost": 5,
+    "unlock_stage": "stage_field_01",
+    "tags": [
+      "ranged",
+      "high_attack",
+      "slow"
+    ],
+    "design_notes": "机械炮台，跑得慢但射程远伤害高"
+  },
+  {
+    "id": "unit_clockwork_repair_core",
+    "name_key": "unit_clockwork_repair_core_name",
+    "role": "summon",
+    "rarity": "epic",
+    "species": "clockwork",
+    "max_hp": 240,
+    "move_speed": 2.9,
+    "attack_range": 3.0,
+    "base_damage": 16,
+    "attack_cooldown_sec": 1.4,
+    "skill_id": "skill_repair_field",
+    "shop_cost": 6,
+    "unlock_stage": "stage_field_01",
+    "tags": [
+      "support",
+      "shield",
+      "repair"
+    ],
+    "design_notes": "史诗机械辅助，给周围单位修复和护盾"
+  },
+  {
+    "id": "unit_marshkin_tide_scout",
+    "name_key": "unit_marshkin_tide_scout_name",
+    "role": "summon",
+    "rarity": "common",
+    "species": "marshkin",
+    "max_hp": 100,
+    "move_speed": 4.4,
+    "attack_range": 1.5,
+    "base_damage": 11,
+    "attack_cooldown_sec": 0.9,
+    "skill_id": "skill_tide_dash",
+    "shop_cost": 2,
+    "unlock_stage": "stage_tutorial_01",
+    "tags": [
+      "fast",
+      "melee"
+    ],
+    "design_notes": "沼泽族斥候，快跑近战，适合追击残血"
+  },
+  {
+    "id": "unit_marshkin_bog_shaman",
+    "name_key": "unit_marshkin_bog_shaman_name",
+    "role": "summon",
+    "rarity": "rare",
+    "species": "marshkin",
+    "max_hp": 145,
+    "move_speed": 3.1,
+    "attack_range": 4.3,
+    "base_damage": 17,
+    "attack_cooldown_sec": 1.25,
+    "skill_id": "skill_mire_totem",
+    "shop_cost": 4,
+    "unlock_stage": "stage_field_01",
+    "tags": [
+      "ranged",
+      "poison",
+      "regen"
+    ],
+    "design_notes": "沼泽族稀有远程，毒和回复兼具"
+  },
+  {
+    "id": "unit_marshkin_mud_champion",
+    "name_key": "unit_marshkin_mud_champion_name",
+    "role": "summon",
+    "rarity": "epic",
+    "species": "marshkin",
+    "max_hp": 300,
+    "move_speed": 2.8,
+    "attack_range": 1.5,
+    "base_damage": 29,
+    "attack_cooldown_sec": 1.5,
+    "skill_id": "skill_mud_wave",
+    "shop_cost": 6,
+    "unlock_stage": "stage_field_01",
+    "tags": [
+      "control",
+      "tank",
+      "slow"
+    ],
+    "design_notes": "史诗沼泽前排，泥浪减速控场"
+  },
+  {
+    "id": "unit_serpentfolk_reef_lancer",
+    "name_key": "unit_serpentfolk_reef_lancer_name",
+    "role": "summon",
+    "rarity": "common",
+    "species": "serpentfolk",
+    "max_hp": 115,
+    "move_speed": 3.6,
+    "attack_range": 3.6,
+    "base_damage": 16,
+    "attack_cooldown_sec": 1.2,
+    "skill_id": "skill_reef_javelin",
+    "shop_cost": 3,
+    "unlock_stage": "stage_tutorial_01",
+    "tags": [
+      "ranged",
+      "pierce"
+    ],
+    "design_notes": "海蛇族低费远程，标枪穿透一条线"
+  },
+  {
+    "id": "unit_serpentfolk_siren_archer",
+    "name_key": "unit_serpentfolk_siren_archer_name",
+    "role": "summon",
+    "rarity": "rare",
+    "species": "serpentfolk",
+    "max_hp": 130,
+    "move_speed": 3.7,
+    "attack_range": 5.6,
+    "base_damage": 19,
+    "attack_cooldown_sec": 1.15,
+    "skill_id": "skill_siren_focus",
+    "shop_cost": 4,
+    "unlock_stage": "stage_field_01",
+    "tags": [
+      "ranged",
+      "focus",
+      "kite"
+    ],
+    "design_notes": "海蛇族稀有射手，远射程并能短时专注增伤"
+  },
+  {
+    "id": "unit_serpentfolk_tide_oracle",
+    "name_key": "unit_serpentfolk_tide_oracle_name",
+    "role": "summon",
+    "rarity": "epic",
+    "species": "serpentfolk",
+    "max_hp": 210,
+    "move_speed": 3.2,
+    "attack_range": 4.8,
+    "base_damage": 20,
+    "attack_cooldown_sec": 1.35,
+    "skill_id": "skill_tide_oracle_barrier",
+    "shop_cost": 6,
+    "unlock_stage": "stage_field_01",
+    "tags": [
+      "support",
+      "slow",
+      "shield"
+    ],
+    "design_notes": "史诗海蛇辅助，护盾和减速结合"
+  },
+  {
+    "id": "unit_pirate_corsair",
+    "name_key": "unit_pirate_corsair_name",
+    "role": "summon",
+    "rarity": "common",
+    "species": "pirate",
+    "max_hp": 125,
+    "move_speed": 3.5,
+    "attack_range": 1.3,
+    "base_damage": 18,
+    "attack_cooldown_sec": 1.05,
+    "skill_id": "skill_cutlass_combo",
+    "shop_cost": 3,
+    "unlock_stage": "stage_tutorial_01",
+    "tags": [
+      "melee",
+      "high_attack"
+    ],
+    "design_notes": "海盗低费近战，高攻但没有硬控"
+  },
+  {
+    "id": "unit_pirate_bombardier",
+    "name_key": "unit_pirate_bombardier_name",
+    "role": "summon",
+    "rarity": "rare",
+    "species": "pirate",
+    "max_hp": 150,
+    "move_speed": 2.9,
+    "attack_range": 5.0,
+    "base_damage": 28,
+    "attack_cooldown_sec": 1.8,
+    "skill_id": "skill_powder_keg",
+    "shop_cost": 5,
+    "unlock_stage": "stage_field_01",
+    "tags": [
+      "ranged",
+      "aoe",
+      "bomb"
+    ],
+    "design_notes": "海盗炮手，远程范围伤害，适合翻格奖励里的稀有惊喜"
+  },
+  {
+    "id": "unit_pirate_admiral",
+    "name_key": "unit_pirate_admiral_name",
+    "role": "summon",
+    "rarity": "legendary",
+    "species": "pirate",
+    "max_hp": 360,
+    "move_speed": 3.0,
+    "attack_range": 4.4,
+    "base_damage": 38,
+    "attack_cooldown_sec": 1.5,
+    "skill_id": "skill_admiral_barrage",
+    "shop_cost": 8,
+    "unlock_stage": "stage_field_01",
+    "tags": [
+      "legendary",
+      "aura",
+      "ranged"
+    ],
+    "design_notes": "传说海盗，给友军开火节奏并召唤炮击"
+  },
+  {
+    "id": "unit_boarfolk_tusk_runner",
+    "name_key": "unit_boarfolk_tusk_runner_name",
+    "role": "summon",
+    "rarity": "common",
+    "species": "boarfolk",
+    "max_hp": 145,
+    "move_speed": 4.1,
+    "attack_range": 1.2,
+    "base_damage": 16,
+    "attack_cooldown_sec": 1.2,
+    "skill_id": "skill_tusk_charge",
+    "shop_cost": 3,
+    "unlock_stage": "stage_tutorial_01",
+    "tags": [
+      "charge",
+      "fast",
+      "melee"
+    ],
+    "design_notes": "豪猪族低费冲锋，快跑切入"
+  },
+  {
+    "id": "unit_boarfolk_bristle_guard",
+    "name_key": "unit_boarfolk_bristle_guard_name",
+    "role": "summon",
+    "rarity": "rare",
+    "species": "boarfolk",
+    "max_hp": 280,
+    "move_speed": 2.5,
+    "attack_range": 1.3,
+    "base_damage": 22,
+    "attack_cooldown_sec": 1.6,
+    "skill_id": "skill_bristle_wall",
+    "shop_cost": 4,
+    "unlock_stage": "stage_field_01",
+    "tags": [
+      "tank",
+      "retaliate"
+    ],
+    "design_notes": "豪猪族稀有坦克，受击反刺"
+  },
+  {
+    "id": "unit_boarfolk_quill_captain",
+    "name_key": "unit_boarfolk_quill_captain_name",
+    "role": "summon",
+    "rarity": "epic",
+    "species": "boarfolk",
+    "max_hp": 250,
+    "move_speed": 3.1,
+    "attack_range": 3.8,
+    "base_damage": 24,
+    "attack_cooldown_sec": 1.3,
+    "skill_id": "skill_quill_volley",
+    "shop_cost": 6,
+    "unlock_stage": "stage_field_01",
+    "tags": [
+      "ranged",
+      "retaliate",
+      "aura"
+    ],
+    "design_notes": "史诗豪猪指挥，远程齐射并提高同族反击"
+  },
+  {
+    "id": "unit_undead_bone_minion",
+    "name_key": "unit_undead_bone_minion_name",
+    "role": "summon",
+    "rarity": "common",
+    "species": "undead",
+    "max_hp": 75,
+    "move_speed": 3.2,
+    "attack_range": 1.1,
+    "base_damage": 9,
+    "attack_cooldown_sec": 1.0,
+    "skill_id": "skill_bone_swarm",
+    "shop_cost": 2,
+    "unlock_stage": "stage_tutorial_01",
+    "tags": [
+      "swarm",
+      "fragile"
+    ],
+    "design_notes": "亡灵低费群体单位，单体弱但数量感强"
+  },
+  {
+    "id": "unit_undead_grave_archer",
+    "name_key": "unit_undead_grave_archer_name",
+    "role": "summon",
+    "rarity": "rare",
+    "species": "undead",
+    "max_hp": 105,
+    "move_speed": 2.9,
+    "attack_range": 5.2,
+    "base_damage": 21,
+    "attack_cooldown_sec": 1.4,
+    "skill_id": "skill_grave_arrow",
+    "shop_cost": 4,
+    "unlock_stage": "stage_field_01",
+    "tags": [
+      "ranged",
+      "curse"
+    ],
+    "design_notes": "亡灵稀有射手，远程附带诅咒降防"
+  },
+  {
+    "id": "unit_undead_wraith_knight",
+    "name_key": "unit_undead_wraith_knight_name",
+    "role": "summon",
+    "rarity": "epic",
+    "species": "undead",
+    "max_hp": 230,
+    "move_speed": 3.6,
+    "attack_range": 1.6,
+    "base_damage": 31,
+    "attack_cooldown_sec": 1.45,
+    "skill_id": "skill_wraith_return",
+    "shop_cost": 6,
+    "unlock_stage": "stage_field_01",
+    "tags": [
+      "revive",
+      "melee",
+      "elite"
+    ],
+    "design_notes": "史诗亡灵骑士，第一次倒下后短暂返场"
   }
 ]

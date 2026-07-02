@@ -1,0 +1,4 @@
+pool_id,price,weight,probability_pct,quality_tier,unit_card_pool_id,defense_card_pool_id,notes
+price_pool_unit_defense,50,30,30.0,low,unit_cards_price_50,defense_cards_price_50,低价地块，常见卡权重大，少量稀有和史诗
+price_pool_unit_defense,100,50,50.0,mid,unit_cards_price_100,defense_cards_price_100,中价地块，稀有和史诗权重明显提高
+price_pool_unit_defense,250,20,20.0,high,unit_cards_price_250,defense_cards_price_250,高价地块，史诗和传说权重最高

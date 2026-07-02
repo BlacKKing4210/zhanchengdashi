@@ -1,0 +1,83 @@
+key,zh_cn,en_us
+unit_guardian_name,守城先锋,Wall Guardian
+unit_ranger_name,游击弓手,Roving Ranger
+enemy_grunt_name,荒地喽兵,Wasteland Grunt
+enemy_brute_name,重甲蛮兵,Armored Brute
+unit_beast_swift_fox_name,疾步狐,Swift Fox
+unit_beast_alpha_wolf_name,领嚎狼,Alpha Wolf
+unit_beast_thunder_bear_name,雷掌熊,Thunder Bear
+unit_fiend_imp_runner_name,烬爪小邪裔,Ember Imp Runner
+unit_fiend_pact_bruiser_name,血契蛮徒,Pact Bruiser
+unit_fiend_rift_lord_name,裂隙领主,Rift Lord
+unit_dragonkin_spark_whelp_name,火星幼龙,Spark Whelp
+unit_dragonkin_sky_drake_name,天焰飞龙,Sky Drake
+unit_dragonkin_ancient_wyrm_name,古老巨龙,Ancient Wyrm
+unit_elemental_spark_name,电火元素,Spark Elemental
+unit_elemental_stone_name,磐石元素,Stone Elemental
+unit_elemental_storm_name,风暴元素,Storm Elemental
+unit_clockwork_gearling_name,齿轮兵,Gearling
+unit_clockwork_cannon_walker_name,炮台步机,Cannon Walker
+unit_clockwork_repair_core_name,修复核心,Repair Core
+unit_marshkin_tide_scout_name,潮泽斥候,Tide Scout
+unit_marshkin_bog_shaman_name,泥沼萨满,Bog Shaman
+unit_marshkin_mud_champion_name,泥浪斗士,Mud Champion
+unit_serpentfolk_reef_lancer_name,礁枪卫,Reef Lancer
+unit_serpentfolk_siren_archer_name,鸣潮射手,Siren Archer
+unit_serpentfolk_tide_oracle_name,潮汐先知,Tide Oracle
+unit_pirate_corsair_name,弯刀海盗,Corsair
+unit_pirate_bombardier_name,火药炮手,Bombardier
+unit_pirate_admiral_name,舰队统领,Fleet Admiral
+unit_boarfolk_tusk_runner_name,冲牙奔袭者,Tusk Runner
+unit_boarfolk_bristle_guard_name,钢鬃守卫,Bristle Guard
+unit_boarfolk_quill_captain_name,刺羽队长,Quill Captain
+unit_undead_bone_minion_name,碎骨仆从,Bone Minion
+unit_undead_grave_archer_name,墓地射手,Grave Archer
+unit_undead_wraith_knight_name,幽魂骑士,Wraith Knight
+defense_watch_tower_name,哨戒箭塔,Watch Tower
+defense_cannon_tower_name,火炮塔,Cannon Tower
+defense_repair_beacon_name,修复信标,Repair Beacon
+defense_storm_obelisk_name,风暴方尖碑,Storm Obelisk
+skill_guardian_slam_desc,向前重击并短暂击退敌人,Slam forward and knock enemies back
+skill_ranger_shot_desc,射击最近的敌人并造成稳定伤害,Fire at the nearest enemy for steady damage
+skill_grunt_claw_desc,近距离抓击目标,Swipe a nearby target
+skill_brute_charge_desc,向前冲撞并造成范围伤害,Charge forward and deal area damage
+skill_quick_bite_desc,快速撕咬敌人并短暂加速,Bite quickly and gain a brief speed burst
+skill_alpha_howl_desc,嚎叫提升附近同族的攻击速度,Howl to boost nearby pack attack speed
+skill_thunder_maul_desc,重击地面造成伤害和短暂眩晕,Slam the ground for damage and a short stun
+skill_scorch_claw_desc,爪击附带持续灼烧,Claw with a burning wound
+skill_blood_pact_desc,牺牲少量生命换取吸血和狂暴,Trade health for lifesteal and rage
+skill_rift_overlord_desc,打开裂隙召唤援兵并造成爆发,Open a rift to summon allies and burst damage
+skill_ember_spit_desc,喷吐火星造成小范围溅射,Spit embers with small splash damage
+skill_flame_fan_desc,向前喷出扇形火焰,Breathe a cone of flame forward
+skill_meteor_breath_desc,召下陨火造成大范围伤害,Call meteor fire over a large area
+skill_spark_arc_desc,电弧弹射到额外目标,Arc lightning to extra targets
+skill_stone_skin_desc,生成岩壳护盾抵挡伤害,Gain a rocky shield
+skill_chain_storm_desc,召唤链式风暴打击多个敌人,Call a chained storm against several enemies
+skill_gear_punch_desc,齿轮拳击造成近战伤害,Punch with gear driven force
+skill_cannon_blast_desc,发射炮弹造成远程范围伤害,Fire a shell for ranged area damage
+skill_repair_field_desc,展开修复场治疗并提供护盾,Create a repair field with healing and shields
+skill_tide_dash_desc,向前潮涌突刺并造成伤害,Dash forward with a tide strike
+skill_mire_totem_desc,放置泥沼图腾让敌人中毒并回复友军,Place a mire totem that poisons enemies and heals allies
+skill_mud_wave_desc,推出泥浪伤害并减速敌人,Send a mud wave that damages and slows
+skill_reef_javelin_desc,投出穿透直线的礁枪,Throw a piercing reef javelin
+skill_siren_focus_desc,短暂专注以提高远程伤害,Focus briefly to increase ranged damage
+skill_tide_oracle_barrier_desc,为友军加盾并减速附近敌人,Shield allies and slow nearby enemies
+skill_cutlass_combo_desc,连续挥砍造成高频近战伤害,Slash in a fast cutlass combo
+skill_powder_keg_desc,投掷火药桶延迟爆炸,Throw a powder keg that explodes after a delay
+skill_admiral_barrage_desc,呼叫炮击并提升友军开火节奏,Call a barrage and quicken allied fire
+skill_tusk_charge_desc,向前冲锋并击退敌人,Charge forward and knock enemies back
+skill_bristle_wall_desc,进入防御姿态并反刺攻击者,Brace up and retaliate with bristles
+skill_quill_volley_desc,齐射尖刺造成范围伤害,Volley quills over an area
+skill_bone_swarm_desc,唤起碎骨群涌向敌人,Raise a swarm of bones
+skill_grave_arrow_desc,射出诅咒箭降低目标防御,Fire a cursed arrow that weakens defense
+skill_wraith_return_desc,首次倒下后化为幽魂短暂返场,Return as a wraith after first defeat
+item_training_blade_name,训练短刀,Training Blade
+item_guard_charm_name,守备护符,Guard Charm
+item_energy_ration_name,行军口粮,Energy Ration
+stage_tutorial_01_name,城门试炼,Gate Trial
+stage_field_01_name,荒原巡防,Wasteland Patrol
+cell_question_name,神秘问号,Mystery Cell
+cell_unit_name,招募地块,Unit Cell
+cell_defense_name,防御地块,Defense Cell
+cell_gold_mine_name,金矿,Gold Mine
+cell_home_base_name,大本营,Home Base

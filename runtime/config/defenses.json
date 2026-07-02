@@ -1,0 +1,70 @@
+[
+  {
+    "id": "defense_watch_tower",
+    "name_key": "defense_watch_tower_name",
+    "rarity": "common",
+    "max_hp": 180,
+    "attack_range": 5.2,
+    "base_damage": 16,
+    "attack_cooldown_sec": 1.2,
+    "skill_id": "skill_ranger_shot",
+    "unlock_stage": "stage_tutorial_01",
+    "tags": [
+      "tower",
+      "ranged",
+      "single_target"
+    ],
+    "design_notes": "基础防御塔，稳定单体远程输出"
+  },
+  {
+    "id": "defense_cannon_tower",
+    "name_key": "defense_cannon_tower_name",
+    "rarity": "rare",
+    "max_hp": 240,
+    "attack_range": 5.8,
+    "base_damage": 34,
+    "attack_cooldown_sec": 1.9,
+    "skill_id": "skill_cannon_blast",
+    "unlock_stage": "stage_field_01",
+    "tags": [
+      "tower",
+      "ranged",
+      "aoe"
+    ],
+    "design_notes": "稀有炮塔，慢速高伤范围打击"
+  },
+  {
+    "id": "defense_repair_beacon",
+    "name_key": "defense_repair_beacon_name",
+    "rarity": "epic",
+    "max_hp": 220,
+    "attack_range": 3.5,
+    "base_damage": 0,
+    "attack_cooldown_sec": 2.0,
+    "skill_id": "skill_repair_field",
+    "unlock_stage": "stage_field_01",
+    "tags": [
+      "tower",
+      "support",
+      "repair"
+    ],
+    "design_notes": "史诗辅助塔，周期修复附近友军和防御"
+  },
+  {
+    "id": "defense_storm_obelisk",
+    "name_key": "defense_storm_obelisk_name",
+    "rarity": "legendary",
+    "max_hp": 300,
+    "attack_range": 6.0,
+    "base_damage": 42,
+    "attack_cooldown_sec": 2.2,
+    "skill_id": "skill_chain_storm",
+    "unlock_stage": "stage_field_01",
+    "tags": [
+      "tower",
+      "legendary",
+      "chain"
+    ],
+    "design_notes": "传说防御塔，链式闪电清群"
+  }
+]

@@ -1,0 +1,109 @@
+[
+  {
+    "id": "cell_question",
+    "name_key": "cell_question_name",
+    "cell_type": "question",
+    "unlock_stage": "stage_tutorial_01",
+    "reveal_pool_id": "reveal_pool_question",
+    "price_mode": "fixed",
+    "fixed_price": 25,
+    "price_pool_id": null,
+    "income_currency": "none",
+    "income_amount": 0,
+    "income_interval_sec": 0.0,
+    "appearance_weight": 50,
+    "appearance_probability_pct": 50.0,
+    "risk_level": 1,
+    "effect_tags": [
+      "question",
+      "mystery"
+    ],
+    "notes": "开局随机地块类型之一，价格永远25，购买后按问号池抽空/防御/单位/金币"
+  },
+  {
+    "id": "cell_unit",
+    "name_key": "cell_unit_name",
+    "cell_type": "unit",
+    "unlock_stage": "stage_tutorial_01",
+    "reveal_pool_id": "reveal_pool_unit_tile",
+    "price_mode": "random_pool",
+    "fixed_price": 0,
+    "price_pool_id": "price_pool_unit_defense",
+    "income_currency": "none",
+    "income_amount": 0,
+    "income_interval_sec": 0.0,
+    "appearance_weight": 20,
+    "appearance_probability_pct": 20.0,
+    "risk_level": 2,
+    "effect_tags": [
+      "unit",
+      "card"
+    ],
+    "notes": "开局随机出类型和价格，价格从50/100/250中抽，价格越高进入越高品质的单位卡池"
+  },
+  {
+    "id": "cell_defense",
+    "name_key": "cell_defense_name",
+    "cell_type": "defense",
+    "unlock_stage": "stage_tutorial_01",
+    "reveal_pool_id": "reveal_pool_defense_tile",
+    "price_mode": "random_pool",
+    "fixed_price": 0,
+    "price_pool_id": "price_pool_unit_defense",
+    "income_currency": "none",
+    "income_amount": 0,
+    "income_interval_sec": 0.0,
+    "appearance_weight": 20,
+    "appearance_probability_pct": 20.0,
+    "risk_level": 2,
+    "effect_tags": [
+      "defense",
+      "tower",
+      "card"
+    ],
+    "notes": "开局随机出类型和价格，价格池同单位地块，价格越高进入越高品质的防御卡池"
+  },
+  {
+    "id": "cell_gold_mine",
+    "name_key": "cell_gold_mine_name",
+    "cell_type": "gold_mine",
+    "unlock_stage": "stage_tutorial_01",
+    "reveal_pool_id": "reveal_pool_gold_mine",
+    "price_mode": "fixed",
+    "fixed_price": 50,
+    "price_pool_id": null,
+    "income_currency": "gold",
+    "income_amount": 10,
+    "income_interval_sec": 3.0,
+    "appearance_weight": 10,
+    "appearance_probability_pct": 10.0,
+    "risk_level": 1,
+    "effect_tags": [
+      "gold",
+      "income"
+    ],
+    "notes": "默认唯一金矿类型，价格永远50，占领后每3秒产出10金币"
+  },
+  {
+    "id": "cell_home_base",
+    "name_key": "cell_home_base_name",
+    "cell_type": "home_base",
+    "unlock_stage": "stage_tutorial_01",
+    "reveal_pool_id": "reveal_pool_home_base",
+    "price_mode": "free",
+    "fixed_price": 0,
+    "price_pool_id": null,
+    "income_currency": "gold",
+    "income_amount": 12,
+    "income_interval_sec": 3.0,
+    "appearance_weight": 0,
+    "appearance_probability_pct": 0.0,
+    "risk_level": 0,
+    "effect_tags": [
+      "base",
+      "income",
+      "fixed"
+    ],
+    "notes": "固定大本营，不参与普通随机地块池，每3秒产出12金币"
+  }
+]

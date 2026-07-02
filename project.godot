@@ -19,6 +19,13 @@ config/icon="res://icon.svg"
 
 ConfigDB="*res://scripts/core/config_db.gd"
 
+[display]
+
+window/size/viewport_width=1080
+window/size/viewport_height=1920
+window/stretch/mode="canvas_items"
+window/stretch/aspect="expand"
+
 [physics]
 
 3d/physics_engine="Jolt Physics"

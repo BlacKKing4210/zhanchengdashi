@@ -1,0 +1,5 @@
+id,name_key,rarity,max_hp,attack_range,base_damage,attack_cooldown_sec,skill_id,unlock_stage,tags,design_notes
+defense_watch_tower,defense_watch_tower_name,common,180,5.2,16,1.2,skill_ranger_shot,stage_tutorial_01,tower|ranged|single_target,基础防御塔，稳定单体远程输出
+defense_cannon_tower,defense_cannon_tower_name,rare,240,5.8,34,1.9,skill_cannon_blast,stage_field_01,tower|ranged|aoe,稀有炮塔，慢速高伤范围打击
+defense_repair_beacon,defense_repair_beacon_name,epic,220,3.5,0,2.0,skill_repair_field,stage_field_01,tower|support|repair,史诗辅助塔，周期修复附近友军和防御
+defense_storm_obelisk,defense_storm_obelisk_name,legendary,300,6.0,42,2.2,skill_chain_storm,stage_field_01,tower|legendary|chain,传说防御塔，链式闪电清群
