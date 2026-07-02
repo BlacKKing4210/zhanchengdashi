@@ -98,34 +98,34 @@ func _ready() -> void:
 func _process(delta: float) -> void:
   ui_time += delta
   if toast_timer > 0.0:
-    toast_timer -= delta
+	toast_timer -= delta
 
   if screen == SCREEN_BATTLE and not game_over and not pause_open:
-    _update_battle(delta)
+	_update_battle(delta)
 
   queue_redraw()
 
 
 func _unhandled_input(event: InputEvent) -> void:
   if event is InputEventMouseButton:
-    if screen == SCREEN_DECK and event.pressed:
-      if event.button_index == MOUSE_BUTTON_WHEEL_UP:
-        _scroll_deck(-82.0)
-        return
-      if event.button_index == MOUSE_BUTTON_WHEEL_DOWN:
-        _scroll_deck(82.0)
-        return
-    if event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
-      _handle_tap(event.position)
+	if screen == SCREEN_DECK and event.pressed:
+	  if event.button_index == MOUSE_BUTTON_WHEEL_UP:
+		_scroll_deck(-82.0)
+		return
+	  if event.button_index == MOUSE_BUTTON_WHEEL_DOWN:
+		_scroll_deck(82.0)
+		return
+	if event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+	  _handle_tap(event.position)
   elif event is InputEventScreenTouch and event.pressed:
-    _handle_tap(event.position)
+	_handle_tap(event.position)
   elif screen == SCREEN_DECK and event is InputEventScreenDrag:
-    _scroll_deck(-event.relative.y / maxf(canvas_scale, 0.001))
+	_scroll_deck(-event.relative.y / maxf(canvas_scale, 0.001))
   elif event is InputEventKey and event.pressed and not event.echo:
-    if event.keycode == KEY_R:
-      _reset_battle()
-    elif event.keycode == KEY_ESCAPE and screen == SCREEN_BATTLE:
-      pause_open = not pause_open
+	if event.keycode == KEY_R:
+	  _reset_battle()
+	elif event.keycode == KEY_ESCAPE and screen == SCREEN_BATTLE:
+	  pause_open = not pause_open
 
 
 func _handle_tap(screen_pos: Vector2) -> void:
@@ -133,43 +133,43 @@ func _handle_tap(screen_pos: Vector2) -> void:
   var pos = _screen_to_canvas(screen_pos)
 
   if screen != SCREEN_BATTLE:
-    if _handle_nav(pos):
-      return
+	if _handle_nav(pos):
+	  return
   if screen == SCREEN_LOBBY and _start_rect().has_point(pos):
-    screen = SCREEN_BATTLE
-    _reset_battle()
-    return
+	screen = SCREEN_BATTLE
+	_reset_battle()
+	return
   if screen == SCREEN_DECK:
-    _handle_deck_tap(pos)
-    return
+	_handle_deck_tap(pos)
+	return
 
   if game_over:
-    screen = SCREEN_LOBBY
-    _reset_battle()
-    return
+	screen = SCREEN_LOBBY
+	_reset_battle()
+	return
 
   if pause_open:
-    if _pause_continue_rect().has_point(pos):
-      pause_open = false
-    elif _pause_exit_rect().has_point(pos):
-      _finish_battle("失败")
-      screen = SCREEN_LOBBY
-      return
+	if _pause_continue_rect().has_point(pos):
+	  pause_open = false
+	elif _pause_exit_rect().has_point(pos):
+	  _finish_battle("失败")
+	  screen = SCREEN_LOBBY
+	  return
 
   if _pause_button_rect().has_point(pos):
-    pause_open = true
-    return
+	pause_open = true
+	return
 
   var key = _tile_at(pos)
   selected_tile = key
   if key.x == -99:
-    return
+	return
 
   if _try_unlock(key):
-    return
+	return
 
   if tiles.has(key) and int(tiles[key]["team"]) == PLAYER:
-    _pulse(_hex_center(key), Color(0.75, 0.95, 1.0))
+	_pulse(_hex_center(key), Color(0.75, 0.95, 1.0))
 
 
 func _draw() -> void:
@@ -177,14 +177,14 @@ func _draw() -> void:
   draw_set_transform(canvas_offset, 0.0, Vector2(canvas_scale, canvas_scale))
 
   if screen == SCREEN_DECK:
-    _draw_deck_screen()
+	_draw_deck_screen()
   elif screen == SCREEN_BATTLE:
-    _draw_battle_screen()
+	_draw_battle_screen()
   else:
-    _draw_lobby_screen()
+	_draw_lobby_screen()
 
   if screen != SCREEN_BATTLE:
-    _draw_nav()
+	_draw_nav()
 
   _draw_toast()
   draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
@@ -205,29 +205,29 @@ func _screen_to_canvas(pos: Vector2) -> Vector2:
 func _load_cards() -> void:
   cards.clear()
   if ConfigDB.has_table("cards"):
-    var rows = ConfigDB.get_table("cards")
-    if typeof(rows) == TYPE_ARRAY:
-      for row in rows:
-        if typeof(row) == TYPE_DICTIONARY:
-          var card = _card_from_row(row)
-          if String(card["id"]) != "":
-            cards.append(card)
+	var rows = ConfigDB.get_table("cards")
+	if typeof(rows) == TYPE_ARRAY:
+	  for row in rows:
+		if typeof(row) == TYPE_DICTIONARY:
+		  var card = _card_from_row(row)
+		  if String(card["id"]) != "":
+			cards.append(card)
 
   if not cards.is_empty():
-    return
+	return
 
   var fallback = [
-          {"id": "rabbit", "name": "兔子", "rarity": "common", "tier": 1, "art_path": "res://assets/card_art/animals/rabbit.png"},
-          {"id": "wolf", "name": "狼", "rarity": "rare", "tier": 4, "art_path": "res://assets/card_art/animals/wolf.png"},
-          {"id": "bear", "name": "熊", "rarity": "epic", "tier": 5, "art_path": "res://assets/card_art/animals/bear.png"},
-          {"id": "cat", "name": "猫", "rarity": "common", "tier": 2, "art_path": "res://assets/card_art/animals/cat.png"},
-          {"id": "dog", "name": "狗", "rarity": "common", "tier": 2, "art_path": "res://assets/card_art/animals/dog.png"},
-          {"id": "tiger", "name": "老虎", "rarity": "epic", "tier": 5, "art_path": "res://assets/card_art/animals/tiger.png"},
-          {"id": "eagle", "name": "老鹰", "rarity": "epic", "tier": 5, "art_path": "res://assets/card_art/animals/eagle.png"},
-          {"id": "elephant", "name": "大象", "rarity": "legendary", "tier": 6, "art_path": "res://assets/card_art/animals/elephant.png"},
-        ]
+		  {"id": "rabbit", "name": "兔子", "rarity": "common", "tier": 1, "art_path": "res://assets/card_art/animals/rabbit.png"},
+		  {"id": "wolf", "name": "狼", "rarity": "rare", "tier": 4, "art_path": "res://assets/card_art/animals/wolf.png"},
+		  {"id": "bear", "name": "熊", "rarity": "epic", "tier": 5, "art_path": "res://assets/card_art/animals/bear.png"},
+		  {"id": "cat", "name": "猫", "rarity": "common", "tier": 2, "art_path": "res://assets/card_art/animals/cat.png"},
+		  {"id": "dog", "name": "狗", "rarity": "common", "tier": 2, "art_path": "res://assets/card_art/animals/dog.png"},
+		  {"id": "tiger", "name": "老虎", "rarity": "epic", "tier": 5, "art_path": "res://assets/card_art/animals/tiger.png"},
+		  {"id": "eagle", "name": "老鹰", "rarity": "epic", "tier": 5, "art_path": "res://assets/card_art/animals/eagle.png"},
+		  {"id": "elephant", "name": "大象", "rarity": "legendary", "tier": 6, "art_path": "res://assets/card_art/animals/elephant.png"},
+		]
   for row in fallback:
-    cards.append(_card_from_row(row))
+	cards.append(_card_from_row(row))
 
 
 func _card_from_row(row: Dictionary) -> Dictionary:
@@ -236,40 +236,40 @@ func _card_from_row(row: Dictionary) -> Dictionary:
   var skill_id = row.get("skill_id", "")
   var skill_text = row.get("skill_text", "")
   return {
-    "id": String(row.get("id", "")),
-    "name": String(row.get("name", row.get("id", ""))),
-    "rarity": String(row.get("rarity", _rarity_for_tier(tier))),
-    "tier": tier,
-    "art_path": String(row.get("art_path", "")),
-    "attack": attack,
-    "max_hp": int(row.get("max_hp", 40 + tier * 18)),
-    "move_speed": float(row.get("move_speed", 58.0 + tier * 2.0)),
-    "attack_range": float(row.get("attack_range", 42.0)),
-    "summon_interval_sec": float(row.get("summon_interval_sec", maxf(2.2, 4.2 - tier * 0.18))),
-    "skill_id": "" if skill_id == null else String(skill_id),
-    "skill_text": "" if skill_text == null else String(skill_text),
+	"id": String(row.get("id", "")),
+	"name": String(row.get("name", row.get("id", ""))),
+	"rarity": String(row.get("rarity", _rarity_for_tier(tier))),
+	"tier": tier,
+	"art_path": String(row.get("art_path", "")),
+	"attack": attack,
+	"max_hp": int(row.get("max_hp", 40 + tier * 18)),
+	"move_speed": float(row.get("move_speed", 58.0 + tier * 2.0)),
+	"attack_range": float(row.get("attack_range", 42.0)),
+	"summon_interval_sec": float(row.get("summon_interval_sec", maxf(2.2, 4.2 - tier * 0.18))),
+	"skill_id": "" if skill_id == null else String(skill_id),
+	"skill_text": "" if skill_text == null else String(skill_text),
   }
 
 
 func _rarity_for_tier(tier: int) -> String:
   if tier >= 6:
-    return "legendary"
+	return "legendary"
   if tier >= 5:
-    return "epic"
+	return "epic"
   if tier >= 3:
-    return "rare"
+	return "rare"
   return "common"
 
 
 func _init_deck() -> void:
   deck.clear()
   for i in range(DECK_SIZE):
-    if cards.is_empty():
-      deck.append("")
-    else:
-      deck.append(String(cards[i % cards.size()]["id"]))
+	if cards.is_empty():
+	  deck.append("")
+	else:
+	  deck.append(String(cards[i % cards.size()]["id"]))
   if not deck.is_empty():
-    selected_card_id = String(deck[0])
+	selected_card_id = String(deck[0])
 
 
 func _reset_battle() -> void:
@@ -288,27 +288,27 @@ func _reset_battle() -> void:
   next_unit_id = 1
 
   for y in range(GRID_ROWS):
-    for x in range(GRID_COLS):
-      var key = Vector2i(x, y)
-      var team = NEUTRAL
-      if y <= 4:
-        team = ENEMY
-      elif y >= 10:
-        team = PLAYER
-      var tile = {
-        "team": team,
-        "building": "",
-        "hp": 0.0,
-        "max_hp": 0.0,
-        "spawn_timer": 0.0,
-        "site": "",
-        "site_cost": 0,
-        "site_reward": "",
-        "site_card": "",
-      }
-      if team == NEUTRAL:
-        _generate_site_once(key, tile)
-      tiles[key] = tile
+	for x in range(GRID_COLS):
+	  var key = Vector2i(x, y)
+	  var team = NEUTRAL
+	  if y <= 4:
+		team = ENEMY
+	  elif y >= 10:
+		team = PLAYER
+	  var tile = {
+		"team": team,
+		"building": "",
+		"hp": 0.0,
+		"max_hp": 0.0,
+		"spawn_timer": 0.0,
+		"site": "",
+		"site_cost": 0,
+		"site_reward": "",
+		"site_card": "",
+	  }
+	  if team == NEUTRAL:
+		_generate_site_once(key, tile)
+	  tiles[key] = tile
 
   _set_building(PLAYER_BASE, PLAYER, "base", "")
   _set_building(ENEMY_BASE, ENEMY, "base", "wolf")
@@ -328,14 +328,14 @@ func _generate_site_once(key: Vector2i, tile: Dictionary) -> void:
 
 func _site_reward(site: String, site_seed: int) -> String:
   if site != "mystery":
-    return site
+	return site
   var rewards = ["barracks", "mine", "tower", "hall"]
   return String(rewards[floori(float(site_seed) / 13.0) % rewards.size()])
 
 
 func _set_building(key: Vector2i, team: int, building: String, card_id: String) -> void:
   if not tiles.has(key):
-    return
+	return
   var tile = tiles[key]
   tile["team"] = team
   tile["building"] = building
@@ -343,22 +343,22 @@ func _set_building(key: Vector2i, team: int, building: String, card_id: String) 
   tile["max_hp"] = _building_hp(building)
   tile["spawn_timer"] = _building_delay(building, team, String(tile.get("site_card", card_id)))
   if card_id != "":
-    tile["site_card"] = card_id
+	tile["site_card"] = card_id
   tiles[key] = tile
 
 
 func _update_battle(delta: float) -> void:
   battle_timer = maxf(0.0, battle_timer - delta)
   if battle_timer <= 0.0:
-    var won = _tile_count(PLAYER) >= _tile_count(ENEMY)
-    _finish_battle("胜利" if won else "失败")
-    return
+	var won = _tile_count(PLAYER) >= _tile_count(ENEMY)
+	_finish_battle("胜利" if won else "失败")
+	return
 
   income_timer -= delta
   if income_timer <= 0.0:
-    income_timer = 1.0
-    gold += 4 + _building_count(PLAYER, "mine") * 8
-    enemy_gold += 4 + _building_count(ENEMY, "mine") * 7
+	income_timer = 1.0
+	gold += 4 + _building_count(PLAYER, "mine") * 8
+	enemy_gold += 4 + _building_count(ENEMY, "mine") * 7
 
   _update_buildings(delta)
   _update_enemy(delta)
@@ -368,38 +368,38 @@ func _update_battle(delta: float) -> void:
 
 func _update_buildings(delta: float) -> void:
   for key in tiles.keys():
-    var tile = tiles[key]
-    var building = String(tile["building"])
-    if building == "" or building == "mine":
-      continue
-    var team = int(tile["team"])
-    tile["spawn_timer"] = float(tile.get("spawn_timer", 0.0)) - delta
-    if float(tile["spawn_timer"]) <= 0.0:
-      tile["spawn_timer"] = _building_delay(building, team, String(tile.get("site_card", "")))
-      if building == "tower":
-        _tower_attack(key, team)
-      else:
-        _spawn_unit(team, key, _spawn_card_for_tile(tile, team))
-    tiles[key] = tile
+	var tile = tiles[key]
+	var building = String(tile["building"])
+	if building == "" or building == "mine":
+	  continue
+	var team = int(tile["team"])
+	tile["spawn_timer"] = float(tile.get("spawn_timer", 0.0)) - delta
+	if float(tile["spawn_timer"]) <= 0.0:
+	  tile["spawn_timer"] = _building_delay(building, team, String(tile.get("site_card", "")))
+	  if building == "tower":
+		_tower_attack(key, team)
+	  else:
+		_spawn_unit(team, key, _spawn_card_for_tile(tile, team))
+	tiles[key] = tile
 
 
 func _update_enemy(delta: float) -> void:
   enemy_timer -= delta
   if enemy_timer > 0.0:
-    return
+	return
   enemy_timer = 1.4
   var best_key = Vector2i(-99, -99)
   var best_y = -999
   for key in tiles.keys():
-    if _can_unlock(key, ENEMY) and key.y > best_y:
-      best_y = key.y
-      best_key = key
+	if _can_unlock(key, ENEMY) and key.y > best_y:
+	  best_y = key.y
+	  best_key = key
   if best_key.x == -99:
-    return
+	return
   var tile = tiles[best_key]
   var cost = int(tile["site_cost"])
   if enemy_gold < cost:
-    return
+	return
   enemy_gold -= cost
   _set_building(best_key, ENEMY, _resolved_site(tile), "wolf")
 
@@ -407,32 +407,32 @@ func _update_enemy(delta: float) -> void:
 func _update_units(delta: float) -> void:
   var alive = []
   for unit in units:
-    if float(unit["hp"]) <= 0.0:
-      continue
-    var target_key = _nearest_target(Vector2(unit["pos"]), int(unit["team"]))
-    if target_key.x == -99:
-      alive.append(unit)
-      continue
-    var target_pos = _hex_center(target_key)
-    var offset = target_pos - Vector2(unit["pos"])
-    var distance = offset.length()
-    unit["cooldown"] = maxf(0.0, float(unit.get("cooldown", 0.0)) - delta)
-    if distance <= float(unit["range"]):
-      if float(unit["cooldown"]) <= 0.0:
-        _damage_tile(target_key, int(unit["team"]), float(unit["attack"]))
-        unit["cooldown"] = 0.85
-    elif distance > 1.0:
-      unit["pos"] = Vector2(unit["pos"]) + offset.normalized() * float(unit["speed"]) * delta
-    alive.append(unit)
+	if float(unit["hp"]) <= 0.0:
+	  continue
+	var target_key = _nearest_target(Vector2(unit["pos"]), int(unit["team"]))
+	if target_key.x == -99:
+	  alive.append(unit)
+	  continue
+	var target_pos = _hex_center(target_key)
+	var offset = target_pos - Vector2(unit["pos"])
+	var distance = offset.length()
+	unit["cooldown"] = maxf(0.0, float(unit.get("cooldown", 0.0)) - delta)
+	if distance <= float(unit["range"]):
+	  if float(unit["cooldown"]) <= 0.0:
+		_damage_tile(target_key, int(unit["team"]), float(unit["attack"]))
+		unit["cooldown"] = 0.85
+	elif distance > 1.0:
+	  unit["pos"] = Vector2(unit["pos"]) + offset.normalized() * float(unit["speed"]) * delta
+	alive.append(unit)
   units = alive
 
 
 func _update_effects(delta: float) -> void:
   var kept = []
   for effect in effects:
-    effect["time"] = float(effect["time"]) - delta
-    if float(effect["time"]) > 0.0:
-      kept.append(effect)
+	effect["time"] = float(effect["time"]) - delta
+	if float(effect["time"]) > 0.0:
+	  kept.append(effect)
   effects = kept
 
 
@@ -441,60 +441,60 @@ func _tower_attack(key: Vector2i, team: int) -> void:
   var best_index = -1
   var best_distance = 999999.0
   for i in range(units.size()):
-    if int(units[i]["team"]) == team:
-      continue
-    var distance = center.distance_to(Vector2(units[i]["pos"]))
-    if distance < 180.0 and distance < best_distance:
-      best_distance = distance
-      best_index = i
+	if int(units[i]["team"]) == team:
+	  continue
+	var distance = center.distance_to(Vector2(units[i]["pos"]))
+	if distance < 180.0 and distance < best_distance:
+	  best_distance = distance
+	  best_index = i
   if best_index >= 0:
-    units[best_index]["hp"] = float(units[best_index]["hp"]) - 20.0
-    _pulse(Vector2(units[best_index]["pos"]), COLOR_YELLOW)
+	units[best_index]["hp"] = float(units[best_index]["hp"]) - 20.0
+	_pulse(Vector2(units[best_index]["pos"]), COLOR_YELLOW)
 
 
 func _damage_tile(key: Vector2i, attacker: int, damage: float) -> void:
   if not tiles.has(key):
-    return
+	return
   var tile = tiles[key]
   if int(tile["team"]) == attacker:
-    return
+	return
   if String(tile["building"]) == "":
-    tile["team"] = attacker
-    tiles[key] = tile
-    _pulse(_hex_center(key), COLOR_GREEN if attacker == PLAYER else COLOR_RED)
-    return
+	tile["team"] = attacker
+	tiles[key] = tile
+	_pulse(_hex_center(key), COLOR_GREEN if attacker == PLAYER else COLOR_RED)
+	return
   tile["hp"] = float(tile["hp"]) - damage
   if float(tile["hp"]) <= 0.0:
-    if String(tile["building"]) == "base":
-      _finish_battle("胜利" if attacker == PLAYER else "失败")
-      return
-    tile["team"] = attacker
-    tile["building"] = ""
-    tile["hp"] = 0.0
-    tile["max_hp"] = 0.0
-    tile["spawn_timer"] = 0.0
-    _pulse(_hex_center(key), COLOR_GREEN if attacker == PLAYER else COLOR_RED)
+	if String(tile["building"]) == "base":
+	  _finish_battle("胜利" if attacker == PLAYER else "失败")
+	  return
+	tile["team"] = attacker
+	tile["building"] = ""
+	tile["hp"] = 0.0
+	tile["max_hp"] = 0.0
+	tile["spawn_timer"] = 0.0
+	_pulse(_hex_center(key), COLOR_GREEN if attacker == PLAYER else COLOR_RED)
   tiles[key] = tile
 
 
 func _spawn_unit(team: int, key: Vector2i, card_id: String) -> void:
   if card_id == "":
-    card_id = "wolf" if team == ENEMY else String(deck[0])
+	card_id = "wolf" if team == ENEMY else String(deck[0])
   var card = _card_by_id(card_id)
   if card.is_empty():
-    card = _card_by_id("wolf" if team == ENEMY else "rabbit")
+	card = _card_by_id("wolf" if team == ENEMY else "rabbit")
   var tier = int(card.get("tier", 1))
   units.append({
-    "id": next_unit_id,
-    "team": team,
-    "card": String(card.get("id", card_id)),
-    "pos": _hex_center(key),
-    "hp": float(card.get("max_hp", 45 + tier * 16)),
-    "max_hp": float(card.get("max_hp", 45 + tier * 16)),
-    "attack": float(card.get("attack", 6 + tier * 2)),
-    "speed": float(card.get("move_speed", 62.0)),
-    "range": float(card.get("attack_range", 42.0)),
-    "cooldown": randf_range(0.05, 0.35),
+	"id": next_unit_id,
+	"team": team,
+	"card": String(card.get("id", card_id)),
+	"pos": _hex_center(key),
+	"hp": float(card.get("max_hp", 45 + tier * 16)),
+	"max_hp": float(card.get("max_hp", 45 + tier * 16)),
+	"attack": float(card.get("attack", 6 + tier * 2)),
+	"speed": float(card.get("move_speed", 62.0)),
+	"range": float(card.get("attack_range", 42.0)),
+	"cooldown": randf_range(0.05, 0.35),
   })
   next_unit_id += 1
   _pulse(_hex_center(key), Color(0.75, 0.95, 1.0))
@@ -504,28 +504,28 @@ func _nearest_target(pos: Vector2, team: int) -> Vector2i:
   var best = Vector2i(-99, -99)
   var best_score = 999999.0
   for key in tiles.keys():
-    var tile = tiles[key]
-    if int(tile["team"]) == team:
-      continue
-    var score = pos.distance_to(_hex_center(key))
-    if String(tile["building"]) == "base":
-      score -= 120.0
-    elif String(tile["building"]) != "":
-      score -= 60.0
-    if score < best_score:
-      best_score = score
-      best = key
+	var tile = tiles[key]
+	if int(tile["team"]) == team:
+	  continue
+	var score = pos.distance_to(_hex_center(key))
+	if String(tile["building"]) == "base":
+	  score -= 120.0
+	elif String(tile["building"]) != "":
+	  score -= 60.0
+	if score < best_score:
+	  best_score = score
+	  best = key
   return best
 
 
 func _try_unlock(key: Vector2i) -> bool:
   if not _can_unlock(key, PLAYER):
-    return false
+	return false
   var tile = tiles[key]
   var cost = int(tile["site_cost"])
   if gold < cost:
-    _toast("金币不足")
-    return true
+	_toast("金币不足")
+	return true
   gold -= cost
   var building = _resolved_site(tile)
   _set_building(key, PLAYER, building, String(tile.get("site_card", "")))
@@ -535,111 +535,111 @@ func _try_unlock(key: Vector2i) -> bool:
 
 func _can_unlock(key: Vector2i, team: int) -> bool:
   if not tiles.has(key):
-    return false
+	return false
   var tile = tiles[key]
   if int(tile["team"]) == team:
-    return false
+	return false
   if String(tile["building"]) != "" or String(tile["site"]) == "":
-    return false
+	return false
   for neighbor in _neighbors(key):
-    if tiles.has(neighbor) and int(tiles[neighbor]["team"]) == team:
-      return true
+	if tiles.has(neighbor) and int(tiles[neighbor]["team"]) == team:
+	  return true
   return false
 
 
 func _resolved_site(tile: Dictionary) -> String:
   if String(tile.get("site", "")) == "mystery":
-    return String(tile.get("site_reward", "barracks"))
+	return String(tile.get("site_reward", "barracks"))
   return String(tile.get("site", ""))
 
 
 func _spawn_card_for_tile(tile: Dictionary, team: int) -> String:
   var card_id = String(tile.get("site_card", ""))
   if card_id != "":
-    return card_id
+	return card_id
   return "wolf" if team == ENEMY else String(deck[0])
 
 
 func _card_for_cost(cost: int) -> String:
   if deck.is_empty():
-    return ""
+	return ""
   var min_tier = 1
   var max_tier = 2
   if cost >= 140:
-    min_tier = 5
-    max_tier = 6
+	min_tier = 5
+	max_tier = 6
   elif cost >= 100:
-    min_tier = 4
-    max_tier = 5
+	min_tier = 4
+	max_tier = 5
   elif cost >= 70:
-    min_tier = 2
-    max_tier = 4
+	min_tier = 2
+	max_tier = 4
   var options = []
   for card_id in deck:
-    var card = _card_by_id(String(card_id))
-    var tier = int(card.get("tier", 1))
-    if tier >= min_tier and tier <= max_tier:
-      options.append(String(card_id))
+	var card = _card_by_id(String(card_id))
+	var tier = int(card.get("tier", 1))
+	if tier >= min_tier and tier <= max_tier:
+	  options.append(String(card_id))
   if options.is_empty():
-    return String(deck[0])
+	return String(deck[0])
   return String(options[cost % options.size()])
 
 
 func _card_by_id(card_id: String) -> Dictionary:
   for card in cards:
-    if String(card.get("id", "")) == card_id:
-      return card
+	if String(card.get("id", "")) == card_id:
+	  return card
   return {}
 
 
 func _tile_count(team: int) -> int:
   var count = 0
   for tile in tiles.values():
-    if int(tile["team"]) == team:
-      count += 1
+	if int(tile["team"]) == team:
+	  count += 1
   return count
 
 
 func _building_count(team: int, building: String) -> int:
   var count = 0
   for tile in tiles.values():
-    if int(tile["team"]) == team and String(tile["building"]) == building:
-      count += 1
+	if int(tile["team"]) == team and String(tile["building"]) == building:
+	  count += 1
   return count
 
 
 func _building_hp(building: String) -> float:
   match building:
-    "base":
-      return 420.0
-    "hall":
-      return 180.0
-    "tower":
-      return 150.0
-    "mine":
-      return 120.0
-    "barracks":
-      return 130.0
-    _:
-      return 100.0
+	"base":
+	  return 420.0
+	"hall":
+	  return 180.0
+	"tower":
+	  return 150.0
+	"mine":
+	  return 120.0
+	"barracks":
+	  return 130.0
+	_:
+	  return 100.0
 
 
 func _building_delay(building: String, team: int, card_id: String) -> float:
   if building == "barracks" or building == "hall":
-    var card = _card_by_id(card_id)
-    if not card.is_empty():
-      return float(card.get("summon_interval_sec", 3.5))
+	var card = _card_by_id(card_id)
+	if not card.is_empty():
+	  return float(card.get("summon_interval_sec", 3.5))
   match building:
-    "base":
-      return 4.6 if team == PLAYER else 4.2
-    "tower":
-      return 1.1
-    "hall":
-      return 4.8
-    "barracks":
-      return 3.5
-    _:
-      return 1.0
+	"base":
+	  return 4.6 if team == PLAYER else 4.2
+	"tower":
+	  return 1.1
+	"hall":
+	  return 4.8
+	"barracks":
+	  return 3.5
+	_:
+	  return 1.0
 
 
 func _finish_battle(text: String) -> void:
@@ -650,34 +650,34 @@ func _finish_battle(text: String) -> void:
 
 func _handle_deck_tap(pos: Vector2) -> void:
   for i in range(DECK_SIZE):
-    if _deck_slot_rect(i).has_point(pos):
-      selected_slot = i
-      selected_card_id = String(deck[i])
-      return
+	if _deck_slot_rect(i).has_point(pos):
+	  selected_slot = i
+	  selected_card_id = String(deck[i])
+	  return
   var card_index = _collection_index_at(pos)
   if card_index < 0 or card_index >= cards.size():
-    return
+	return
   var card = cards[card_index]
   if selected_slot >= 0 and selected_slot < deck.size():
-    deck[selected_slot] = String(card["id"])
-    selected_card_id = String(card["id"])
-    _toast("已加入出战编组")
+	deck[selected_slot] = String(card["id"])
+	selected_card_id = String(card["id"])
+	_toast("已加入出战编组")
 
 
 func _handle_nav(pos: Vector2) -> bool:
   for i in range(NAV_ITEMS.size()):
-    if not _nav_rect(i).has_point(pos):
-      continue
-    var item = NAV_ITEMS[i]
-    if bool(item.get("locked", false)):
-      _toast(String(item["label"]) + "暂未开放")
-      return true
-    var id = String(item["id"])
-    if id == SCREEN_DECK:
-      screen = SCREEN_DECK
-    elif id == SCREEN_LOBBY:
-      screen = SCREEN_LOBBY
-    return true
+	if not _nav_rect(i).has_point(pos):
+	  continue
+	var item = NAV_ITEMS[i]
+	if bool(item.get("locked", false)):
+	  _toast(String(item["label"]) + "暂未开放")
+	  return true
+	var id = String(item["id"])
+	if id == SCREEN_DECK:
+	  screen = SCREEN_DECK
+	elif id == SCREEN_LOBBY:
+	  screen = SCREEN_LOBBY
+	return true
   return false
 
 
@@ -706,18 +706,18 @@ func _draw_deck_screen() -> void:
   _draw_text_center("出战编组", Rect2(40, 68, 640, 58), 42, Color.WHITE)
   _box(Rect2(34, 140, 652, 360), COLOR_PURPLE, COLOR_LINE, 5)
   for i in range(DECK_SIZE):
-    _draw_card(_deck_slot_rect(i), _card_by_id(String(deck[i])), i == selected_slot)
+	_draw_card(_deck_slot_rect(i), _card_by_id(String(deck[i])), i == selected_slot)
   _draw_card_detail(Rect2(34, 520, 652, 128))
   _draw_text_center("所有卡牌", Rect2(0, 670, DESIGN_SIZE.x, 42), 34, Color.WHITE)
   var origin = Vector2(54, 728 - deck_scroll)
   for i in range(cards.size()):
-    var col = i % 4
-    var row = floori(float(i) / 4.0)
-    var rect = Rect2(origin + Vector2(col * 156.0, row * 176.0), Vector2(132, 158))
-    if rect.position.y + rect.size.y < 700 or rect.position.y > 1115:
-      continue
-    var card = cards[i]
-    _draw_card(rect, card, String(card["id"]) == selected_card_id)
+	var col = i % 4
+	var row = floori(float(i) / 4.0)
+	var rect = Rect2(origin + Vector2(col * 156.0, row * 176.0), Vector2(132, 158))
+	if rect.position.y + rect.size.y < 700 or rect.position.y > 1115:
+	  continue
+	var card = cards[i]
+	_draw_card(rect, card, String(card["id"]) == selected_card_id)
 
 
 func _draw_battle_screen() -> void:
@@ -725,25 +725,25 @@ func _draw_battle_screen() -> void:
   _draw_top_bar()
   _draw_board_frame()
   for key in tiles.keys():
-    _draw_tile(key, tiles[key])
+	_draw_tile(key, tiles[key])
   for unit in units:
-    _draw_unit(unit)
+	_draw_unit(unit)
   for effect in effects:
-    _draw_effect(effect)
+	_draw_effect(effect)
   _draw_selection_panel()
   _draw_pause_button()
   if pause_open:
-    _draw_pause_overlay()
+	_draw_pause_overlay()
   elif game_over:
-    _draw_result_overlay()
+	_draw_result_overlay()
 
 
 func _draw_background() -> void:
   draw_rect(Rect2(Vector2.ZERO, DESIGN_SIZE), Color(0.60, 0.85, 0.50))
   draw_rect(Rect2(0, 0, DESIGN_SIZE.x, 220), Color(0.68, 0.90, 0.60))
   for i in range(12):
-    var x = 40.0 + fmod(float(i) * 96.0 + ui_time * 8.0, DESIGN_SIZE.x)
-    _grass(Vector2(x, 82.0 + float(i % 4) * 36.0))
+	var x = 40.0 + fmod(float(i) * 96.0 + ui_time * 8.0, DESIGN_SIZE.x)
+	_grass(Vector2(x, 82.0 + float(i % 4) * 36.0))
 
 
 func _draw_top_bar() -> void:
@@ -755,32 +755,32 @@ func _draw_top_bar() -> void:
 func _draw_nav() -> void:
   draw_rect(Rect2(0, 1138, DESIGN_SIZE.x, 142), Color(0.24, 0.21, 0.58))
   for i in range(NAV_ITEMS.size()):
-    var item = NAV_ITEMS[i]
-    var rect = _nav_rect(i)
-    var id = String(item["id"])
-    var active = (screen == id) or (screen == SCREEN_LOBBY and id == SCREEN_LOBBY)
-    _box(rect, COLOR_BLUE if active else COLOR_PURPLE, COLOR_LINE, 3)
-    _draw_nav_icon(rect, i, bool(item.get("locked", false)))
-    _draw_text_center(String(item["label"]), Rect2(rect.position + Vector2(0, 84), Vector2(rect.size.x, 34)), 23, Color.WHITE)
+	var item = NAV_ITEMS[i]
+	var rect = _nav_rect(i)
+	var id = String(item["id"])
+	var active = (screen == id) or (screen == SCREEN_LOBBY and id == SCREEN_LOBBY)
+	_box(rect, COLOR_BLUE if active else COLOR_PURPLE, COLOR_LINE, 3)
+	_draw_nav_icon(rect, i, bool(item.get("locked", false)))
+	_draw_text_center(String(item["label"]), Rect2(rect.position + Vector2(0, 84), Vector2(rect.size.x, 34)), 23, Color.WHITE)
 
 
 func _draw_nav_icon(rect: Rect2, index: int, locked: bool) -> void:
   var c = rect.position + Vector2(rect.size.x * 0.5, 42)
   if index == 0:
-    _box(Rect2(c + Vector2(-28, -10), Vector2(56, 42)), Color(0.92, 0.74, 0.38), COLOR_LINE, 3)
-    draw_rect(Rect2(c + Vector2(-32, -28), Vector2(64, 20)), COLOR_RED)
+	_box(Rect2(c + Vector2(-28, -10), Vector2(56, 42)), Color(0.92, 0.74, 0.38), COLOR_LINE, 3)
+	draw_rect(Rect2(c + Vector2(-32, -28), Vector2(64, 20)), COLOR_RED)
   elif index == 1:
-    _box(Rect2(c + Vector2(-28, -26), Vector2(46, 58)), COLOR_YELLOW, COLOR_LINE, 3)
-    _box(Rect2(c + Vector2(-8, -22), Vector2(46, 58)), Color(0.65, 0.28, 0.95), COLOR_LINE, 3)
+	_box(Rect2(c + Vector2(-28, -26), Vector2(46, 58)), COLOR_YELLOW, COLOR_LINE, 3)
+	_box(Rect2(c + Vector2(-8, -22), Vector2(46, 58)), Color(0.65, 0.28, 0.95), COLOR_LINE, 3)
   elif index == 2:
-    draw_line(c + Vector2(-26, -22), c + Vector2(22, 22), Color.WHITE, 8, true)
-    draw_line(c + Vector2(26, -22), c + Vector2(-22, 22), Color.WHITE, 8, true)
+	draw_line(c + Vector2(-26, -22), c + Vector2(22, 22), Color.WHITE, 8, true)
+	draw_line(c + Vector2(26, -22), c + Vector2(-22, 22), Color.WHITE, 8, true)
   elif index == 3:
-    draw_texture_rect(BUILDING_ART["tower"], Rect2(c + Vector2(-32, -34), Vector2(64, 70)), false)
+	draw_texture_rect(BUILDING_ART["tower"], Rect2(c + Vector2(-32, -34), Vector2(64, 70)), false)
   else:
-    _box(Rect2(c + Vector2(-26, -24), Vector2(52, 52)), COLOR_ORANGE, COLOR_LINE, 3)
+	_box(Rect2(c + Vector2(-26, -24), Vector2(52, 52)), COLOR_ORANGE, COLOR_LINE, 3)
   if locked:
-    _draw_lock(c + Vector2(34, -30))
+	_draw_lock(c + Vector2(34, -30))
 
 
 func _draw_board_frame() -> void:
@@ -794,15 +794,15 @@ func _draw_tile(key: Vector2i, tile: Dictionary) -> void:
   var team = int(tile["team"])
   var fill = Color(0.76, 0.78, 0.54)
   if team == PLAYER:
-    fill = Color(0.49, 0.80, 0.39)
+	fill = Color(0.49, 0.80, 0.39)
   elif team == ENEMY:
-    fill = Color(0.95, 0.43, 0.39)
+	fill = Color(0.95, 0.43, 0.39)
   draw_polygon(points, PackedColorArray([fill, fill, fill, fill, fill, fill]))
   draw_polyline(_closed_points(points), fill.darkened(0.34), 3.0)
   if String(tile["building"]) != "":
-    _draw_building(center, tile)
+	_draw_building(center, tile)
   elif String(tile["site"]) != "" and _can_unlock(key, PLAYER):
-    _draw_site(center, tile)
+	_draw_site(center, tile)
 
 
 func _draw_site(center: Vector2, tile: Dictionary) -> void:
@@ -818,13 +818,13 @@ func _draw_building(center: Vector2, tile: Dictionary) -> void:
   var building = String(tile["building"])
   var size = Vector2(66, 66)
   if building == "base":
-    size = Vector2(78, 78)
+	size = Vector2(78, 78)
   elif building == "tower":
-    size = Vector2(66, 82)
+	size = Vector2(66, 82)
   draw_texture_rect(_building_texture(building), Rect2(center - size * 0.5 + Vector2(0, -8), size), false)
   var max_hp = float(tile.get("max_hp", 0.0))
   if max_hp <= 0.0:
-    return
+	return
   var pct = clampf(float(tile["hp"]) / max_hp, 0.0, 1.0)
   _box(Rect2(center + Vector2(-32, 30), Vector2(64, 8)), COLOR_LINE, Color.TRANSPARENT, 0)
   _box(Rect2(center + Vector2(-31, 31), Vector2(62.0 * pct, 6)), COLOR_GREEN, Color.TRANSPARENT, 0)
@@ -854,16 +854,16 @@ func _draw_selection_panel() -> void:
   var title = "点击与己方地块接壤的卡牌地块解锁"
   var detail = "可解锁地块会显示类型和价格，生成后不会因其它地块改变。"
   if tiles.has(selected_tile):
-    var tile = tiles[selected_tile]
-    if String(tile["building"]) != "":
-      title = _site_name(String(tile["building"]), String(tile.get("site_card", "")))
-      detail = "生命 %.0f / %.0f" % [float(tile["hp"]), float(tile["max_hp"])]
-    elif _can_unlock(selected_tile, PLAYER):
-      title = "可解锁：%s  价格 %d" % [_site_name(_resolved_site(tile), String(tile.get("site_card", ""))), int(tile["site_cost"])]
-      detail = "类型和价格已在开局生成并固定。"
-    else:
-      title = "未连接地块"
-      detail = "先占领或购买相邻地块。"
+	var tile = tiles[selected_tile]
+	if String(tile["building"]) != "":
+	  title = _site_name(String(tile["building"]), String(tile.get("site_card", "")))
+	  detail = "生命 %.0f / %.0f" % [float(tile["hp"]), float(tile["max_hp"])]
+	elif _can_unlock(selected_tile, PLAYER):
+	  title = "可解锁：%s  价格 %d" % [_site_name(_resolved_site(tile), String(tile.get("site_card", ""))), int(tile["site_cost"])]
+	  detail = "类型和价格已在开局生成并固定。"
+	else:
+	  title = "未连接地块"
+	  detail = "先占领或购买相邻地块。"
   _draw_text_fit(title, Rect2(rect.position + Vector2(24, 18), Vector2(620, 34)), 24, Color.WHITE)
   _draw_text_fit(detail, Rect2(rect.position + Vector2(24, 60), Vector2(620, 32)), 20, Color(0.84, 0.88, 1.0))
 
@@ -896,7 +896,7 @@ func _draw_card(rect: Rect2, card: Dictionary, selected: bool) -> void:
   var fill = _rarity_color(String(card.get("rarity", "common")))
   _box(rect, fill.darkened(0.06), COLOR_LINE, 4)
   if selected:
-    _box(rect.grow(5), Color(1.0, 0.91, 0.22, 0.28), COLOR_YELLOW, 4)
+	_box(rect.grow(5), Color(1.0, 0.91, 0.22, 0.28), COLOR_YELLOW, 4)
   draw_texture_rect(_card_texture(card), Rect2(rect.position + Vector2(14, 16), Vector2(rect.size.x - 28, rect.size.x - 26)), false)
   _draw_text_center(String(card.get("name", "")), Rect2(rect.position + Vector2(8, rect.size.y - 52), Vector2(rect.size.x - 16, 26)), 17, Color.WHITE)
   var stat_rect = Rect2(rect.position + Vector2(10, rect.size.y - 28), Vector2(rect.size.x - 20, 22))
@@ -908,27 +908,27 @@ func _draw_card_detail(rect: Rect2) -> void:
   var card = _card_by_id(selected_card_id)
   _box(rect, Color(1, 1, 1, 0.92), COLOR_LINE, 3)
   if card.is_empty():
-    return
+	return
   draw_texture_rect(_card_texture(card), Rect2(rect.position + Vector2(14, 16), Vector2(92, 92)), false)
   _draw_text_fit(String(card.get("name", "")), Rect2(rect.position + Vector2(118, 14), Vector2(180, 32)), 24, COLOR_LINE)
   _draw_text_fit(_rarity_label(String(card.get("rarity", ""))), Rect2(rect.position + Vector2(310, 14), Vector2(120, 32)), 20, _rarity_color(String(card.get("rarity", ""))).darkened(0.30))
   var stats = "攻击 %d  生命 %d  移速 %.0f  距离 %.0f  召唤 %.1fs" % [
-    int(card.get("attack", 0)),
-    int(card.get("max_hp", 0)),
-    float(card.get("move_speed", 0.0)),
-    float(card.get("attack_range", 0.0)),
-    float(card.get("summon_interval_sec", 0.0)),
+	int(card.get("attack", 0)),
+	int(card.get("max_hp", 0)),
+	float(card.get("move_speed", 0.0)),
+	float(card.get("attack_range", 0.0)),
+	float(card.get("summon_interval_sec", 0.0)),
   ]
   _draw_text_fit(stats, Rect2(rect.position + Vector2(118, 50), Vector2(500, 28)), 18, COLOR_LINE)
   var skill = String(card.get("skill_text", ""))
   if skill == "":
-    skill = "无技能：基础属性更高。"
+	skill = "无技能：基础属性更高。"
   _draw_text_fit(skill, Rect2(rect.position + Vector2(118, 82), Vector2(500, 28)), 17, Color(0.20, 0.22, 0.30))
 
 
 func _draw_toast() -> void:
   if toast_timer <= 0.0:
-    return
+	return
   var alpha = clampf(toast_timer / 1.4, 0.0, 1.0)
   var rect = Rect2(130, 1018, 460, 58)
   _box(rect, Color(0.05, 0.06, 0.10, 0.82 * alpha), Color(1, 1, 1, 0.18 * alpha), 2)
@@ -951,7 +951,7 @@ func _box(rect: Rect2, fill: Color, line: Color, width: float) -> void:
   draw_rect(Rect2(rect.position + Vector2(0, 5), rect.size), Color(0, 0, 0, 0.20))
   draw_rect(rect, fill)
   if width > 0.0 and line.a > 0.0:
-    draw_rect(rect, line, false, width)
+	draw_rect(rect, line, false, width)
 
 
 func _draw_text_fit(text: String, rect: Rect2, size: int, color: Color) -> void:
@@ -975,15 +975,15 @@ func _draw_text_center(text: String, rect: Rect2, size: int, color: Color) -> vo
 
 func _fit_text(text: String, max_width: float, size: int) -> String:
   if text == "" or max_width <= 0.0:
-    return ""
+	return ""
   if font.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, size).x <= max_width:
-    return text
+	return text
   var clipped = text
   while clipped.length() > 0:
-    var candidate = clipped + "..."
-    if font.get_string_size(candidate, HORIZONTAL_ALIGNMENT_LEFT, -1, size).x <= max_width:
-      return candidate
-    clipped = clipped.substr(0, clipped.length() - 1)
+	var candidate = clipped + "..."
+	if font.get_string_size(candidate, HORIZONTAL_ALIGNMENT_LEFT, -1, size).x <= max_width:
+	  return candidate
+	clipped = clipped.substr(0, clipped.length() - 1)
   return "..."
 
 
@@ -1009,15 +1009,15 @@ func _hex_center(key: Vector2i) -> Vector2:
 func _hex_points(center: Vector2) -> PackedVector2Array:
   var points = PackedVector2Array()
   for i in range(6):
-    var angle = deg_to_rad(60.0 * float(i) - 30.0)
-    points.append(center + Vector2(cos(angle), sin(angle)) * HEX_SIZE)
+	var angle = deg_to_rad(60.0 * float(i) - 30.0)
+	points.append(center + Vector2(cos(angle), sin(angle)) * HEX_SIZE)
   return points
 
 
 func _closed_points(points: PackedVector2Array) -> PackedVector2Array:
   var closed = PackedVector2Array(points)
   if not points.is_empty():
-    closed.append(points[0])
+	closed.append(points[0])
   return closed
 
 
@@ -1025,16 +1025,16 @@ func _neighbors(key: Vector2i) -> Array:
   var result = []
   var offsets = NEIGHBORS_ODD if key.y % 2 == 1 else NEIGHBORS_EVEN
   for offset in offsets:
-    var next = key + offset
-    if next.x >= 0 and next.x < GRID_COLS and next.y >= 0 and next.y < GRID_ROWS:
-      result.append(next)
+	var next = key + offset
+	if next.x >= 0 and next.x < GRID_COLS and next.y >= 0 and next.y < GRID_ROWS:
+	  result.append(next)
   return result
 
 
 func _tile_at(pos: Vector2) -> Vector2i:
   for key in tiles.keys():
-    if Geometry2D.is_point_in_polygon(pos, _hex_points(_hex_center(key))):
-      return key
+	if Geometry2D.is_point_in_polygon(pos, _hex_points(_hex_center(key))):
+	  return key
   return Vector2i(-99, -99)
 
 
@@ -1047,11 +1047,11 @@ func _deck_slot_rect(index: int) -> Rect2:
 func _collection_index_at(pos: Vector2) -> int:
   var origin = Vector2(54, 728 - deck_scroll)
   for i in range(cards.size()):
-    var col = i % 4
-    var row = floori(float(i) / 4.0)
-    var rect = Rect2(origin + Vector2(col * 156.0, row * 176.0), Vector2(132, 158))
-    if rect.has_point(pos):
-      return i
+	var col = i % 4
+	var row = floori(float(i) / 4.0)
+	var rect = Rect2(origin + Vector2(col * 156.0, row * 176.0), Vector2(132, 158))
+	if rect.has_point(pos):
+	  return i
   return -1
 
 
@@ -1079,13 +1079,13 @@ func _nav_rect(index: int) -> Rect2:
 func _card_texture(card: Dictionary) -> Texture2D:
   var path = String(card.get("art_path", ""))
   if path != "":
-    if texture_cache.has(path):
-      return texture_cache[path]
-    if ResourceLoader.exists(path):
-      var texture = load(path) as Texture2D
-      if texture != null:
-        texture_cache[path] = texture
-        return texture
+	if texture_cache.has(path):
+	  return texture_cache[path]
+	if ResourceLoader.exists(path):
+	  var texture = load(path) as Texture2D
+	  if texture != null:
+		texture_cache[path] = texture
+		return texture
   return UNIT_ART["rabbit"]
 
 
@@ -1095,48 +1095,48 @@ func _building_texture(building: String) -> Texture2D:
 
 func _rarity_color(rarity: String) -> Color:
   match rarity:
-    "legendary":
-      return Color(1.0, 0.64, 0.12)
-    "epic":
-      return Color(0.67, 0.26, 0.90)
-    "rare":
-      return Color(0.24, 0.62, 1.0)
-    _:
-      return Color(0.34, 0.78, 0.38)
+	"legendary":
+	  return Color(1.0, 0.64, 0.12)
+	"epic":
+	  return Color(0.67, 0.26, 0.90)
+	"rare":
+	  return Color(0.24, 0.62, 1.0)
+	_:
+	  return Color(0.34, 0.78, 0.38)
 
 
 func _rarity_label(rarity: String) -> String:
   match rarity:
-    "legendary":
-      return "传说"
-    "epic":
-      return "史诗"
-    "rare":
-      return "稀有"
-    _:
-      return "普通"
+	"legendary":
+	  return "传说"
+	"epic":
+	  return "史诗"
+	"rare":
+	  return "稀有"
+	_:
+	  return "普通"
 
 
 func _site_name(building: String, card_id: String = "") -> String:
   match building:
-    "base":
-      return "基地"
-    "barracks":
-      return _unit_name(card_id) + "营地"
-    "hall":
-      return _unit_name(card_id) + "大厅"
-    "tower":
-      return "防御塔"
-    "mine":
-      return "金矿"
-    _:
-      return building
+	"base":
+	  return "基地"
+	"barracks":
+	  return _unit_name(card_id) + "营地"
+	"hall":
+	  return _unit_name(card_id) + "大厅"
+	"tower":
+	  return "防御塔"
+	"mine":
+	  return "金矿"
+	_:
+	  return building
 
 
 func _unit_name(card_id: String) -> String:
   var card = _card_by_id(card_id)
   if card.is_empty():
-    return "动物"
+	return "动物"
   return String(card.get("name", "动物"))
 
 
@@ -1152,7 +1152,7 @@ func _toast(text: String) -> void:
 
 func _pulse(pos: Vector2, color: Color) -> void:
   effects.append({
-    "pos": pos,
-    "color": color,
-    "time": 0.45,
+	"pos": pos,
+	"color": color,
+	"time": 0.45,
   })
