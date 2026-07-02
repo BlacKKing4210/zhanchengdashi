@@ -19,5 +19,8 @@ jobs:
       - name: Validate config tables
         run: python tools/validate_config.py
 
+      - name: Check GDScript indentation
+        run: python tools/check_gd_indentation.py
+
       - name: Export runtime config
         run: python tools/export_config.py
