@@ -1051,9 +1051,35 @@ func _draw_lobby_screen() -> void:
 	_box(scene_rect, Color(0.39, 0.63, 0.87), COLOR_LINE, 5)
 	draw_rect(scene_rect.grow(-14), Color(0.48, 0.78, 0.39))
 	draw_texture_rect(BUILDING_ART["base"], Rect2(260, 260, 200, 200), false)
-	draw_texture_rect(UNIT_ART["rabbit"], Rect2(190, 570, 120, 120), false)
-	draw_texture_rect(UNIT_ART["wolf"], Rect2(410, 570, 120, 120), false)
+	_draw_lobby_deck_animals(scene_rect.grow(-34))
 	_cta(_start_rect(), "开始战斗", true)
+
+
+func _draw_lobby_deck_animals(area: Rect2) -> void:
+	if deck.is_empty():
+		return
+	var points = [
+		Vector2(0.28, 0.68), Vector2(0.50, 0.70), Vector2(0.72, 0.68), Vector2(0.38, 0.56),
+		Vector2(0.62, 0.56), Vector2(0.22, 0.82), Vector2(0.50, 0.84), Vector2(0.78, 0.82)
+	]
+	for i in range(min(deck.size(), points.size())):
+		var card = _card_by_id(String(deck[i]))
+		if card.is_empty():
+			continue
+		_draw_lobby_animal(area, card, points[i], i)
+
+
+func _draw_lobby_animal(area: Rect2, card: Dictionary, anchor: Vector2, index: int) -> void:
+	var card_id = String(card.get("id", ""))
+	var motion_seed = float(absi(hash(card_id)) % 1000) / 1000.0
+	var phase = ui_time * (0.75 + motion_seed * 0.35) + motion_seed * TAU
+	var wander = Vector2(cos(phase * 1.17), sin(phase * 0.91)) * 18.0
+	var bob = sin(phase * 2.2) * 5.0
+	var base_pos = area.position + Vector2(area.size.x * anchor.x, area.size.y * anchor.y)
+	var pos = base_pos + wander + Vector2(0, bob)
+	var size = Vector2(92, 92) * (0.92 + 0.06 * sin(phase + float(index)))
+	draw_circle(pos + Vector2(0, size.y * 0.35), size.x * 0.26, Color(0, 0, 0, 0.16))
+	draw_texture_rect(_card_texture(card), Rect2(pos - size * 0.5, size), false)
 
 
 func _draw_gacha_screen() -> void:
@@ -1229,28 +1255,81 @@ func _draw_tile(key: Vector2i, tile: Dictionary) -> void:
 
 func _draw_site(center: Vector2, tile: Dictionary) -> void:
 	var site = String(tile.get("site", ""))
-	_draw_site_icon(center + Vector2(0, -9), site)
-	var price_rect = Rect2(center + Vector2(-48, 20), Vector2(96, 34))
+	_draw_site_icon(center + Vector2(0, -11), site, String(tile.get("site_card", "")))
 	var affordable = gold >= int(tile["site_cost"])
-	_box(Rect2(price_rect.position + Vector2(0, 4), price_rect.size), Color(0, 0, 0, 0.24), Color.TRANSPARENT, 0)
-	_box(price_rect, Color(1.0, 0.92, 0.34, 0.98) if affordable else Color(1.0, 0.78, 0.48, 0.98), COLOR_LINE, 3)
-	draw_circle(price_rect.position + Vector2(18, 17), 9, COLOR_YELLOW)
-	draw_arc(price_rect.position + Vector2(18, 17), 10, 0.0, TAU, 20, COLOR_LINE, 2.0, true)
-	_draw_text_center(str(int(tile["site_cost"])), Rect2(price_rect.position + Vector2(32, -1), Vector2(54, 36)), 25, COLOR_LINE)
+	_draw_site_cost(center + Vector2(0, 18), int(tile["site_cost"]), affordable)
 
 
-func _draw_site_icon(center: Vector2, site: String) -> void:
-	draw_circle(center + Vector2(0, 4), 24, Color(0, 0, 0, 0.18))
-	draw_circle(center, 24, Color(1.0, 0.96, 0.72, 0.92))
-	draw_arc(center, 25, 0.0, TAU, 32, COLOR_LINE, 2.5, true)
-	if site == "mystery":
-		_draw_text_center("?", Rect2(center + Vector2(-20, -21), Vector2(40, 38)), 30, COLOR_LINE)
-		return
-	var icon_building = _site_icon_building(site)
-	var icon_size = Vector2(34, 34)
-	if site == "tower":
-		icon_size = Vector2(34, 42)
-	draw_texture_rect(_building_texture(icon_building), Rect2(center - icon_size * 0.5 + Vector2(0, -2), icon_size), false)
+func _draw_site_icon(center: Vector2, site: String, card_id: String) -> void:
+	var ink = Color(0.07, 0.09, 0.14, 0.88)
+	var shadow = Color(0, 0, 0, 0.16)
+	match site:
+		"mystery":
+			_draw_mystery_site_icon(center, ink, shadow)
+		"tower":
+			_draw_tower_site_icon(center, ink, shadow)
+		"mine":
+			_draw_mine_site_icon(center, ink, shadow)
+		_:
+			_draw_animal_head_site_icon(center, card_id, ink, shadow)
+
+
+func _draw_site_cost(center: Vector2, cost: int, affordable: bool) -> void:
+	var coin_color = COLOR_YELLOW if affordable else Color(0.84, 0.64, 0.28)
+	var text_color = COLOR_LINE if affordable else Color(0.50, 0.27, 0.16)
+	var coin_center = center + Vector2(-15, 0)
+	draw_circle(coin_center + Vector2(0, 2), 6.0, Color(0, 0, 0, 0.16))
+	draw_circle(coin_center, 6.0, coin_color)
+	draw_arc(coin_center, 6.8, 0.0, TAU, 18, COLOR_LINE, 1.4, true)
+	var size = 15 if cost < 100 else 14
+	_draw_text_center(str(cost), Rect2(center + Vector2(-2, -12), Vector2(38, 22)), size, text_color)
+
+
+func _draw_mystery_site_icon(center: Vector2, ink: Color, shadow: Color) -> void:
+	_draw_text_center("?", Rect2(center + Vector2(-16, -22), Vector2(32, 38)), 31, shadow)
+	_draw_text_center("?", Rect2(center + Vector2(-16, -24), Vector2(32, 38)), 31, ink)
+	draw_rect(Rect2(center + Vector2(-3, 13), Vector2(6, 5)), ink)
+
+
+func _draw_animal_head_site_icon(center: Vector2, card_id: String, ink: Color, shadow: Color) -> void:
+	var id = card_id.to_lower()
+	var c = center + Vector2(0, 2)
+	draw_circle(c + Vector2(0, 4), 15.0, shadow)
+	if id == "rabbit":
+		_draw_filled_polygon([c + Vector2(-10, -8), c + Vector2(-17, -29), c + Vector2(-7, -31), c + Vector2(-3, -9)], ink)
+		_draw_filled_polygon([c + Vector2(8, -8), c + Vector2(11, -31), c + Vector2(21, -28), c + Vector2(16, -7)], ink)
+	elif id == "frog":
+		draw_circle(c + Vector2(-10, -12), 8.0, ink)
+		draw_circle(c + Vector2(10, -12), 8.0, ink)
+	elif id == "chicken" or id == "eagle" or id == "golden_eagle":
+		_draw_filled_polygon([c + Vector2(10, -3), c + Vector2(24, 2), c + Vector2(10, 8)], ink)
+	elif id == "pigeon":
+		_draw_filled_polygon([c + Vector2(10, -2), c + Vector2(21, 3), c + Vector2(10, 7)], ink)
+	else:
+		_draw_filled_polygon([c + Vector2(-16, -4), c + Vector2(-13, -22), c + Vector2(-2, -10)], ink)
+		_draw_filled_polygon([c + Vector2(16, -4), c + Vector2(13, -22), c + Vector2(2, -10)], ink)
+	draw_circle(c, 16.0, ink)
+	draw_circle(c + Vector2(0, 7), 9.0, ink)
+
+
+func _draw_tower_site_icon(center: Vector2, ink: Color, shadow: Color) -> void:
+	var c = center + Vector2(0, 1)
+	draw_rect(Rect2(c + Vector2(-14, 11), Vector2(28, 5)), shadow)
+	draw_rect(Rect2(c + Vector2(-12, -12), Vector2(24, 27)), ink)
+	draw_rect(Rect2(c + Vector2(-17, 10), Vector2(34, 7)), ink)
+	draw_rect(Rect2(c + Vector2(-16, -18), Vector2(7, 8)), ink)
+	draw_rect(Rect2(c + Vector2(-4, -20), Vector2(8, 10)), ink)
+	draw_rect(Rect2(c + Vector2(9, -18), Vector2(7, 8)), ink)
+	_draw_filled_polygon([c + Vector2(-12, -12), c + Vector2(0, -25), c + Vector2(12, -12)], ink)
+
+
+func _draw_mine_site_icon(center: Vector2, ink: Color, shadow: Color) -> void:
+	var c = center + Vector2(0, 2)
+	_draw_filled_polygon([c + Vector2(-18, 12), c + Vector2(-9, -6), c + Vector2(2, 2), c + Vector2(11, -11), c + Vector2(20, 12)], shadow)
+	_draw_filled_polygon([c + Vector2(-19, 10), c + Vector2(-9, -8), c + Vector2(1, 1), c + Vector2(11, -13), c + Vector2(20, 10)], ink)
+	draw_line(c + Vector2(-16, -15), c + Vector2(14, 15), ink, 4.0, true)
+	draw_line(c + Vector2(-13, -16), c + Vector2(4, -22), ink, 4.0, true)
+	draw_line(c + Vector2(-7, -10), c + Vector2(-14, -1), ink, 3.0, true)
 
 
 func _site_icon_building(site: String) -> String:
@@ -1647,6 +1726,17 @@ func _closed_points(points: PackedVector2Array) -> PackedVector2Array:
 	if not points.is_empty():
 		closed.append(points[0])
 	return closed
+
+
+func _draw_filled_polygon(points: Array, color: Color) -> void:
+	if points.size() < 3:
+		return
+	var polygon = PackedVector2Array()
+	var colors = PackedColorArray()
+	for point in points:
+		polygon.append(point)
+		colors.append(color)
+	draw_polygon(polygon, colors)
 
 
 func _neighbors(key: Vector2i) -> Array:
