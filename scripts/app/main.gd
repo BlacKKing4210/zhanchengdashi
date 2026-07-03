@@ -304,10 +304,6 @@ func _reset_battle() -> void:
 		for x in range(GRID_COLS):
 			var key = Vector2i(x, y)
 			var team = NEUTRAL
-			if y <= 4:
-				team = ENEMY
-			elif y >= 10:
-				team = PLAYER
 			var tile = {
 				"team": team,
 				"building": "",
@@ -319,7 +315,7 @@ func _reset_battle() -> void:
 				"site_reward": "",
 				"site_card": "",
 			}
-			if team == NEUTRAL:
+			if key != PLAYER_BASE and key != ENEMY_BASE:
 				_generate_site_once(key, tile)
 			tiles[key] = tile
 
