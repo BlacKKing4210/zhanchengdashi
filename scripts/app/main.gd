@@ -1,12 +1,15 @@
 extends Node2D
 
+const CardRules = preload("res://scripts/app/systems/card_rules.gd")
+const BoardRules = preload("res://scripts/app/systems/board_rules.gd")
+
 const DESIGN_SIZE = Vector2(720.0, 1280.0)
 const HEX_SIZE = 43.0
-const GRID_COLS = 7
-const GRID_ROWS = 13
-const PLAYER = 1
-const ENEMY = -1
-const NEUTRAL = 0
+const GRID_COLS = BoardRules.GRID_COLS
+const GRID_ROWS = BoardRules.GRID_ROWS
+const PLAYER = BoardRules.PLAYER
+const ENEMY = BoardRules.ENEMY
+const NEUTRAL = BoardRules.NEUTRAL
 
 const SCREEN_LOBBY = "lobby"
 const SCREEN_DECK = "deck"
@@ -22,15 +25,11 @@ const MINE_INCOME = 10
 const STARTING_GACHA_TICKETS = 10
 const BATTLE_REWARD_TICKETS = 10
 
-const QUESTION_PRICE = 25
-const MINE_PRICE = 50
-const TOWER_PRICE = 50
-const UNIT_LOW_PRICE = 50
-const UNIT_MID_PRICE = 100
-const UNIT_HIGH_PRICE = 250
+const UNIT_MID_PRICE = BoardRules.UNIT_MID_PRICE
+const UNIT_HIGH_PRICE = BoardRules.UNIT_HIGH_PRICE
 
-const PLAYER_BASE = Vector2i(3, 11)
-const ENEMY_BASE = Vector2i(3, 1)
+const PLAYER_BASE = BoardRules.PLAYER_BASE
+const ENEMY_BASE = BoardRules.ENEMY_BASE
 
 const COLOR_LINE = Color(0.07, 0.09, 0.14)
 const COLOR_BLUE = Color(0.25, 0.55, 0.95)
@@ -41,18 +40,9 @@ const COLOR_GREEN = Color(0.49, 0.82, 0.37)
 const COLOR_RED = Color(0.95, 0.34, 0.32)
 const COLOR_GOLD = Color(1.0, 0.62, 0.08)
 
-const LEVEL_COSTS = [1, 2, 5, 10, 20, 30, 50, 80, 100]
-const LEVEL_STAT_STEP = 0.105
 const COLLECTION_COLUMNS = 4
 const COLLECTION_CARD_SIZE = Vector2(132.0, 158.0)
 const COLLECTION_CARD_GAP = Vector2(24.0, 18.0)
-
-const GACHA_RATES = [
-	{"rarity": "common", "label": "绿色", "rate": 80.0},
-	{"rarity": "rare", "label": "蓝色", "rate": 16.0},
-	{"rarity": "epic", "label": "紫色", "rate": 3.2},
-	{"rarity": "legendary", "label": "金色", "rate": 0.8},
-]
 
 const UNIT_ART = {
 	"rabbit": preload("res://assets/art/units/rabbit.png"),
@@ -74,15 +64,6 @@ const NAV_ITEMS = [
 	{"id": SCREEN_LOBBY, "label": "战斗", "locked": false},
 	{"id": SCREEN_GACHA, "label": "抽卡", "locked": false},
 	{"id": "more", "label": "更多", "locked": true},
-]
-
-const NEIGHBORS_EVEN = [
-	Vector2i(-1, -1), Vector2i(0, -1), Vector2i(-1, 0),
-	Vector2i(1, 0), Vector2i(-1, 1), Vector2i(0, 1)
-]
-const NEIGHBORS_ODD = [
-	Vector2i(0, -1), Vector2i(1, -1), Vector2i(-1, 0),
-	Vector2i(1, 0), Vector2i(0, 1), Vector2i(1, 1)
 ]
 
 var tiles = {}
@@ -285,34 +266,11 @@ func _load_cards() -> void:
 
 
 func _card_from_row(row: Dictionary) -> Dictionary:
-	var tier = int(row.get("tier", 1))
-	var attack = int(row.get("attack", 5 + tier * 2))
-	var skill_id = row.get("skill_id", "")
-	var skill_text = row.get("skill_text", "")
-	return {
-		"id": String(row.get("id", "")),
-		"name": String(row.get("name", row.get("id", ""))),
-		"rarity": String(row.get("rarity", _rarity_for_tier(tier))),
-		"tier": tier,
-		"art_path": String(row.get("art_path", "")),
-		"base_attack": attack,
-		"base_max_hp": int(row.get("max_hp", 40 + tier * 18)),
-		"base_move_speed": float(row.get("move_speed", 58.0 + tier * 2.0)),
-		"base_attack_range": float(row.get("attack_range", 42.0)),
-		"base_summon_interval_sec": float(row.get("summon_interval_sec", maxf(2.2, 4.2 - tier * 0.18))),
-		"skill_id": "" if skill_id == null else String(skill_id),
-		"skill_text": "" if skill_text == null else String(skill_text),
-	}
+	return CardRules.card_from_row(row)
 
 
 func _rarity_for_tier(tier: int) -> String:
-	if tier >= 6:
-		return "legendary"
-	if tier >= 5:
-		return "epic"
-	if tier >= 3:
-		return "rare"
-	return "common"
+	return CardRules.rarity_for_tier(tier)
 
 
 func _init_player_collection() -> void:
@@ -370,46 +328,31 @@ func _is_collection_card_before(a, b) -> bool:
 
 
 func _card_level(card_id: String) -> int:
-	return int(card_levels.get(card_id, 1))
+	return CardRules.card_level(card_levels, card_id)
 
 
 func _card_total_count(card_id: String) -> int:
-	return int(card_counts.get(card_id, 0))
+	return CardRules.card_total_count(card_counts, card_id)
 
 
 func _card_spare_count(card_id: String) -> int:
-	return max(0, _card_total_count(card_id) - 1)
+	return CardRules.card_spare_count(card_counts, card_id)
 
 
 func _next_upgrade_cost(card_id: String) -> int:
-	var level = _card_level(card_id)
-	if level > LEVEL_COSTS.size():
-		return -1
-	return int(LEVEL_COSTS[level - 1])
+	return CardRules.next_upgrade_cost(card_levels, card_id)
 
 
 func _card_multiplier(card_id: String) -> float:
-	return 1.0 + float(_card_level(card_id) - 1) * LEVEL_STAT_STEP
+	return CardRules.card_multiplier(card_levels, card_id)
 
 
 func _card_stats(card: Dictionary) -> Dictionary:
-	var id = String(card.get("id", ""))
-	var mult = _card_multiplier(id)
-	return {
-		"attack": maxi(1, roundi(float(card.get("base_attack", 1)) * mult)),
-		"max_hp": maxi(1, roundi(float(card.get("base_max_hp", 1)) * mult)),
-		"move_speed": float(card.get("base_move_speed", 60.0)) * mult,
-		"attack_range": float(card.get("base_attack_range", 42.0)) * mult,
-		"summon_interval_sec": maxf(1.0, float(card.get("base_summon_interval_sec", 3.5)) / mult),
-	}
+	return CardRules.card_stats(card, card_levels)
 
 
 func _attack_range_label(value: float) -> String:
-	if value <= HEX_SIZE * 1.5:
-		return "近战(1格)"
-	if value <= HEX_SIZE * 2.6:
-		return "远程(2格)"
-	return "超远程(3格)"
+	return CardRules.attack_range_label(value, HEX_SIZE)
 
 
 func _try_upgrade_selected_card() -> void:
@@ -445,125 +388,37 @@ func _reset_battle() -> void:
 	result_text = ""
 	next_unit_id = 1
 
-	for y in range(GRID_ROWS):
-		for x in range(GRID_COLS):
-			var key = Vector2i(x, y)
-			var tile = {
-				"team": NEUTRAL,
-				"occupier": NEUTRAL,
-				"building": "",
-				"hp": 0.0,
-				"max_hp": 0.0,
-				"spawn_timer": 0.0,
-				"site": "",
-				"site_cost": 0,
-				"site_reward": "",
-				"site_card": "",
-			}
-			if key != PLAYER_BASE and key != ENEMY_BASE:
-				_generate_site_once(key, tile)
-			tiles[key] = tile
+	tiles = BoardRules.create_initial_tiles(Callable(self, "_card_for_cost"), Callable(self, "_card_for_tier_range"))
 
 	_set_building(PLAYER_BASE, PLAYER, "base", "")
 	_set_building(ENEMY_BASE, ENEMY, "base", "wolf")
-
-
-func _generate_site_once(key: Vector2i, tile: Dictionary) -> void:
-	var site_seed = absi(hash("%d:%d" % [key.x, key.y]))
-	var roll = site_seed % 100
-	var site = "mystery"
-	var cost = QUESTION_PRICE
-	if roll < 50:
-		site = "mystery"
-		cost = QUESTION_PRICE
-	elif roll < 70:
-		cost = _price_for_seed(site_seed)
-		site = "hall" if cost >= UNIT_HIGH_PRICE else "barracks"
-	elif roll < 90:
-		site = "tower"
-		cost = TOWER_PRICE
-	else:
-		site = "mine"
-		cost = MINE_PRICE
-	tile["site"] = site
-	tile["site_cost"] = cost
-	tile["site_reward"] = _site_reward(site, site_seed)
-	tile["site_card"] = _site_card_for_site(site, cost, site_seed, String(tile["site_reward"]))
-
-
-func _price_for_seed(site_seed: int) -> int:
-	var roll = floori(float(site_seed) / 7.0) % 100
-	if roll < 30:
-		return UNIT_LOW_PRICE
-	if roll < 80:
-		return UNIT_MID_PRICE
-	return UNIT_HIGH_PRICE
-
-
-func _site_reward(site: String, site_seed: int) -> String:
-	if site != "mystery":
-		return site
-	var roll = floori(float(site_seed) / 13.0) % 100
-	if roll < 70:
-		return "empty"
-	if roll < 80:
-		return "barracks"
-	return "hall"
-
-
-func _site_card_for_site(site: String, cost: int, site_seed: int, reward: String) -> String:
-	if site == "mystery":
-		var roll = floori(float(site_seed) / 13.0) % 100
-		if roll < 70:
-			return ""
-		if roll < 80:
-			return _card_for_tier_range(3, 4, site_seed)
-		if roll < 95:
-			return _card_for_tier_range(5, 5, site_seed)
-		return _card_for_tier_range(6, 6, site_seed)
-	if reward == "barracks" or reward == "hall":
-		return _card_for_cost(cost, site_seed)
-	return ""
 
 
 func _set_building(key: Vector2i, team: int, building: String, card_id: String) -> void:
 	if not tiles.has(key):
 		return
 	var tile = tiles[key]
-	tile["team"] = team
-	tile["occupier"] = team
-	tile["building"] = building
-	tile["hp"] = _building_hp(building)
-	tile["max_hp"] = _building_hp(building)
-	tile["spawn_timer"] = _building_delay(building, team, String(tile.get("site_card", card_id)))
-	if card_id != "":
-		tile["site_card"] = card_id
-	tiles[key] = tile
+	var spawn_card_id = String(tile.get("site_card", card_id))
+	tiles[key] = BoardRules.with_building(
+		tile,
+		team,
+		building,
+		card_id,
+		_building_hp(building),
+		_building_delay(building, team, spawn_card_id)
+	)
 
 
 func _set_empty_tile(key: Vector2i, team: int) -> void:
 	if not tiles.has(key):
 		return
-	var tile = tiles[key]
-	tile["team"] = team
-	tile["occupier"] = team
-	tile["building"] = ""
-	tile["hp"] = 0.0
-	tile["max_hp"] = 0.0
-	tile["spawn_timer"] = 0.0
-	tile["site"] = ""
-	tile["site_cost"] = 0
-	tile["site_reward"] = ""
-	tile["site_card"] = ""
-	tiles[key] = tile
+	tiles[key] = BoardRules.as_unlocked_empty(tiles[key], team)
 
 
 func _mark_occupied_tile(key: Vector2i, team: int) -> void:
 	if not tiles.has(key):
 		return
-	var tile = tiles[key]
-	tile["occupier"] = team
-	tiles[key] = tile
+	tiles[key] = BoardRules.with_occupier(tiles[key], team)
 
 
 func _apply_unlock(key: Vector2i, team: int, fallback_card_id: String) -> String:
@@ -708,16 +563,7 @@ func _damage_tile(key: Vector2i, attacker: int, damage: float) -> void:
 		if String(tile["building"]) == "base":
 			_finish_battle("胜利" if attacker == PLAYER else "失败")
 			return
-		tile["building"] = ""
-		tile["hp"] = 0.0
-		tile["max_hp"] = 0.0
-		tile["spawn_timer"] = 0.0
-		tile["site"] = ""
-		tile["site_cost"] = 0
-		tile["site_reward"] = ""
-		tile["site_card"] = ""
-		tile["occupier"] = attacker
-		tiles[key] = tile
+		tiles[key] = BoardRules.as_destroyed_building(tile, attacker)
 		_pulse(_hex_center(key), COLOR_GREEN if attacker == PLAYER else COLOR_RED)
 		return
 	tiles[key] = tile
@@ -781,23 +627,11 @@ func _try_unlock(key: Vector2i) -> bool:
 
 
 func _can_unlock(key: Vector2i, team: int) -> bool:
-	if not tiles.has(key):
-		return false
-	var tile = tiles[key]
-	if int(tile["team"]) == team:
-		return false
-	if String(tile["building"]) != "" or String(tile["site"]) == "":
-		return false
-	for neighbor in _neighbors(key):
-		if tiles.has(neighbor) and int(tiles[neighbor]["team"]) == team:
-			return true
-	return false
+	return BoardRules.can_unlock(tiles, key, team)
 
 
 func _resolved_site(tile: Dictionary) -> String:
-	if String(tile.get("site", "")) == "mystery":
-		return String(tile.get("site_reward", "barracks"))
-	return String(tile.get("site", ""))
+	return BoardRules.resolved_site(tile)
 
 
 func _spawn_card_for_tile(tile: Dictionary, team: int) -> String:
@@ -841,53 +675,24 @@ func _card_by_id(card_id: String) -> Dictionary:
 
 
 func _tile_count(team: int) -> int:
-	var count = 0
-	for tile in tiles.values():
-		if int(tile["team"]) == team:
-			count += 1
-	return count
+	return BoardRules.tile_count(tiles, team)
 
 
 func _building_count(team: int, building: String) -> int:
-	var count = 0
-	for tile in tiles.values():
-		if int(tile["team"]) == team and String(tile["building"]) == building:
-			count += 1
-	return count
+	return BoardRules.building_count(tiles, team, building)
 
 
 func _building_hp(building: String) -> float:
-	match building:
-		"base":
-			return 520.0
-		"hall":
-			return 210.0
-		"tower":
-			return 180.0
-		"mine":
-			return 125.0
-		"barracks":
-			return 145.0
-		_:
-			return 100.0
+	return BoardRules.building_hp(building)
 
 
 func _building_delay(building: String, team: int, card_id: String) -> float:
+	var card_interval = -1.0
 	if building == "barracks" or building == "hall":
 		var card = _card_by_id(card_id)
 		if not card.is_empty():
-			return float(_card_stats(card)["summon_interval_sec"])
-	match building:
-		"base":
-			return 4.6 if team == PLAYER else 4.2
-		"tower":
-			return 1.1
-		"hall":
-			return 4.8
-		"barracks":
-			return 3.5
-		_:
-			return 1.0
+			card_interval = float(_card_stats(card)["summon_interval_sec"])
+	return BoardRules.building_delay(building, team, card_interval)
 
 
 func _finish_battle(text: String) -> void:
@@ -920,13 +725,7 @@ func _roll_gacha() -> Dictionary:
 
 
 func _roll_rarity() -> String:
-	var roll = randf() * 100.0
-	var acc = 0.0
-	for entry in GACHA_RATES:
-		acc += float(entry["rate"])
-		if roll < acc:
-			return String(entry["rarity"])
-	return "legendary"
+	return CardRules.roll_rarity(randf() * 100.0)
 
 
 func _handle_gacha_tap(pos: Vector2) -> void:
@@ -1715,18 +1514,11 @@ func _draw_lock(center: Vector2) -> void:
 
 
 func _hex_center(key: Vector2i) -> Vector2:
-	var w = sqrt(3.0) * HEX_SIZE
-	var x = board_origin.x + w * (float(key.x) + 0.5 * float(key.y % 2))
-	var y = board_origin.y + HEX_SIZE * 1.5 * float(key.y)
-	return Vector2(x, y)
+	return BoardRules.hex_center(key, board_origin, HEX_SIZE)
 
 
 func _hex_points(center: Vector2) -> PackedVector2Array:
-	var points = PackedVector2Array()
-	for i in range(6):
-		var angle = deg_to_rad(60.0 * float(i) - 30.0)
-		points.append(center + Vector2(cos(angle), sin(angle)) * HEX_SIZE)
-	return points
+	return BoardRules.hex_points(center, HEX_SIZE)
 
 
 func _closed_points(points: PackedVector2Array) -> PackedVector2Array:
@@ -1748,20 +1540,11 @@ func _draw_filled_polygon(points: Array, color: Color) -> void:
 
 
 func _neighbors(key: Vector2i) -> Array:
-	var result = []
-	var offsets = NEIGHBORS_ODD if key.y % 2 == 1 else NEIGHBORS_EVEN
-	for offset in offsets:
-		var next = key + offset
-		if next.x >= 0 and next.x < GRID_COLS and next.y >= 0 and next.y < GRID_ROWS:
-			result.append(next)
-	return result
+	return BoardRules.neighbors(key)
 
 
 func _tile_at(pos: Vector2) -> Vector2i:
-	for key in tiles.keys():
-		if Geometry2D.is_point_in_polygon(pos, _hex_points(_hex_center(key))):
-			return key
-	return Vector2i(-99, -99)
+	return BoardRules.tile_at(tiles, pos, board_origin, HEX_SIZE)
 
 
 func _deck_slot_rect(index: int) -> Rect2:
@@ -1833,27 +1616,11 @@ func _rarity_color(rarity: String) -> Color:
 
 
 func _rarity_sort_rank(rarity: String) -> int:
-	match rarity:
-		"legendary":
-			return 4
-		"epic":
-			return 3
-		"rare":
-			return 2
-		_:
-			return 1
+	return CardRules.rarity_sort_rank(rarity)
 
 
 func _rarity_label(rarity: String) -> String:
-	match rarity:
-		"legendary":
-			return "金色"
-		"epic":
-			return "紫色"
-		"rare":
-			return "蓝色"
-		_:
-			return "绿色"
+	return CardRules.rarity_label(rarity)
 
 
 func _site_name(building: String, card_id: String = "") -> String:
