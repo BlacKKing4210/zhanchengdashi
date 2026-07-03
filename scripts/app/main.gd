@@ -306,6 +306,7 @@ func _reset_battle() -> void:
 			var team = NEUTRAL
 			var tile = {
 				"team": team,
+				"occupier": team,
 				"building": "",
 				"hp": 0.0,
 				"max_hp": 0.0,
@@ -390,6 +391,7 @@ func _set_building(key: Vector2i, team: int, building: String, card_id: String) 
 		return
 	var tile = tiles[key]
 	tile["team"] = team
+	tile["occupier"] = team
 	tile["building"] = building
 	tile["hp"] = _building_hp(building)
 	tile["max_hp"] = _building_hp(building)
@@ -404,6 +406,7 @@ func _set_empty_tile(key: Vector2i, team: int) -> void:
 		return
 	var tile = tiles[key]
 	tile["team"] = team
+	tile["occupier"] = team
 	tile["building"] = ""
 	tile["hp"] = 0.0
 	tile["max_hp"] = 0.0
@@ -412,6 +415,14 @@ func _set_empty_tile(key: Vector2i, team: int) -> void:
 	tile["site_cost"] = 0
 	tile["site_reward"] = ""
 	tile["site_card"] = ""
+	tiles[key] = tile
+
+
+func _mark_occupied_tile(key: Vector2i, team: int) -> void:
+	if not tiles.has(key):
+		return
+	var tile = tiles[key]
+	tile["occupier"] = team
 	tiles[key] = tile
 
 
@@ -549,7 +560,10 @@ func _damage_tile(key: Vector2i, attacker: int, damage: float) -> void:
 	if int(tile["team"]) == attacker:
 		return
 	if String(tile["building"]) == "":
-		_set_empty_tile(key, attacker)
+		if int(tile["team"]) == NEUTRAL:
+			_mark_occupied_tile(key, attacker)
+		else:
+			_set_empty_tile(key, attacker)
 		_pulse(_hex_center(key), COLOR_GREEN if attacker == PLAYER else COLOR_RED)
 		return
 	tile["hp"] = float(tile["hp"]) - damage
@@ -593,6 +607,8 @@ func _nearest_target(pos: Vector2, team: int) -> Vector2i:
 	for key in tiles.keys():
 		var tile = tiles[key]
 		if int(tile["team"]) == team:
+			continue
+		if int(tile["team"]) == NEUTRAL and int(tile.get("occupier", NEUTRAL)) == team and String(tile["building"]) == "":
 			continue
 		var score = pos.distance_to(_hex_center(key))
 		if String(tile["building"]) == "base":
@@ -879,6 +895,7 @@ func _draw_tile(key: Vector2i, tile: Dictionary) -> void:
 	var center = _hex_center(key)
 	var points = _hex_points(center)
 	var team = int(tile["team"])
+	var occupier = int(tile.get("occupier", team))
 	var can_unlock = _can_unlock(key, PLAYER)
 	var fill = Color(0.86, 0.92, 0.78, 0.38)
 	var line = Color(0.54, 0.64, 0.44, 0.42)
@@ -895,7 +912,16 @@ func _draw_tile(key: Vector2i, tile: Dictionary) -> void:
 		fill = Color(0.98, 0.88, 0.48, 0.92)
 		line = COLOR_YELLOW if gold >= int(tile["site_cost"]) else Color(0.78, 0.72, 0.62)
 		line_width = 4.0
+	elif occupier == PLAYER:
+		line = COLOR_GREEN.darkened(0.24)
+		line_width = 3.0
+	elif occupier == ENEMY:
+		line = COLOR_RED.darkened(0.24)
+		line_width = 3.0
 	draw_polygon(points, PackedColorArray([fill, fill, fill, fill, fill, fill]))
+	if team == NEUTRAL and occupier != NEUTRAL:
+		var occupied_fill = Color(0.49, 0.82, 0.37, 0.34) if occupier == PLAYER else Color(0.95, 0.34, 0.32, 0.34)
+		draw_polygon(points, PackedColorArray([occupied_fill, occupied_fill, occupied_fill, occupied_fill, occupied_fill, occupied_fill]))
 	draw_polyline(_closed_points(points), line, line_width)
 	if String(tile["building"]) != "":
 		_draw_building(center, tile)
@@ -906,11 +932,13 @@ func _draw_tile(key: Vector2i, tile: Dictionary) -> void:
 func _draw_site(center: Vector2, tile: Dictionary) -> void:
 	var site = String(tile.get("site", ""))
 	_draw_site_icon(center + Vector2(0, -9), site)
-	var price_rect = Rect2(center + Vector2(-38, 22), Vector2(76, 26))
+	var price_rect = Rect2(center + Vector2(-48, 20), Vector2(96, 34))
 	var affordable = gold >= int(tile["site_cost"])
-	_box(price_rect, Color(1, 1, 1, 0.88) if affordable else Color(0.62, 0.64, 0.66, 0.85), COLOR_LINE, 2)
-	draw_circle(price_rect.position + Vector2(14, 13), 7, COLOR_YELLOW)
-	_draw_text_right(str(int(tile["site_cost"])), Rect2(price_rect.position + Vector2(24, 0), Vector2(46, 26)), 18, COLOR_LINE if affordable else Color(0.65, 0.10, 0.10))
+	_box(Rect2(price_rect.position + Vector2(0, 4), price_rect.size), Color(0, 0, 0, 0.24), Color.TRANSPARENT, 0)
+	_box(price_rect, Color(1.0, 0.92, 0.34, 0.98) if affordable else Color(1.0, 0.78, 0.48, 0.98), COLOR_LINE, 3)
+	draw_circle(price_rect.position + Vector2(18, 17), 9, COLOR_YELLOW)
+	draw_arc(price_rect.position + Vector2(18, 17), 10, 0.0, TAU, 20, COLOR_LINE, 2.0, true)
+	_draw_text_center(str(int(tile["site_cost"])), Rect2(price_rect.position + Vector2(32, -1), Vector2(54, 36)), 25, COLOR_LINE)
 
 
 func _draw_site_icon(center: Vector2, site: String) -> void:
