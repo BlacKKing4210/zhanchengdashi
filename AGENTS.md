@@ -10,6 +10,14 @@ This repository is a game project foundation for `zhanchengdashi`.
 - For procedural feedback and prototype motion, prefer engine-side tween/animation/shader/particle work before requesting new sequence-frame art.
 - Do not copy proprietary names, logos, characters, currencies, layouts, or assets from commercial games.
 
+## Godot / GDScript Indentation Safety
+
+- Treat GDScript indentation as syntax-critical. Godot will fail to parse files that mix tabs and spaces, and a blind tab/space replacement can flatten block structure and create follow-up parser errors.
+- Before editing any `.gd` file, check the project's `.editorconfig` `[*.gd]` rule and preserve that indentation style. For Godot projects, prefer Godot's default tab indentation unless the project has a fully enforced alternative.
+- If a Godot project changes indentation policy, update `.editorconfig`, CI/check scripts, and all `.gd` files in one focused change. Never partially convert only touched lines.
+- After any `.gd` edit, run the project's GDScript indentation check when available and launch/parse the Godot project to verify there are no parser errors before committing.
+- When fixing indentation parser errors, restore or compare against the last known-good block structure first, then normalize indentation. Do not use mechanical tab-to-space or space-to-tab conversion without preserving nesting depth.
+
 ## Configuration Tables
 
 - CSV source tables live in `config/tables/`.
