@@ -309,6 +309,19 @@ func _collection_cards() -> Array:
 	return sorted
 
 
+func _available_collection_cards() -> Array:
+	var used = {}
+	for card_id in deck:
+		var id = String(card_id)
+		if id != "":
+			used[id] = true
+	var available = []
+	for card in _collection_cards():
+		if not used.has(String(card.get("id", ""))):
+			available.append(card)
+	return available
+
+
 func _is_collection_card_before(a, b) -> bool:
 	var a_id = String(a.get("id", ""))
 	var b_id = String(b.get("id", ""))
@@ -807,7 +820,7 @@ func _ensure_deck_valid() -> void:
 
 
 func _scroll_deck(amount: float) -> void:
-	deck_scroll = clampf(deck_scroll + amount, 0.0, _collection_max_scroll_for_count(cards.size()))
+	deck_scroll = clampf(deck_scroll + amount, 0.0, _collection_max_scroll_for_count(_available_collection_cards().size()))
 
 
 func _collection_view_rect() -> Rect2:
@@ -841,7 +854,7 @@ func _collection_card_at(pos: Vector2) -> Dictionary:
 	var collection_view = _collection_view_rect()
 	if not collection_view.has_point(pos):
 		return {}
-	var collection_cards = _collection_cards()
+	var collection_cards = _available_collection_cards()
 	var origin = Vector2(collection_view.position.x, collection_view.position.y - deck_scroll)
 	for i in range(collection_cards.size()):
 		var rect = _collection_card_rect(i, origin)
@@ -941,7 +954,7 @@ func _draw_deck_screen() -> void:
 	var collection_frame = _collection_frame_rect()
 	_box(collection_frame, Color(0.55, 0.78, 0.43), COLOR_LINE, 4)
 	var collection_view = _collection_view_rect()
-	var collection_cards = _collection_cards()
+	var collection_cards = _available_collection_cards()
 	deck_scroll = clampf(deck_scroll, 0.0, _collection_max_scroll_for_count(collection_cards.size()))
 	var origin = Vector2(collection_view.position.x, collection_view.position.y - deck_scroll)
 	for i in range(collection_cards.size()):
