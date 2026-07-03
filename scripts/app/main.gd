@@ -19,7 +19,8 @@ const STARTING_GOLD = 60
 const INCOME_INTERVAL = 3.0
 const BASE_INCOME = 12
 const MINE_INCOME = 10
-const BATTLE_REWARD_TICKETS = 2
+const STARTING_GACHA_TICKETS = 10
+const BATTLE_REWARD_TICKETS = 10
 
 const QUESTION_PRICE = 25
 const MINE_PRICE = 50
@@ -42,6 +43,9 @@ const COLOR_GOLD = Color(1.0, 0.62, 0.08)
 
 const LEVEL_COSTS = [1, 2, 5, 10, 20, 30, 50, 80, 100]
 const LEVEL_STAT_STEP = 0.105
+const COLLECTION_COLUMNS = 4
+const COLLECTION_CARD_SIZE = Vector2(132.0, 158.0)
+const COLLECTION_CARD_GAP = Vector2(24.0, 18.0)
 
 const GACHA_RATES = [
 	{"rarity": "common", "label": "绿色", "rate": 80.0},
@@ -89,7 +93,7 @@ var deck = []
 
 var card_counts = {}
 var card_levels = {}
-var gacha_tickets = 0
+var gacha_tickets = STARTING_GACHA_TICKETS
 var last_gacha_cards = []
 
 var screen = SCREEN_LOBBY
@@ -160,6 +164,12 @@ func _unhandled_input(event: InputEvent) -> void:
 		var drag_pos = _screen_to_canvas(event.position)
 		if _collection_frame_rect().has_point(drag_pos):
 			_scroll_deck(-event.relative.y / maxf(canvas_scale, 0.001))
+	elif screen == SCREEN_DECK and event is InputEventMouseMotion:
+		if Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT):
+			_layout(get_viewport_rect().size)
+			var drag_pos = _screen_to_canvas(event.position)
+			if _collection_frame_rect().has_point(drag_pos):
+				_scroll_deck(-event.relative.y / maxf(canvas_scale, 0.001))
 	elif event is InputEventKey and event.pressed and not event.echo:
 		if event.keycode == KEY_R:
 			_reset_battle()
@@ -328,11 +338,35 @@ func _init_deck() -> void:
 
 func _owned_card_ids() -> Array:
 	var owned = []
-	for card in cards:
+	for card in _collection_cards():
 		var id = String(card["id"])
 		if int(card_counts.get(id, 0)) > 0:
 			owned.append(id)
 	return owned
+
+
+func _collection_cards() -> Array:
+	var sorted = cards.duplicate()
+	sorted.sort_custom(Callable(self, "_is_collection_card_before"))
+	return sorted
+
+
+func _is_collection_card_before(a, b) -> bool:
+	var a_id = String(a.get("id", ""))
+	var b_id = String(b.get("id", ""))
+	var a_owned = _card_total_count(a_id) > 0
+	var b_owned = _card_total_count(b_id) > 0
+	if a_owned != b_owned:
+		return a_owned
+	var a_rarity = _rarity_sort_rank(String(a.get("rarity", "common")))
+	var b_rarity = _rarity_sort_rank(String(b.get("rarity", "common")))
+	if a_rarity != b_rarity:
+		return a_rarity > b_rarity
+	var a_tier = int(a.get("tier", 0))
+	var b_tier = int(b.get("tier", 0))
+	if a_tier != b_tier:
+		return a_tier > b_tier
+	return a_id < b_id
 
 
 func _card_level(card_id: String) -> int:
@@ -408,6 +442,7 @@ func _reset_battle() -> void:
 			var key = Vector2i(x, y)
 			var tile = {
 				"team": NEUTRAL,
+				"occupier": NEUTRAL,
 				"building": "",
 				"hp": 0.0,
 				"max_hp": 0.0,
@@ -488,6 +523,7 @@ func _set_building(key: Vector2i, team: int, building: String, card_id: String) 
 		return
 	var tile = tiles[key]
 	tile["team"] = team
+	tile["occupier"] = team
 	tile["building"] = building
 	tile["hp"] = _building_hp(building)
 	tile["max_hp"] = _building_hp(building)
@@ -502,6 +538,7 @@ func _set_empty_tile(key: Vector2i, team: int) -> void:
 		return
 	var tile = tiles[key]
 	tile["team"] = team
+	tile["occupier"] = team
 	tile["building"] = ""
 	tile["hp"] = 0.0
 	tile["max_hp"] = 0.0
@@ -510,6 +547,14 @@ func _set_empty_tile(key: Vector2i, team: int) -> void:
 	tile["site_cost"] = 0
 	tile["site_reward"] = ""
 	tile["site_card"] = ""
+	tiles[key] = tile
+
+
+func _mark_occupied_tile(key: Vector2i, team: int) -> void:
+	if not tiles.has(key):
+		return
+	var tile = tiles[key]
+	tile["occupier"] = team
 	tiles[key] = tile
 
 
@@ -647,7 +692,7 @@ func _damage_tile(key: Vector2i, attacker: int, damage: float) -> void:
 	if int(tile["team"]) == attacker:
 		return
 	if String(tile["building"]) == "":
-		_set_empty_tile(key, attacker)
+		_mark_occupied_tile(key, attacker)
 		_pulse(_hex_center(key), COLOR_GREEN if attacker == PLAYER else COLOR_RED)
 		return
 	tile["hp"] = float(tile["hp"]) - damage
@@ -655,8 +700,16 @@ func _damage_tile(key: Vector2i, attacker: int, damage: float) -> void:
 		if String(tile["building"]) == "base":
 			_finish_battle("胜利" if attacker == PLAYER else "失败")
 			return
+		tile["building"] = ""
+		tile["hp"] = 0.0
+		tile["max_hp"] = 0.0
+		tile["spawn_timer"] = 0.0
+		tile["site"] = ""
+		tile["site_cost"] = 0
+		tile["site_reward"] = ""
+		tile["site_card"] = ""
+		tile["occupier"] = attacker
 		tiles[key] = tile
-		_set_empty_tile(key, attacker)
 		_pulse(_hex_center(key), COLOR_GREEN if attacker == PLAYER else COLOR_RED)
 		return
 	tiles[key] = tile
@@ -691,6 +744,8 @@ func _nearest_target(pos: Vector2, team: int) -> Vector2i:
 	for key in tiles.keys():
 		var tile = tiles[key]
 		if int(tile["team"]) == team:
+			continue
+		if String(tile["building"]) == "" and int(tile.get("occupier", NEUTRAL)) == team:
 			continue
 		var score = pos.distance_to(_hex_center(key))
 		if String(tile["building"]) == "base":
@@ -903,10 +958,9 @@ func _handle_deck_tap(pos: Vector2) -> void:
 		_try_upgrade_selected_card()
 		return
 
-	var card_index = _collection_index_at(pos)
-	if card_index < 0 or card_index >= cards.size():
+	var card = _collection_card_at(pos)
+	if card.is_empty():
 		return
-	var card = cards[card_index]
 	var card_id = String(card["id"])
 	selected_card_id = card_id
 	if _card_total_count(card_id) <= 0:
@@ -946,9 +1000,7 @@ func _ensure_deck_valid() -> void:
 
 
 func _scroll_deck(amount: float) -> void:
-	var rows = ceili(float(cards.size()) / 4.0)
-	var content_height = maxf(0.0, float(rows - 1) * 176.0 + 158.0)
-	deck_scroll = clampf(deck_scroll + amount, 0.0, maxf(0.0, content_height - _collection_view_rect().size.y))
+	deck_scroll = clampf(deck_scroll + amount, 0.0, _collection_max_scroll_for_count(cards.size()))
 
 
 func _collection_view_rect() -> Rect2:
@@ -958,6 +1010,37 @@ func _collection_view_rect() -> Rect2:
 
 func _collection_frame_rect() -> Rect2:
 	return Rect2(34, 714, 652, 414)
+
+
+func _collection_content_height(count: int) -> float:
+	if count <= 0:
+		return 0.0
+	var rows = ceili(float(count) / float(COLLECTION_COLUMNS))
+	return COLLECTION_CARD_SIZE.y + float(rows - 1) * (COLLECTION_CARD_SIZE.y + COLLECTION_CARD_GAP.y)
+
+
+func _collection_max_scroll_for_count(count: int) -> float:
+	return maxf(0.0, _collection_content_height(count) - _collection_view_rect().size.y)
+
+
+func _collection_card_rect(index: int, origin: Vector2) -> Rect2:
+	var col = index % COLLECTION_COLUMNS
+	var row = floori(float(index) / float(COLLECTION_COLUMNS))
+	var step = COLLECTION_CARD_SIZE + COLLECTION_CARD_GAP
+	return Rect2(origin + Vector2(float(col) * step.x, float(row) * step.y), COLLECTION_CARD_SIZE)
+
+
+func _collection_card_at(pos: Vector2) -> Dictionary:
+	var collection_view = _collection_view_rect()
+	if not collection_view.has_point(pos):
+		return {}
+	var collection_cards = _collection_cards()
+	var origin = Vector2(collection_view.position.x, collection_view.position.y - deck_scroll)
+	for i in range(collection_cards.size()):
+		var rect = _collection_card_rect(i, origin)
+		if rect.has_point(pos):
+			return collection_cards[i]
+	return {}
 
 
 func _draw_lobby_screen() -> void:
@@ -1023,17 +1106,18 @@ func _draw_deck_screen() -> void:
 	_draw_card_detail(Rect2(34, 520, 652, 128))
 	_draw_text_center("所有卡牌", Rect2(0, 670, DESIGN_SIZE.x, 42), 34, Color.WHITE)
 	var collection_frame = _collection_frame_rect()
-	_box(collection_frame, Color(0.55, 0.78, 0.43, 0.68), COLOR_LINE, 4)
+	_box(collection_frame, Color(0.55, 0.78, 0.43), COLOR_LINE, 4)
 	var collection_view = _collection_view_rect()
+	var collection_cards = _collection_cards()
+	deck_scroll = clampf(deck_scroll, 0.0, _collection_max_scroll_for_count(collection_cards.size()))
 	var origin = Vector2(collection_view.position.x, collection_view.position.y - deck_scroll)
-	for i in range(cards.size()):
-		var col = i % 4
-		var row = floori(float(i) / 4.0)
-		var rect = Rect2(origin + Vector2(col * 156.0, row * 176.0), Vector2(132, 158))
-		if rect.position.y < collection_view.position.y or rect.position.y + rect.size.y > collection_view.position.y + collection_view.size.y:
+	for i in range(collection_cards.size()):
+		var rect = _collection_card_rect(i, origin)
+		if not rect.intersects(collection_view, true):
 			continue
-		var card = cards[i]
-		_draw_card(rect, card, String(card["id"]) == selected_card_id)
+		var card = collection_cards[i]
+		_draw_card_clipped(rect, card, String(card["id"]) == selected_card_id, collection_view)
+	draw_rect(collection_frame, COLOR_LINE, false, 4)
 
 
 func _draw_battle_screen() -> void:
@@ -1109,6 +1193,7 @@ func _draw_tile(key: Vector2i, tile: Dictionary) -> void:
 	var center = _hex_center(key)
 	var points = _hex_points(center)
 	var team = int(tile["team"])
+	var occupier = int(tile.get("occupier", team))
 	var can_unlock = _can_unlock(key, PLAYER)
 	var fill = Color(0.86, 0.92, 0.78, 0.38)
 	var line = Color(0.54, 0.64, 0.44, 0.42)
@@ -1125,7 +1210,16 @@ func _draw_tile(key: Vector2i, tile: Dictionary) -> void:
 		fill = Color(0.98, 0.88, 0.48, 0.92)
 		line = COLOR_YELLOW if gold >= int(tile["site_cost"]) else Color(0.78, 0.72, 0.62)
 		line_width = 4.0
+	elif occupier == PLAYER:
+		line = COLOR_GREEN.darkened(0.24)
+		line_width = 3.0
+	elif occupier == ENEMY:
+		line = COLOR_RED.darkened(0.24)
+		line_width = 3.0
 	draw_polygon(points, PackedColorArray([fill, fill, fill, fill, fill, fill]))
+	if team == NEUTRAL and occupier != NEUTRAL:
+		var occupied_fill = Color(0.49, 0.82, 0.37, 0.34) if occupier == PLAYER else Color(0.95, 0.34, 0.32, 0.34)
+		draw_polygon(points, PackedColorArray([occupied_fill, occupied_fill, occupied_fill, occupied_fill, occupied_fill, occupied_fill]))
 	draw_polyline(_closed_points(points), line, line_width)
 	if String(tile["building"]) != "":
 		_draw_building(center, tile)
@@ -1136,11 +1230,13 @@ func _draw_tile(key: Vector2i, tile: Dictionary) -> void:
 func _draw_site(center: Vector2, tile: Dictionary) -> void:
 	var site = String(tile.get("site", ""))
 	_draw_site_icon(center + Vector2(0, -9), site)
-	var price_rect = Rect2(center + Vector2(-38, 22), Vector2(76, 26))
+	var price_rect = Rect2(center + Vector2(-48, 20), Vector2(96, 34))
 	var affordable = gold >= int(tile["site_cost"])
-	_box(price_rect, Color(1, 1, 1, 0.88) if affordable else Color(0.62, 0.64, 0.66, 0.85), COLOR_LINE, 2)
-	draw_circle(price_rect.position + Vector2(14, 13), 7, COLOR_YELLOW)
-	_draw_text_right(str(int(tile["site_cost"])), Rect2(price_rect.position + Vector2(24, 0), Vector2(46, 26)), 18, COLOR_LINE if affordable else Color(0.65, 0.10, 0.10))
+	_box(Rect2(price_rect.position + Vector2(0, 4), price_rect.size), Color(0, 0, 0, 0.24), Color.TRANSPARENT, 0)
+	_box(price_rect, Color(1.0, 0.92, 0.34, 0.98) if affordable else Color(1.0, 0.78, 0.48, 0.98), COLOR_LINE, 3)
+	draw_circle(price_rect.position + Vector2(18, 17), 9, COLOR_YELLOW)
+	draw_arc(price_rect.position + Vector2(18, 17), 10, 0.0, TAU, 20, COLOR_LINE, 2.0, true)
+	_draw_text_center(str(int(tile["site_cost"])), Rect2(price_rect.position + Vector2(32, -1), Vector2(54, 36)), 25, COLOR_LINE)
 
 
 func _draw_site_icon(center: Vector2, site: String) -> void:
@@ -1288,6 +1384,36 @@ func _draw_card(rect: Rect2, card: Dictionary, selected: bool) -> void:
 		_draw_empty_progress(progress_rect)
 
 
+func _draw_card_clipped(rect: Rect2, card: Dictionary, selected: bool, clip_rect: Rect2) -> void:
+	if not rect.intersects(clip_rect, true):
+		return
+	if card.is_empty():
+		_box_clipped(rect, Color(0.35, 0.36, 0.40), COLOR_LINE, 4, clip_rect)
+		_draw_text_center_clipped("空", rect, 18, Color.WHITE, clip_rect)
+		return
+	var owned = _card_total_count(String(card.get("id", ""))) > 0
+	var fill = _rarity_color(String(card.get("rarity", "common")))
+	_box_clipped(rect, fill.darkened(0.06) if owned else Color(0.35, 0.36, 0.40), COLOR_LINE, 4, clip_rect)
+	if selected:
+		_box_clipped(rect.grow(5), Color(1.0, 0.91, 0.22, 0.28), COLOR_YELLOW, 4, clip_rect)
+	var tint = Color.WHITE if owned else Color(0.35, 0.35, 0.35, 0.85)
+	var card_id = String(card.get("id", ""))
+	var name_rect = Rect2(rect.position + Vector2(8, rect.size.y - 48), Vector2(rect.size.x - 16, 22))
+	var progress_rect = Rect2(rect.position + Vector2(12, rect.size.y - 22), Vector2(rect.size.x - 24, 14))
+	var art_top = rect.position.y + 12.0
+	var art_bottom = name_rect.position.y - 5.0
+	var art_size = minf(rect.size.x - 30.0, maxf(44.0, art_bottom - art_top))
+	var art_rect = Rect2(Vector2(rect.position.x + (rect.size.x - art_size) * 0.5, art_top), Vector2(art_size, art_size))
+	_draw_texture_rect_clipped(_card_texture(card), art_rect, clip_rect, tint)
+	_box_clipped(name_rect, Color(0, 0, 0, 0.30), Color(1, 1, 1, 0.18), 1, clip_rect)
+	if owned:
+		_draw_text_center_clipped("Lv.%d  %s" % [_card_level(card_id), String(card.get("name", ""))], name_rect, 15, Color.WHITE, clip_rect)
+		_draw_upgrade_progress_clipped(progress_rect, card_id, false, clip_rect)
+	else:
+		_draw_text_center_clipped("未拥有", name_rect, 15, Color.WHITE, clip_rect)
+		_draw_empty_progress_clipped(progress_rect, clip_rect)
+
+
 func _draw_card_detail(rect: Rect2) -> void:
 	var card = _card_by_id(selected_card_id)
 	_box(rect, Color(1, 1, 1, 0.92), COLOR_LINE, 3)
@@ -1335,6 +1461,97 @@ func _draw_empty_progress(rect: Rect2) -> void:
 	draw_rect(Rect2(rect.position + Vector2(0, 3), rect.size), Color(0, 0, 0, 0.18))
 	draw_rect(rect, Color(0.08, 0.10, 0.18, 0.55))
 	draw_rect(rect, COLOR_LINE, false, 2)
+
+
+func _draw_upgrade_progress_clipped(rect: Rect2, card_id: String, show_label: bool, clip_rect: Rect2) -> void:
+	var spare = _card_spare_count(card_id)
+	var cost = _next_upgrade_cost(card_id)
+	var max_value = max(1, cost)
+	var pct = 1.0 if cost < 0 else clampf(float(spare) / float(max_value), 0.0, 1.0)
+	var fill = COLOR_GREEN if cost >= 0 and spare >= cost else Color(0.26, 0.54, 0.92)
+	if cost < 0:
+		fill = COLOR_GOLD
+	_draw_rect_clipped(Rect2(rect.position + Vector2(0, 3), rect.size), Color(0, 0, 0, 0.22), clip_rect)
+	_draw_rect_clipped(rect, Color(0.08, 0.10, 0.18, 0.82), clip_rect)
+	var inner = Rect2(rect.position + Vector2(3, 3), rect.size - Vector2(6, 6))
+	if inner.size.x > 0.0 and inner.size.y > 0.0:
+		_draw_rect_clipped(Rect2(inner.position, Vector2(inner.size.x * pct, inner.size.y)), fill, clip_rect)
+	_draw_rect_outline_clipped(rect, COLOR_LINE, 2, clip_rect)
+	if show_label:
+		var label = "满级" if cost < 0 else "碎片 %d/%d" % [spare, cost]
+		_draw_text_center_clipped(label, rect, 16, Color.WHITE, clip_rect)
+
+
+func _draw_empty_progress_clipped(rect: Rect2, clip_rect: Rect2) -> void:
+	_draw_rect_clipped(Rect2(rect.position + Vector2(0, 3), rect.size), Color(0, 0, 0, 0.18), clip_rect)
+	_draw_rect_clipped(rect, Color(0.08, 0.10, 0.18, 0.55), clip_rect)
+	_draw_rect_outline_clipped(rect, COLOR_LINE, 2, clip_rect)
+
+
+func _box_clipped(rect: Rect2, fill: Color, line: Color, width: float, clip_rect: Rect2) -> void:
+	_draw_rect_clipped(Rect2(rect.position + Vector2(0, 5), rect.size), Color(0, 0, 0, 0.20), clip_rect)
+	_draw_rect_clipped(rect, fill, clip_rect)
+	if width > 0.0 and line.a > 0.0:
+		_draw_rect_outline_clipped(rect, line, width, clip_rect)
+
+
+func _draw_texture_rect_clipped(texture: Texture2D, rect: Rect2, clip_rect: Rect2, tint: Color = Color.WHITE) -> void:
+	if texture == null or rect.size.x <= 0.0 or rect.size.y <= 0.0:
+		return
+	var clipped = _rect_intersection(rect, clip_rect)
+	if not _rect_has_area(clipped):
+		return
+	var texture_size = texture.get_size()
+	if texture_size.x <= 0.0 or texture_size.y <= 0.0:
+		return
+	var src_pos = Vector2(
+		(clipped.position.x - rect.position.x) / rect.size.x * texture_size.x,
+		(clipped.position.y - rect.position.y) / rect.size.y * texture_size.y
+	)
+	var src_size = Vector2(
+		clipped.size.x / rect.size.x * texture_size.x,
+		clipped.size.y / rect.size.y * texture_size.y
+	)
+	draw_texture_rect_region(texture, clipped, Rect2(src_pos, src_size), tint)
+
+
+func _draw_text_center_clipped(text: String, rect: Rect2, size: int, color: Color, clip_rect: Rect2) -> void:
+	if not _rect_contains_rect(clip_rect, rect):
+		return
+	_draw_text_center(text, rect, size, color)
+
+
+func _draw_rect_clipped(rect: Rect2, color: Color, clip_rect: Rect2) -> void:
+	var clipped = _rect_intersection(rect, clip_rect)
+	if _rect_has_area(clipped):
+		draw_rect(clipped, color)
+
+
+func _draw_rect_outline_clipped(rect: Rect2, color: Color, width: float, clip_rect: Rect2) -> void:
+	if width <= 0.0 or color.a <= 0.0:
+		return
+	_draw_rect_clipped(Rect2(rect.position, Vector2(rect.size.x, width)), color, clip_rect)
+	_draw_rect_clipped(Rect2(rect.position + Vector2(0, rect.size.y - width), Vector2(rect.size.x, width)), color, clip_rect)
+	_draw_rect_clipped(Rect2(rect.position, Vector2(width, rect.size.y)), color, clip_rect)
+	_draw_rect_clipped(Rect2(rect.position + Vector2(rect.size.x - width, 0), Vector2(width, rect.size.y)), color, clip_rect)
+
+
+func _rect_intersection(a: Rect2, b: Rect2) -> Rect2:
+	var left = maxf(a.position.x, b.position.x)
+	var top = maxf(a.position.y, b.position.y)
+	var right = minf(a.position.x + a.size.x, b.position.x + b.size.x)
+	var bottom = minf(a.position.y + a.size.y, b.position.y + b.size.y)
+	if right <= left or bottom <= top:
+		return Rect2(Vector2.ZERO, Vector2.ZERO)
+	return Rect2(Vector2(left, top), Vector2(right - left, bottom - top))
+
+
+func _rect_has_area(rect: Rect2) -> bool:
+	return rect.size.x > 0.0 and rect.size.y > 0.0
+
+
+func _rect_contains_rect(outer: Rect2, inner: Rect2) -> bool:
+	return inner.position.x >= outer.position.x and inner.position.y >= outer.position.y and inner.position.x + inner.size.x <= outer.position.x + outer.size.x and inner.position.y + inner.size.y <= outer.position.y + outer.size.y
 
 
 func _draw_toast() -> void:
@@ -1455,22 +1672,6 @@ func _deck_slot_rect(index: int) -> Rect2:
 	return Rect2(64 + col * 150.0, 202 + row * 142.0, 124, 132)
 
 
-func _collection_index_at(pos: Vector2) -> int:
-	var collection_view = _collection_view_rect()
-	if not collection_view.has_point(pos):
-		return -1
-	var origin = Vector2(collection_view.position.x, collection_view.position.y - deck_scroll)
-	for i in range(cards.size()):
-		var col = i % 4
-		var row = floori(float(i) / 4.0)
-		var rect = Rect2(origin + Vector2(col * 156.0, row * 176.0), Vector2(132, 158))
-		if rect.position.y < collection_view.position.y or rect.position.y + rect.size.y > collection_view.position.y + collection_view.size.y:
-			continue
-		if rect.has_point(pos):
-			return i
-	return -1
-
-
 func _start_rect() -> Rect2:
 	return Rect2(190, 958, 340, 76)
 
@@ -1531,6 +1732,18 @@ func _rarity_color(rarity: String) -> Color:
 			return Color(0.24, 0.62, 1.0)
 		_:
 			return Color(0.34, 0.78, 0.38)
+
+
+func _rarity_sort_rank(rarity: String) -> int:
+	match rarity:
+		"legendary":
+			return 4
+		"epic":
+			return 3
+		"rare":
+			return 2
+		_:
+			return 1
 
 
 func _rarity_label(rarity: String) -> String:
