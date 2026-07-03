@@ -12,6 +12,19 @@ const SCREEN_DECK = "deck"
 const SCREEN_BATTLE = "battle"
 const DECK_SIZE = 8
 const BATTLE_TIME = 180.0
+const STARTING_GOLD = 60
+const INCOME_INTERVAL = 3.0
+const BASE_INCOME = 12
+const MINE_INCOME = 10
+const QUESTION_PRICE = 25
+const MINE_PRICE = 50
+const TOWER_PRICE = 50
+const UNIT_LOW_PRICE = 50
+const UNIT_MID_PRICE = 100
+const UNIT_HIGH_PRICE = 250
+const QUESTION_EMPTY_CHANCE = 70
+const QUESTION_RARE_CHANCE = 80
+const QUESTION_EPIC_CHANCE = 95
 
 const PLAYER_BASE = Vector2i(3, 11)
 const ENEMY_BASE = Vector2i(3, 1)
@@ -277,10 +290,10 @@ func _reset_battle() -> void:
 	units.clear()
 	effects.clear()
 	selected_tile = Vector2i(-99, -99)
-	gold = 70
-	enemy_gold = 70
+	gold = STARTING_GOLD
+	enemy_gold = STARTING_GOLD
 	battle_timer = BATTLE_TIME
-	income_timer = 0.0
+	income_timer = INCOME_INTERVAL
 	enemy_timer = 1.0
 	game_over = false
 	pause_open = false
@@ -316,21 +329,64 @@ func _reset_battle() -> void:
 
 func _generate_site_once(key: Vector2i, tile: Dictionary) -> void:
 	var site_seed = absi(hash("%d:%d" % [key.x, key.y]))
-	var types = ["barracks", "mine", "tower", "barracks", "mystery", "hall"]
-	var costs = [45, 55, 70, 90, 120, 150]
-	var site = String(types[site_seed % types.size()])
-	var cost = int(costs[floori(float(site_seed) / 7.0) % costs.size()])
+	var roll = site_seed % 100
+	var site = "mystery"
+	var cost = QUESTION_PRICE
+	if roll < 50:
+		site = "mystery"
+		cost = QUESTION_PRICE
+	elif roll < 70:
+		cost = _price_for_seed(site_seed)
+		site = "hall" if cost >= UNIT_HIGH_PRICE else "barracks"
+	elif roll < 90:
+		site = "tower"
+		cost = TOWER_PRICE
+	else:
+		site = "mine"
+		cost = MINE_PRICE
 	tile["site"] = site
 	tile["site_cost"] = cost
 	tile["site_reward"] = _site_reward(site, site_seed)
-	tile["site_card"] = _card_for_cost(cost)
+	tile["site_card"] = _site_card_for_site(site, cost, site_seed, String(tile["site_reward"]))
+
+
+func _price_for_seed(site_seed: int) -> int:
+	var roll = floori(float(site_seed) / 7.0) % 100
+	if roll < 30:
+		return UNIT_LOW_PRICE
+	if roll < 80:
+		return UNIT_MID_PRICE
+	return UNIT_HIGH_PRICE
+
+
+func _mystery_roll(site_seed: int) -> int:
+	return floori(float(site_seed) / 13.0) % 100
 
 
 func _site_reward(site: String, site_seed: int) -> String:
 	if site != "mystery":
 		return site
-	var rewards = ["barracks", "mine", "tower", "hall"]
-	return String(rewards[floori(float(site_seed) / 13.0) % rewards.size()])
+	var roll = _mystery_roll(site_seed)
+	if roll < QUESTION_EMPTY_CHANCE:
+		return "empty"
+	if roll < QUESTION_RARE_CHANCE:
+		return "barracks"
+	return "hall"
+
+
+func _site_card_for_site(site: String, cost: int, site_seed: int, reward: String) -> String:
+	if site == "mystery":
+		var roll = _mystery_roll(site_seed)
+		if roll < QUESTION_EMPTY_CHANCE:
+			return ""
+		if roll < QUESTION_RARE_CHANCE:
+			return _card_for_tier_range(3, 4, site_seed)
+		if roll < QUESTION_EPIC_CHANCE:
+			return _card_for_tier_range(5, 5, site_seed)
+		return _card_for_tier_range(6, 6, site_seed)
+	if reward == "barracks" or reward == "hall":
+		return _card_for_cost(cost, site_seed)
+	return ""
 
 
 func _set_building(key: Vector2i, team: int, building: String, card_id: String) -> void:
@@ -347,6 +403,44 @@ func _set_building(key: Vector2i, team: int, building: String, card_id: String) 
 	tiles[key] = tile
 
 
+func _set_empty_tile(key: Vector2i, team: int) -> void:
+	if not tiles.has(key):
+		return
+	var tile = tiles[key]
+	tile["team"] = team
+	tile["building"] = ""
+	tile["hp"] = 0.0
+	tile["max_hp"] = 0.0
+	tile["spawn_timer"] = 0.0
+	tile["site"] = ""
+	tile["site_cost"] = 0
+	tile["site_reward"] = ""
+	tile["site_card"] = ""
+	tiles[key] = tile
+
+
+func _apply_unlock(key: Vector2i, team: int, fallback_card_id: String) -> String:
+	if not tiles.has(key):
+		return ""
+	var tile = tiles[key]
+	var result = _resolved_site(tile)
+	var card_id = String(tile.get("site_card", fallback_card_id))
+	match result:
+		"empty":
+			_set_empty_tile(key, team)
+			return "空地"
+		"gold":
+			if team == PLAYER:
+				gold += 30
+			else:
+				enemy_gold += 30
+			_set_empty_tile(key, team)
+			return "金币 +30"
+		_:
+			_set_building(key, team, result, card_id)
+			return _site_name(result, card_id)
+
+
 func _update_battle(delta: float) -> void:
 	battle_timer = maxf(0.0, battle_timer - delta)
 	if battle_timer <= 0.0:
@@ -356,9 +450,9 @@ func _update_battle(delta: float) -> void:
 
 	income_timer -= delta
 	if income_timer <= 0.0:
-		income_timer = 1.0
-		gold += 4 + _building_count(PLAYER, "mine") * 8
-		enemy_gold += 4 + _building_count(ENEMY, "mine") * 7
+		income_timer = INCOME_INTERVAL
+		gold += _building_count(PLAYER, "base") * BASE_INCOME + _building_count(PLAYER, "mine") * MINE_INCOME
+		enemy_gold += _building_count(ENEMY, "base") * BASE_INCOME + _building_count(ENEMY, "mine") * MINE_INCOME
 
 	_update_buildings(delta)
 	_update_enemy(delta)
@@ -401,7 +495,7 @@ func _update_enemy(delta: float) -> void:
 	if enemy_gold < cost:
 		return
 	enemy_gold -= cost
-	_set_building(best_key, ENEMY, _resolved_site(tile), "wolf")
+	_apply_unlock(best_key, ENEMY, "wolf")
 
 
 func _update_units(delta: float) -> void:
@@ -444,11 +538,11 @@ func _tower_attack(key: Vector2i, team: int) -> void:
 		if int(units[i]["team"]) == team:
 			continue
 		var distance = center.distance_to(Vector2(units[i]["pos"]))
-		if distance < 180.0 and distance < best_distance:
+		if distance < 150.0 and distance < best_distance:
 			best_distance = distance
 			best_index = i
 	if best_index >= 0:
-		units[best_index]["hp"] = float(units[best_index]["hp"]) - 20.0
+		units[best_index]["hp"] = float(units[best_index]["hp"]) - 22.0
 		_pulse(Vector2(units[best_index]["pos"]), COLOR_YELLOW)
 
 
@@ -459,8 +553,7 @@ func _damage_tile(key: Vector2i, attacker: int, damage: float) -> void:
 	if int(tile["team"]) == attacker:
 		return
 	if String(tile["building"]) == "":
-		tile["team"] = attacker
-		tiles[key] = tile
+		_set_empty_tile(key, attacker)
 		_pulse(_hex_center(key), COLOR_GREEN if attacker == PLAYER else COLOR_RED)
 		return
 	tile["hp"] = float(tile["hp"]) - damage
@@ -468,12 +561,10 @@ func _damage_tile(key: Vector2i, attacker: int, damage: float) -> void:
 		if String(tile["building"]) == "base":
 			_finish_battle("胜利" if attacker == PLAYER else "失败")
 			return
-		tile["team"] = attacker
-		tile["building"] = ""
-		tile["hp"] = 0.0
-		tile["max_hp"] = 0.0
-		tile["spawn_timer"] = 0.0
+		tiles[key] = tile
+		_set_empty_tile(key, attacker)
 		_pulse(_hex_center(key), COLOR_GREEN if attacker == PLAYER else COLOR_RED)
+		return
 	tiles[key] = tile
 
 
@@ -524,12 +615,11 @@ func _try_unlock(key: Vector2i) -> bool:
 	var tile = tiles[key]
 	var cost = int(tile["site_cost"])
 	if gold < cost:
-		_toast("金币不足")
+		_toast("金币不足，还差 %d" % [cost - gold])
 		return true
 	gold -= cost
-	var building = _resolved_site(tile)
-	_set_building(key, PLAYER, building, String(tile.get("site_card", "")))
-	_toast("已解锁 " + _site_name(building, String(tile.get("site_card", ""))))
+	var result_label = _apply_unlock(key, PLAYER, String(tile.get("site_card", "")))
+	_toast("已解锁 " + result_label)
 	return true
 
 
@@ -560,20 +650,15 @@ func _spawn_card_for_tile(tile: Dictionary, team: int) -> String:
 	return "wolf" if team == ENEMY else String(deck[0])
 
 
-func _card_for_cost(cost: int) -> String:
-	if deck.is_empty():
-		return ""
-	var min_tier = 1
-	var max_tier = 2
-	if cost >= 140:
-		min_tier = 5
-		max_tier = 6
-	elif cost >= 100:
-		min_tier = 4
-		max_tier = 5
-	elif cost >= 70:
-		min_tier = 2
-		max_tier = 4
+func _card_for_cost(cost: int, site_seed: int = 0) -> String:
+	if cost >= UNIT_HIGH_PRICE:
+		return _card_for_tier_range(5, 6, site_seed)
+	if cost >= UNIT_MID_PRICE:
+		return _card_for_tier_range(3, 5, site_seed)
+	return _card_for_tier_range(1, 3, site_seed)
+
+
+func _card_for_tier_range(min_tier: int, max_tier: int, site_seed: int) -> String:
 	var options = []
 	for card_id in deck:
 		var card = _card_by_id(String(card_id))
@@ -581,8 +666,14 @@ func _card_for_cost(cost: int) -> String:
 		if tier >= min_tier and tier <= max_tier:
 			options.append(String(card_id))
 	if options.is_empty():
-		return String(deck[0])
-	return String(options[cost % options.size()])
+		for card in cards:
+			var tier = int(card.get("tier", 1))
+			if tier >= min_tier and tier <= max_tier:
+				options.append(String(card.get("id", "")))
+	if options.is_empty():
+		return String(deck[0]) if not deck.is_empty() else ""
+	var pick_seed = absi(site_seed + min_tier * 17 + max_tier * 31)
+	return String(options[pick_seed % options.size()])
 
 
 func _card_by_id(card_id: String) -> Dictionary:
@@ -611,15 +702,15 @@ func _building_count(team: int, building: String) -> int:
 func _building_hp(building: String) -> float:
 	match building:
 		"base":
-			return 420.0
+			return 520.0
 		"hall":
-			return 180.0
+			return 210.0
 		"tower":
-			return 150.0
+			return 180.0
 		"mine":
-			return 120.0
+			return 125.0
 		"barracks":
-			return 130.0
+			return 170.0
 		_:
 			return 100.0
 
@@ -633,9 +724,9 @@ func _building_delay(building: String, team: int, card_id: String) -> float:
 		"base":
 			return 4.6 if team == PLAYER else 4.2
 		"tower":
-			return 1.1
+			return 0.95
 		"hall":
-			return 4.8
+			return 5.8
 		"barracks":
 			return 3.5
 		_:
@@ -792,26 +883,64 @@ func _draw_tile(key: Vector2i, tile: Dictionary) -> void:
 	var center = _hex_center(key)
 	var points = _hex_points(center)
 	var team = int(tile["team"])
-	var fill = Color(0.76, 0.78, 0.54)
+	var can_unlock = _can_unlock(key, PLAYER)
+	var fill = Color(0.86, 0.92, 0.78, 0.38)
+	var line = Color(0.54, 0.64, 0.44, 0.42)
+	var line_width = 2.0
 	if team == PLAYER:
 		fill = Color(0.49, 0.80, 0.39)
+		line = fill.darkened(0.34)
+		line_width = 3.0
 	elif team == ENEMY:
 		fill = Color(0.95, 0.43, 0.39)
+		line = fill.darkened(0.34)
+		line_width = 3.0
+	elif can_unlock:
+		fill = Color(0.98, 0.88, 0.48, 0.92)
+		line = COLOR_YELLOW if gold >= int(tile["site_cost"]) else Color(0.78, 0.72, 0.62)
+		line_width = 4.0
 	draw_polygon(points, PackedColorArray([fill, fill, fill, fill, fill, fill]))
-	draw_polyline(_closed_points(points), fill.darkened(0.34), 3.0)
+	draw_polyline(_closed_points(points), line, line_width)
 	if String(tile["building"]) != "":
 		_draw_building(center, tile)
-	elif String(tile["site"]) != "" and _can_unlock(key, PLAYER):
+	elif can_unlock:
 		_draw_site(center, tile)
 
 
 func _draw_site(center: Vector2, tile: Dictionary) -> void:
-	var building = _resolved_site(tile)
-	draw_texture_rect(_building_texture(building), Rect2(center + Vector2(-27, -36), Vector2(54, 54)), false)
+	var site = String(tile.get("site", ""))
+	_draw_site_icon(center + Vector2(0, -9), site)
 	var price_rect = Rect2(center + Vector2(-38, 22), Vector2(76, 26))
-	_box(price_rect, Color(1, 1, 1, 0.85), COLOR_LINE, 2)
+	var affordable = gold >= int(tile["site_cost"])
+	_box(price_rect, Color(1, 1, 1, 0.88) if affordable else Color(0.62, 0.64, 0.66, 0.85), COLOR_LINE, 2)
 	draw_circle(price_rect.position + Vector2(14, 13), 7, COLOR_YELLOW)
-	_draw_text_right(str(int(tile["site_cost"])), Rect2(price_rect.position + Vector2(24, 0), Vector2(46, 26)), 18, COLOR_LINE)
+	_draw_text_right(str(int(tile["site_cost"])), Rect2(price_rect.position + Vector2(24, 0), Vector2(46, 26)), 18, COLOR_LINE if affordable else Color(0.65, 0.10, 0.10))
+
+
+func _draw_site_icon(center: Vector2, site: String) -> void:
+	draw_circle(center + Vector2(0, 4), 24, Color(0, 0, 0, 0.18))
+	draw_circle(center, 24, Color(1.0, 0.96, 0.72, 0.92))
+	draw_arc(center, 25, 0.0, TAU, 32, COLOR_LINE, 2.5, true)
+	if site == "mystery":
+		_draw_text_center("?", Rect2(center + Vector2(-20, -21), Vector2(40, 38)), 30, COLOR_LINE)
+		return
+	var icon_building = _site_icon_building(site)
+	var icon_size = Vector2(34, 34)
+	if site == "tower":
+		icon_size = Vector2(34, 42)
+	draw_texture_rect(_building_texture(icon_building), Rect2(center - icon_size * 0.5 + Vector2(0, -2), icon_size), false)
+
+
+func _site_icon_building(site: String) -> String:
+	match site:
+		"mine":
+			return "mine"
+		"tower":
+			return "tower"
+		"hall":
+			return "hall"
+		_:
+			return "barracks"
 
 
 func _draw_building(center: Vector2, tile: Dictionary) -> void:
@@ -851,19 +980,31 @@ func _draw_effect(effect: Dictionary) -> void:
 func _draw_selection_panel() -> void:
 	var rect = Rect2(26, 1132, 668, 118)
 	_box(rect, Color(0.12, 0.10, 0.31, 0.92), Color(0.30, 0.28, 0.62), 4)
-	var title = "点击与己方地块接壤的卡牌地块解锁"
-	var detail = "可解锁地块会显示类型和价格，生成后不会因其它地块改变。"
+	var title = "点击与己方区域接壤的卡牌地块解锁"
+	var detail = "可解锁区域会显示类型和价格，生成后不会因其它地块改变。"
 	if tiles.has(selected_tile):
 		var tile = tiles[selected_tile]
 		if String(tile["building"]) != "":
 			title = _site_name(String(tile["building"]), String(tile.get("site_card", "")))
 			detail = "生命 %.0f / %.0f" % [float(tile["hp"]), float(tile["max_hp"])]
+		elif int(tile["team"]) == PLAYER:
+			title = "空地"
+			detail = "已解锁区域，可作为继续扩张的连接点。"
+		elif int(tile["team"]) == ENEMY:
+			title = "敌方空地"
+			detail = "敌方已解锁区域，战斗推进后可占领。"
 		elif _can_unlock(selected_tile, PLAYER):
-			title = "可解锁：%s  价格 %d" % [_site_name(_resolved_site(tile), String(tile.get("site_card", ""))), int(tile["site_cost"])]
-			detail = "类型和价格已在开局生成并固定。"
+			var site = String(tile.get("site", ""))
+			title = "可解锁：%s  价格 %d" % [_site_name(site, String(tile.get("site_card", ""))), int(tile["site_cost"])]
+			if gold < int(tile["site_cost"]):
+				detail = "金币不足，还差 %d。相邻地块会显示类型图标和价格。" % [int(tile["site_cost"]) - gold]
+			elif site == "mystery":
+				detail = "问号区域购买后翻开，可能为空地、稀有、史诗或传说兵营。"
+			else:
+				detail = "相邻可解锁区域，购买后立即变为己方区域。"
 		else:
 			title = "未连接地块"
-			detail = "先占领或购买相邻地块。"
+			detail = "未解锁区域只显示淡色，先扩张到相邻地块。"
 	_draw_text_fit(title, Rect2(rect.position + Vector2(24, 18), Vector2(620, 34)), 24, Color.WHITE)
 	_draw_text_fit(detail, Rect2(rect.position + Vector2(24, 60), Vector2(620, 32)), 20, Color(0.84, 0.88, 1.0))
 
@@ -1121,6 +1262,12 @@ func _site_name(building: String, card_id: String = "") -> String:
 	match building:
 		"base":
 			return "基地"
+		"mystery":
+			return "问号区域"
+		"empty":
+			return "空地"
+		"gold":
+			return "金币"
 		"barracks":
 			return _unit_name(card_id) + "营地"
 		"hall":
