@@ -404,6 +404,14 @@ func _card_stats(card: Dictionary) -> Dictionary:
 	}
 
 
+func _attack_range_label(value: float) -> String:
+	if value <= HEX_SIZE * 1.5:
+		return "近战(1格)"
+	if value <= HEX_SIZE * 2.6:
+		return "远程(2格)"
+	return "超远程(3格)"
+
+
 func _try_upgrade_selected_card() -> void:
 	var card_id = selected_card_id
 	if card_id == "" or _card_total_count(card_id) <= 0:
@@ -1046,7 +1054,7 @@ func _collection_card_at(pos: Vector2) -> Dictionary:
 func _draw_lobby_screen() -> void:
 	_draw_background()
 	_draw_top_bar()
-	_draw_text_center("占城大师", Rect2(40, 66, 640, 64), 46, Color.WHITE)
+	_draw_text_center("丛林法则", Rect2(40, 66, 640, 64), 46, Color.WHITE)
 	var scene_rect = Rect2(58, 154, 604, 744)
 	_box(scene_rect, Color(0.39, 0.63, 0.87), COLOR_LINE, 5)
 	draw_rect(scene_rect.grow(-14), Color(0.48, 0.78, 0.39))
@@ -1504,11 +1512,11 @@ func _draw_card_detail(rect: Rect2) -> void:
 	_draw_text_fit(String(card.get("name", "")), Rect2(rect.position + Vector2(118, 12), Vector2(180, 30)), 23, COLOR_LINE)
 	_draw_text_fit("%s  Lv.%d" % [_rarity_label(String(card.get("rarity", ""))), _card_level(card_id)], Rect2(rect.position + Vector2(310, 12), Vector2(170, 30)), 19, _rarity_color(String(card.get("rarity", ""))).darkened(0.30))
 	_draw_text_fit("拥有 %d" % _card_total_count(card_id), Rect2(rect.position + Vector2(500, 12), Vector2(120, 30)), 17, COLOR_LINE)
-	var stat_text = "攻 %d  血 %d  速 %.0f  距 %.0f  召 %.1fs" % [
+	var stat_text = "攻 %d  血 %d  速 %.0f  距 %s  召 %.1fs" % [
 		int(stats["attack"]),
 		int(stats["max_hp"]),
 		float(stats["move_speed"]),
-		float(stats["attack_range"]),
+		_attack_range_label(float(stats["attack_range"])),
 		float(stats["summon_interval_sec"]),
 	]
 	_draw_text_fit(stat_text, Rect2(rect.position + Vector2(118, 46), Vector2(500, 28)), 18, COLOR_LINE)
