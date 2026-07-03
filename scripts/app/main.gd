@@ -142,10 +142,13 @@ func _process(delta: float) -> void:
 func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventMouseButton:
 		if screen == SCREEN_DECK and event.pressed:
-			if event.button_index == MOUSE_BUTTON_WHEEL_UP:
+			_layout(get_viewport_rect().size)
+			var deck_pos = _screen_to_canvas(event.position)
+			var in_collection_frame = _collection_frame_rect().has_point(deck_pos)
+			if in_collection_frame and event.button_index == MOUSE_BUTTON_WHEEL_UP:
 				_scroll_deck(-82.0)
 				return
-			if event.button_index == MOUSE_BUTTON_WHEEL_DOWN:
+			if in_collection_frame and event.button_index == MOUSE_BUTTON_WHEEL_DOWN:
 				_scroll_deck(82.0)
 				return
 		if event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
@@ -153,7 +156,10 @@ func _unhandled_input(event: InputEvent) -> void:
 	elif event is InputEventScreenTouch and event.pressed:
 		_handle_tap(event.position)
 	elif screen == SCREEN_DECK and event is InputEventScreenDrag:
-		_scroll_deck(-event.relative.y / maxf(canvas_scale, 0.001))
+		_layout(get_viewport_rect().size)
+		var drag_pos = _screen_to_canvas(event.position)
+		if _collection_frame_rect().has_point(drag_pos):
+			_scroll_deck(-event.relative.y / maxf(canvas_scale, 0.001))
 	elif event is InputEventKey and event.pressed and not event.echo:
 		if event.keycode == KEY_R:
 			_reset_battle()
@@ -861,17 +867,29 @@ func _roll_rarity() -> String:
 
 
 func _handle_gacha_tap(pos: Vector2) -> void:
-	if _gacha_draw_rect().has_point(pos):
-		if gacha_tickets <= 0:
-			_toast("抽卡券不足，战斗结束可获得2张")
-			return
-		gacha_tickets -= 1
-		var card = _roll_gacha()
-		if not card.is_empty():
-			last_gacha_cards = [String(card["id"])]
-			selected_card_id = String(card["id"])
-			_toast("获得 " + String(card["name"]))
+	if _gacha_ten_draw_rect().has_point(pos):
+		_draw_gacha_rewards(10)
 		return
+	if _gacha_draw_rect().has_point(pos):
+		_draw_gacha_rewards(1)
+		return
+
+
+func _draw_gacha_rewards(count: int) -> void:
+	if gacha_tickets < count:
+		_toast("抽卡券不足")
+		return
+	gacha_tickets -= count
+	last_gacha_cards.clear()
+	for i in range(count):
+		var card = _roll_gacha()
+		if card.is_empty():
+			continue
+		last_gacha_cards.append(String(card["id"]))
+		selected_card_id = String(card["id"])
+	if last_gacha_cards.is_empty():
+		return
+	_toast("获得%d张卡牌" % last_gacha_cards.size())
 
 
 func _handle_deck_tap(pos: Vector2) -> void:
@@ -934,7 +952,12 @@ func _scroll_deck(amount: float) -> void:
 
 
 func _collection_view_rect() -> Rect2:
-	return Rect2(34, 728, 652, 400)
+	var frame = _collection_frame_rect()
+	return Rect2(frame.position + Vector2(20, 14), frame.size - Vector2(40, 28))
+
+
+func _collection_frame_rect() -> Rect2:
+	return Rect2(34, 714, 652, 414)
 
 
 func _draw_lobby_screen() -> void:
@@ -947,8 +970,6 @@ func _draw_lobby_screen() -> void:
 	draw_texture_rect(BUILDING_ART["base"], Rect2(260, 260, 200, 200), false)
 	draw_texture_rect(UNIT_ART["rabbit"], Rect2(190, 570, 120, 120), false)
 	draw_texture_rect(UNIT_ART["wolf"], Rect2(410, 570, 120, 120), false)
-	_draw_text_center("战斗结算给2张抽卡券", Rect2(90, 720, 540, 40), 25, COLOR_LINE)
-	_draw_text_center("抽卡入口在战斗按钮右侧", Rect2(90, 760, 540, 40), 25, COLOR_LINE)
 	_cta(_start_rect(), "开始战斗", true)
 
 
@@ -958,26 +979,38 @@ func _draw_gacha_screen() -> void:
 	_draw_text_center("抽卡", Rect2(40, 68, 640, 58), 46, Color.WHITE)
 	_resource(Rect2(238, 130, 244, 48), "抽卡券", str(gacha_tickets), COLOR_YELLOW)
 
-	var panel = Rect2(46, 206, 628, 352)
-	_box(panel, Color(0.19, 0.16, 0.45), COLOR_LINE, 5)
-	_draw_text_center("概率", Rect2(panel.position + Vector2(0, 22), Vector2(panel.size.x, 34)), 28, Color.WHITE)
-	for i in range(GACHA_RATES.size()):
-		var entry = GACHA_RATES[i]
-		var row_rect = Rect2(panel.position + Vector2(54, 74 + i * 58), Vector2(520, 42))
-		_box(row_rect, Color(1, 1, 1, 0.10), Color(1, 1, 1, 0.18), 1)
-		draw_circle(row_rect.position + Vector2(24, 21), 12, _rarity_color(String(entry["rarity"])))
-		_draw_text_fit(String(entry["label"]), Rect2(row_rect.position + Vector2(48, 0), Vector2(200, 42)), 22, Color.WHITE)
-		_draw_text_right("%.1f%%" % float(entry["rate"]), Rect2(row_rect.position + Vector2(300, 0), Vector2(190, 42)), 22, Color.WHITE)
-
-	_cta(_gacha_draw_rect(), "抽1次  消耗1券", gacha_tickets > 0)
-
-	_draw_text_center("最近获得", Rect2(0, 740, DESIGN_SIZE.x, 40), 28, Color.WHITE)
+	var reward_panel = Rect2(46, 220, 628, 560)
+	_box(reward_panel, Color(0.19, 0.16, 0.45), COLOR_LINE, 5)
+	_draw_text_center("最近获得", Rect2(reward_panel.position + Vector2(0, 28), Vector2(reward_panel.size.x, 42)), 30, Color.WHITE)
 	if last_gacha_cards.is_empty():
-		_draw_text_center("暂无记录", Rect2(0, 810, DESIGN_SIZE.x, 40), 24, COLOR_LINE)
+		_draw_text_center("暂无记录", Rect2(reward_panel.position + Vector2(0, 238), Vector2(reward_panel.size.x, 42)), 24, Color.WHITE)
 	else:
 		for i in range(last_gacha_cards.size()):
 			var card = _card_by_id(String(last_gacha_cards[i]))
-			_draw_card(Rect2(292, 810, 136, 166), card, true)
+			_draw_gacha_reward_card(i, card)
+
+	_cta(_gacha_draw_rect(), "抽1次", gacha_tickets > 0)
+	_cta(_gacha_ten_draw_rect(), "抽10次", gacha_tickets >= 10)
+
+
+func _draw_gacha_reward_card(index: int, card: Dictionary) -> void:
+	var count = max(1, last_gacha_cards.size())
+	if count == 1:
+		_draw_card(Rect2(292, 410, 136, 166), card, true)
+		return
+	var columns = 5 if count > 4 else count
+	var card_size = Vector2(106, 134)
+	var gap = Vector2(16, 18)
+	var row = floori(float(index) / float(columns))
+	var col = index % columns
+	var rows = ceili(float(count) / float(columns))
+	var row_count = columns
+	if row == rows - 1:
+		row_count = count - row * columns
+	var row_width = float(row_count) * card_size.x + float(row_count - 1) * gap.x
+	var start_x = (DESIGN_SIZE.x - row_width) * 0.5
+	var start_y = 318.0 if rows > 1 else 396.0
+	_draw_card(Rect2(Vector2(start_x + float(col) * (card_size.x + gap.x), start_y + float(row) * (card_size.y + gap.y)), card_size), card, true)
 
 
 func _draw_deck_screen() -> void:
@@ -989,8 +1022,10 @@ func _draw_deck_screen() -> void:
 		_draw_card(_deck_slot_rect(i), _card_by_id(String(deck[i])), i == selected_slot)
 	_draw_card_detail(Rect2(34, 520, 652, 128))
 	_draw_text_center("所有卡牌", Rect2(0, 670, DESIGN_SIZE.x, 42), 34, Color.WHITE)
+	var collection_frame = _collection_frame_rect()
+	_box(collection_frame, Color(0.55, 0.78, 0.43, 0.68), COLOR_LINE, 4)
 	var collection_view = _collection_view_rect()
-	var origin = Vector2(54, collection_view.position.y - deck_scroll)
+	var origin = Vector2(collection_view.position.x, collection_view.position.y - deck_scroll)
 	for i in range(cards.size()):
 		var col = i % 4
 		var row = floori(float(i) / 4.0)
@@ -1424,7 +1459,7 @@ func _collection_index_at(pos: Vector2) -> int:
 	var collection_view = _collection_view_rect()
 	if not collection_view.has_point(pos):
 		return -1
-	var origin = Vector2(54, collection_view.position.y - deck_scroll)
+	var origin = Vector2(collection_view.position.x, collection_view.position.y - deck_scroll)
 	for i in range(cards.size()):
 		var col = i % 4
 		var row = floori(float(i) / 4.0)
@@ -1441,7 +1476,11 @@ func _start_rect() -> Rect2:
 
 
 func _gacha_draw_rect() -> Rect2:
-	return Rect2(170, 604, 380, 76)
+	return Rect2(104, 830, 240, 76)
+
+
+func _gacha_ten_draw_rect() -> Rect2:
+	return Rect2(376, 830, 240, 76)
 
 
 func _upgrade_button_rect() -> Rect2:
