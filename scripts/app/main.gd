@@ -2,6 +2,7 @@ extends Node2D
 
 const CardRules = preload("res://scripts/app/systems/card_rules.gd")
 const BoardRules = preload("res://scripts/app/systems/board_rules.gd")
+const RankingRules = preload("res://scripts/app/systems/ranking_rules.gd")
 
 const DESIGN_SIZE = Vector2(720.0, 1280.0)
 const HEX_SIZE = 43.0
@@ -26,7 +27,10 @@ const TOWER_DAMAGE = 44.0
 const TOWER_RANGE = 150.0
 const STARTING_GACHA_TICKETS = 10
 const BATTLE_REWARD_TICKETS = 10
+const RANK_DB_PATH = "user://rank_mirror_db.json"
+const MIRROR_LIMIT_PER_RANK = 20
 
+const UNIT_LOW_PRICE = BoardRules.UNIT_LOW_PRICE
 const UNIT_MID_PRICE = BoardRules.UNIT_MID_PRICE
 const UNIT_HIGH_PRICE = BoardRules.UNIT_HIGH_PRICE
 
@@ -74,11 +78,17 @@ var effects = []
 var cards = []
 var deck = []
 var enemy_deck = []
+var enemy_card_levels = {}
 
 var card_counts = {}
 var card_levels = {}
 var gacha_tickets = STARTING_GACHA_TICKETS
 var last_gacha_cards = []
+var rank_db = {}
+var active_match_mirror = {}
+var active_match_rank_key = ""
+var active_match_player_elo = RankingRules.INITIAL_ELO
+var last_rank_result = {}
 
 var screen = SCREEN_LOBBY
 var selected_tile = Vector2i(-99, -99)
@@ -114,6 +124,7 @@ func _ready() -> void:
 	_init_player_collection()
 	_init_deck()
 	_init_enemy_deck()
+	_load_rank_database()
 	_reset_battle()
 
 
@@ -170,8 +181,7 @@ func _handle_tap(screen_pos: Vector2) -> void:
 		if _handle_nav(pos):
 			return
 		if screen == SCREEN_LOBBY and _start_rect().has_point(pos):
-			screen = SCREEN_BATTLE
-			_reset_battle()
+			_start_match()
 			return
 		if screen == SCREEN_DECK:
 			_handle_deck_tap(pos)
@@ -300,6 +310,7 @@ func _init_deck() -> void:
 
 func _init_enemy_deck() -> void:
 	enemy_deck.clear()
+	enemy_card_levels.clear()
 	var common_cards = []
 	for card in cards:
 		if String(card.get("rarity", "common")) == "common":
@@ -309,6 +320,126 @@ func _init_enemy_deck() -> void:
 			enemy_deck.append("rabbit")
 		else:
 			enemy_deck.append(String(common_cards[i % common_cards.size()]))
+	for card_id in enemy_deck:
+		enemy_card_levels[String(card_id)] = 1
+
+
+func _load_rank_database() -> void:
+	rank_db = {}
+	if FileAccess.file_exists(RANK_DB_PATH):
+		var file = FileAccess.open(RANK_DB_PATH, FileAccess.READ)
+		if file != null:
+			var parsed = JSON.parse_string(file.get_as_text())
+			if typeof(parsed) == TYPE_DICTIONARY:
+				rank_db = parsed
+	_ensure_rank_database_shape()
+	_save_rank_database()
+
+
+func _ensure_rank_database_shape() -> void:
+	if typeof(rank_db) != TYPE_DICTIONARY:
+		rank_db = {}
+	if not rank_db.has("version"):
+		rank_db["version"] = RankingRules.DB_VERSION
+	if not rank_db.has("player") or typeof(rank_db["player"]) != TYPE_DICTIONARY:
+		rank_db["player"] = RankingRules.default_profile()
+	if not rank_db.has("mirrors") or typeof(rank_db["mirrors"]) != TYPE_DICTIONARY:
+		rank_db["mirrors"] = {}
+
+
+func _save_rank_database() -> void:
+	_ensure_rank_database_shape()
+	var file = FileAccess.open(RANK_DB_PATH, FileAccess.WRITE)
+	if file == null:
+		_toast("段位数据保存失败")
+		return
+	file.store_string(JSON.stringify(rank_db, "\t"))
+
+
+func _player_profile() -> Dictionary:
+	_ensure_rank_database_shape()
+	return rank_db["player"]
+
+
+func _player_elo() -> int:
+	return int(_player_profile().get("elo", RankingRules.INITIAL_ELO))
+
+
+func _current_rank_key() -> String:
+	return RankingRules.rank_key_for_elo(_player_elo())
+
+
+func _mirror_count_for_rank(rank_key: String) -> int:
+	_ensure_rank_database_shape()
+	var mirrors = rank_db["mirrors"]
+	if mirrors.has(rank_key) and typeof(mirrors[rank_key]) == TYPE_ARRAY:
+		return mirrors[rank_key].size()
+	return 0
+
+
+func _start_match() -> void:
+	active_match_player_elo = _player_elo()
+	active_match_rank_key = RankingRules.rank_key_for_elo(active_match_player_elo)
+	active_match_mirror = _select_match_mirror(active_match_rank_key)
+	_apply_match_mirror(active_match_mirror)
+	last_rank_result = {}
+	screen = SCREEN_BATTLE
+	_reset_battle()
+	_toast("匹配到" + String(active_match_mirror.get("rank_display", RankingRules.display_for_elo(active_match_player_elo))) + "镜像")
+
+
+func _select_match_mirror(rank_key: String) -> Dictionary:
+	_ensure_rank_database_shape()
+	var mirrors = rank_db["mirrors"]
+	var pool = []
+	var other_player_pool = []
+	var current_player_id = String(_player_profile().get("player_id", "local_player"))
+	if mirrors.has(rank_key) and typeof(mirrors[rank_key]) == TYPE_ARRAY:
+		for mirror in mirrors[rank_key]:
+			if typeof(mirror) == TYPE_DICTIONARY:
+				pool.append(mirror)
+				if String(mirror.get("player_id", "")) != current_player_id:
+					other_player_pool.append(mirror)
+	if not other_player_pool.is_empty():
+		return other_player_pool[randi() % other_player_pool.size()].duplicate(true)
+	if not pool.is_empty():
+		return pool[randi() % pool.size()].duplicate(true)
+	return _generated_match_mirror(rank_key)
+
+
+func _generated_match_mirror(rank_key: String) -> Dictionary:
+	var rank = RankingRules.rank_for_key(rank_key)
+	var generated_deck = enemy_deck.duplicate()
+	if generated_deck.is_empty():
+		generated_deck = ["rabbit"]
+	var levels = {}
+	for card_id in generated_deck:
+		levels[String(card_id)] = 1
+	return {
+		"mirror_id": "generated_%s" % rank_key,
+		"player_id": "generated",
+		"name": String(rank["name"]) + "镜像",
+		"rank_key": rank_key,
+		"rank_display": RankingRules.display_for_elo(int(rank["min_elo"])),
+		"elo": int(rank["min_elo"]),
+		"deck": generated_deck,
+		"card_levels": levels,
+		"created_at_unix": 0,
+	}
+
+
+func _apply_match_mirror(mirror: Dictionary) -> void:
+	enemy_deck.clear()
+	enemy_card_levels.clear()
+	var mirror_deck = mirror.get("deck", [])
+	if typeof(mirror_deck) != TYPE_ARRAY or mirror_deck.is_empty():
+		_init_enemy_deck()
+		return
+	for i in range(DECK_SIZE):
+		enemy_deck.append(String(mirror_deck[i % mirror_deck.size()]))
+	var levels = mirror.get("card_levels", {})
+	for card_id in enemy_deck:
+		enemy_card_levels[String(card_id)] = max(1, int(levels.get(String(card_id), 1))) if typeof(levels) == TYPE_DICTIONARY else 1
 
 
 func _owned_card_ids() -> Array:
@@ -381,6 +512,12 @@ func _card_stats(card: Dictionary) -> Dictionary:
 	return CardRules.card_stats(card, card_levels)
 
 
+func _card_stats_for_team(card: Dictionary, team: int) -> Dictionary:
+	if team == ENEMY:
+		return CardRules.card_stats(card, enemy_card_levels)
+	return _card_stats(card)
+
+
 func _attack_range_label(value: float) -> String:
 	return CardRules.attack_range_label(value, HEX_SIZE)
 
@@ -434,7 +571,7 @@ func _set_building(key: Vector2i, team: int, building: String, card_id: String) 
 		team,
 		building,
 		card_id,
-		_building_hp(building, spawn_card_id),
+		_building_hp(building, spawn_card_id, team),
 		_building_delay(building, team, spawn_card_id)
 	)
 
@@ -527,7 +664,7 @@ func _update_enemy(delta: float) -> void:
 	if enemy_gold < cost:
 		return
 	enemy_gold -= cost
-	_apply_unlock(best_key, ENEMY, "wolf")
+	_apply_unlock(best_key, ENEMY, _enemy_deck_card(0))
 
 
 func _update_units(delta: float) -> void:
@@ -613,11 +750,11 @@ func _damage_tile(key: Vector2i, attacker: int, damage: float) -> void:
 
 func _spawn_unit(team: int, key: Vector2i, card_id: String) -> void:
 	if card_id == "":
-		card_id = "wolf" if team == ENEMY else String(deck[0])
+		card_id = _enemy_deck_card(0) if team == ENEMY else String(deck[0])
 	var card = _card_by_id(card_id)
 	if card.is_empty():
-		card = _card_by_id("wolf" if team == ENEMY else "rabbit")
-	var stats = _card_stats(card)
+		card = _card_by_id(_enemy_deck_card(0) if team == ENEMY else "rabbit")
+	var stats = _card_stats_for_team(card, team)
 	units.append({
 		"id": next_unit_id,
 		"team": team,
@@ -763,11 +900,11 @@ func _building_count(team: int, building: String) -> int:
 	return BoardRules.building_count(tiles, team, building)
 
 
-func _building_hp(building: String, card_id: String = "") -> float:
+func _building_hp(building: String, card_id: String = "", team: int = PLAYER) -> float:
 	if building == "barracks" or building == "hall":
 		var card = _card_by_id(card_id)
 		if not card.is_empty():
-			return float(_card_stats(card)["max_hp"]) * 3.0
+			return float(_card_stats_for_team(card, team)["max_hp"]) * 3.0
 	return BoardRules.building_hp(building)
 
 
@@ -776,18 +913,87 @@ func _building_delay(building: String, team: int, card_id: String) -> float:
 	if building == "barracks" or building == "hall":
 		var card = _card_by_id(card_id)
 		if not card.is_empty():
-			card_interval = float(_card_stats(card)["summon_interval_sec"])
+			card_interval = float(_card_stats_for_team(card, team)["summon_interval_sec"])
 	return BoardRules.building_delay(building, team, card_interval)
 
 
 func _finish_battle(text: String) -> void:
+	if game_over:
+		return
 	result_text = text
 	game_over = true
 	pause_open = false
+	_apply_rank_result(text == "胜利")
 	if not battle_reward_given:
 		battle_reward_given = true
 		gacha_tickets += BATTLE_REWARD_TICKETS
 		_toast("获得%d张抽卡券" % BATTLE_REWARD_TICKETS)
+
+
+func _apply_rank_result(won: bool) -> void:
+	var profile = _player_profile()
+	var player_elo = int(profile.get("elo", RankingRules.INITIAL_ELO))
+	if active_match_rank_key == "":
+		active_match_player_elo = player_elo
+		active_match_rank_key = RankingRules.rank_key_for_elo(player_elo)
+	if active_match_mirror.is_empty():
+		active_match_mirror = _generated_match_mirror(active_match_rank_key)
+	var opponent_elo = int(active_match_mirror.get("elo", player_elo))
+	var result = RankingRules.elo_result(player_elo, opponent_elo, won)
+	profile["elo"] = int(result["new_elo"])
+	profile["matches"] = int(profile.get("matches", 0)) + 1
+	if won:
+		profile["wins"] = int(profile.get("wins", 0)) + 1
+	else:
+		profile["losses"] = int(profile.get("losses", 0)) + 1
+	rank_db["player"] = profile
+	last_rank_result = result
+	if won:
+		_record_victory_mirror(active_match_rank_key, active_match_player_elo)
+	_save_rank_database()
+
+
+func _record_victory_mirror(rank_key: String, match_elo: int) -> void:
+	_ensure_rank_database_shape()
+	var mirrors = rank_db["mirrors"]
+	if not mirrors.has(rank_key) or typeof(mirrors[rank_key]) != TYPE_ARRAY:
+		mirrors[rank_key] = []
+	var rank_state = RankingRules.rank_state_for_elo(match_elo)
+	var profile = _player_profile()
+	var now = int(Time.get_unix_time_from_system())
+	var mirror = {
+		"mirror_id": "local_%d_%d" % [now, randi()],
+		"player_id": String(profile.get("player_id", "local_player")),
+		"name": String(profile.get("name", "玩家")) + "镜像",
+		"rank_key": rank_key,
+		"rank_display": String(rank_state["display"]),
+		"elo": match_elo,
+		"deck": _snapshot_deck(),
+		"card_levels": _snapshot_card_levels(),
+		"created_at_unix": now,
+	}
+	mirrors[rank_key].append(mirror)
+	while mirrors[rank_key].size() > MIRROR_LIMIT_PER_RANK:
+		mirrors[rank_key].remove_at(0)
+	rank_db["mirrors"] = mirrors
+
+
+func _snapshot_deck() -> Array:
+	var result = []
+	for card_id in deck:
+		var id = String(card_id)
+		if id != "":
+			result.append(id)
+	return result
+
+
+func _snapshot_card_levels() -> Dictionary:
+	var result = {}
+	for card_id in deck:
+		var id = String(card_id)
+		if id != "":
+			result[id] = _card_level(id)
+	return result
 
 
 func _roll_gacha() -> Dictionary:
@@ -939,12 +1145,13 @@ func _draw_lobby_screen() -> void:
 	_draw_background()
 	_draw_top_bar()
 	_draw_text_center("丛林法则", Rect2(40, 66, 640, 64), 46, Color.WHITE)
-	var scene_rect = Rect2(58, 154, 604, 744)
+	var scene_rect = Rect2(58, 144, 604, 680)
 	_box(scene_rect, Color(0.39, 0.63, 0.87), COLOR_LINE, 5)
 	draw_rect(scene_rect.grow(-14), Color(0.48, 0.78, 0.39))
 	draw_texture_rect(BUILDING_ART["base"], Rect2(260, 260, 200, 200), false)
 	_draw_lobby_deck_animals(scene_rect.grow(-34))
-	_cta(_start_rect(), "开始战斗", true)
+	_draw_rank_panel(Rect2(58, 842, 604, 92))
+	_cta(_start_rect(), "匹配", true)
 
 
 func _draw_lobby_deck_animals(area: Rect2) -> void:
@@ -972,6 +1179,32 @@ func _draw_lobby_animal(area: Rect2, card: Dictionary, anchor: Vector2, index: i
 	var size = Vector2(92, 92) * (0.92 + 0.06 * sin(phase + float(index)))
 	draw_circle(pos + Vector2(0, size.y * 0.35), size.x * 0.26, Color(0, 0, 0, 0.16))
 	draw_texture_rect(_card_texture(card), Rect2(pos - size * 0.5, size), false)
+
+
+func _draw_rank_panel(rect: Rect2) -> void:
+	var elo = _player_elo()
+	var state = RankingRules.rank_state_for_elo(elo)
+	var rank_key = String(state["key"])
+	_box(rect, Color(0.16, 0.13, 0.38, 0.94), COLOR_LINE, 4)
+	_draw_text_fit(String(state["display"]), Rect2(rect.position + Vector2(22, 10), Vector2(260, 34)), 28, Color.WHITE)
+	_draw_text_right("段位赛", Rect2(rect.position + Vector2(350, 12), Vector2(228, 28)), 20, Color(0.88, 0.92, 1.0))
+	_draw_star_track(Rect2(rect.position + Vector2(22, 52), Vector2(176, 20)), int(state["stars"]), int(state["max_stars"]))
+	var profile = _player_profile()
+	_draw_text_fit("胜 %d  负 %d" % [int(profile.get("wins", 0)), int(profile.get("losses", 0))], Rect2(rect.position + Vector2(224, 52), Vector2(160, 24)), 18, Color(0.88, 0.92, 1.0))
+	_draw_text_right("镜像 " + str(_mirror_count_for_rank(rank_key)), Rect2(rect.position + Vector2(414, 52), Vector2(164, 24)), 18, Color(0.88, 0.92, 1.0))
+
+
+func _draw_star_track(rect: Rect2, stars: int, max_stars: int) -> void:
+	if max_stars <= 0:
+		_draw_text_fit("王者星数 " + str(stars), rect, 18, COLOR_YELLOW)
+		return
+	var gap = 10.0
+	var radius = 7.5
+	for i in range(max_stars):
+		var center = rect.position + Vector2(radius + float(i) * (radius * 2.0 + gap), rect.size.y * 0.5)
+		draw_circle(center + Vector2(0, 2), radius, Color(0, 0, 0, 0.22))
+		draw_circle(center, radius, COLOR_YELLOW if i < stars else Color(0.35, 0.34, 0.48))
+		draw_arc(center, radius + 0.8, 0.0, TAU, 18, COLOR_LINE, 1.2, true)
 
 
 func _draw_gacha_screen() -> void:
@@ -1041,6 +1274,7 @@ func _draw_deck_screen() -> void:
 func _draw_battle_screen() -> void:
 	_draw_background()
 	_draw_top_bar()
+	_draw_match_status()
 	_draw_board_frame()
 	for key in tiles.keys():
 		_draw_tile(key, tiles[key])
@@ -1067,6 +1301,25 @@ func _draw_background() -> void:
 func _draw_top_bar() -> void:
 	_resource(Rect2(46, 18, 186, 44), "金币", str(gold), COLOR_YELLOW)
 	_resource(Rect2(488, 18, 186, 44), "券", str(gacha_tickets), COLOR_BLUE)
+
+
+func _draw_match_status() -> void:
+	var rect = Rect2(250, 18, 220, 44)
+	_box(rect, Color(0.15, 0.12, 0.34, 0.92), COLOR_LINE, 3)
+	_draw_text_center(_match_status_text(), rect, 17, Color.WHITE)
+
+
+func _match_status_text() -> String:
+	var player_rank = RankingRules.display_for_elo(active_match_player_elo)
+	var opponent_rank = String(active_match_mirror.get("rank_display", player_rank))
+	return "%s  VS  %s" % [player_rank, opponent_rank]
+
+
+func _rank_result_text() -> String:
+	if last_rank_result.is_empty():
+		return "当前段位 " + RankingRules.display_for_elo(_player_elo())
+	var rank_state = last_rank_result.get("new_rank", RankingRules.rank_state_for_elo(_player_elo()))
+	return "当前段位 " + String(rank_state.get("display", RankingRules.display_for_elo(_player_elo())))
 
 
 func _draw_nav() -> void:
@@ -1333,11 +1586,12 @@ func _draw_pause_overlay() -> void:
 
 func _draw_result_overlay() -> void:
 	draw_rect(Rect2(Vector2.ZERO, DESIGN_SIZE), Color(0, 0, 0, 0.42))
-	var panel = Rect2(110, 438, 500, 300)
+	var panel = Rect2(110, 420, 500, 340)
 	_box(panel, Color(1.0, 0.96, 0.78), COLOR_LINE, 5)
 	_draw_text_center(result_text, Rect2(panel.position + Vector2(0, 48), Vector2(panel.size.x, 68)), 52, COLOR_YELLOW if result_text == "胜利" else COLOR_RED)
 	_draw_text_center("奖励：+%d 抽卡券" % BATTLE_REWARD_TICKETS, Rect2(panel.position + Vector2(0, 128), Vector2(panel.size.x, 36)), 24, COLOR_LINE)
-	_draw_text_center("点击任意位置返回主界面", Rect2(panel.position + Vector2(0, 176), Vector2(panel.size.x, 40)), 24, COLOR_LINE)
+	_draw_text_center(_rank_result_text(), Rect2(panel.position + Vector2(0, 170), Vector2(panel.size.x, 36)), 24, COLOR_PURPLE)
+	_draw_text_center("点击任意位置返回主界面", Rect2(panel.position + Vector2(0, 220), Vector2(panel.size.x, 40)), 24, COLOR_LINE)
 
 
 func _draw_card(rect: Rect2, card: Dictionary, selected: bool) -> void:
