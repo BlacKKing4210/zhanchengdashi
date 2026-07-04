@@ -114,6 +114,8 @@ static func site_reward(site: String, site_seed: int) -> String:
 
 
 static func site_target_rarity_for_site(site: String, cost: int, site_seed: int, reward: String) -> String:
+	if site == "tower":
+		return target_rarity_for_tower(site_seed)
 	if reward != "barracks" and reward != "hall":
 		return ""
 	if site == "mystery":
@@ -147,6 +149,17 @@ static func target_rarity_for_price(cost: int, site_seed: int) -> String:
 	if roll < 95:
 		return "rare"
 	return "epic"
+
+
+static func target_rarity_for_tower(site_seed: int) -> String:
+	var roll = floori(float(site_seed) / 19.0) % 100
+	if roll < 55:
+		return "common"
+	if roll < 85:
+		return "rare"
+	if roll < 97:
+		return "epic"
+	return "legendary"
 
 
 static func with_building(tile: Dictionary, team: int, building: String, card_id: String, hp: float, delay: float) -> Dictionary:

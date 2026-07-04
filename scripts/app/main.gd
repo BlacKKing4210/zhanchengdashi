@@ -1441,23 +1441,24 @@ func _draw_tile(key: Vector2i, tile: Dictionary) -> void:
 
 func _draw_site(center: Vector2, tile: Dictionary) -> void:
 	var site = String(tile.get("site", ""))
-	_draw_site_icon(center + Vector2(0, -11), site, String(tile.get("site_card", "")))
+	_draw_site_icon(center + Vector2(0, -11), tile)
 	var affordable = gold >= int(tile["site_cost"])
 	_draw_site_cost(center + Vector2(0, 18), int(tile["site_cost"]), affordable)
 
 
-func _draw_site_icon(center: Vector2, site: String, card_id: String) -> void:
+func _draw_site_icon(center: Vector2, tile: Dictionary) -> void:
+	var site = String(tile.get("site", ""))
 	var ink = Color(0.07, 0.09, 0.14, 0.88)
 	var shadow = Color(0, 0, 0, 0.16)
 	match site:
 		"mystery":
 			_draw_mystery_site_icon(center, ink, shadow)
 		"tower":
-			_draw_tower_site_icon(center, ink, shadow)
+			_draw_quality_tower(center, _tile_visual_rarity(tile), false)
 		"mine":
 			_draw_mine_site_icon(center, ink, shadow)
 		_:
-			_draw_animal_head_site_icon(center, card_id, ink, shadow)
+			_draw_quality_camp(center, _tile_visual_rarity(tile), false)
 
 
 func _draw_site_cost(center: Vector2, cost: int, affordable: bool) -> void:
@@ -1477,38 +1478,6 @@ func _draw_mystery_site_icon(center: Vector2, ink: Color, shadow: Color) -> void
 	draw_rect(Rect2(center + Vector2(-3, 13), Vector2(6, 5)), ink)
 
 
-func _draw_animal_head_site_icon(center: Vector2, card_id: String, ink: Color, shadow: Color) -> void:
-	var id = card_id.to_lower()
-	var c = center + Vector2(0, 2)
-	draw_circle(c + Vector2(0, 4), 15.0, shadow)
-	if id == "rabbit":
-		_draw_filled_polygon([c + Vector2(-10, -8), c + Vector2(-17, -29), c + Vector2(-7, -31), c + Vector2(-3, -9)], ink)
-		_draw_filled_polygon([c + Vector2(8, -8), c + Vector2(11, -31), c + Vector2(21, -28), c + Vector2(16, -7)], ink)
-	elif id == "frog":
-		draw_circle(c + Vector2(-10, -12), 8.0, ink)
-		draw_circle(c + Vector2(10, -12), 8.0, ink)
-	elif id == "chicken" or id == "eagle" or id == "golden_eagle":
-		_draw_filled_polygon([c + Vector2(10, -3), c + Vector2(24, 2), c + Vector2(10, 8)], ink)
-	elif id == "pigeon":
-		_draw_filled_polygon([c + Vector2(10, -2), c + Vector2(21, 3), c + Vector2(10, 7)], ink)
-	else:
-		_draw_filled_polygon([c + Vector2(-16, -4), c + Vector2(-13, -22), c + Vector2(-2, -10)], ink)
-		_draw_filled_polygon([c + Vector2(16, -4), c + Vector2(13, -22), c + Vector2(2, -10)], ink)
-	draw_circle(c, 16.0, ink)
-	draw_circle(c + Vector2(0, 7), 9.0, ink)
-
-
-func _draw_tower_site_icon(center: Vector2, ink: Color, shadow: Color) -> void:
-	var c = center + Vector2(0, 1)
-	draw_rect(Rect2(c + Vector2(-14, 11), Vector2(28, 5)), shadow)
-	draw_rect(Rect2(c + Vector2(-12, -12), Vector2(24, 27)), ink)
-	draw_rect(Rect2(c + Vector2(-17, 10), Vector2(34, 7)), ink)
-	draw_rect(Rect2(c + Vector2(-16, -18), Vector2(7, 8)), ink)
-	draw_rect(Rect2(c + Vector2(-4, -20), Vector2(8, 10)), ink)
-	draw_rect(Rect2(c + Vector2(9, -18), Vector2(7, 8)), ink)
-	_draw_filled_polygon([c + Vector2(-12, -12), c + Vector2(0, -25), c + Vector2(12, -12)], ink)
-
-
 func _draw_mine_site_icon(center: Vector2, ink: Color, shadow: Color) -> void:
 	var c = center + Vector2(0, 2)
 	_draw_filled_polygon([c + Vector2(-18, 12), c + Vector2(-9, -6), c + Vector2(2, 2), c + Vector2(11, -11), c + Vector2(20, 12)], shadow)
@@ -1518,32 +1487,149 @@ func _draw_mine_site_icon(center: Vector2, ink: Color, shadow: Color) -> void:
 	draw_line(c + Vector2(-7, -10), c + Vector2(-14, -1), ink, 3.0, true)
 
 
-func _site_icon_building(site: String) -> String:
-	match site:
-		"mine":
-			return "mine"
-		"tower":
-			return "tower"
-		"hall":
-			return "hall"
-		_:
-			return "barracks"
+func _draw_quality_camp(center: Vector2, rarity: String, unlocked: bool) -> void:
+	var rank = _rarity_sort_rank(rarity)
+	var main = _rarity_color(rarity)
+	var outline = COLOR_LINE
+	var accent = main.lightened(0.34)
+	var shade = main.darkened(0.22)
+	var scale = 0.78 + float(rank) * 0.10
+	if not unlocked:
+		scale *= 0.86
+	var c = center + Vector2(0, 5.0 - float(rank) * 1.5)
+	var body_w = (24.0 + float(rank) * 5.0) * scale
+	var body_h = (15.0 + float(rank) * 2.4) * scale
+	var roof_h = (14.0 + float(rank) * 3.0) * scale
+	var base_y = c.y + (18.0 + float(rank)) * scale
+	var body_rect = Rect2(Vector2(c.x - body_w * 0.5, base_y - body_h), Vector2(body_w, body_h))
+	var roof = [
+		Vector2(c.x - body_w * 0.62, base_y - body_h),
+		Vector2(c.x, base_y - body_h - roof_h),
+		Vector2(c.x + body_w * 0.62, base_y - body_h),
+	]
+	draw_rect(Rect2(Vector2(c.x - body_w * 0.58, base_y + 1.0), Vector2(body_w * 1.16, 5.0 * scale)), Color(0, 0, 0, 0.18))
+	draw_rect(body_rect, shade)
+	draw_rect(body_rect, outline, false, 3.0)
+	_draw_shape(roof, main, outline, 3.0)
+	draw_rect(Rect2(Vector2(c.x - body_w * 0.16, base_y - body_h * 0.62), Vector2(body_w * 0.32, body_h * 0.62)), Color(0.09, 0.10, 0.16))
+	draw_line(Vector2(c.x - body_w * 0.42, base_y - body_h * 0.12), Vector2(c.x + body_w * 0.42, base_y - body_h * 0.12), accent, 2.0, true)
+	if rank >= 2:
+		var pole_top = Vector2(c.x + body_w * 0.34, base_y - body_h - roof_h - 8.0 * scale)
+		draw_line(Vector2(c.x + body_w * 0.34, base_y - body_h - roof_h + 1.0), pole_top, outline, 2.0, true)
+		_draw_shape([pole_top, pole_top + Vector2(12.0 * scale, 4.0 * scale), pole_top + Vector2(0, 8.0 * scale)], accent, outline, 2.0)
+	if rank >= 3:
+		draw_circle(Vector2(c.x - body_w * 0.34, base_y - body_h * 0.45), 3.5 * scale, accent)
+		draw_circle(Vector2(c.x + body_w * 0.34, base_y - body_h * 0.45), 3.5 * scale, accent)
+		draw_line(Vector2(c.x - body_w * 0.48, base_y - body_h - roof_h * 0.16), Vector2(c.x + body_w * 0.48, base_y - body_h - roof_h * 0.16), accent, 2.2, true)
+	if rank >= 4:
+		var crown_y = base_y - body_h - roof_h - 4.0 * scale
+		_draw_shape([
+			Vector2(c.x - 11.0 * scale, crown_y + 7.0 * scale),
+			Vector2(c.x - 6.0 * scale, crown_y),
+			Vector2(c.x, crown_y + 6.0 * scale),
+			Vector2(c.x + 6.0 * scale, crown_y),
+			Vector2(c.x + 11.0 * scale, crown_y + 7.0 * scale),
+		], accent, outline, 2.0)
+
+
+func _draw_quality_tower(center: Vector2, rarity: String, unlocked: bool) -> void:
+	var rank = _rarity_sort_rank(rarity)
+	var main = _rarity_color(rarity)
+	var outline = COLOR_LINE
+	var accent = main.lightened(0.36)
+	var shade = main.darkened(0.20)
+	var scale = 0.76 + float(rank) * 0.10
+	if not unlocked:
+		scale *= 0.86
+	var c = center + Vector2(0, 4.0 - float(rank) * 1.8)
+	var base_y = c.y + (21.0 + float(rank)) * scale
+	var tower_w = (17.0 + float(rank) * 4.5) * scale
+	var tower_h = (30.0 + float(rank) * 5.0) * scale
+	var top_y = base_y - tower_h
+	draw_rect(Rect2(Vector2(c.x - tower_w * 0.70, base_y + 1.0), Vector2(tower_w * 1.40, 5.0 * scale)), Color(0, 0, 0, 0.18))
+	if rank <= 2:
+		var body_rect = Rect2(Vector2(c.x - tower_w * 0.5, top_y + 8.0 * scale), Vector2(tower_w, tower_h - 8.0 * scale))
+		draw_rect(body_rect, shade)
+		draw_rect(body_rect, outline, false, 3.0)
+		_draw_shape([
+			Vector2(c.x - tower_w * 0.62, top_y + 9.0 * scale),
+			Vector2(c.x, top_y - 4.0 * scale),
+			Vector2(c.x + tower_w * 0.62, top_y + 9.0 * scale),
+		], main, outline, 3.0)
+	else:
+		_draw_shape([
+			Vector2(c.x - tower_w * 0.54, base_y),
+			Vector2(c.x - tower_w * 0.36, top_y + 11.0 * scale),
+			Vector2(c.x, top_y - 8.0 * scale),
+			Vector2(c.x + tower_w * 0.36, top_y + 11.0 * scale),
+			Vector2(c.x + tower_w * 0.54, base_y),
+		], shade, outline, 3.0)
+	draw_rect(Rect2(Vector2(c.x - tower_w * 0.18, base_y - tower_h * 0.50), Vector2(tower_w * 0.36, tower_h * 0.40)), main)
+	draw_rect(Rect2(Vector2(c.x - tower_w * 0.18, base_y - tower_h * 0.50), Vector2(tower_w * 0.36, tower_h * 0.40)), outline, false, 2.0)
+	draw_line(Vector2(c.x - tower_w * 0.42, base_y - tower_h * 0.18), Vector2(c.x + tower_w * 0.42, base_y - tower_h * 0.18), accent, 2.0, true)
+	if rank >= 2:
+		draw_line(Vector2(c.x - tower_w * 0.58, base_y - tower_h * 0.68), Vector2(c.x - tower_w * 0.58, base_y - tower_h * 0.36), outline, 3.0, true)
+		draw_line(Vector2(c.x + tower_w * 0.58, base_y - tower_h * 0.68), Vector2(c.x + tower_w * 0.58, base_y - tower_h * 0.36), outline, 3.0, true)
+	if rank >= 3:
+		draw_circle(Vector2(c.x, top_y + 4.0 * scale), 5.0 * scale, accent)
+		draw_circle(Vector2(c.x, top_y + 4.0 * scale), 5.0 * scale, outline, false, 2.0)
+	if rank >= 4:
+		draw_circle(Vector2(c.x, top_y - 9.0 * scale), 4.0 * scale, accent)
+		_draw_shape([
+			Vector2(c.x - tower_w * 0.74, base_y - tower_h * 0.18),
+			Vector2(c.x - tower_w * 0.48, base_y - tower_h * 0.38),
+			Vector2(c.x - tower_w * 0.48, base_y - tower_h * 0.02),
+		], main, outline, 2.0)
+		_draw_shape([
+			Vector2(c.x + tower_w * 0.74, base_y - tower_h * 0.18),
+			Vector2(c.x + tower_w * 0.48, base_y - tower_h * 0.38),
+			Vector2(c.x + tower_w * 0.48, base_y - tower_h * 0.02),
+		], main, outline, 2.0)
 
 
 func _draw_building(center: Vector2, tile: Dictionary) -> void:
 	var building = String(tile["building"])
-	var size = Vector2(66, 66)
-	if building == "base":
-		size = Vector2(78, 78)
+	if building == "barracks" or building == "hall":
+		_draw_quality_camp(center + Vector2(0, -7), _building_visual_rarity(tile), true)
 	elif building == "tower":
-		size = Vector2(66, 82)
-	draw_texture_rect(_building_texture(building), Rect2(center - size * 0.5 + Vector2(0, -8), size), false)
+		_draw_quality_tower(center + Vector2(0, -7), _building_visual_rarity(tile), true)
+	else:
+		var size = Vector2(66, 66)
+		if building == "base":
+			size = Vector2(78, 78)
+		draw_texture_rect(_building_texture(building), Rect2(center - size * 0.5 + Vector2(0, -8), size), false)
 	var max_hp = float(tile.get("max_hp", 0.0))
 	if max_hp <= 0.0:
 		return
 	var pct = clampf(float(tile["hp"]) / max_hp, 0.0, 1.0)
 	_box(Rect2(center + Vector2(-32, 30), Vector2(64, 8)), COLOR_LINE, Color(0, 0, 0, 0), 0)
 	_box(Rect2(center + Vector2(-31, 31), Vector2(62.0 * pct, 6)), _team_health_color(int(tile["team"])), Color(0, 0, 0, 0), 0)
+
+
+func _building_visual_rarity(tile: Dictionary) -> String:
+	var building = String(tile.get("building", ""))
+	if building == "barracks" or building == "hall":
+		var card = _card_by_id(String(tile.get("site_card", "")))
+		if not card.is_empty():
+			return String(card.get("rarity", "common"))
+	var target = String(tile.get("site_target_rarity", ""))
+	return target if target != "" else "common"
+
+
+func _tile_visual_rarity(tile: Dictionary) -> String:
+	var target = String(tile.get("site_target_rarity", ""))
+	return target if target != "" else "common"
+
+
+func _draw_shape(points: Array, fill: Color, line: Color, width: float) -> void:
+	var polygon = PackedVector2Array()
+	var colors = PackedColorArray()
+	for point in points:
+		polygon.append(point)
+		colors.append(fill)
+	draw_polygon(polygon, colors)
+	if width > 0.0:
+		draw_polyline(_closed_points(polygon), line, width)
 
 
 func _draw_unit(unit: Dictionary) -> void:
@@ -1586,8 +1672,10 @@ func _draw_selection_panel() -> void:
 			if building == "barracks" or building == "hall":
 				var card = _card_by_id(card_id)
 				if card.is_empty():
+					title = "动物卡牌"
 					detail = "动物信息缺失。"
 				else:
+					title = "动物卡牌：%s" % String(card.get("name", "动物"))
 					var stats = _card_stats_for_team(card, int(tile["team"]))
 					detail = "%s Lv.%d  攻%d 血%d 速%.0f 距%s 召%.1fs" % [
 						_rarity_label(String(card.get("rarity", "common"))),
