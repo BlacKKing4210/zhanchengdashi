@@ -32,6 +32,7 @@ static func create_initial_tiles(card_for_cost: Callable, card_for_tier_range: C
 		for x in range(GRID_COLS):
 			var key = Vector2i(x, y)
 			var tile = empty_locked_tile()
+			tile["territory_team"] = starting_territory_for_key(key)
 			if key != PLAYER_BASE and key != ENEMY_BASE:
 				var site = site_for_key(key, card_for_cost, card_for_tier_range)
 				for field in site.keys():
@@ -52,7 +53,12 @@ static func empty_locked_tile() -> Dictionary:
 		"site_cost": 0,
 		"site_reward": "",
 		"site_card": "",
+		"territory_team": NEUTRAL,
 	}
+
+
+static func starting_territory_for_key(key: Vector2i) -> int:
+	return PLAYER if key.y >= floori(float(GRID_ROWS) * 0.5) else ENEMY
 
 
 static func site_for_key(key: Vector2i, card_for_cost: Callable, card_for_tier_range: Callable) -> Dictionary:
@@ -163,6 +169,7 @@ static func with_occupier(tile: Dictionary, team: int) -> Dictionary:
 
 static func as_destroyed_building(tile: Dictionary, attacker: int) -> Dictionary:
 	var next = tile.duplicate()
+	next["team"] = attacker
 	next["building"] = ""
 	next["hp"] = 0.0
 	next["max_hp"] = 0.0

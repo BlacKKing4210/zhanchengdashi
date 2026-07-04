@@ -514,25 +514,33 @@ func _update_enemy(delta: float) -> void:
 
 
 func _update_units(delta: float) -> void:
-	var alive = []
-	for unit in units:
+	for i in range(units.size()):
+		var unit = units[i]
 		if float(unit["hp"]) <= 0.0:
 			continue
-		var target_key = _nearest_target(Vector2(unit["pos"]), int(unit["team"]))
-		if target_key.x == -99:
-			alive.append(unit)
+		var target = _nearest_combat_target(Vector2(unit["pos"]), int(unit["team"]), int(unit["id"]))
+		if target.is_empty():
+			units[i] = unit
 			continue
-		var target_pos = _hex_center(target_key)
+		var target_pos = Vector2(target["pos"])
 		var offset = target_pos - Vector2(unit["pos"])
 		var distance = offset.length()
 		unit["cooldown"] = maxf(0.0, float(unit.get("cooldown", 0.0)) - delta)
 		if distance <= float(unit["range"]):
 			if float(unit["cooldown"]) <= 0.0:
-				_damage_tile(target_key, int(unit["team"]), float(unit["attack"]))
+				if String(target["kind"]) == "unit":
+					_damage_unit(int(target["index"]), float(unit["attack"]))
+				elif String(target["kind"]) == "building":
+					var target_key: Vector2i = target["key"]
+					_damage_tile(target_key, int(unit["team"]), float(unit["attack"]))
 				unit["cooldown"] = 0.85
 		elif distance > 1.0:
 			unit["pos"] = Vector2(unit["pos"]) + offset.normalized() * float(unit["speed"]) * delta
-		alive.append(unit)
+		units[i] = unit
+	var alive = []
+	for unit in units:
+		if float(unit["hp"]) > 0.0:
+			alive.append(unit)
 	units = alive
 
 
@@ -550,15 +558,21 @@ func _tower_attack(key: Vector2i, team: int) -> void:
 	var best_index = -1
 	var best_distance = 999999.0
 	for i in range(units.size()):
-		if int(units[i]["team"]) == team:
+		if int(units[i]["team"]) == team or float(units[i]["hp"]) <= 0.0:
 			continue
 		var distance = center.distance_to(Vector2(units[i]["pos"]))
 		if distance < 150.0 and distance < best_distance:
 			best_distance = distance
 			best_index = i
 	if best_index >= 0:
-		units[best_index]["hp"] = float(units[best_index]["hp"]) - 22.0
-		_pulse(Vector2(units[best_index]["pos"]), COLOR_YELLOW)
+		_damage_unit(best_index, 22.0)
+
+
+func _damage_unit(index: int, damage: float) -> void:
+	if index < 0 or index >= units.size():
+		return
+	units[index]["hp"] = float(units[index]["hp"]) - damage
+	_pulse(Vector2(units[index]["pos"]), COLOR_YELLOW)
 
 
 func _damage_tile(key: Vector2i, attacker: int, damage: float) -> void:
@@ -568,8 +582,6 @@ func _damage_tile(key: Vector2i, attacker: int, damage: float) -> void:
 	if int(tile["team"]) == attacker:
 		return
 	if String(tile["building"]) == "":
-		_mark_occupied_tile(key, attacker)
-		_pulse(_hex_center(key), COLOR_GREEN if attacker == PLAYER else COLOR_RED)
 		return
 	tile["hp"] = float(tile["hp"]) - damage
 	if float(tile["hp"]) <= 0.0:
@@ -605,23 +617,38 @@ func _spawn_unit(team: int, key: Vector2i, card_id: String) -> void:
 	_pulse(_hex_center(key), Color(0.75, 0.95, 1.0))
 
 
-func _nearest_target(pos: Vector2, team: int) -> Vector2i:
-	var best = Vector2i(-99, -99)
+func _nearest_combat_target(pos: Vector2, team: int, self_id: int) -> Dictionary:
+	var best = {}
 	var best_score = 999999.0
+	for i in range(units.size()):
+		var unit = units[i]
+		if int(unit["id"]) == self_id or int(unit["team"]) == team or float(unit["hp"]) <= 0.0:
+			continue
+		var unit_pos = Vector2(unit["pos"])
+		var score = pos.distance_to(unit_pos) - 80.0
+		if score < best_score:
+			best_score = score
+			best = {
+				"kind": "unit",
+				"index": i,
+				"pos": unit_pos,
+			}
 	for key in tiles.keys():
 		var tile = tiles[key]
-		if int(tile["team"]) == team:
-			continue
-		if String(tile["building"]) == "" and int(tile.get("occupier", NEUTRAL)) == team:
+		if int(tile["team"]) == team or String(tile["building"]) == "":
 			continue
 		var score = pos.distance_to(_hex_center(key))
 		if String(tile["building"]) == "base":
 			score -= 120.0
-		elif String(tile["building"]) != "":
+		else:
 			score -= 60.0
 		if score < best_score:
 			best_score = score
-			best = key
+			best = {
+				"kind": "building",
+				"key": key,
+				"pos": _hex_center(key),
+			}
 	return best
 
 
@@ -1040,9 +1067,10 @@ func _draw_tile(key: Vector2i, tile: Dictionary) -> void:
 	var points = _hex_points(center)
 	var team = int(tile["team"])
 	var occupier = int(tile.get("occupier", team))
+	var territory_team = int(tile.get("territory_team", NEUTRAL))
 	var can_unlock = _can_unlock(key, PLAYER)
-	var fill = Color(0.86, 0.92, 0.78, 0.38)
-	var line = Color(0.54, 0.64, 0.44, 0.42)
+	var fill = Color(0.88, 0.80, 0.58, 0.68)
+	var line = Color(0.61, 0.52, 0.35, 0.48)
 	var line_width = 2.0
 	if team == PLAYER:
 		fill = Color(0.49, 0.80, 0.39)
@@ -1056,6 +1084,14 @@ func _draw_tile(key: Vector2i, tile: Dictionary) -> void:
 		fill = Color(0.98, 0.88, 0.48, 0.92)
 		line = COLOR_YELLOW if gold >= int(tile["site_cost"]) else Color(0.78, 0.72, 0.62)
 		line_width = 4.0
+	elif territory_team == PLAYER:
+		line = COLOR_GREEN.darkened(0.28)
+		line.a = 0.58
+		line_width = 2.4
+	elif territory_team == ENEMY:
+		line = COLOR_RED.darkened(0.22)
+		line.a = 0.58
+		line_width = 2.4
 	elif occupier == PLAYER:
 		line = COLOR_GREEN.darkened(0.24)
 		line_width = 3.0
@@ -1063,9 +1099,6 @@ func _draw_tile(key: Vector2i, tile: Dictionary) -> void:
 		line = COLOR_RED.darkened(0.24)
 		line_width = 3.0
 	draw_polygon(points, PackedColorArray([fill, fill, fill, fill, fill, fill]))
-	if team == NEUTRAL and occupier != NEUTRAL:
-		var occupied_fill = Color(0.49, 0.82, 0.37, 0.34) if occupier == PLAYER else Color(0.95, 0.34, 0.32, 0.34)
-		draw_polygon(points, PackedColorArray([occupied_fill, occupied_fill, occupied_fill, occupied_fill, occupied_fill, occupied_fill]))
 	draw_polyline(_closed_points(points), line, line_width)
 	if String(tile["building"]) != "":
 		_draw_building(center, tile)
@@ -1177,7 +1210,7 @@ func _draw_building(center: Vector2, tile: Dictionary) -> void:
 		return
 	var pct = clampf(float(tile["hp"]) / max_hp, 0.0, 1.0)
 	_box(Rect2(center + Vector2(-32, 30), Vector2(64, 8)), COLOR_LINE, Color(0, 0, 0, 0), 0)
-	_box(Rect2(center + Vector2(-31, 31), Vector2(62.0 * pct, 6)), COLOR_GREEN, Color(0, 0, 0, 0), 0)
+	_box(Rect2(center + Vector2(-31, 31), Vector2(62.0 * pct, 6)), _team_health_color(int(tile["team"])), Color(0, 0, 0, 0), 0)
 
 
 func _draw_unit(unit: Dictionary) -> void:
@@ -1185,10 +1218,17 @@ func _draw_unit(unit: Dictionary) -> void:
 	var team = int(unit["team"])
 	draw_circle(pos + Vector2(0, 14), 17, Color(0, 0, 0, 0.18))
 	draw_texture_rect(_card_texture(_card_by_id(String(unit["card"]))), Rect2(pos + Vector2(-22, -30), Vector2(44, 44)), false)
-	draw_circle(pos + Vector2(0, -30), 7, Color(0.65, 0.86, 1.0) if team == PLAYER else Color(1.0, 0.60, 0.56))
 	var pct = clampf(float(unit["hp"]) / float(unit["max_hp"]), 0.0, 1.0)
 	_box(Rect2(pos + Vector2(-18, 20), Vector2(36, 6)), COLOR_LINE, Color(0, 0, 0, 0), 0)
-	_box(Rect2(pos + Vector2(-17, 21), Vector2(34.0 * pct, 4)), COLOR_GREEN, Color(0, 0, 0, 0), 0)
+	_box(Rect2(pos + Vector2(-17, 21), Vector2(34.0 * pct, 4)), _team_health_color(team), Color(0, 0, 0, 0), 0)
+
+
+func _team_health_color(team: int) -> Color:
+	if team == PLAYER:
+		return COLOR_GREEN
+	if team == ENEMY:
+		return COLOR_RED
+	return COLOR_YELLOW
 
 
 func _draw_effect(effect: Dictionary) -> void:
