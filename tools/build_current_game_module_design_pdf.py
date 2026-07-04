@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 from datetime import date
 from pathlib import Path
 from xml.sax.saxutils import escape
@@ -23,8 +24,27 @@ from reportlab.platypus import (
 
 
 ROOT = Path(__file__).resolve().parents[1]
-SOURCE_PATH = ROOT / "design" / "current_game_module_design.md"
-OUTPUT_PATH = ROOT / "output" / "pdf" / "current-game-module-design.pdf"
+
+
+def project_path_from_env(name: str, default: Path) -> Path:
+    value = os.environ.get(name, "").strip()
+    if value == "":
+        return default
+    path = Path(value)
+    return path if path.is_absolute() else ROOT / path
+
+
+def project_relative(path: Path) -> str:
+    try:
+        return path.relative_to(ROOT).as_posix()
+    except ValueError:
+        return str(path)
+
+
+SOURCE_PATH = project_path_from_env("DOC_SOURCE_PATH", ROOT / "design" / "current_game_module_design.md")
+OUTPUT_PATH = project_path_from_env("DOC_OUTPUT_PATH", ROOT / "output" / "pdf" / "current-game-module-design.pdf")
+DOC_TITLE = os.environ.get("DOC_TITLE", "Jungle Law current game module design")
+SOURCE_LABEL = project_relative(SOURCE_PATH)
 
 
 def register_project_font() -> str:
@@ -165,7 +185,7 @@ def build_story(markdown: str, styles: dict[str, ParagraphStyle]) -> list:
             story.append(Spacer(1, 2 * mm))
         elif stripped.startswith("# "):
             story.append(paragraph(stripped[2:], styles["Title"]))
-            story.append(paragraph(f"PDF 生成日期：{date.today().isoformat()} | 源文件：design/current_game_module_design.md", styles["Meta"]))
+            story.append(paragraph(f"PDF 生成日期：{date.today().isoformat()} | 源文件：{SOURCE_LABEL}", styles["Meta"]))
         elif stripped.startswith("## "):
             if stripped.startswith("## 1."):
                 story.append(PageBreak())
@@ -295,7 +315,7 @@ def build_pdf() -> None:
         leftMargin=18 * mm,
         topMargin=17 * mm,
         bottomMargin=16 * mm,
-        title="Jungle Law current game module design",
+        title=DOC_TITLE,
         author="Codex",
     )
     markdown = SOURCE_PATH.read_text(encoding="utf-8")

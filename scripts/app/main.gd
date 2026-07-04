@@ -26,7 +26,8 @@ const MINE_INCOME = 10
 const TOWER_DAMAGE = 44.0
 const TOWER_RANGE = 150.0
 const STARTING_GACHA_TICKETS = 10
-const BATTLE_REWARD_TICKETS = 10
+const BATTLE_WIN_REWARD_TICKETS = 3
+const BATTLE_LOSS_REWARD_TICKETS = 1
 const RANK_DB_PATH = "user://rank_mirror_db.json"
 const MIRROR_LIMIT_PER_RANK = 20
 
@@ -104,6 +105,7 @@ var enemy_timer = 1.0
 var game_over = false
 var pause_open = false
 var battle_reward_given = false
+var last_battle_reward_tickets = 0
 var result_text = ""
 var toast_text = ""
 var toast_timer = 0.0
@@ -492,6 +494,12 @@ func _card_level(card_id: String) -> int:
 	return CardRules.card_level(card_levels, card_id)
 
 
+func _card_level_for_team(card_id: String, team: int) -> int:
+	if team == ENEMY:
+		return CardRules.card_level(enemy_card_levels, card_id)
+	return _card_level(card_id)
+
+
 func _card_total_count(card_id: String) -> int:
 	return CardRules.card_total_count(card_counts, card_id)
 
@@ -516,6 +524,11 @@ func _card_stats_for_team(card: Dictionary, team: int) -> Dictionary:
 	if team == ENEMY:
 		return CardRules.card_stats(card, enemy_card_levels)
 	return _card_stats(card)
+
+
+func _card_skill_text(card: Dictionary) -> String:
+	var skill_text = String(card.get("skill_text", ""))
+	return skill_text if skill_text != "" else "无技能"
 
 
 func _attack_range_label(value: float) -> String:
@@ -552,6 +565,7 @@ func _reset_battle() -> void:
 	game_over = false
 	pause_open = false
 	battle_reward_given = false
+	last_battle_reward_tickets = 0
 	result_text = ""
 	next_unit_id = 1
 
@@ -606,8 +620,12 @@ func _apply_unlock(key: Vector2i, team: int, fallback_card_id: String) -> String
 			_set_empty_tile(key, team)
 			return "金币 +30"
 		_:
-			_set_building(key, team, result, _site_card_for_team(key, tile, team, card_id))
-			return _site_name(result, card_id)
+			var site_card_id = _site_card_for_team(key, tile, team, card_id)
+			if (result == "barracks" or result == "hall") and site_card_id == "":
+				_set_empty_tile(key, team)
+				return "空地"
+			_set_building(key, team, result, site_card_id)
+			return _site_name(result, site_card_id)
 
 
 func _update_battle(delta: float) -> void:
@@ -841,16 +859,16 @@ func _site_card_for_team(key: Vector2i, tile: Dictionary, team: int, fallback_ca
 	var site = _resolved_site(tile)
 	if site != "barracks" and site != "hall":
 		return fallback_card_id
-	if team == ENEMY:
-		return _enemy_card_for_cost(int(tile.get("site_cost", UNIT_LOW_PRICE)), BoardRules.site_seed_for_key(key))
-	return String(tile.get("site_card", fallback_card_id))
+	var site_seed = BoardRules.site_seed_for_key(key)
+	var target_rarity = String(tile.get("site_target_rarity", ""))
+	if target_rarity == "":
+		target_rarity = BoardRules.target_rarity_for_price(int(tile.get("site_cost", UNIT_LOW_PRICE)), site_seed)
+	var roster = enemy_deck if team == ENEMY else deck
+	return _deck_card_for_target_rarity(roster, target_rarity, site_seed)
 
 
 func _enemy_card_for_cost(cost: int, site_seed: int) -> String:
-	if enemy_deck.is_empty():
-		return "rabbit"
-	var index = absi(site_seed + cost * 17) % enemy_deck.size()
-	return _enemy_deck_card(index)
+	return _deck_card_for_target_rarity(enemy_deck, BoardRules.target_rarity_for_price(cost, site_seed), site_seed)
 
 
 func _enemy_deck_card(index: int) -> String:
@@ -860,29 +878,41 @@ func _enemy_deck_card(index: int) -> String:
 
 
 func _card_for_cost(cost: int, site_seed: int = 0) -> String:
-	if cost >= UNIT_HIGH_PRICE:
-		return _card_for_tier_range(5, 6, site_seed)
-	if cost >= UNIT_MID_PRICE:
-		return _card_for_tier_range(3, 5, site_seed)
-	return _card_for_tier_range(1, 3, site_seed)
+	return _deck_card_for_target_rarity(deck, BoardRules.target_rarity_for_price(cost, site_seed), site_seed)
 
 
 func _card_for_tier_range(min_tier: int, max_tier: int, site_seed: int) -> String:
-	var options = []
-	for card_id in deck:
-		var card = _card_by_id(String(card_id))
-		var tier = int(card.get("tier", 1))
-		if tier >= min_tier and tier <= max_tier:
-			options.append(String(card_id))
-	if options.is_empty():
-		for card in cards:
-			var tier = int(card.get("tier", 1))
-			if tier >= min_tier and tier <= max_tier:
-				options.append(String(card.get("id", "")))
-	if options.is_empty():
-		return String(deck[0]) if not deck.is_empty() else ""
-	var pick_seed = absi(site_seed + min_tier * 17 + max_tier * 31)
-	return String(options[pick_seed % options.size()])
+	return _deck_card_for_target_rarity(deck, _rarity_for_tier(max_tier), site_seed + min_tier * 17 + max_tier * 31)
+
+
+func _deck_card_for_target_rarity(roster: Array, target_rarity: String, site_seed: int) -> String:
+	var target_rank = _rarity_sort_rank(target_rarity)
+	for rank in range(target_rank, 0, -1):
+		var rarity = _rarity_for_rank(rank)
+		var options = []
+		for card_id in roster:
+			var id = String(card_id)
+			if id == "":
+				continue
+			var card = _card_by_id(id)
+			if not card.is_empty() and String(card.get("rarity", "common")) == rarity:
+				options.append(id)
+		if not options.is_empty():
+			var pick_seed = absi(site_seed + rank * 97 + roster.size() * 13)
+			return String(options[pick_seed % options.size()])
+	return ""
+
+
+func _rarity_for_rank(rank: int) -> String:
+	match rank:
+		4:
+			return "legendary"
+		3:
+			return "epic"
+		2:
+			return "rare"
+		_:
+			return "common"
 
 
 func _card_by_id(card_id: String) -> Dictionary:
@@ -917,6 +947,10 @@ func _building_delay(building: String, team: int, card_id: String) -> float:
 	return BoardRules.building_delay(building, team, card_interval)
 
 
+func _battle_reward_tickets(text: String) -> int:
+	return BATTLE_WIN_REWARD_TICKETS if text == "胜利" else BATTLE_LOSS_REWARD_TICKETS
+
+
 func _finish_battle(text: String) -> void:
 	if game_over:
 		return
@@ -926,8 +960,9 @@ func _finish_battle(text: String) -> void:
 	_apply_rank_result(text == "胜利")
 	if not battle_reward_given:
 		battle_reward_given = true
-		gacha_tickets += BATTLE_REWARD_TICKETS
-		_toast("获得%d张抽卡券" % BATTLE_REWARD_TICKETS)
+		last_battle_reward_tickets = _battle_reward_tickets(text)
+		gacha_tickets += last_battle_reward_tickets
+		_toast("获得%d张抽卡券" % last_battle_reward_tickets)
 
 
 func _apply_rank_result(won: bool) -> void:
@@ -1541,11 +1576,31 @@ func _draw_selection_panel() -> void:
 	_box(rect, Color(0.12, 0.10, 0.31, 0.92), Color(0.30, 0.28, 0.62), 4)
 	var title = "点击与己方地块接壤的卡牌地块解锁"
 	var detail = "可解锁地块会显示类型和价格，生成后不会因其它地块改变。"
+	var detail_extra = ""
 	if tiles.has(selected_tile):
 		var tile = tiles[selected_tile]
 		if String(tile["building"]) != "":
-			title = _site_name(String(tile["building"]), String(tile.get("site_card", "")))
-			detail = "生命 %.0f / %.0f" % [float(tile["hp"]), float(tile["max_hp"])]
+			var building = String(tile["building"])
+			var card_id = String(tile.get("site_card", ""))
+			title = _site_name(building, card_id)
+			if building == "barracks" or building == "hall":
+				var card = _card_by_id(card_id)
+				if card.is_empty():
+					detail = "动物信息缺失。"
+				else:
+					var stats = _card_stats_for_team(card, int(tile["team"]))
+					detail = "%s Lv.%d  攻%d 血%d 速%.0f 距%s 召%.1fs" % [
+						_rarity_label(String(card.get("rarity", "common"))),
+						_card_level_for_team(card_id, int(tile["team"])),
+						int(stats["attack"]),
+						int(stats["max_hp"]),
+						float(stats["move_speed"]),
+						_attack_range_label(float(stats["attack_range"])),
+						float(stats["summon_interval_sec"]),
+					]
+					detail_extra = "技能：" + _card_skill_text(card)
+			else:
+				detail = "生命 %.0f / %.0f" % [float(tile["hp"]), float(tile["max_hp"])]
 		elif int(tile["team"]) == PLAYER:
 			title = "空地"
 			detail = "已解锁区域，可作为继续扩张的连接点。"
@@ -1554,7 +1609,7 @@ func _draw_selection_panel() -> void:
 			detail = "派出单位推进后可占领。"
 		elif _can_unlock(selected_tile, PLAYER):
 			var site = String(tile.get("site", ""))
-			title = "可解锁：%s  价格 %d" % [_site_name(site, String(tile.get("site_card", ""))), int(tile["site_cost"])]
+			title = "可解锁：%s  价格 %d" % [_locked_site_name(site), int(tile["site_cost"])]
 			if gold < int(tile["site_cost"]):
 				detail = "金币不足，还差%d。" % [int(tile["site_cost"]) - gold]
 			elif site == "mystery":
@@ -1564,8 +1619,10 @@ func _draw_selection_panel() -> void:
 		else:
 			title = "未连接地块"
 			detail = "先扩张到相邻地块。"
-	_draw_text_fit(title, Rect2(rect.position + Vector2(24, 18), Vector2(620, 34)), 24, Color.WHITE)
-	_draw_text_fit(detail, Rect2(rect.position + Vector2(24, 60), Vector2(620, 32)), 20, Color(0.84, 0.88, 1.0))
+	_draw_text_fit(title, Rect2(rect.position + Vector2(24, 14), Vector2(620, 32)), 24, Color.WHITE)
+	_draw_text_fit(detail, Rect2(rect.position + Vector2(24, 52), Vector2(620, 26)), 19, Color(0.84, 0.88, 1.0))
+	if detail_extra != "":
+		_draw_text_fit(detail_extra, Rect2(rect.position + Vector2(24, 80), Vector2(620, 24)), 18, Color(0.78, 0.86, 1.0))
 
 
 func _draw_pause_button() -> void:
@@ -1589,7 +1646,8 @@ func _draw_result_overlay() -> void:
 	var panel = Rect2(110, 420, 500, 340)
 	_box(panel, Color(1.0, 0.96, 0.78), COLOR_LINE, 5)
 	_draw_text_center(result_text, Rect2(panel.position + Vector2(0, 48), Vector2(panel.size.x, 68)), 52, COLOR_YELLOW if result_text == "胜利" else COLOR_RED)
-	_draw_text_center("奖励：+%d 抽卡券" % BATTLE_REWARD_TICKETS, Rect2(panel.position + Vector2(0, 128), Vector2(panel.size.x, 36)), 24, COLOR_LINE)
+	var reward_tickets = last_battle_reward_tickets if last_battle_reward_tickets > 0 else _battle_reward_tickets(result_text)
+	_draw_text_center("奖励：+%d 抽卡券" % reward_tickets, Rect2(panel.position + Vector2(0, 128), Vector2(panel.size.x, 36)), 24, COLOR_LINE)
 	_draw_text_center(_rank_result_text(), Rect2(panel.position + Vector2(0, 170), Vector2(panel.size.x, 36)), 24, COLOR_PURPLE)
 	_draw_text_center("点击任意位置返回主界面", Rect2(panel.position + Vector2(0, 220), Vector2(panel.size.x, 40)), 24, COLOR_LINE)
 
@@ -1973,6 +2031,12 @@ func _rarity_sort_rank(rarity: String) -> int:
 
 func _rarity_label(rarity: String) -> String:
 	return CardRules.rarity_label(rarity)
+
+
+func _locked_site_name(site: String) -> String:
+	if site == "barracks" or site == "hall":
+		return "动物营地"
+	return _site_name(site, "")
 
 
 func _site_name(building: String, card_id: String = "") -> String:
