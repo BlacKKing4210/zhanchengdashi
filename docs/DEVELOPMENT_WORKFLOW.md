@@ -87,6 +87,8 @@
 
 - 任意 `.gd` 修改后运行 `tools/check_gd_indentation.py`，并启动 Godot 项目确认没有 parser error。
 - 任意配置表修改后运行 `tools/validate_config.py`；如果运行时 JSON 需要更新，再运行 `tools/export_config.py`。
+- Godot 在 Windows 出现 `应用程序错误`、`内存不能为 read` 或启动即崩溃时，优先检查渲染后端；本项目默认不强制 D3D12，`project.godot` 应使用 Vulkan 作为 Windows 默认渲染驱动，只有在专门兼容性测试通过后才恢复 D3D12。
+- `config/tables/` 下的 CSV 必须保持 UTF-8 或 UTF-8 BOM 编码；不要提交 GBK/ANSI 表格。若 `tools/validate_config.py` 报 Unicode decode 错误，先转码源 CSV，再导出 `runtime/config/`。
 - 任意文档交付后生成 PDF 到 `output/pdf/`，并渲染检查页面是否可读、无重叠、无截断。
 - 提交前运行 `git diff --check`，确认没有尾随空白或格式错误。
 - 推送前确认 `git status --short --branch`，避免遗漏文件。

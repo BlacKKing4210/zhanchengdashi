@@ -24,15 +24,22 @@ def load_tables(schema: dict[str, Any]) -> dict[str, list[dict[str, str]]]:
         if not table_path.exists():
             raise FileNotFoundError(f"{table_name}: missing file {table_path}")
 
-        with table_path.open("r", encoding="utf-8-sig", newline="") as handle:
-            reader = csv.DictReader(handle)
-            if reader.fieldnames is None:
-                tables[table_name] = []
-                continue
-            tables[table_name] = [
-                {key: (value or "").strip() for key, value in row.items()}
-                for row in reader
-            ]
+        try:
+            with table_path.open("r", encoding="utf-8-sig", newline="") as handle:
+                reader = csv.DictReader(handle)
+                if reader.fieldnames is None:
+                    tables[table_name] = []
+                    continue
+                tables[table_name] = [
+                    {key: (value or "").strip() for key, value in row.items()}
+                    for row in reader
+                ]
+        except UnicodeDecodeError as exc:
+            relative_path = table_path.relative_to(ROOT).as_posix()
+            raise ValueError(
+                f"{table_name}: {relative_path} must be UTF-8 CSV "
+                f"(decode failed at byte {exc.start}: {exc.reason})"
+            ) from exc
     return tables
 
 
