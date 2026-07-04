@@ -15,6 +15,7 @@
 - 项目阶段：当前属于 Prototype / Vertical Slice 之间，已经有 Godot 可运行原型、卡牌/抽卡/战斗/编组闭环和配置表基础。
 - 默认引擎角色：公共流程中的 `Engine Specialist` 在本项目映射为 Godot Specialist。
 - 默认语言角色：公共流程中的 `Language Specialist` 在本项目映射为 GDScript Specialist。
+- 文档先行：以后所有玩法、数值、UI、系统或技术结构修改，都必须先更新对应设计/流程文档，再实装到游戏中。
 - 版本纪律：每次完成修改必须验证、提交 Git，并推送到 GitHub。
 
 ## 1. 开发原则
@@ -24,6 +25,7 @@
 - 原型表现优先使用引擎内程序化反馈：Tween、缩放、位移、闪烁、粒子、材质调色和 UI 弹跳，避免过早制作序列帧资源。
 - UI 调整遵循移动端街机风格：粗描边、硬阴影、高饱和按钮、明确进度条、可扫描信息层级。
 - 不复制商业游戏的名称、角色、图标、货币、布局、字体或专有资产，只借鉴抽象方向。
+- 文档是实现前置条件：先在 `design/` 或 `docs/` 中记录要改的规则、数值、流程、界面或技术决策，再修改配置、脚本、场景和资源。
 - 每次完成修改都必须提交 Git，并同步到 GitHub 远端。
 
 ## 2. 标准任务流程
@@ -31,12 +33,13 @@
 1. 读上游：确认公共流程中对应的角色路由、专项流程和 Definition of Done。
 2. 读项目：看 `AGENTS.md`、本文档、相关 `docs/`、当前文件和 `git status`。
 3. 定职责：按任务类型使用最小必要角色组合，例如 UI 走 `Art Director -> UI Programmer -> Godot Specialist -> QA Lead`。
-4. 定落点：先判断改配置、脚本、场景、资源、工具、文档，避免把设计值写死在代码里。
-5. 小步实现：保持提交范围聚焦，沿用现有脚本、绘制和数据结构。
-6. 本地验证：按改动类型运行对应检查，Godot 脚本改动必须启动项目确认无解析错误。
-7. 整理差异：查看 `git diff --check` 和 `git diff --stat`，确认没有无关破坏。
-8. 提交同步：`git add`、`git commit`、`git push origin main`。
-9. 回报结果：说明改了什么、验证了什么、提交号和远端同步状态。
+4. 文档先行：先更新对应文档。玩法/数值/UI 进入 `design/`，工程流程/结构进入 `docs/`，必要时同步生成 PDF。
+5. 定落点：再判断改配置、脚本、场景、资源或工具，避免把设计值写死在代码里。
+6. 小步实现：按已经更新的文档实装，保持提交范围聚焦，沿用现有脚本、绘制和数据结构。
+7. 本地验证：按改动类型运行对应检查，Godot 脚本改动必须启动项目确认无解析错误。
+8. 整理差异：查看 `git diff --check` 和 `git diff --stat`，确认没有无关破坏。
+9. 提交同步：`git add`、`git commit`、`git push origin main`。
+10. 回报结果：说明先改了哪份文档、实装改了什么、验证了什么、提交号和远端同步状态。
 
 ## 3. 公共流程阶段映射
 
@@ -73,10 +76,10 @@
 
 | 需求类型 | 首选落点 | 必要验证 |
 | --- | --- | --- |
-| 卡牌/单位/经济/掉落数值 | `config/tables/` | `tools/validate_config.py`，必要时 `tools/export_config.py` |
-| 战斗规则和交互逻辑 | `scripts/app/` 或相关 Godot 脚本 | GDScript 缩进检查，Godot 启动 |
-| UI 布局和绘制 | `scripts/app/`、`assets/`、UI 设计文档 | Godot 启动，必要时截图人工检查 |
-| 新资源或美术方向 | `assets/` 和 `docs/` | 资源能加载，路径不硬编码到错误位置 |
+| 卡牌/单位/经济/掉落数值 | 先改 `design/` 或配置说明，再改 `config/tables/` | `tools/validate_config.py`，必要时 `tools/export_config.py` |
+| 战斗规则和交互逻辑 | 先改 `design/`，再改 `scripts/app/` 或相关 Godot 脚本 | GDScript 缩进检查，Godot 启动 |
+| UI 布局和绘制 | 先改 UI/UE 设计文档，再改 `scripts/app/`、`assets/` | Godot 启动，必要时截图人工检查 |
+| 新资源或美术方向 | 先改美术方向文档，再改 `assets/` | 资源能加载，路径不硬编码到错误位置 |
 | 设计决策和流程 | `docs/` | 生成 PDF，检查可读性 |
 | 校验或导出能力 | `tools/`、`.github/workflows/` | 本地运行工具，确认 CI 入口可用 |
 

@@ -49,6 +49,8 @@ C:\Users\76398\Documents\Codex\2026-07-03\codex-game-studio-default\outputs\code
 
 Use the public workflow for role routing, lifecycle stages, task cards, and Definition of Done. Use this project workflow for file placement, Godot/GDScript rules, validation gates, and GitHub synchronization.
 
+All future gameplay, balance, UI, system, or technical changes must update the relevant document first, then implement the matching game change.
+
 ## GitHub Remote
 
 The repository is configured for:

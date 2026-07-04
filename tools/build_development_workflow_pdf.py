@@ -158,6 +158,7 @@ def build_pdf() -> None:
             "本文档是 zhanchengdashi 的项目适配层，负责目录、Godot/GDScript、配置表、验证脚本和 GitHub 同步。",
             "当前项目阶段位于 Prototype / Vertical Slice 之间，已经有 Godot 可运行原型和基础闭环。",
             "公共流程中的 Engine Specialist 在本项目映射为 Godot Specialist，Language Specialist 映射为 GDScript Specialist。",
+            "以后所有玩法、数值、UI、系统或技术结构修改，都必须先更新对应设计/流程文档，再实装到游戏中。",
         ],
         styles,
     )
@@ -168,6 +169,7 @@ def build_pdf() -> None:
         [
             "所有任务默认按游戏开发任务处理，采用制作、玩法、技术、美术/UI、Godot、GDScript、QA 的角色视角。",
             "玩法数值优先数据驱动，设计源表放在 config/tables/，运行时 JSON 放在 runtime/config/。",
+            "文档是实现前置条件：先在 design/ 或 docs/ 中记录规则、数值、流程、界面或技术决策，再修改配置、脚本、场景和资源。",
             "原型表现优先使用 Tween、缩放、位移、闪烁、粒子、材质调色和 UI 弹跳等程序化反馈。",
             "每次完成修改都必须提交 Git，并同步到 GitHub 远端。",
         ],
@@ -181,8 +183,9 @@ def build_pdf() -> None:
             "读上游：确认公共流程中对应的角色路由、专项流程和 Definition of Done。",
             "读项目：先看 AGENTS.md、本文档、相关 docs、当前文件和 git status。",
             "定职责：按任务类型套用最小必要角色组合，例如 UI 走 Art Director、UI Programmer、Godot Specialist、QA Lead。",
-            "定落点：先判断改配置、脚本、场景、资源、工具、文档。",
-            "小步实现：保持提交范围聚焦，沿用现有脚本、绘制和数据结构。",
+            "文档先行：玩法、数值、UI、系统或技术结构改动，先写入 design/ 或 docs/，必要时生成 PDF。",
+            "定落点：再判断改配置、脚本、场景、资源或工具。",
+            "小步实现：按已经更新的文档实装，保持提交范围聚焦，沿用现有脚本、绘制和数据结构。",
             "本地验证：按改动类型运行检查，Godot 脚本改动必须启动项目确认无解析错误。",
             "提交同步：git add、git commit、git push origin main。",
         ],
@@ -211,6 +214,7 @@ def build_pdf() -> None:
         story,
         ["路径", "职责", "使用规则"],
         [
+            ["design/", "设计文档", "玩法、数值、UI、系统改动先在这里记录，再进入实现。"],
             ["config/tables/", "设计源表", "卡牌、单位、经济、关卡、掉落、地块等可配置内容优先放这里。"],
             ["runtime/config/", "运行时配置", "由导出工具生成，只有作为引擎读取源时才提交。"],
             ["scripts/", "Godot 脚本", "放运行时代码、原型逻辑、UI 绘制、配置读取。"],
