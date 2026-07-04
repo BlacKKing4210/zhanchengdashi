@@ -22,6 +22,8 @@ const STARTING_GOLD = 60
 const INCOME_INTERVAL = 3.0
 const BASE_INCOME = 12
 const MINE_INCOME = 10
+const TOWER_DAMAGE = 44.0
+const TOWER_RANGE = 150.0
 const STARTING_GACHA_TICKETS = 10
 const BATTLE_REWARD_TICKETS = 10
 
@@ -71,6 +73,7 @@ var units = []
 var effects = []
 var cards = []
 var deck = []
+var enemy_deck = []
 
 var card_counts = {}
 var card_levels = {}
@@ -110,6 +113,7 @@ func _ready() -> void:
 	_load_cards()
 	_init_player_collection()
 	_init_deck()
+	_init_enemy_deck()
 	_reset_battle()
 
 
@@ -294,6 +298,19 @@ func _init_deck() -> void:
 	selected_card_id = String(deck[0]) if not deck.is_empty() else ""
 
 
+func _init_enemy_deck() -> void:
+	enemy_deck.clear()
+	var common_cards = []
+	for card in cards:
+		if String(card.get("rarity", "common")) == "common":
+			common_cards.append(String(card.get("id", "")))
+	for i in range(DECK_SIZE):
+		if common_cards.is_empty():
+			enemy_deck.append("rabbit")
+		else:
+			enemy_deck.append(String(common_cards[i % common_cards.size()]))
+
+
 func _owned_card_ids() -> Array:
 	var owned = []
 	for card in _collection_cards():
@@ -404,20 +421,20 @@ func _reset_battle() -> void:
 	tiles = BoardRules.create_initial_tiles(Callable(self, "_card_for_cost"), Callable(self, "_card_for_tier_range"))
 
 	_set_building(PLAYER_BASE, PLAYER, "base", "")
-	_set_building(ENEMY_BASE, ENEMY, "base", "wolf")
+	_set_building(ENEMY_BASE, ENEMY, "base", "")
 
 
 func _set_building(key: Vector2i, team: int, building: String, card_id: String) -> void:
 	if not tiles.has(key):
 		return
 	var tile = tiles[key]
-	var spawn_card_id = String(tile.get("site_card", card_id))
+	var spawn_card_id = card_id if card_id != "" else String(tile.get("site_card", ""))
 	tiles[key] = BoardRules.with_building(
 		tile,
 		team,
 		building,
 		card_id,
-		_building_hp(building),
+		_building_hp(building, spawn_card_id),
 		_building_delay(building, team, spawn_card_id)
 	)
 
@@ -452,7 +469,7 @@ func _apply_unlock(key: Vector2i, team: int, fallback_card_id: String) -> String
 			_set_empty_tile(key, team)
 			return "金币 +30"
 		_:
-			_set_building(key, team, result, card_id)
+			_set_building(key, team, result, _site_card_for_team(key, tile, team, card_id))
 			return _site_name(result, card_id)
 
 
@@ -485,7 +502,7 @@ func _update_buildings(delta: float) -> void:
 		tile["spawn_timer"] = float(tile.get("spawn_timer", 0.0)) - delta
 		if float(tile["spawn_timer"]) <= 0.0:
 			tile["spawn_timer"] = _building_delay(building, team, String(tile.get("site_card", "")))
-			if building == "tower":
+			if building == "tower" or building == "base":
 				_tower_attack(key, team)
 			else:
 				_spawn_unit(team, key, _spawn_card_for_tile(tile, team))
@@ -561,11 +578,11 @@ func _tower_attack(key: Vector2i, team: int) -> void:
 		if int(units[i]["team"]) == team or float(units[i]["hp"]) <= 0.0:
 			continue
 		var distance = center.distance_to(Vector2(units[i]["pos"]))
-		if distance < 150.0 and distance < best_distance:
+		if distance < TOWER_RANGE and distance < best_distance:
 			best_distance = distance
 			best_index = i
 	if best_index >= 0:
-		_damage_unit(best_index, 22.0)
+		_damage_unit(best_index, TOWER_DAMAGE)
 
 
 func _damage_unit(index: int, damage: float) -> void:
@@ -678,7 +695,31 @@ func _spawn_card_for_tile(tile: Dictionary, team: int) -> String:
 	var card_id = String(tile.get("site_card", ""))
 	if card_id != "":
 		return card_id
-	return "wolf" if team == ENEMY else String(deck[0])
+	if team == ENEMY:
+		return _enemy_deck_card(0)
+	return String(deck[0])
+
+
+func _site_card_for_team(key: Vector2i, tile: Dictionary, team: int, fallback_card_id: String) -> String:
+	var site = _resolved_site(tile)
+	if site != "barracks" and site != "hall":
+		return fallback_card_id
+	if team == ENEMY:
+		return _enemy_card_for_cost(int(tile.get("site_cost", UNIT_LOW_PRICE)), BoardRules.site_seed_for_key(key))
+	return String(tile.get("site_card", fallback_card_id))
+
+
+func _enemy_card_for_cost(cost: int, site_seed: int) -> String:
+	if enemy_deck.is_empty():
+		return "rabbit"
+	var index = absi(site_seed + cost * 17) % enemy_deck.size()
+	return _enemy_deck_card(index)
+
+
+func _enemy_deck_card(index: int) -> String:
+	if enemy_deck.is_empty():
+		return "rabbit"
+	return String(enemy_deck[index % enemy_deck.size()])
 
 
 func _card_for_cost(cost: int, site_seed: int = 0) -> String:
@@ -722,7 +763,11 @@ func _building_count(team: int, building: String) -> int:
 	return BoardRules.building_count(tiles, team, building)
 
 
-func _building_hp(building: String) -> float:
+func _building_hp(building: String, card_id: String = "") -> float:
+	if building == "barracks" or building == "hall":
+		var card = _card_by_id(card_id)
+		if not card.is_empty():
+			return float(_card_stats(card)["max_hp"]) * 3.0
 	return BoardRules.building_hp(building)
 
 

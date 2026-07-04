@@ -239,7 +239,7 @@ static func building_delay(building: String, team: int, card_interval: float = -
 		return card_interval
 	match building:
 		"base":
-			return 4.6 if team == PLAYER else 4.2
+			return 1.1
 		"tower":
 			return 1.1
 		"hall":
