@@ -53,6 +53,7 @@ static func empty_locked_tile() -> Dictionary:
 		"site_cost": 0,
 		"site_reward": "",
 		"site_target_rarity": "",
+		"site_roll_seed": 0,
 		"site_card": "",
 		"territory_team": NEUTRAL,
 	}
@@ -71,7 +72,7 @@ static func site_for_key(key: Vector2i) -> Dictionary:
 		site = "mystery"
 		cost = QUESTION_PRICE
 	elif roll < 70:
-		cost = price_for_seed(site_seed)
+		cost = UNIT_LOW_PRICE if is_next_to_starting_base(key) else price_for_seed(site_seed)
 		site = "hall" if cost >= UNIT_HIGH_PRICE else "barracks"
 	elif roll < 90:
 		site = "tower"
@@ -79,14 +80,18 @@ static func site_for_key(key: Vector2i) -> Dictionary:
 	else:
 		site = "mine"
 		cost = MINE_PRICE
-	var reward = site_reward(site, site_seed)
 	return {
 		"site": site,
 		"site_cost": cost,
-		"site_reward": reward,
-		"site_target_rarity": site_target_rarity_for_site(site, cost, site_seed, reward),
+		"site_reward": "",
+		"site_target_rarity": "",
+		"site_roll_seed": 0,
 		"site_card": "",
 	}
+
+
+static func is_next_to_starting_base(key: Vector2i) -> bool:
+	return key in neighbors(PLAYER_BASE) or key in neighbors(ENEMY_BASE)
 
 
 static func site_seed_for_key(key: Vector2i) -> int:
@@ -102,30 +107,41 @@ static func price_for_seed(site_seed: int) -> int:
 	return UNIT_HIGH_PRICE
 
 
-static func site_reward(site: String, site_seed: int) -> String:
-	if site != "mystery":
-		return site
-	var roll = floori(float(site_seed) / 13.0) % 100
-	if roll < 70:
-		return "empty"
-	if roll < 80:
-		return "barracks"
-	return "hall"
-
-
-static func site_target_rarity_for_site(site: String, cost: int, site_seed: int, reward: String) -> String:
-	if site == "tower":
-		return target_rarity_for_tower(site_seed)
-	if reward != "barracks" and reward != "hall":
-		return ""
+static func roll_unlock_result(tile: Dictionary) -> Dictionary:
+	var site = String(tile.get("site", ""))
+	var roll_seed = randi()
+	var result = site
+	var target_rarity = ""
 	if site == "mystery":
-		var roll = floori(float(site_seed) / 13.0) % 100
-		if roll < 80:
-			return "rare"
-		if roll < 95:
-			return "epic"
-		return "legendary"
-	return target_rarity_for_price(cost, site_seed)
+		var roll = int(roll_seed % 100)
+		if roll < 70:
+			result = "empty"
+		elif roll < 80:
+			result = "barracks"
+			target_rarity = "rare"
+		elif roll < 95:
+			result = "hall"
+			target_rarity = "epic"
+		else:
+			result = "hall"
+			target_rarity = "legendary"
+	elif site == "tower":
+		target_rarity = target_rarity_for_tower(int(roll_seed))
+	elif site == "barracks" or site == "hall":
+		target_rarity = target_rarity_for_price(int(tile.get("site_cost", UNIT_LOW_PRICE)), int(roll_seed))
+	return {
+		"result": result,
+		"target_rarity": target_rarity,
+		"roll_seed": int(roll_seed),
+	}
+
+
+static func with_unlock_roll(tile: Dictionary, result: String, target_rarity: String, roll_seed: int) -> Dictionary:
+	var next = tile.duplicate()
+	next["site_reward"] = result
+	next["site_target_rarity"] = target_rarity
+	next["site_roll_seed"] = roll_seed
+	return next
 
 
 static func target_rarity_for_price(cost: int, site_seed: int) -> String:
@@ -187,6 +203,7 @@ static func as_unlocked_empty(tile: Dictionary, team: int) -> Dictionary:
 	next["site_cost"] = 0
 	next["site_reward"] = ""
 	next["site_target_rarity"] = ""
+	next["site_roll_seed"] = 0
 	next["site_card"] = ""
 	return next
 
@@ -208,6 +225,7 @@ static func as_destroyed_building(tile: Dictionary, attacker: int) -> Dictionary
 	next["site_cost"] = 0
 	next["site_reward"] = ""
 	next["site_target_rarity"] = ""
+	next["site_roll_seed"] = 0
 	next["site_card"] = ""
 	next["occupier"] = attacker
 	return next

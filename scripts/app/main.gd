@@ -30,6 +30,10 @@ const BATTLE_WIN_REWARD_TICKETS = 3
 const BATTLE_LOSS_REWARD_TICKETS = 1
 const RANK_DB_PATH = "user://rank_mirror_db.json"
 const MIRROR_LIMIT_PER_RANK = 20
+const ENEMY_FIRST_UNLOCK_DELAY = 4.0
+const ENEMY_UNLOCK_INTERVAL = 2.2
+const PROJECTILE_TIME = 0.30
+const RANGED_PROJECTILE_MIN_DISTANCE = HEX_SIZE * 1.35
 
 const UNIT_LOW_PRICE = BoardRules.UNIT_LOW_PRICE
 const UNIT_MID_PRICE = BoardRules.UNIT_MID_PRICE
@@ -51,6 +55,9 @@ const COLLECTION_COLUMNS = 4
 const COLLECTION_CARD_SIZE = Vector2(132.0, 158.0)
 const COLLECTION_CARD_GAP = Vector2(24.0, 18.0)
 const DETAIL_PULSE_SECONDS = 0.28
+const GACHA_FX_SECONDS = 0.72
+const GACHA_CARD_REVEAL_INTERVAL = 0.18
+const GACHA_CARD_FLIP_SECONDS = 0.34
 
 const UNIT_ART = {
 	"rabbit": preload("res://assets/art/units/rabbit.png"),
@@ -86,6 +93,10 @@ var card_counts = {}
 var card_levels = {}
 var gacha_tickets = STARTING_GACHA_TICKETS
 var last_gacha_cards = []
+var gacha_pending_cards = []
+var gacha_card_flip_timers = []
+var gacha_fx_timer = 0.0
+var gacha_reveal_timer = 0.0
 var rank_db = {}
 var active_match_mirror = {}
 var active_match_rank_key = ""
@@ -139,6 +150,7 @@ func _process(delta: float) -> void:
 		toast_timer -= delta
 	if detail_pulse_timer > 0.0:
 		detail_pulse_timer = maxf(0.0, detail_pulse_timer - delta)
+	_update_gacha_animation(delta)
 
 	if screen == SCREEN_BATTLE and not game_over and not pause_open:
 		_update_battle(delta)
@@ -392,7 +404,7 @@ func _start_match() -> void:
 	last_rank_result = {}
 	screen = SCREEN_BATTLE
 	_reset_battle()
-	_toast("匹配到" + String(active_match_mirror.get("rank_display", RankingRules.display_for_elo(active_match_player_elo))) + "镜像")
+	_toast("匹配到" + String(active_match_mirror.get("rank_display", RankingRules.display_for_elo(active_match_player_elo))) + "对手")
 
 
 func _select_match_mirror(rank_key: String) -> Dictionary:
@@ -573,7 +585,7 @@ func _reset_battle() -> void:
 	enemy_gold = STARTING_GOLD
 	battle_timer = BATTLE_TIME
 	income_timer = INCOME_INTERVAL
-	enemy_timer = 1.0
+	enemy_timer = ENEMY_FIRST_UNLOCK_DELAY
 	game_over = false
 	pause_open = false
 	battle_reward_given = false
@@ -618,7 +630,15 @@ func _apply_unlock(key: Vector2i, team: int, fallback_card_id: String) -> String
 	if not tiles.has(key):
 		return ""
 	var tile = tiles[key]
-	var result = _resolved_site(tile)
+	var unlock_roll = BoardRules.roll_unlock_result(tile)
+	var result = String(unlock_roll.get("result", String(tile.get("site", ""))))
+	tile = BoardRules.with_unlock_roll(
+		tile,
+		result,
+		String(unlock_roll.get("target_rarity", "")),
+		int(unlock_roll.get("roll_seed", 0))
+	)
+	tiles[key] = tile
 	var card_id = String(tile.get("site_card", fallback_card_id))
 	match result:
 		"empty":
@@ -632,10 +652,12 @@ func _apply_unlock(key: Vector2i, team: int, fallback_card_id: String) -> String
 			_set_empty_tile(key, team)
 			return "金币 +30"
 		_:
-			var site_card_id = _site_card_for_team(key, tile, team, card_id)
-			if (result == "barracks" or result == "hall") and site_card_id == "":
-				_set_empty_tile(key, team)
-				return "空地"
+			var site_card_id = ""
+			if result == "barracks" or result == "hall":
+				site_card_id = _site_card_for_team(key, tile, team, card_id)
+				if site_card_id == "":
+					_set_empty_tile(key, team)
+					return "空地"
 			_set_building(key, team, result, site_card_id)
 			return _site_name(result, site_card_id)
 
@@ -680,11 +702,11 @@ func _update_enemy(delta: float) -> void:
 	enemy_timer -= delta
 	if enemy_timer > 0.0:
 		return
-	enemy_timer = 1.4
+	enemy_timer = ENEMY_UNLOCK_INTERVAL
 	var best_key = Vector2i(-99, -99)
 	var best_y = -999
 	for key in tiles.keys():
-		if _can_unlock(key, ENEMY) and key.y > best_y:
+		if _can_unlock(key, ENEMY) and int(tiles[key]["site_cost"]) <= enemy_gold and key.y > best_y:
 			best_y = key.y
 			best_key = key
 	if best_key.x == -99:
@@ -712,6 +734,8 @@ func _update_units(delta: float) -> void:
 		unit["cooldown"] = maxf(0.0, float(unit.get("cooldown", 0.0)) - delta)
 		if distance <= float(unit["range"]):
 			if float(unit["cooldown"]) <= 0.0:
+				if distance >= RANGED_PROJECTILE_MIN_DISTANCE:
+					_projectile(Vector2(unit["pos"]), target_pos, int(unit["team"]))
 				if String(target["kind"]) == "unit":
 					_damage_unit(int(target["index"]), float(unit["attack"]))
 				elif String(target["kind"]) == "building":
@@ -749,6 +773,7 @@ func _tower_attack(key: Vector2i, team: int) -> void:
 			best_distance = distance
 			best_index = i
 	if best_index >= 0:
+		_projectile(center, Vector2(units[best_index]["pos"]), team)
 		_damage_unit(best_index, TOWER_DAMAGE)
 
 
@@ -871,7 +896,7 @@ func _site_card_for_team(key: Vector2i, tile: Dictionary, team: int, fallback_ca
 	var site = _resolved_site(tile)
 	if site != "barracks" and site != "hall":
 		return fallback_card_id
-	var site_seed = BoardRules.site_seed_for_key(key)
+	var site_seed = int(tile.get("site_roll_seed", BoardRules.site_seed_for_key(key)))
 	var target_rarity = String(tile.get("site_target_rarity", ""))
 	if target_rarity == "":
 		target_rarity = BoardRules.target_rarity_for_price(int(tile.get("site_cost", UNIT_LOW_PRICE)), site_seed)
@@ -1067,6 +1092,8 @@ func _roll_rarity() -> String:
 
 
 func _handle_gacha_tap(pos: Vector2) -> void:
+	if _is_gacha_animating():
+		return
 	if _gacha_ten_draw_rect().has_point(pos):
 		_draw_gacha_rewards(10)
 		return
@@ -1081,15 +1108,57 @@ func _draw_gacha_rewards(count: int) -> void:
 		return
 	gacha_tickets -= count
 	last_gacha_cards.clear()
+	gacha_pending_cards.clear()
+	gacha_card_flip_timers.clear()
 	for i in range(count):
 		var card = _roll_gacha()
 		if card.is_empty():
 			continue
-		last_gacha_cards.append(String(card["id"]))
+		gacha_pending_cards.append(String(card["id"]))
 		selected_card_id = String(card["id"])
-	if last_gacha_cards.is_empty():
+	if gacha_pending_cards.is_empty():
 		return
-	_toast("获得%d张卡牌" % last_gacha_cards.size())
+	gacha_fx_timer = GACHA_FX_SECONDS
+	gacha_reveal_timer = 0.0
+
+
+func _is_gacha_animating() -> bool:
+	return gacha_fx_timer > 0.0 or not gacha_pending_cards.is_empty() or _has_active_gacha_flip()
+
+
+func _has_active_gacha_flip() -> bool:
+	for timer in gacha_card_flip_timers:
+		if float(timer) > 0.0:
+			return true
+	return false
+
+
+func _update_gacha_animation(delta: float) -> void:
+	for i in range(gacha_card_flip_timers.size()):
+		gacha_card_flip_timers[i] = maxf(0.0, float(gacha_card_flip_timers[i]) - delta)
+	if gacha_fx_timer > 0.0:
+		gacha_fx_timer = maxf(0.0, gacha_fx_timer - delta)
+		if gacha_fx_timer <= 0.0:
+			_reveal_next_gacha_card()
+		return
+	if gacha_pending_cards.is_empty():
+		return
+	gacha_reveal_timer -= delta
+	if gacha_reveal_timer <= 0.0:
+		_reveal_next_gacha_card()
+
+
+func _reveal_next_gacha_card() -> void:
+	if gacha_pending_cards.is_empty():
+		return
+	var card_id = String(gacha_pending_cards.pop_front())
+	last_gacha_cards.append(card_id)
+	gacha_card_flip_timers.append(GACHA_CARD_FLIP_SECONDS)
+	selected_card_id = card_id
+	if gacha_pending_cards.is_empty():
+		_toast("获得%d张卡牌" % last_gacha_cards.size())
+	else:
+		gacha_reveal_timer = GACHA_CARD_REVEAL_INTERVAL
 
 
 func _handle_deck_tap(pos: Vector2) -> void:
@@ -1270,14 +1339,12 @@ func _draw_lobby_animal(area: Rect2, card: Dictionary, anchor: Vector2, index: i
 func _draw_rank_panel(rect: Rect2) -> void:
 	var elo = _player_elo()
 	var state = RankingRules.rank_state_for_elo(elo)
-	var rank_key = String(state["key"])
 	_box(rect, Color(0.16, 0.13, 0.38, 0.94), COLOR_LINE, 4)
 	_draw_text_fit(String(state["display"]), Rect2(rect.position + Vector2(22, 10), Vector2(260, 34)), 28, Color.WHITE)
 	_draw_text_right("段位赛", Rect2(rect.position + Vector2(350, 12), Vector2(228, 28)), 20, Color(0.88, 0.92, 1.0))
 	_draw_star_track(Rect2(rect.position + Vector2(22, 52), Vector2(176, 20)), int(state["stars"]), int(state["max_stars"]))
 	var profile = _player_profile()
 	_draw_text_fit("胜 %d  负 %d" % [int(profile.get("wins", 0)), int(profile.get("losses", 0))], Rect2(rect.position + Vector2(224, 52), Vector2(160, 24)), 18, Color(0.88, 0.92, 1.0))
-	_draw_text_right("镜像 " + str(_mirror_count_for_rank(rank_key)), Rect2(rect.position + Vector2(414, 52), Vector2(164, 24)), 18, Color(0.88, 0.92, 1.0))
 
 
 func _draw_star_track(rect: Rect2, stars: int, max_stars: int) -> void:
@@ -1302,22 +1369,47 @@ func _draw_gacha_screen() -> void:
 	var reward_panel = Rect2(46, 220, 628, 560)
 	_box(reward_panel, Color(0.19, 0.16, 0.45), COLOR_LINE, 5)
 	_draw_text_center("最近获得", Rect2(reward_panel.position + Vector2(0, 28), Vector2(reward_panel.size.x, 42)), 30, Color.WHITE)
-	if last_gacha_cards.is_empty():
+	var display_count = last_gacha_cards.size() + gacha_pending_cards.size()
+	if gacha_fx_timer > 0.0:
+		_draw_gacha_fx(reward_panel)
+	elif last_gacha_cards.is_empty() and display_count <= 0:
 		_draw_text_center("暂无记录", Rect2(reward_panel.position + Vector2(0, 238), Vector2(reward_panel.size.x, 42)), 24, Color.WHITE)
 	else:
-		for i in range(last_gacha_cards.size()):
-			var card = _card_by_id(String(last_gacha_cards[i]))
-			_draw_gacha_reward_card(i, card)
+		for i in range(display_count):
+			if i < last_gacha_cards.size():
+				var card = _card_by_id(String(last_gacha_cards[i]))
+				_draw_gacha_reward_card(i, card, display_count)
+			else:
+				_draw_gacha_card_back(_gacha_reward_card_rect(i, display_count), i)
 
-	_cta(_gacha_draw_rect(), "抽1次", gacha_tickets > 0)
-	_cta(_gacha_ten_draw_rect(), "抽10次", gacha_tickets >= 10)
+	var can_draw = not _is_gacha_animating()
+	_cta(_gacha_draw_rect(), "抽1次", can_draw and gacha_tickets > 0)
+	_cta(_gacha_ten_draw_rect(), "抽10次", can_draw and gacha_tickets >= 10)
 
 
-func _draw_gacha_reward_card(index: int, card: Dictionary) -> void:
-	var count = max(1, last_gacha_cards.size())
-	if count == 1:
-		_draw_card(Rect2(292, 410, 136, 166), card, true)
+func _draw_gacha_reward_card(index: int, card: Dictionary, count: int) -> void:
+	var rect = _gacha_reward_card_rect(index, count)
+	var flip_timer = float(gacha_card_flip_timers[index]) if index < gacha_card_flip_timers.size() else 0.0
+	if flip_timer > 0.0:
+		var progress = 1.0 - flip_timer / GACHA_CARD_FLIP_SECONDS
+		var width_scale = maxf(0.08, absf(cos(progress * PI)))
+		var flipped_rect = Rect2(
+			Vector2(rect.position.x + rect.size.x * (1.0 - width_scale) * 0.5, rect.position.y),
+			Vector2(rect.size.x * width_scale, rect.size.y)
+		)
+		if progress < 0.5:
+			_draw_gacha_card_back(flipped_rect, index)
+		else:
+			_draw_card(flipped_rect, card, true)
+			_draw_gacha_card_glow(rect, progress)
 		return
+	_draw_card(rect, card, true)
+
+
+func _gacha_reward_card_rect(index: int, count: int) -> Rect2:
+	count = max(1, count)
+	if count == 1:
+		return Rect2(292, 410, 136, 166)
 	var columns = 5 if count > 4 else count
 	var card_size = Vector2(106, 134)
 	var gap = Vector2(16, 18)
@@ -1330,7 +1422,51 @@ func _draw_gacha_reward_card(index: int, card: Dictionary) -> void:
 	var row_width = float(row_count) * card_size.x + float(row_count - 1) * gap.x
 	var start_x = (DESIGN_SIZE.x - row_width) * 0.5
 	var start_y = 318.0 if rows > 1 else 396.0
-	_draw_card(Rect2(Vector2(start_x + float(col) * (card_size.x + gap.x), start_y + float(row) * (card_size.y + gap.y)), card_size), card, true)
+	return Rect2(Vector2(start_x + float(col) * (card_size.x + gap.x), start_y + float(row) * (card_size.y + gap.y)), card_size)
+
+
+func _draw_gacha_fx(panel: Rect2) -> void:
+	var progress = 1.0 - gacha_fx_timer / GACHA_FX_SECONDS
+	var center = panel.get_center() + Vector2(0, 16)
+	var pulse = sin(progress * PI)
+	var ring_radius = 56.0 + progress * 150.0
+	draw_circle(center, 58.0 + pulse * 22.0, Color(1.0, 0.70, 0.15, 0.16 + pulse * 0.10))
+	draw_arc(center, ring_radius, 0.0, TAU, 72, Color(1.0, 0.88, 0.25, 0.95 - progress * 0.65), 7.0, true)
+	draw_arc(center, 34.0 + pulse * 46.0, ui_time * 4.0, ui_time * 4.0 + TAU * 0.82, 48, COLOR_BLUE, 8.0, true)
+	for i in range(12):
+		var angle = float(i) / 12.0 * TAU + ui_time * 1.5
+		var distance = 38.0 + progress * 190.0 + sin(ui_time * 5.0 + float(i)) * 8.0
+		var pos = center + Vector2(cos(angle), sin(angle)) * distance
+		var size = 5.0 + float(i % 3) * 2.0
+		draw_circle(pos, size, COLOR_YELLOW if i % 2 == 0 else COLOR_ORANGE)
+		draw_arc(pos, size + 1.5, 0.0, TAU, 12, COLOR_LINE, 1.2, true)
+	_draw_gacha_star(center, 28.0 + pulse * 14.0, Color.WHITE)
+
+
+func _draw_gacha_card_back(rect: Rect2, index: int) -> void:
+	var wave = (sin(ui_time * TAU * 1.1 + float(index) * 0.4) + 1.0) * 0.5
+	_box(rect, Color(0.18, 0.34, 0.88).lerp(COLOR_PURPLE, 0.35), COLOR_LINE, 4)
+	var inner = rect.grow(-10)
+	draw_rect(inner, Color(1.0, 0.78, 0.18, 0.20 + wave * 0.08))
+	draw_rect(inner, COLOR_YELLOW, false, 3)
+	_draw_gacha_star(rect.get_center(), minf(rect.size.x, rect.size.y) * 0.18, COLOR_YELLOW)
+
+
+func _draw_gacha_card_glow(rect: Rect2, progress: float) -> void:
+	var alpha = maxf(0.0, 1.0 - progress)
+	draw_rect(rect.grow(8.0), Color(COLOR_YELLOW.r, COLOR_YELLOW.g, COLOR_YELLOW.b, alpha * 0.22))
+	draw_rect(rect.grow(8.0), Color(COLOR_YELLOW.r, COLOR_YELLOW.g, COLOR_YELLOW.b, alpha * 0.75), false, 4)
+
+
+func _draw_gacha_star(center: Vector2, radius: float, color: Color) -> void:
+	var points = PackedVector2Array()
+	var colors = PackedColorArray()
+	for i in range(10):
+		var r = radius if i % 2 == 0 else radius * 0.45
+		var angle = -PI * 0.5 + float(i) / 10.0 * TAU
+		points.append(center + Vector2(cos(angle), sin(angle)) * r)
+		colors.append(color)
+	draw_polygon(points, colors)
 
 
 func _draw_deck_screen() -> void:
@@ -1557,6 +1693,12 @@ func _draw_quality_camp(center: Vector2, rarity: String, unlocked: bool) -> void
 	var outline = COLOR_LINE
 	var accent = main.lightened(0.34)
 	var shade = main.darkened(0.22)
+	if not unlocked:
+		rank = 1
+		main = Color(0.07, 0.09, 0.14, 0.88)
+		outline = Color(0.04, 0.05, 0.08, 0.95)
+		accent = Color(0.23, 0.25, 0.30, 0.90)
+		shade = Color(0.12, 0.13, 0.16, 0.90)
 	var scale = 0.78 + float(rank) * 0.10
 	if not unlocked:
 		scale *= 0.86
@@ -1602,6 +1744,12 @@ func _draw_quality_tower(center: Vector2, rarity: String, unlocked: bool) -> voi
 	var outline = COLOR_LINE
 	var accent = main.lightened(0.36)
 	var shade = main.darkened(0.20)
+	if not unlocked:
+		rank = 1
+		main = Color(0.07, 0.09, 0.14, 0.88)
+		outline = Color(0.04, 0.05, 0.08, 0.95)
+		accent = Color(0.23, 0.25, 0.30, 0.90)
+		shade = Color(0.12, 0.13, 0.16, 0.90)
 	var scale = 0.76 + float(rank) * 0.10
 	if not unlocked:
 		scale *= 0.86
@@ -1715,6 +1863,22 @@ func _team_health_color(team: int) -> Color:
 
 
 func _draw_effect(effect: Dictionary) -> void:
+	var kind = String(effect.get("kind", "pulse"))
+	if kind == "projectile":
+		var duration = maxf(0.01, float(effect.get("duration", PROJECTILE_TIME)))
+		var progress = clampf(1.0 - float(effect["time"]) / duration, 0.0, 1.0)
+		var start = Vector2(effect["from"])
+		var end = Vector2(effect["to"])
+		var head = start.lerp(end, progress)
+		var tail = start.lerp(end, maxf(0.0, progress - 0.28))
+		var color = effect["color"]
+		color.a = 0.95
+		var glow = Color(1.0, 0.96, 0.62, 0.38)
+		draw_line(tail, head, glow, 9.0, true)
+		draw_line(tail, head, color, 5.0, true)
+		draw_circle(head, 6.0, Color(1.0, 1.0, 0.82, 0.96))
+		draw_circle(head, 3.2, color)
+		return
 	var t = clampf(float(effect["time"]) / 0.45, 0.0, 1.0)
 	var color = effect["color"]
 	color.a = t * 0.55
@@ -1725,7 +1889,7 @@ func _draw_selection_panel() -> void:
 	var rect = Rect2(26, 1132, 668, 118)
 	_box(rect, Color(0.12, 0.10, 0.31, 0.92), Color(0.30, 0.28, 0.62), 4)
 	var title = "点击与己方地块接壤的卡牌地块解锁"
-	var detail = "可解锁地块会显示类型和价格，生成后不会因其它地块改变。"
+	var detail = "可解锁地块只显示类型和价格，品质会在解锁时随机。"
 	var detail_extra = ""
 	if tiles.has(selected_tile):
 		var tile = tiles[selected_tile]
@@ -1767,7 +1931,7 @@ func _draw_selection_panel() -> void:
 			elif site == "mystery":
 				detail = "问号地块购买后翻开，可能为空地或高级单位建筑。"
 			else:
-				detail = "购买后立刻变为己方区域。"
+				detail = "购买后才随机品质并变为己方区域。"
 		else:
 			title = "未连接地块"
 			detail = "先扩张到相邻地块。"
@@ -2303,7 +2467,20 @@ func _toast(text: String) -> void:
 
 func _pulse(pos: Vector2, color: Color) -> void:
 	effects.append({
+		"kind": "pulse",
 		"pos": pos,
 		"color": color,
 		"time": 0.45,
+	})
+
+
+func _projectile(start: Vector2, end: Vector2, team: int) -> void:
+	var color = COLOR_YELLOW if team == PLAYER else COLOR_ORANGE
+	effects.append({
+		"kind": "projectile",
+		"from": start,
+		"to": end,
+		"color": color,
+		"time": PROJECTILE_TIME,
+		"duration": PROJECTILE_TIME,
 	})
