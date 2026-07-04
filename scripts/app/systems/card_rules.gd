@@ -79,10 +79,10 @@ static func card_stats(card: Dictionary, card_levels: Dictionary) -> Dictionary:
 
 static func attack_range_label(value: float, hex_size: float) -> String:
 	if value <= hex_size * 1.5:
-		return "近战(1格)"
+		return "近战"
 	if value <= hex_size * 2.6:
-		return "远程(2格)"
-	return "超远程(3格)"
+		return "远程"
+	return "超远程"
 
 
 static func rarity_sort_rank(rarity: String) -> int:

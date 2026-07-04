@@ -47,6 +47,8 @@ export_presets.cfg
 # config tables are versioned, but these generated import products are not.
 config/tables/*.csv.import
 config/tables/*.translation
+assets/ui/formal_arcade/**/*.import
+output/diagrams/*.import
 output/formal_page_options/*.import
 
 # Unity generated files

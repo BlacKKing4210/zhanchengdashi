@@ -13,6 +13,7 @@ from reportlab.pdfbase.cidfonts import UnicodeCIDFont
 from reportlab.pdfbase.pdfmetrics import registerFont
 from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.platypus import (
+    Image as RLImage,
     KeepTogether,
     LongTable,
     PageBreak,
@@ -21,6 +22,7 @@ from reportlab.platypus import (
     Spacer,
     TableStyle,
 )
+from PIL import Image as PILImage
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -75,6 +77,28 @@ def markdown_inline(text: str) -> str:
 
 def rich_paragraph(text: str, style: ParagraphStyle) -> Paragraph:
     return Paragraph(markdown_inline(text), style)
+
+
+def bullet_paragraph(text: str, style: ParagraphStyle) -> Paragraph:
+    return Paragraph(markdown_inline(text), style, bulletText="-")
+
+
+def markdown_image(line: str) -> tuple[str, Path] | None:
+    if not line.startswith("![") or "](" not in line or not line.endswith(")"):
+        return None
+    label_end = line.find("]")
+    path_start = line.find("](")
+    alt = line[2:label_end].strip()
+    raw_path = line[path_start + 2 : -1].strip()
+    if "://" in raw_path:
+        return None
+    image_path = Path(raw_path)
+    candidates = [image_path] if image_path.is_absolute() else [SOURCE_PATH.parent / image_path, ROOT / image_path]
+    for candidate in candidates:
+        resolved = candidate.resolve()
+        if resolved.exists():
+            return alt, resolved
+    return alt, candidates[0].resolve()
 
 
 def split_table_row(line: str) -> list[str]:
@@ -139,6 +163,21 @@ def add_code_block(story: list, lines: list[str], styles: dict[str, ParagraphSty
     story.append(Spacer(1, 4 * mm))
 
 
+def add_markdown_image(story: list, alt: str, path: Path, styles: dict[str, ParagraphStyle]) -> None:
+    if not path.exists():
+        story.append(rich_paragraph(f"[图片缺失] {alt}: {project_relative(path)}", styles["Body"]))
+        story.append(Spacer(1, 3 * mm))
+        return
+    with PILImage.open(path) as image:
+        width_px, height_px = image.size
+    max_width = 174 * mm
+    max_height = 112 * mm
+    scale = min(max_width / width_px, max_height / height_px)
+    preview = RLImage(str(path), width=width_px * scale, height=height_px * scale)
+    story.append(KeepTogether([preview, paragraph(f"图：{alt} | {project_relative(path)}", styles["Caption"])]))
+    story.append(Spacer(1, 4 * mm))
+
+
 def build_story(markdown: str, styles: dict[str, ParagraphStyle]) -> list:
     story: list = []
     lines = markdown.splitlines()
@@ -183,6 +222,8 @@ def build_story(markdown: str, styles: dict[str, ParagraphStyle]) -> list:
         stripped = line.strip()
         if not stripped:
             story.append(Spacer(1, 2 * mm))
+        elif image_info := markdown_image(stripped):
+            add_markdown_image(story, image_info[0], image_info[1], styles)
         elif stripped.startswith("# "):
             story.append(paragraph(stripped[2:], styles["Title"]))
             story.append(paragraph(f"PDF 生成日期：{date.today().isoformat()} | 源文件：{SOURCE_LABEL}", styles["Meta"]))
@@ -193,7 +234,7 @@ def build_story(markdown: str, styles: dict[str, ParagraphStyle]) -> list:
         elif stripped.startswith("### "):
             story.append(paragraph(stripped[4:], styles["Heading3"]))
         elif stripped.startswith("- "):
-            story.append(rich_paragraph("- " + stripped[2:], styles["Bullet"]))
+            story.append(bullet_paragraph(stripped[2:], styles["Bullet"]))
         elif stripped[:2].isdigit() and ". " in stripped[:5]:
             story.append(rich_paragraph(stripped, styles["Bullet"]))
         else:
@@ -274,7 +315,10 @@ def build_pdf() -> None:
             fontSize=9.5,
             leading=13.8,
             leftIndent=5 * mm,
-            firstLineIndent=-5 * mm,
+            firstLineIndent=0,
+            bulletIndent=0,
+            bulletFontName=font_name,
+            bulletFontSize=9.5,
             textColor=colors.HexColor("#1f2937"),
             spaceAfter=1.1 * mm,
         ),
@@ -289,6 +333,16 @@ def build_pdf() -> None:
             backColor=colors.HexColor("#f1f5f9"),
             textColor=colors.HexColor("#334155"),
             spaceAfter=0.5 * mm,
+        ),
+        "Caption": ParagraphStyle(
+            "Caption",
+            parent=base["BodyText"],
+            fontName=font_name,
+            fontSize=7.8,
+            leading=10,
+            alignment=1,
+            textColor=colors.HexColor("#64748b"),
+            spaceBefore=1.2 * mm,
         ),
         "TableHead": ParagraphStyle(
             "TableHead",

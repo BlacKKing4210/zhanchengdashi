@@ -16,6 +16,7 @@
 - 默认引擎角色：公共流程中的 `Engine Specialist` 在本项目映射为 Godot Specialist。
 - 默认语言角色：公共流程中的 `Language Specialist` 在本项目映射为 GDScript Specialist。
 - 文档先行：以后所有玩法、数值、UI、系统或技术结构修改，都必须先更新对应设计/流程文档，再实装到游戏中。
+- 策划案制图门禁：玩法流程图和 UI/UE 图必须随策划案交付，正式源文件使用 diagrams.net/draw.io、Figma、FigJam、Axure、Adobe XD、Illustrator 等专业工具格式；Mermaid 只能作为草稿或文档内辅助说明。
 - 版本纪律：每次完成修改必须验证、提交 Git，并推送到 GitHub。
 
 ## 1. 开发原则
@@ -34,12 +35,13 @@
 2. 读项目：看 `AGENTS.md`、本文档、相关 `docs/`、当前文件和 `git status`。
 3. 定职责：按任务类型使用最小必要角色组合，例如 UI 走 `Art Director -> UI Programmer -> Godot Specialist -> QA Lead`。
 4. 文档先行：先更新对应文档。玩法/数值/UI 进入 `design/`，工程流程/结构进入 `docs/`，必要时同步生成 PDF。
-5. 定落点：再判断改配置、脚本、场景、资源或工具，避免把设计值写死在代码里。
-6. 小步实现：按已经更新的文档实装，保持提交范围聚焦，沿用现有脚本、绘制和数据结构。
-7. 本地验证：按改动类型运行对应检查，Godot 脚本改动必须启动项目确认无解析错误。
-8. 整理差异：查看 `git diff --check` 和 `git diff --stat`，确认没有无关破坏。
-9. 提交同步：`git add`、`git commit`、`git push origin main`。
-10. 回报结果：说明先改了哪份文档、实装改了什么、验证了什么、提交号和远端同步状态。
+5. 专业制图：策划案必须补齐玩法流程图和 UI/UE 图；源文件放 `docs/diagrams/`，预览图放 `output/diagrams/`，PDF 必须嵌入或引用图件。
+6. 定落点：再判断改配置、脚本、场景、资源或工具，避免把设计值写死在代码里。
+7. 小步实现：按已经更新的文档实装，保持提交范围聚焦，沿用现有脚本、绘制和数据结构。
+8. 本地验证：按改动类型运行对应检查，Godot 脚本改动必须启动项目确认无解析错误。
+9. 整理差异：查看 `git diff --check` 和 `git diff --stat`，确认没有无关破坏。
+10. 提交同步：`git add`、`git commit`、`git push origin main`。
+11. 回报结果：说明先改了哪份文档、实装改了什么、验证了什么、提交号和远端同步状态。
 
 ## 3. 公共流程阶段映射
 
@@ -69,6 +71,8 @@
 | `tools/` | 开发工具 | 校验、导出、文档生成、批处理和 QA 辅助脚本 |
 | `tests/` | 自动化测试 | 放配置、规则、生成器和核心公式测试 |
 | `docs/` | 可读文档 | 设计说明、流程、UI/UX、平衡、结构约定 |
+| `docs/diagrams/` | 专业制图源文件 | 放 draw.io、Figma/FigJam 导出源、Axure、XD、AI 等可继续编辑的图件源 |
+| `output/diagrams/` | 图件预览 | 放 PNG/SVG/PDF 预览，供策划案和评审 PDF 引用 |
 | `output/pdf/` | 审阅版文档 | 文档 PDF 输出，便于给人查看和归档 |
 | `tmp/` | 临时产物 | 本地临时文件，不提交 |
 
@@ -78,7 +82,7 @@
 | --- | --- | --- |
 | 卡牌/单位/经济/掉落数值 | 先改 `design/` 或配置说明，再改 `config/tables/` | `tools/validate_config.py`，必要时 `tools/export_config.py` |
 | 战斗规则和交互逻辑 | 先改 `design/`，再改 `scripts/app/` 或相关 Godot 脚本 | GDScript 缩进检查，Godot 启动 |
-| UI 布局和绘制 | 先改 UI/UE 设计文档，再改 `scripts/app/`、`assets/` | Godot 启动，必要时截图人工检查 |
+| UI 布局和绘制 | 先改 UI/UE 设计文档和 `docs/diagrams/` 图件，再改 `scripts/app/`、`assets/` | Godot 启动，必要时截图人工检查 |
 | 新资源或美术方向 | 先改美术方向文档，再改 `assets/` | 资源能加载，路径不硬编码到错误位置 |
 | 设计决策和流程 | `docs/` | 生成 PDF，检查可读性 |
 | 校验或导出能力 | `tools/`、`.github/workflows/` | 本地运行工具，确认 CI 入口可用 |
@@ -90,6 +94,7 @@
 - Godot 在 Windows 出现 `应用程序错误`、`内存不能为 read` 或启动即崩溃时，优先检查渲染后端；本项目默认不强制 D3D12，`project.godot` 应使用 Vulkan 作为 Windows 默认渲染驱动，只有在专门兼容性测试通过后才恢复 D3D12。
 - `config/tables/` 下的 CSV 必须保持 UTF-8 或 UTF-8 BOM 编码；不要提交 GBK/ANSI 表格。若 `tools/validate_config.py` 报 Unicode decode 错误，先转码源 CSV，再导出 `runtime/config/`。
 - 任意文档交付后生成 PDF 到 `output/pdf/`，并渲染检查页面是否可读、无重叠、无截断。
+- 任意策划案交付必须检查玩法流程图和 UI/UE 图是否存在专业源文件、预览图和 PDF 可读版本。
 - 提交前运行 `git diff --check`，确认没有尾随空白或格式错误。
 - 推送前确认 `git status --short --branch`，避免遗漏文件。
 

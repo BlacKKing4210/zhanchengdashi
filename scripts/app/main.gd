@@ -50,6 +50,7 @@ const COLOR_GOLD = Color(1.0, 0.62, 0.08)
 const COLLECTION_COLUMNS = 4
 const COLLECTION_CARD_SIZE = Vector2(132.0, 158.0)
 const COLLECTION_CARD_GAP = Vector2(24.0, 18.0)
+const DETAIL_PULSE_SECONDS = 0.28
 
 const UNIT_ART = {
 	"rabbit": preload("res://assets/art/units/rabbit.png"),
@@ -95,6 +96,7 @@ var screen = SCREEN_LOBBY
 var selected_tile = Vector2i(-99, -99)
 var selected_slot = 0
 var selected_card_id = ""
+var pending_equip_card_id = ""
 var deck_scroll = 0.0
 
 var gold = STARTING_GOLD
@@ -109,6 +111,7 @@ var last_battle_reward_tickets = 0
 var result_text = ""
 var toast_text = ""
 var toast_timer = 0.0
+var detail_pulse_timer = 0.0
 var ui_time = 0.0
 var board_origin = Vector2.ZERO
 var canvas_scale = 1.0
@@ -134,6 +137,8 @@ func _process(delta: float) -> void:
 	ui_time += delta
 	if toast_timer > 0.0:
 		toast_timer -= delta
+	if detail_pulse_timer > 0.0:
+		detail_pulse_timer = maxf(0.0, detail_pulse_timer - delta)
 
 	if screen == SCREEN_BATTLE and not game_over and not pause_open:
 		_update_battle(delta)
@@ -470,6 +475,13 @@ func _available_collection_cards() -> Array:
 		if not used.has(String(card.get("id", ""))):
 			available.append(card)
 	return available
+
+
+func _is_card_in_deck(card_id: String) -> bool:
+	for deck_card_id in deck:
+		if String(deck_card_id) == card_id:
+			return true
+	return false
 
 
 func _is_collection_card_before(a, b) -> bool:
@@ -1083,9 +1095,16 @@ func _draw_gacha_rewards(count: int) -> void:
 func _handle_deck_tap(pos: Vector2) -> void:
 	for i in range(DECK_SIZE):
 		if _deck_slot_rect(i).has_point(pos):
-			selected_slot = i
-			selected_card_id = String(deck[i])
+			if pending_equip_card_id != "":
+				_equip_pending_card_to_slot(i)
+			else:
+				selected_slot = i
+				_show_card_detail(String(deck[i]))
 			return
+
+	if _equip_button_rect().has_point(pos) and _can_show_equip_button(selected_card_id):
+		_start_equip_selected_card()
+		return
 
 	if _upgrade_button_rect().has_point(pos):
 		_try_upgrade_selected_card()
@@ -1095,13 +1114,43 @@ func _handle_deck_tap(pos: Vector2) -> void:
 	if card.is_empty():
 		return
 	var card_id = String(card["id"])
+	selected_slot = -1
+	_show_card_detail(card_id)
+	if _card_total_count(card_id) <= 0:
+		_toast("尚未拥有该卡牌")
+
+
+func _show_card_detail(card_id: String) -> void:
 	selected_card_id = card_id
+	pending_equip_card_id = ""
+	detail_pulse_timer = DETAIL_PULSE_SECONDS
+
+
+func _start_equip_selected_card() -> void:
+	var card_id = selected_card_id
+	if card_id == "":
+		return
 	if _card_total_count(card_id) <= 0:
 		_toast("尚未拥有该卡牌")
 		return
-	if selected_slot >= 0 and selected_slot < deck.size():
-		deck[selected_slot] = card_id
-		_toast("已加入出战编组")
+	if _is_card_in_deck(card_id):
+		_toast("已在出战编组")
+		return
+	pending_equip_card_id = card_id
+	detail_pulse_timer = DETAIL_PULSE_SECONDS
+	_toast("选择要替换的出战动物")
+
+
+func _equip_pending_card_to_slot(slot_index: int) -> void:
+	if pending_equip_card_id == "" or slot_index < 0 or slot_index >= deck.size():
+		return
+	var card_id = pending_equip_card_id
+	deck[slot_index] = card_id
+	selected_slot = slot_index
+	selected_card_id = card_id
+	pending_equip_card_id = ""
+	detail_pulse_timer = DETAIL_PULSE_SECONDS
+	_toast("已加入出战编组")
 
 
 func _handle_nav(pos: Vector2) -> bool:
@@ -1117,8 +1166,10 @@ func _handle_nav(pos: Vector2) -> bool:
 			screen = SCREEN_DECK
 		elif id == SCREEN_GACHA:
 			screen = SCREEN_GACHA
+			pending_equip_card_id = ""
 		elif id == SCREEN_LOBBY:
 			screen = SCREEN_LOBBY
+			pending_equip_card_id = ""
 		return true
 	return false
 
@@ -1288,7 +1339,11 @@ func _draw_deck_screen() -> void:
 	_draw_text_center("出战编组", Rect2(40, 68, 640, 58), 42, Color.WHITE)
 	_box(Rect2(34, 140, 652, 360), COLOR_PURPLE, COLOR_LINE, 5)
 	for i in range(DECK_SIZE):
-		_draw_card(_deck_slot_rect(i), _card_by_id(String(deck[i])), i == selected_slot)
+		var slot_rect = _deck_slot_rect(i)
+		var card_id = String(deck[i])
+		_draw_card(slot_rect, _card_by_id(card_id), pending_equip_card_id == "" and card_id == selected_card_id)
+		if pending_equip_card_id != "":
+			_draw_deck_slot_breath(slot_rect, i)
 	_draw_card_detail(Rect2(34, 520, 652, 128))
 	_draw_text_center("所有卡牌", Rect2(0, 670, DESIGN_SIZE.x, 42), 34, Color.WHITE)
 	var collection_frame = _collection_frame_rect()
@@ -1304,6 +1359,15 @@ func _draw_deck_screen() -> void:
 		var card = collection_cards[i]
 		_draw_card_clipped(rect, card, String(card["id"]) == selected_card_id, collection_view)
 	draw_rect(collection_frame, COLOR_LINE, false, 4)
+
+
+func _draw_deck_slot_breath(rect: Rect2, index: int) -> void:
+	var wave = (sin(ui_time * TAU * 1.25 + float(index) * 0.45) + 1.0) * 0.5
+	var glow = rect.grow(5.0 + wave * 4.0)
+	var fill = Color(COLOR_YELLOW.r, COLOR_YELLOW.g, COLOR_YELLOW.b, 0.10 + wave * 0.09)
+	var line = Color(COLOR_YELLOW.r, COLOR_YELLOW.g, COLOR_YELLOW.b, 0.55 + wave * 0.30)
+	draw_rect(glow, fill)
+	draw_rect(glow, line, false, 4.0)
 
 
 func _draw_battle_screen() -> void:
@@ -1800,26 +1864,91 @@ func _draw_card_clipped(rect: Rect2, card: Dictionary, selected: bool, clip_rect
 
 func _draw_card_detail(rect: Rect2) -> void:
 	var card = _card_by_id(selected_card_id)
-	_box(rect, Color(1, 1, 1, 0.92), COLOR_LINE, 3)
+	var pop = 0.0
+	if detail_pulse_timer > 0.0:
+		var progress = 1.0 - detail_pulse_timer / DETAIL_PULSE_SECONDS
+		pop = sin(progress * PI) * 6.0
+	_box(rect.grow(pop), Color(1, 1, 1, 0.92), COLOR_LINE, 3)
 	if card.is_empty():
 		return
 	var card_id = String(card["id"])
 	var stats = _card_stats(card)
-	draw_texture_rect(_card_texture(card), Rect2(rect.position + Vector2(14, 16), Vector2(92, 92)), false)
-	_draw_text_fit(String(card.get("name", "")), Rect2(rect.position + Vector2(118, 12), Vector2(180, 30)), 23, COLOR_LINE)
-	_draw_text_fit("%s  Lv.%d" % [_rarity_label(String(card.get("rarity", ""))), _card_level(card_id)], Rect2(rect.position + Vector2(310, 12), Vector2(170, 30)), 19, _rarity_color(String(card.get("rarity", ""))).darkened(0.30))
-	_draw_text_fit("拥有 %d" % _card_total_count(card_id), Rect2(rect.position + Vector2(500, 12), Vector2(120, 30)), 17, COLOR_LINE)
-	var stat_text = "攻 %d  血 %d  速 %.0f  距 %s  召 %.1fs" % [
-		int(stats["attack"]),
-		int(stats["max_hp"]),
-		float(stats["move_speed"]),
-		_attack_range_label(float(stats["attack_range"])),
-		float(stats["summon_interval_sec"]),
-	]
-	_draw_text_fit(stat_text, Rect2(rect.position + Vector2(118, 46), Vector2(500, 28)), 18, COLOR_LINE)
+	var rarity_fill = _rarity_color(String(card.get("rarity", "common")))
+	var art_rect = Rect2(rect.position + Vector2(20, 12), Vector2(88, 78))
+	var name_rect = Rect2(rect.position + Vector2(14, 92), Vector2(104, 28))
+	draw_texture_rect(_card_texture(card), art_rect, false)
+	_box(name_rect, rarity_fill.darkened(0.16), Color(1, 1, 1, 0.18), 1)
+	_draw_text_center("Lv.%d  %s" % [_card_level(card_id), String(card.get("name", ""))], name_rect, 15, Color.WHITE)
+	_draw_detail_stat_icon_value(rect.position + Vector2(142, 18), "attack", str(int(stats["attack"])), COLOR_RED)
+	_draw_detail_stat_icon_value(rect.position + Vector2(232, 18), "hp", str(int(stats["max_hp"])), COLOR_RED)
+	_draw_detail_stat_icon_value(rect.position + Vector2(330, 18), "speed", str(roundi(float(stats["move_speed"]))), COLOR_BLUE)
+	_draw_text_center(_attack_range_label(float(stats["attack_range"])), Rect2(rect.position + Vector2(434, 20), Vector2(72, 28)), 18, COLOR_LINE)
+	var skill_text = _card_detail_skill_text(card)
+	if skill_text != "":
+		_draw_text_center(skill_text, Rect2(rect.position + Vector2(138, 56), Vector2(370, 28)), 16, COLOR_PURPLE)
 	var cost = _next_upgrade_cost(card_id)
-	_draw_upgrade_progress(Rect2(rect.position + Vector2(118, 82), Vector2(360, 26)), card_id, true)
+	_draw_upgrade_progress(Rect2(rect.position + Vector2(138, 92), Vector2(352, 18)), card_id, true)
+	if _can_show_equip_button(card_id):
+		_cta(_equip_button_rect(), "选择中" if pending_equip_card_id == card_id else "上阵", true)
 	_cta(_upgrade_button_rect(), "升级", cost >= 0 and _card_spare_count(card_id) >= cost)
+
+
+func _card_detail_skill_text(card: Dictionary) -> String:
+	if String(card.get("skill_id", "")) == "":
+		return ""
+	var skill_text = String(card.get("skill_text", ""))
+	if skill_text.begins_with("无技能"):
+		return ""
+	return skill_text
+
+
+func _can_show_equip_button(card_id: String) -> bool:
+	return card_id != "" and _card_total_count(card_id) > 0 and not _is_card_in_deck(card_id)
+
+
+func _draw_detail_stat_icon_value(pos: Vector2, icon: String, value: String, color: Color) -> void:
+	var center = pos + Vector2(14, 14)
+	match icon:
+		"attack":
+			_draw_paw_icon(center, color)
+		"hp":
+			_draw_heart_icon(center, color)
+		"speed":
+			_draw_boot_icon(center, color)
+	_draw_text_fit(value, Rect2(pos + Vector2(32, 0), Vector2(54, 28)), 18, COLOR_LINE)
+
+
+func _draw_paw_icon(center: Vector2, color: Color) -> void:
+	draw_circle(center + Vector2(0, 5), 6.0, color)
+	draw_circle(center + Vector2(-8, -2), 3.4, color)
+	draw_circle(center + Vector2(-2.5, -7), 3.4, color)
+	draw_circle(center + Vector2(3.8, -7), 3.4, color)
+	draw_circle(center + Vector2(9, -2), 3.4, color)
+
+
+func _draw_heart_icon(center: Vector2, color: Color) -> void:
+	draw_circle(center + Vector2(-4, -3), 5.2, color)
+	draw_circle(center + Vector2(4, -3), 5.2, color)
+	var points = PackedVector2Array([
+		center + Vector2(-10, -1),
+		center + Vector2(10, -1),
+		center + Vector2(0, 11),
+	])
+	draw_polygon(points, PackedColorArray([color, color, color]))
+
+
+func _draw_boot_icon(center: Vector2, color: Color) -> void:
+	var points = PackedVector2Array([
+		center + Vector2(-8, -9),
+		center + Vector2(2, -9),
+		center + Vector2(4, 1),
+		center + Vector2(12, 4),
+		center + Vector2(11, 9),
+		center + Vector2(-9, 9),
+		center + Vector2(-5, 3),
+	])
+	draw_polygon(points, PackedColorArray([color, color, color, color, color, color, color]))
+	draw_line(center + Vector2(-4, -4), center + Vector2(3, -4), Color.WHITE, 2.0)
 
 
 func _draw_upgrade_progress(rect: Rect2, card_id: String, show_label: bool) -> void:
@@ -1837,8 +1966,9 @@ func _draw_upgrade_progress(rect: Rect2, card_id: String, show_label: bool) -> v
 		draw_rect(Rect2(inner.position, Vector2(inner.size.x * pct, inner.size.y)), fill)
 	draw_rect(rect, COLOR_LINE, false, 2)
 	if show_label:
-		var label = "满级" if cost < 0 else "碎片 %d/%d" % [spare, cost]
-		_draw_text_center(label, rect, 16, Color.WHITE)
+		var label = "满级" if cost < 0 else "%d/%d" % [spare, cost]
+		var label_size = 13 if rect.size.y <= 18.0 else 16
+		_draw_text_center(label, rect, label_size, Color.WHITE)
 
 
 func _draw_empty_progress(rect: Rect2) -> void:
@@ -1862,8 +1992,9 @@ func _draw_upgrade_progress_clipped(rect: Rect2, card_id: String, show_label: bo
 		_draw_rect_clipped(Rect2(inner.position, Vector2(inner.size.x * pct, inner.size.y)), fill, clip_rect)
 	_draw_rect_outline_clipped(rect, COLOR_LINE, 2, clip_rect)
 	if show_label:
-		var label = "满级" if cost < 0 else "碎片 %d/%d" % [spare, cost]
-		_draw_text_center_clipped(label, rect, 16, Color.WHITE, clip_rect)
+		var label = "满级" if cost < 0 else "%d/%d" % [spare, cost]
+		var label_size = 13 if rect.size.y <= 18.0 else 16
+		_draw_text_center_clipped(label, rect, label_size, Color.WHITE, clip_rect)
 
 
 func _draw_empty_progress_clipped(rect: Rect2, clip_rect: Rect2) -> void:
@@ -2065,6 +2196,10 @@ func _gacha_ten_draw_rect() -> Rect2:
 
 func _upgrade_button_rect() -> Rect2:
 	return Rect2(522, 602, 116, 36)
+
+
+func _equip_button_rect() -> Rect2:
+	return Rect2(522, 560, 116, 34)
 
 
 func _pause_button_rect() -> Rect2:
