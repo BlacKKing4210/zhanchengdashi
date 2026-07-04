@@ -5,6 +5,8 @@ This repository is a game project foundation for `zhanchengdashi`.
 ## Default Workflow
 
 - Treat tasks as game-development work unless the user says otherwise.
+- Use the public workflow at `C:\Users\76398\Documents\Codex\2026-07-03\codex-game-studio-default\outputs\codex-game-studio-general-game-development-process.md` as the upstream game-development process when available.
+- Use `docs/DEVELOPMENT_WORKFLOW.md` as this project's adaptation of the public workflow.
 - Keep project assets, configuration, scripts, and documents easy to move into Godot, Unity, or Unreal later.
 - Prefer data-driven gameplay: design values belong in `config/tables/`, runtime exports belong in `runtime/config/`, and validation belongs in `tools/`.
 - For procedural feedback and prototype motion, prefer engine-side tween/animation/shader/particle work before requesting new sequence-frame art.
@@ -28,5 +30,6 @@ This repository is a game project foundation for `zhanchengdashi`.
 ## Git Hygiene
 
 - Keep commits focused and reviewable.
+- After each completed modification task, commit the changes and push the current branch to GitHub unless the user explicitly says not to.
 - Commit generated runtime config only when it is the expected engine-facing source.
 - Do not commit local cache, build output, editor metadata, or engine-generated import caches.

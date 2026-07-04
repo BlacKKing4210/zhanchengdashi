@@ -34,6 +34,21 @@ python tools/export_config.py
 
 The exported files are written to `runtime/config/`.
 
+## Development Workflow
+
+Project development process and structure are documented in:
+
+- `docs/DEVELOPMENT_WORKFLOW.md`
+- `output/pdf/development-workflow.pdf`
+
+This is the project adaptation of the public Codex Game Studio workflow at:
+
+```text
+C:\Users\76398\Documents\Codex\2026-07-03\codex-game-studio-default\outputs\codex-game-studio-general-game-development-process.md
+```
+
+Use the public workflow for role routing, lifecycle stages, task cards, and Definition of Done. Use this project workflow for file placement, Godot/GDScript rules, validation gates, and GitHub synchronization.
+
 ## GitHub Remote
 
 The repository is configured for:
@@ -55,3 +70,4 @@ Recommended branch flow is documented in `docs/GIT_WORKFLOW.md`.
 - Minimal Godot main scene
 - GitHub Actions config validation workflow
 - Project foundation documentation with PDF review output
+- Project development workflow documentation with PDF review output
