@@ -26,6 +26,21 @@
 
 ![当前 UI/UE 线框交互图](../output/diagrams/current_ui_ue_wireflow.png)
 
+### 1.2 当前视觉效果图评审
+
+当前游戏视觉方向按公共流程 v1.4 的专业美术生产线先进入多版效果图评审，不直接推进 Godot 实装或资产替换。
+
+评审文档：`docs/CURRENT_GAME_VISUAL_CONCEPT_OPTIONS.md`
+
+候选图输出：
+
+- `output/visual_concepts/current_game_visual_option_a_jungle_frontier.png`
+- `output/visual_concepts/current_game_visual_option_b_sunset_canyon.png`
+- `output/visual_concepts/current_game_visual_option_c_moonlit_ruins.png`
+- `output/visual_concepts/current_game_visual_option_d_floating_island_lobby.png`
+
+用户确认方向后，再进入 art brief、production sheet、Sprite Forge/Godot handoff 和实现阶段。
+
 ## 2. 游戏定位
 
 `战城大师` 当前是一个移动竖屏、轻策略、卡牌编组加地块争夺的 Godot 原型。

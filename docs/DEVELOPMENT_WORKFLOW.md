@@ -5,6 +5,7 @@
 公共流程上游：
 
 - `C:\Users\76398\Documents\Codex\2026-07-03\codex-game-studio-default\outputs\codex-game-studio-general-game-development-process.md`
+- 当前对齐版本：公共流程 v1.4，日期 2026-07-05，重点同步专业美术生产线与美术质量 Gate。
 
 使用方式：公共流程负责角色路由、生命周期、专项流程、任务卡和 Definition of Done；本项目文档负责把这些规则落到 `zhanchengdashi` 的目录结构、Godot/GDScript、配置表、验证脚本和 GitHub 同步上。后续开发必须优先遵循公共流程，再按本项目约定执行。
 
@@ -15,14 +16,18 @@
 - 项目阶段：当前属于 Prototype / Vertical Slice 之间，已经有 Godot 可运行原型、卡牌/抽卡/战斗/编组闭环和配置表基础。
 - 默认引擎角色：公共流程中的 `Engine Specialist` 在本项目映射为 Godot Specialist。
 - 默认语言角色：公共流程中的 `Language Specialist` 在本项目映射为 GDScript Specialist。
+- 默认美术表现角色：美术方向、效果图、UI 视觉、角色/场景/道具/地图/FX 资产默认启用 `Art Director -> Visual Development Artist -> Concept Artist / Environment Artist / UI Artist -> Sprite Forge Specialist -> Godot Specialist -> QA Lead`。
 - 文档先行：以后所有玩法、数值、UI、系统或技术结构修改，都必须先更新对应设计/流程文档，再实装到游戏中。
 - 策划案制图门禁：玩法流程图和 UI/UE 图必须随策划案交付，正式源文件使用 diagrams.net/draw.io、Figma、FigJam、Axure、Adobe XD、Illustrator 等专业工具格式；Mermaid 只能作为草稿或文档内辅助说明。
+- 美术审核门禁：当前游戏视觉方向必须先产出多版效果图和评审文档，经用户确认后才进入 Sprite Forge、Godot 实装或资产替换。
 - 版本纪律：每次完成修改必须验证、提交 Git，并推送到 GitHub。
 
 ## 1. 开发原则
 
 - 所有任务默认按游戏开发任务处理，采用 Codex Game Studio 的角色视角：制作、玩法、技术、美术/UI、Godot、GDScript、QA。
 - 玩法数值优先数据驱动：可配置的设计值进入 `config/tables/`，运行时 JSON 由 `tools/export_config.py` 输出到 `runtime/config/`。
+- 美术表现先走专业方向：先做 art brief、参考取舍、视觉方向、可读性检查和多版效果图，再进入资产生成或引擎实现。
+- Sprite Forge 只负责按已批准美术方向执行生成、清理、切图、元数据、预览和 Godot handoff，不替代 Art Director、Visual Development Artist、Concept Artist、Environment Artist 或 UI Artist 的判断。
 - 原型表现优先使用引擎内程序化反馈：Tween、缩放、位移、闪烁、粒子、材质调色和 UI 弹跳，避免过早制作序列帧资源。
 - UI 调整遵循移动端街机风格：粗描边、硬阴影、高饱和按钮、明确进度条、可扫描信息层级。
 - 不复制商业游戏的名称、角色、图标、货币、布局、字体或专有资产，只借鉴抽象方向。
@@ -33,15 +38,16 @@
 
 1. 读上游：确认公共流程中对应的角色路由、专项流程和 Definition of Done。
 2. 读项目：看 `AGENTS.md`、本文档、相关 `docs/`、当前文件和 `git status`。
-3. 定职责：按任务类型使用最小必要角色组合，例如 UI 走 `Art Director -> UI Programmer -> Godot Specialist -> QA Lead`。
+3. 定职责：按任务类型使用最小必要角色组合，例如 UI 走 `Art Director -> UI Artist -> UI Programmer -> Godot Specialist -> QA Lead`，美术表现走 `Art Director -> Visual Development Artist -> Concept Artist / Environment Artist / UI Artist -> Sprite Forge Specialist -> Godot Specialist -> QA Lead`。
 4. 文档先行：先更新对应文档。玩法/数值/UI 进入 `design/`，工程流程/结构进入 `docs/`，必要时同步生成 PDF。
-5. 专业制图：策划案必须补齐玩法流程图和 UI/UE 图；源文件放 `docs/diagrams/`，预览图放 `output/diagrams/`，PDF 必须嵌入或引用图件。
-6. 定落点：再判断改配置、脚本、场景、资源或工具，避免把设计值写死在代码里。
-7. 小步实现：按已经更新的文档实装，保持提交范围聚焦，沿用现有脚本、绘制和数据结构。
-8. 本地验证：按改动类型运行对应检查，Godot 脚本改动必须启动项目确认无解析错误。
-9. 整理差异：查看 `git diff --check` 和 `git diff --stat`，确认没有无关破坏。
-10. 提交同步：`git add`、`git commit`、`git push origin main`。
-11. 回报结果：说明先改了哪份文档、实装改了什么、验证了什么、提交号和远端同步状态。
+5. 美术预审：涉及视觉方向、资产风格、UI 视觉或宣传级表现时，先输出多版效果图到 `output/visual_concepts/`，并在评审文档中写清取舍、风险和待用户确认点。
+6. 专业制图：策划案必须补齐玩法流程图和 UI/UE 图；源文件放 `docs/diagrams/`，预览图放 `output/diagrams/`，PDF 必须嵌入或引用图件。
+7. 定落点：再判断改配置、脚本、场景、资源或工具，避免把设计值写死在代码里。
+8. 小步实现：按已经更新且通过评审的文档实装，保持提交范围聚焦，沿用现有脚本、绘制和数据结构。
+9. 本地验证：按改动类型运行对应检查，Godot 脚本改动必须启动项目确认无解析错误。
+10. 整理差异：查看 `git diff --check` 和 `git diff --stat`，确认没有无关破坏。
+11. 提交同步：`git add`、`git commit`、`git push origin main`。
+12. 回报结果：说明先改了哪份文档、实装改了什么、验证了什么、提交号和远端同步状态。
 
 ## 3. 公共流程阶段映射
 
@@ -73,6 +79,7 @@
 | `docs/` | 可读文档 | 设计说明、流程、UI/UX、平衡、结构约定 |
 | `docs/diagrams/` | 专业制图源文件 | 放 draw.io、Figma/FigJam 导出源、Axure、XD、AI 等可继续编辑的图件源 |
 | `output/diagrams/` | 图件预览 | 放 PNG/SVG/PDF 预览，供策划案和评审 PDF 引用 |
+| `output/visual_concepts/` | 当前视觉效果图评审 | 放多版 AI/概念效果图和风格方向候选；评审通过前不作为最终 runtime 资产 |
 | `output/pdf/` | 审阅版文档 | 文档 PDF 输出，便于给人查看和归档 |
 | `tmp/` | 临时产物 | 本地临时文件，不提交 |
 
@@ -83,7 +90,7 @@
 | 卡牌/单位/经济/掉落数值 | 先改 `design/` 或配置说明，再改 `config/tables/` | `tools/validate_config.py`，必要时 `tools/export_config.py` |
 | 战斗规则和交互逻辑 | 先改 `design/`，再改 `scripts/app/` 或相关 Godot 脚本 | GDScript 缩进检查，Godot 启动 |
 | UI 布局和绘制 | 先改 UI/UE 设计文档和 `docs/diagrams/` 图件，再改 `scripts/app/`、`assets/` | Godot 启动，必要时截图人工检查 |
-| 新资源或美术方向 | 先改美术方向文档，再改 `assets/` | 资源能加载，路径不硬编码到错误位置 |
+| 新资源或美术方向 | 先改美术方向文档，输出多版效果图并等用户确认，再改 `assets/` | 效果图评审通过，资源能加载，路径不硬编码到错误位置 |
 | 设计决策和流程 | `docs/` | 生成 PDF，检查可读性 |
 | 校验或导出能力 | `tools/`、`.github/workflows/` | 本地运行工具，确认 CI 入口可用 |
 
@@ -95,6 +102,7 @@
 - `config/tables/` 下的 CSV 必须保持 UTF-8 或 UTF-8 BOM 编码；不要提交 GBK/ANSI 表格。若 `tools/validate_config.py` 报 Unicode decode 错误，先转码源 CSV，再导出 `runtime/config/`。
 - 任意文档交付后生成 PDF 到 `output/pdf/`，并渲染检查页面是否可读、无重叠、无截断。
 - 任意策划案交付必须检查玩法流程图和 UI/UE 图是否存在专业源文件、预览图和 PDF 可读版本。
+- 任意美术方向交付必须检查 art brief、候选效果图、评审说明、原创性避让点、移动端可读性和用户确认状态；未确认前不得推进到正式资产替换或 Godot 实装。
 - 提交前运行 `git diff --check`，确认没有尾随空白或格式错误。
 - 推送前确认 `git status --short --branch`，避免遗漏文件。
 
@@ -112,7 +120,33 @@
 - 默认远端分支为 `main`，推送命令为 `git push origin main`。
 - 每次最终回报包含提交号、验证结果和工作区是否干净。
 
-## 9. 后续结构演进方向
+## 9. 专业美术表现流程
+
+本项目从公共流程 v1.4 起，把美术表现从“生成素材”升级为“专业美术生产线”。任何会影响游戏视觉身份、资产风格、UI 视觉、关键画面、角色/场景/道具/地图/FX 质量的任务，都必须先完成方向确认，再进入资产生成或 Godot 实装。
+
+默认路由：
+
+```text
+Producer -> Creative Director -> Art Director -> Visual Development Artist -> Concept Artist / Environment Artist / UI Artist -> Sprite Forge Specialist -> Godot Specialist -> QA Lead
+```
+
+本项目执行顺序：
+
+1. Art brief：说明目标玩家、平台、镜头、玩法读图需求、性能约束和商业参考避让点。
+2. Visual direction：整理风格关键词、形状语言、色彩策略、材质策略、光照和氛围原则。
+3. 多版效果图：至少提供 3 个可比较方向；当前游戏默认存放在 `output/visual_concepts/`，评审文档为 `docs/CURRENT_GAME_VISUAL_CONCEPT_OPTIONS.md`。
+4. 用户评审：用户明确选择、混合或否定方向前，不推进到正式资产替换、UI 重绘或场景落地。
+5. 生产设定：通过后再产出角色、场景、UI、图标、地图或 FX 的 production sheet、尺寸、状态、pivot、anchor、碰撞提示和命名规则。
+6. Sprite Forge / 引擎执行：只按已批准方向生成、清理、切片、元数据、预览和 Godot handoff。
+7. QA：检查小尺寸可读性、主体/背景分离、UI 层级、色盲风险、原创性、资源加载和性能风险。
+
+当前审核节点：
+
+- 已为当前游戏输出多版效果图到 `output/visual_concepts/`。
+- 评审文档：`docs/CURRENT_GAME_VISUAL_CONCEPT_OPTIONS.md`。
+- 在用户确认方向前，只允许继续补充说明或追加候选，不进入 Godot 实装和资产替换。
+
+## 10. 后续结构演进方向
 
 - 当 `scripts/app/main.gd` 继续增长时，优先拆出 `scripts/app/ui/`、`scripts/app/battle/`、`scripts/app/cards/`、`scripts/app/config/`。
 - 将硬编码原型参数逐步迁移到 `config/tables/`，保留脚本中的常量只作为临时桥接。
