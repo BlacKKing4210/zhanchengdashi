@@ -22,7 +22,7 @@
       "swarm",
       "no_skill"
     ],
-    "design_notes": "低成本铺路，适合快速占小格。"
+    "design_notes": "老鼠：低成本铺路，适合快速占小格。"
   },
   {
     "id": "ant",
@@ -49,7 +49,7 @@
       "attack",
       "skill"
     ],
-    "design_notes": "成群推进型低费单位。"
+    "design_notes": "蚂蚁：成群推进型低费单位。"
   },
   {
     "id": "sparrow",
@@ -74,7 +74,7 @@
       "scout",
       "no_skill"
     ],
-    "design_notes": "最快的基础侦察单位，用来抢中线。"
+    "design_notes": "麻雀：最快的基础侦察单位，用来抢中线。"
   },
   {
     "id": "frog",
@@ -101,7 +101,7 @@
       "control",
       "skill"
     ],
-    "design_notes": "低价控制，伤害偏低。"
+    "design_notes": "青蛙：低价控制，伤害偏低。"
   },
   {
     "id": "rabbit",
@@ -128,7 +128,7 @@
       "frontline",
       "skill"
     ],
-    "design_notes": "便宜前排，保护早期兵营。"
+    "design_notes": "兔子：便宜前排，保护早期兵营。"
   },
   {
     "id": "chicken",
@@ -154,7 +154,7 @@
       "buff",
       "skill"
     ],
-    "design_notes": "低费辅助，单兵能力弱。"
+    "design_notes": "鸡：低费辅助，单兵能力弱。"
   },
   {
     "id": "pigeon",
@@ -181,7 +181,7 @@
       "economy",
       "skill"
     ],
-    "design_notes": "低血高速，失败损失小。"
+    "design_notes": "鸽子：低血高速，失败损失小。"
   },
   {
     "id": "hamster",
@@ -208,7 +208,7 @@
       "economy",
       "skill"
     ],
-    "design_notes": "经济倾向的基础卡。"
+    "design_notes": "仓鼠：经济倾向的基础卡。"
   },
   {
     "id": "snail",
@@ -233,7 +233,7 @@
       "guard",
       "no_skill"
     ],
-    "design_notes": "无技能纯肉盾，属性效率最高。"
+    "design_notes": "蜗牛：无技能纯肉盾，属性效率最高。"
   },
   {
     "id": "tadpole",
@@ -258,7 +258,7 @@
       "swarm",
       "no_skill"
     ],
-    "design_notes": "超快召唤的炮灰单位。"
+    "design_notes": "蝌蚪：超快召唤的炮灰单位。"
   },
   {
     "id": "cat",
@@ -283,7 +283,7 @@
       "striker",
       "no_skill"
     ],
-    "design_notes": "普通高攻近战，无技能换取稳定输出。"
+    "design_notes": "猫：普通高攻近战，无技能换取稳定输出。"
   },
   {
     "id": "dog",
@@ -310,7 +310,7 @@
       "protect",
       "skill"
     ],
-    "design_notes": "守线前排。"
+    "design_notes": "狗：守线前排。"
   },
   {
     "id": "duck",
@@ -336,7 +336,7 @@
       "summon",
       "skill"
     ],
-    "design_notes": "阵亡补位，单体属性偏低。"
+    "design_notes": "鸭：阵亡补位，单体属性偏低。"
   },
   {
     "id": "squirrel",
@@ -363,7 +363,7 @@
       "capture",
       "skill"
     ],
-    "design_notes": "抢格与游走兼具。"
+    "design_notes": "松鼠：抢格与游走兼具。"
   },
   {
     "id": "hedgehog",
@@ -390,7 +390,7 @@
       "retaliate",
       "skill"
     ],
-    "design_notes": "反打型近战。"
+    "design_notes": "刺猬：反打型近战。"
   },
   {
     "id": "turtle",
@@ -417,7 +417,7 @@
       "tank",
       "skill"
     ],
-    "design_notes": "慢速高耐久。"
+    "design_notes": "乌龟：慢速高耐久。"
   },
   {
     "id": "goat",
@@ -444,7 +444,7 @@
       "hp",
       "skill"
     ],
-    "design_notes": "团队生命辅助。"
+    "design_notes": "山羊：团队生命辅助。"
   },
   {
     "id": "sheep",
@@ -470,7 +470,7 @@
       "shield",
       "skill"
     ],
-    "design_notes": "群体保护，输出较低。"
+    "design_notes": "羊：群体保护，输出较低。"
   },
   {
     "id": "parrot",
@@ -496,7 +496,7 @@
       "copy",
       "skill"
     ],
-    "design_notes": "复制玩法核心，基础属性低。"
+    "design_notes": "鹦鹉：复制玩法核心，基础属性低。"
   },
   {
     "id": "fox",
@@ -521,7 +521,7 @@
       "scout",
       "no_skill"
     ],
-    "design_notes": "无技能快攻单位，属性集中在速度和攻击。"
+    "design_notes": "狐狸：无技能快攻单位，属性集中在速度和攻击。"
   },
   {
     "id": "monkey",
@@ -548,7 +548,7 @@
       "tempo",
       "skill"
     ],
-    "design_notes": "中期复制核心。"
+    "design_notes": "猴子：中期复制核心。"
   },
   {
     "id": "pig",
@@ -575,7 +575,7 @@
       "tank",
       "skill"
     ],
-    "design_notes": "经济型前排。"
+    "design_notes": "猪：经济型前排。"
   },
   {
     "id": "deer",
@@ -602,7 +602,7 @@
       "charge",
       "skill"
     ],
-    "design_notes": "突进输出。"
+    "design_notes": "鹿：突进输出。"
   },
   {
     "id": "beaver",
@@ -629,7 +629,7 @@
       "building",
       "skill"
     ],
-    "design_notes": "工程单位。"
+    "design_notes": "河狸：工程单位。"
   },
   {
     "id": "otter",
@@ -655,7 +655,7 @@
       "shield",
       "skill"
     ],
-    "design_notes": "防守型辅助。"
+    "design_notes": "水獭：防守型辅助。"
   },
   {
     "id": "penguin",
@@ -682,7 +682,7 @@
       "attack",
       "skill"
     ],
-    "design_notes": "稳态光环。"
+    "design_notes": "企鹅：稳态光环。"
   },
   {
     "id": "peacock",
@@ -708,7 +708,7 @@
       "burst",
       "skill"
     ],
-    "design_notes": "中距离爆发。"
+    "design_notes": "孔雀：中距离爆发。"
   },
   {
     "id": "kangaroo",
@@ -735,7 +735,7 @@
       "burst",
       "skill"
     ],
-    "design_notes": "跃进切后排。"
+    "design_notes": "袋鼠：跃进切后排。"
   },
   {
     "id": "seal",
@@ -760,7 +760,7 @@
       "guard",
       "no_skill"
     ],
-    "design_notes": "无技能高生命稀有前排。"
+    "design_notes": "海豹：无技能高生命稀有前排。"
   },
   {
     "id": "swan",
@@ -787,7 +787,7 @@
       "aura",
       "skill"
     ],
-    "design_notes": "优雅护盾辅助。"
+    "design_notes": "天鹅：优雅护盾辅助。"
   },
   {
     "id": "wolf",
@@ -814,7 +814,7 @@
       "attack",
       "skill"
     ],
-    "design_notes": "中后期进攻核心。"
+    "design_notes": "狼：中后期进攻核心。"
   },
   {
     "id": "horse",
@@ -841,7 +841,7 @@
       "aura",
       "skill"
     ],
-    "design_notes": "快速支援与补线。"
+    "design_notes": "马：快速支援与补线。"
   },
   {
     "id": "cow",
@@ -868,7 +868,7 @@
       "capture",
       "skill"
     ],
-    "design_notes": "占点经济。"
+    "design_notes": "牛：占点经济。"
   },
   {
     "id": "zebra",
@@ -895,7 +895,7 @@
       "attack",
       "skill"
     ],
-    "design_notes": "快速光环单位。"
+    "design_notes": "斑马：快速光环单位。"
   },
   {
     "id": "camel",
@@ -922,7 +922,7 @@
       "tank",
       "skill"
     ],
-    "design_notes": "远征前排。"
+    "design_notes": "骆驼：远征前排。"
   },
   {
     "id": "dolphin",
@@ -948,7 +948,7 @@
       "shield",
       "skill"
     ],
-    "design_notes": "远程保护。"
+    "design_notes": "海豚：远程保护。"
   },
   {
     "id": "falcon",
@@ -974,7 +974,7 @@
       "mark",
       "skill"
     ],
-    "design_notes": "长射程点杀。"
+    "design_notes": "猎鹰：长射程点杀。"
   },
   {
     "id": "boar",
@@ -1001,7 +1001,7 @@
       "stun",
       "skill"
     ],
-    "design_notes": "冲线破阵。"
+    "design_notes": "野猪：冲线破阵。"
   },
   {
     "id": "crane",
@@ -1027,7 +1027,7 @@
       "heal",
       "skill"
     ],
-    "design_notes": "高阶保护辅助。"
+    "design_notes": "鹤：高阶保护辅助。"
   },
   {
     "id": "lynx",
@@ -1052,7 +1052,7 @@
       "striker",
       "no_skill"
     ],
-    "design_notes": "无技能稀有刺客，面板更高。"
+    "design_notes": "猞猁：无技能稀有刺客，面板更高。"
   },
   {
     "id": "bear",
@@ -1079,7 +1079,7 @@
       "tank",
       "skill"
     ],
-    "design_notes": "史诗重前排。"
+    "design_notes": "熊：史诗重前排。"
   },
   {
     "id": "tiger",
@@ -1106,7 +1106,7 @@
       "melee",
       "skill"
     ],
-    "design_notes": "史诗高爆发。"
+    "design_notes": "老虎：史诗高爆发。"
   },
   {
     "id": "lion",
@@ -1133,7 +1133,7 @@
       "death",
       "skill"
     ],
-    "design_notes": "阵亡返场压力。"
+    "design_notes": "狮子：阵亡返场压力。"
   },
   {
     "id": "rhino",
@@ -1160,7 +1160,7 @@
       "stun",
       "skill"
     ],
-    "design_notes": "推进破盾。"
+    "design_notes": "犀牛：推进破盾。"
   },
   {
     "id": "hippo",
@@ -1185,7 +1185,7 @@
       "guard",
       "no_skill"
     ],
-    "design_notes": "无技能超高生命前排。"
+    "design_notes": "河马：无技能超高生命前排。"
   },
   {
     "id": "giraffe",
@@ -1212,7 +1212,7 @@
       "hp",
       "skill"
     ],
-    "design_notes": "远程支援。"
+    "design_notes": "长颈鹿：远程支援。"
   },
   {
     "id": "gorilla",
@@ -1239,7 +1239,7 @@
       "melee",
       "skill"
     ],
-    "design_notes": "范围压制。"
+    "design_notes": "大猩猩：范围压制。"
   },
   {
     "id": "leopard",
@@ -1264,7 +1264,7 @@
       "scout",
       "no_skill"
     ],
-    "design_notes": "无技能高速史诗输出。"
+    "design_notes": "豹子：无技能高速史诗输出。"
   },
   {
     "id": "eagle",
@@ -1290,7 +1290,7 @@
       "execute",
       "skill"
     ],
-    "design_notes": "远程斩杀。"
+    "design_notes": "老鹰：远程斩杀。"
   },
   {
     "id": "crocodile",
@@ -1317,7 +1317,7 @@
       "melee",
       "skill"
     ],
-    "design_notes": "持续撕咬。"
+    "design_notes": "鳄鱼：持续撕咬。"
   },
   {
     "id": "elephant",
@@ -1344,7 +1344,7 @@
       "hp",
       "skill"
     ],
-    "design_notes": "传说团队前排。"
+    "design_notes": "大象：传说团队前排。"
   },
   {
     "id": "blue_whale",
@@ -1370,7 +1370,7 @@
       "shield",
       "skill"
     ],
-    "design_notes": "传说护军核心。"
+    "design_notes": "蓝鲸：传说护军核心。"
   },
   {
     "id": "orca",
@@ -1396,7 +1396,7 @@
       "execute",
       "skill"
     ],
-    "design_notes": "传说猎杀者。"
+    "design_notes": "虎鲸：传说猎杀者。"
   },
   {
     "id": "shark",
@@ -1421,7 +1421,7 @@
       "striker",
       "no_skill"
     ],
-    "design_notes": "无技能传说输出，面板最高。"
+    "design_notes": "鲨鱼：无技能传说输出，面板最高。"
   },
   {
     "id": "python",
@@ -1447,7 +1447,7 @@
       "control",
       "skill"
     ],
-    "design_notes": "传说控制核心。"
+    "design_notes": "巨蟒：传说控制核心。"
   },
   {
     "id": "komodo_dragon",
@@ -1473,7 +1473,7 @@
       "poison",
       "skill"
     ],
-    "design_notes": "传说毒压。"
+    "design_notes": "科莫多龙：传说毒压。"
   },
   {
     "id": "polar_bear",
@@ -1499,7 +1499,7 @@
       "shield",
       "skill"
     ],
-    "design_notes": "传说冰墙前排。"
+    "design_notes": "北极熊：传说冰墙前排。"
   },
   {
     "id": "silverback",
@@ -1525,7 +1525,7 @@
       "summon",
       "skill"
     ],
-    "design_notes": "传说返场压迫。"
+    "design_notes": "银背猩猩：传说返场压迫。"
   },
   {
     "id": "golden_eagle",
@@ -1550,7 +1550,7 @@
       "ranged",
       "skill"
     ],
-    "design_notes": "传说远程点杀。"
+    "design_notes": "金雕：传说远程点杀。"
   },
   {
     "id": "mammoth",
@@ -1577,7 +1577,7 @@
       "tank",
       "skill"
     ],
-    "design_notes": "传说终局肉盾。"
+    "design_notes": "猛犸象：传说终局肉盾。"
   },
   {
     "id": "gold_mine_card",
@@ -1603,7 +1603,7 @@
       "economy",
       "mandatory"
     ],
-    "design_notes": "紫色品质经济建筑卡，每套编组必须携带。"
+    "design_notes": "金矿：紫色品质经济建筑卡，每套编组必须携带。"
   },
   {
     "id": "defense_watch_tower",
@@ -1629,7 +1629,7 @@
       "common",
       "starter"
     ],
-    "design_notes": "玩家初始拥有的绿色防御塔卡。"
+    "design_notes": "哨戒箭塔：玩家初始拥有的绿色防御塔卡。"
   },
   {
     "id": "defense_cannon_tower",
@@ -1655,7 +1655,7 @@
       "rare",
       "gacha"
     ],
-    "design_notes": "可通过抽卡获得的蓝色防御塔卡。"
+    "design_notes": "火炮塔：可通过抽卡获得的蓝色防御塔卡。"
   },
   {
     "id": "defense_repair_beacon",
@@ -1681,7 +1681,7 @@
       "epic",
       "gacha"
     ],
-    "design_notes": "紫色防御塔卡，后续可接入修复光环。"
+    "design_notes": "修复信标：紫色防御塔卡，后续可接入修复光环。"
   },
   {
     "id": "defense_storm_obelisk",
@@ -1707,6 +1707,6 @@
       "legendary",
       "gacha"
     ],
-    "design_notes": "金色防御塔卡，可通过抽卡获得。"
+    "design_notes": "风暴方尖碑：金色防御塔卡，可通过抽卡获得。"
   }
 ]
