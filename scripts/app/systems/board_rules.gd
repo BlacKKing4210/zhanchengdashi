@@ -214,6 +214,12 @@ static func with_occupier(tile: Dictionary, team: int) -> Dictionary:
 	return next
 
 
+static func with_territory(tile: Dictionary, team: int) -> Dictionary:
+	var next = tile.duplicate()
+	next["territory_team"] = team
+	return next
+
+
 static func as_destroyed_building(tile: Dictionary, attacker: int) -> Dictionary:
 	var next = tile.duplicate()
 	next["team"] = attacker

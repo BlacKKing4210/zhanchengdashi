@@ -824,6 +824,8 @@ func _update_units(delta: float) -> void:
 		var unit = units[i]
 		if float(unit["hp"]) <= 0.0:
 			continue
+		var previous_tile = unit.get("tile", _tile_at(Vector2(unit["pos"])))
+		unit["tile"] = previous_tile
 		var target = _nearest_combat_target(Vector2(unit["pos"]), int(unit["team"]), int(unit["id"]))
 		if target.is_empty():
 			units[i] = unit
@@ -844,12 +846,43 @@ func _update_units(delta: float) -> void:
 				unit["cooldown"] = UNIT_BASE_ATTACK_COOLDOWN / maxf(0.01, UNIT_ATTACK_SPEED_MULT)
 		elif distance > 1.0:
 			unit["pos"] = Vector2(unit["pos"]) + offset.normalized() * float(unit["speed"]) * delta
+		var current_tile = _tile_at(Vector2(unit["pos"]))
+		if current_tile != previous_tile:
+			_try_paint_crossed_tile(previous_tile, int(unit["team"]))
+			unit["tile"] = current_tile
 		units[i] = unit
 	var alive = []
 	for unit in units:
 		if float(unit["hp"]) > 0.0:
 			alive.append(unit)
 	units = alive
+
+
+func _try_paint_crossed_tile(key: Vector2i, team: int) -> void:
+	if not tiles.has(key):
+		return
+	var opponent = ENEMY if team == PLAYER else PLAYER
+	var tile = tiles[key]
+	if int(tile.get("team", NEUTRAL)) != NEUTRAL:
+		return
+	if int(tile.get("territory_team", NEUTRAL)) != opponent:
+		return
+	if String(tile.get("building", "")) != "":
+		return
+	if _has_enemy_unit_on_tile(key, team):
+		return
+	tiles[key] = BoardRules.with_territory(tile, team)
+	_pulse(_hex_center(key), COLOR_GREEN if team == PLAYER else COLOR_RED)
+
+
+func _has_enemy_unit_on_tile(key: Vector2i, team: int) -> bool:
+	for unit in units:
+		if int(unit.get("team", NEUTRAL)) == team or float(unit.get("hp", 0.0)) <= 0.0:
+			continue
+		var unit_key = unit.get("tile", _tile_at(Vector2(unit["pos"])))
+		if unit_key == key:
+			return true
+	return false
 
 
 func _update_effects(delta: float) -> void:
@@ -929,6 +962,7 @@ func _spawn_unit(team: int, key: Vector2i, card_id: String) -> void:
 		"speed": float(stats["move_speed"]) * UNIT_MOVE_SPEED_MULT,
 		"range": float(stats["attack_range"]),
 		"cooldown": randf_range(0.08, 0.55),
+		"tile": key,
 	})
 	next_unit_id += 1
 	_pulse(_hex_center(key), Color(0.75, 0.95, 1.0))
@@ -1951,12 +1985,36 @@ func _draw_building(center: Vector2, tile: Dictionary) -> void:
 		if building == "base":
 			size = Vector2(78, 78)
 		draw_texture_rect(_building_texture(building), Rect2(center - size * 0.5 + Vector2(0, -8), size), false)
+	if building == "barracks" or building == "hall":
+		_draw_building_summon_progress(center, tile)
+	_draw_building_health_bar(center, tile)
+
+
+func _draw_building_summon_progress(center: Vector2, tile: Dictionary) -> void:
+	var building = String(tile.get("building", ""))
+	var delay = _building_delay(building, int(tile.get("team", PLAYER)), String(tile.get("site_card", "")))
+	if delay <= 0.0:
+		return
+	var remaining = clampf(float(tile.get("spawn_timer", 0.0)), 0.0, delay)
+	var pct = clampf(1.0 - remaining / delay, 0.0, 1.0)
+	_draw_compact_bar(Rect2(center + Vector2(-21, 19), Vector2(42, 5)), pct, COLOR_YELLOW)
+
+
+func _draw_building_health_bar(center: Vector2, tile: Dictionary) -> void:
 	var max_hp = float(tile.get("max_hp", 0.0))
 	if max_hp <= 0.0:
 		return
 	var pct = clampf(float(tile["hp"]) / max_hp, 0.0, 1.0)
-	_box(Rect2(center + Vector2(-32, 30), Vector2(64, 8)), COLOR_LINE, Color(0, 0, 0, 0), 0)
-	_box(Rect2(center + Vector2(-31, 31), Vector2(62.0 * pct, 6)), _team_health_color(int(tile["team"])), Color(0, 0, 0, 0), 0)
+	_draw_compact_bar(Rect2(center + Vector2(-23, 27), Vector2(46, 5)), pct, _team_health_color(int(tile["team"])))
+
+
+func _draw_compact_bar(rect: Rect2, pct: float, fill: Color) -> void:
+	var clamped_pct = clampf(pct, 0.0, 1.0)
+	draw_rect(Rect2(rect.position + Vector2(0, 1), rect.size), Color(0, 0, 0, 0.18))
+	draw_rect(rect, Color(0.04, 0.05, 0.08, 0.78))
+	if clamped_pct > 0.0:
+		draw_rect(Rect2(rect.position + Vector2(1, 1), Vector2((rect.size.x - 2.0) * clamped_pct, rect.size.y - 2.0)), fill)
+	draw_rect(rect, COLOR_LINE, false, 1.0)
 
 
 func _building_visual_rarity(tile: Dictionary) -> String:
