@@ -40,10 +40,18 @@
 - `output/visual_concepts/current_game_visual_option_b_sunset_canyon.png`
 - `output/visual_concepts/current_game_visual_option_c_moonlit_ruins.png`
 - `output/visual_concepts/current_game_visual_option_d_floating_island_lobby.png`
-- `output/visual_concepts/current_game_2d_ue_locked_option_a_clean_arcade.png`
-- `output/visual_concepts/current_game_2d_ue_locked_option_b_paper_jungle.png`
-- `output/visual_concepts/current_game_2d_ue_locked_option_c_crystal_night.png`
-- `output/visual_concepts/current_game_2d_ue_locked_option_d_toy_board.png`
+- `output/visual_concepts/current_game_ue_locked_a_arcade_jungle_sheet.png`
+- `output/visual_concepts/current_game_ue_locked_a_arcade_jungle_lobby.png`
+- `output/visual_concepts/current_game_ue_locked_a_arcade_jungle_battle.png`
+- `output/visual_concepts/current_game_ue_locked_b_premium_leaf_sheet.png`
+- `output/visual_concepts/current_game_ue_locked_b_premium_leaf_lobby.png`
+- `output/visual_concepts/current_game_ue_locked_b_premium_leaf_battle.png`
+- `output/visual_concepts/current_game_ue_locked_c_crystal_night_sheet.png`
+- `output/visual_concepts/current_game_ue_locked_c_crystal_night_lobby.png`
+- `output/visual_concepts/current_game_ue_locked_c_crystal_night_battle.png`
+- `output/visual_concepts/current_game_ue_locked_d_festival_board_sheet.png`
+- `output/visual_concepts/current_game_ue_locked_d_festival_board_lobby.png`
+- `output/visual_concepts/current_game_ue_locked_d_festival_board_battle.png`
 
 用户确认方向后，再进入 art brief、production sheet、2D Technical Artist handoff、Sprite Forge/Godot handoff 和实现阶段。页面美术升级必须锁定 UE：页面信息、布局、点击目标和反馈节奏不变，只换 2D 美术皮肤。
 
