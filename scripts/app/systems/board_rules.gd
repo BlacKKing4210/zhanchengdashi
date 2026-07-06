@@ -283,8 +283,8 @@ static func building_hp(building: String) -> float:
 			return 100.0
 
 
-static func building_delay(building: String, team: int, card_interval: float = -1.0) -> float:
-	if (building == "barracks" or building == "hall") and card_interval > 0.0:
+static func building_delay(building: String, _team: int, card_interval: float = -1.0) -> float:
+	if (building == "barracks" or building == "hall" or building == "tower") and card_interval > 0.0:
 		return card_interval
 	match building:
 		"base":

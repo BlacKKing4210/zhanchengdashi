@@ -24,7 +24,10 @@ const INCOME_INTERVAL = 3.0
 const BASE_INCOME = 12
 const MINE_INCOME = 10
 const TOWER_DAMAGE = 44.0
-const TOWER_RANGE = 150.0
+const TOWER_RANGE = 210.0
+const UNIT_MOVE_SPEED_MULT = 0.5
+const UNIT_ATTACK_SPEED_MULT = 0.5
+const UNIT_BASE_ATTACK_COOLDOWN = 0.85
 const STARTING_GACHA_TICKETS = 10
 const BATTLE_WIN_REWARD_TICKETS = 3
 const BATTLE_LOSS_REWARD_TICKETS = 1
@@ -58,6 +61,12 @@ const DETAIL_PULSE_SECONDS = 0.28
 const GACHA_FX_SECONDS = 0.72
 const GACHA_CARD_REVEAL_INTERVAL = 0.18
 const GACHA_CARD_FLIP_SECONDS = 0.34
+const UNLOCK_CARD_POPUP_SECONDS = 1.08
+const MINE_CARD_ID = "gold_mine_card"
+const COMMON_DEFENSE_CARD_ID = "defense_watch_tower"
+const CARD_KIND_ANIMAL = "animal"
+const CARD_KIND_DEFENSE = "defense"
+const CARD_KIND_MINE = "mine"
 
 const UNIT_ART = {
 	"rabbit": preload("res://assets/art/units/rabbit.png"),
@@ -314,16 +323,39 @@ func _init_player_collection() -> void:
 		var id = String(card["id"])
 		card_counts[id] = 0
 		card_levels[id] = 1
-		if String(card["rarity"]) == "common" and common_count < 8:
+		if _card_kind(card) == CARD_KIND_ANIMAL and String(card["rarity"]) == "common" and common_count < 8:
 			card_counts[id] = 1
 			common_count += 1
+	if _card_by_id(MINE_CARD_ID).is_empty() == false:
+		card_counts[MINE_CARD_ID] = max(1, _card_total_count(MINE_CARD_ID))
+		card_levels[MINE_CARD_ID] = max(1, _card_level(MINE_CARD_ID))
+	if _card_by_id(COMMON_DEFENSE_CARD_ID).is_empty() == false:
+		card_counts[COMMON_DEFENSE_CARD_ID] = max(1, _card_total_count(COMMON_DEFENSE_CARD_ID))
+		card_levels[COMMON_DEFENSE_CARD_ID] = max(1, _card_level(COMMON_DEFENSE_CARD_ID))
 
 
 func _init_deck() -> void:
 	deck.clear()
 	var owned = _owned_card_ids()
+	if owned.is_empty():
+		for i in range(DECK_SIZE):
+			deck.append("")
+		selected_card_id = ""
+		return
+	for card_id in _mandatory_card_ids():
+		if owned.has(card_id) and not deck.has(card_id):
+			deck.append(card_id)
+	for card_id in owned:
+		var id = String(card_id)
+		if deck.size() >= DECK_SIZE:
+			break
+		if id != "" and not deck.has(id):
+			deck.append(id)
 	for i in range(DECK_SIZE):
+		if deck.size() >= DECK_SIZE:
+			break
 		deck.append(String(owned[i % owned.size()]) if not owned.is_empty() else "")
+	_ensure_deck_valid()
 	selected_card_id = String(deck[0]) if not deck.is_empty() else ""
 
 
@@ -332,7 +364,7 @@ func _init_enemy_deck() -> void:
 	enemy_card_levels.clear()
 	var common_cards = []
 	for card in cards:
-		if String(card.get("rarity", "common")) == "common":
+		if _card_kind(card) == CARD_KIND_ANIMAL and String(card.get("rarity", "common")) == "common":
 			common_cards.append(String(card.get("id", "")))
 	for i in range(DECK_SIZE):
 		if common_cards.is_empty():
@@ -494,6 +526,70 @@ func _is_card_in_deck(card_id: String) -> bool:
 		if String(deck_card_id) == card_id:
 			return true
 	return false
+
+
+func _card_kind(card: Dictionary) -> String:
+	var id = String(card.get("id", ""))
+	if id == MINE_CARD_ID:
+		return CARD_KIND_MINE
+	if id.begins_with("defense_"):
+		return CARD_KIND_DEFENSE
+	var tags = card.get("tags", [])
+	if typeof(tags) == TYPE_ARRAY:
+		for tag in tags:
+			var text = String(tag)
+			if text == "mine" or text == "gold_mine":
+				return CARD_KIND_MINE
+			if text == "defense" or text == "tower":
+				return CARD_KIND_DEFENSE
+	return CARD_KIND_ANIMAL
+
+
+func _card_kind_by_id(card_id: String) -> String:
+	var card = _card_by_id(card_id)
+	if card.is_empty():
+		return CARD_KIND_ANIMAL
+	return _card_kind(card)
+
+
+func _is_animal_card_id(card_id: String) -> bool:
+	return _card_kind_by_id(card_id) == CARD_KIND_ANIMAL
+
+
+func _is_defense_card_id(card_id: String) -> bool:
+	return _card_kind_by_id(card_id) == CARD_KIND_DEFENSE
+
+
+func _is_mine_card_id(card_id: String) -> bool:
+	return _card_kind_by_id(card_id) == CARD_KIND_MINE
+
+
+func _mandatory_card_ids() -> Array:
+	var result = []
+	if not _card_by_id(MINE_CARD_ID).is_empty():
+		result.append(MINE_CARD_ID)
+	if not _card_by_id(COMMON_DEFENSE_CARD_ID).is_empty():
+		result.append(COMMON_DEFENSE_CARD_ID)
+	return result
+
+
+func _deck_defense_count(candidate_deck: Array) -> int:
+	var count = 0
+	for card_id in candidate_deck:
+		if _is_defense_card_id(String(card_id)):
+			count += 1
+	return count
+
+
+func _deck_has_mine(candidate_deck: Array) -> bool:
+	for card_id in candidate_deck:
+		if _is_mine_card_id(String(card_id)):
+			return true
+	return false
+
+
+func _deck_meets_required_cards(candidate_deck: Array) -> bool:
+	return _deck_has_mine(candidate_deck) and _deck_defense_count(candidate_deck) >= 1
 
 
 func _is_collection_card_before(a, b) -> bool:
@@ -658,6 +754,10 @@ func _apply_unlock(key: Vector2i, team: int, fallback_card_id: String) -> String
 				if site_card_id == "":
 					_set_empty_tile(key, team)
 					return "空地"
+			elif result == "tower":
+				site_card_id = _defense_card_for_team(key, tile, team)
+			elif result == "mine":
+				site_card_id = MINE_CARD_ID
 			_set_building(key, team, result, site_card_id)
 			return _site_name(result, site_card_id)
 
@@ -741,7 +841,7 @@ func _update_units(delta: float) -> void:
 				elif String(target["kind"]) == "building":
 					var target_key: Vector2i = target["key"]
 					_damage_tile(target_key, int(unit["team"]), float(unit["attack"]))
-				unit["cooldown"] = 0.85
+				unit["cooldown"] = UNIT_BASE_ATTACK_COOLDOWN / maxf(0.01, UNIT_ATTACK_SPEED_MULT)
 		elif distance > 1.0:
 			unit["pos"] = Vector2(unit["pos"]) + offset.normalized() * float(unit["speed"]) * delta
 		units[i] = unit
@@ -763,18 +863,26 @@ func _update_effects(delta: float) -> void:
 
 func _tower_attack(key: Vector2i, team: int) -> void:
 	var center = _hex_center(key)
+	var tile = tiles.get(key, {})
+	var damage = TOWER_DAMAGE
+	var attack_range = TOWER_RANGE
+	var tower_card = _card_by_id(String(tile.get("site_card", ""))) if typeof(tile) == TYPE_DICTIONARY else {}
+	if not tower_card.is_empty() and _card_kind(tower_card) == CARD_KIND_DEFENSE:
+		var stats = _card_stats_for_team(tower_card, team)
+		damage = float(stats["attack"])
+		attack_range = float(stats["attack_range"])
 	var best_index = -1
 	var best_distance = 999999.0
 	for i in range(units.size()):
 		if int(units[i]["team"]) == team or float(units[i]["hp"]) <= 0.0:
 			continue
 		var distance = center.distance_to(Vector2(units[i]["pos"]))
-		if distance < TOWER_RANGE and distance < best_distance:
+		if distance < attack_range and distance < best_distance:
 			best_distance = distance
 			best_index = i
 	if best_index >= 0:
 		_projectile(center, Vector2(units[best_index]["pos"]), team)
-		_damage_unit(best_index, TOWER_DAMAGE)
+		_damage_unit(best_index, damage)
 
 
 func _damage_unit(index: int, damage: float) -> void:
@@ -818,9 +926,9 @@ func _spawn_unit(team: int, key: Vector2i, card_id: String) -> void:
 		"hp": float(stats["max_hp"]),
 		"max_hp": float(stats["max_hp"]),
 		"attack": float(stats["attack"]),
-		"speed": float(stats["move_speed"]),
+		"speed": float(stats["move_speed"]) * UNIT_MOVE_SPEED_MULT,
 		"range": float(stats["attack_range"]),
-		"cooldown": randf_range(0.05, 0.35),
+		"cooldown": randf_range(0.08, 0.55),
 	})
 	next_unit_id += 1
 	_pulse(_hex_center(key), Color(0.75, 0.95, 1.0))
@@ -871,6 +979,7 @@ func _try_unlock(key: Vector2i) -> bool:
 		return true
 	gold -= cost
 	var result_label = _apply_unlock(key, PLAYER, String(tile.get("site_card", "")))
+	_show_unlock_card_popup(key)
 	_toast("已解锁 " + result_label)
 	return true
 
@@ -901,11 +1010,23 @@ func _site_card_for_team(key: Vector2i, tile: Dictionary, team: int, fallback_ca
 	if target_rarity == "":
 		target_rarity = BoardRules.target_rarity_for_price(int(tile.get("site_cost", UNIT_LOW_PRICE)), site_seed)
 	var roster = enemy_deck if team == ENEMY else deck
-	return _deck_card_for_target_rarity(roster, target_rarity, site_seed)
+	return _deck_card_for_target_rarity(roster, target_rarity, site_seed, CARD_KIND_ANIMAL)
+
+
+func _defense_card_for_team(key: Vector2i, tile: Dictionary, team: int) -> String:
+	var site_seed = int(tile.get("site_roll_seed", BoardRules.site_seed_for_key(key)))
+	var target_rarity = String(tile.get("site_target_rarity", ""))
+	if target_rarity == "":
+		target_rarity = BoardRules.target_rarity_for_tower(site_seed)
+	var roster = enemy_deck if team == ENEMY else deck
+	var card_id = _deck_card_for_target_rarity(roster, target_rarity, site_seed, CARD_KIND_DEFENSE)
+	if card_id != "":
+		return card_id
+	return _deck_card_for_target_rarity(_all_card_ids_for_kind(CARD_KIND_DEFENSE), target_rarity, site_seed, CARD_KIND_DEFENSE)
 
 
 func _enemy_card_for_cost(cost: int, site_seed: int) -> String:
-	return _deck_card_for_target_rarity(enemy_deck, BoardRules.target_rarity_for_price(cost, site_seed), site_seed)
+	return _deck_card_for_target_rarity(enemy_deck, BoardRules.target_rarity_for_price(cost, site_seed), site_seed, CARD_KIND_ANIMAL)
 
 
 func _enemy_deck_card(index: int) -> String:
@@ -915,14 +1036,14 @@ func _enemy_deck_card(index: int) -> String:
 
 
 func _card_for_cost(cost: int, site_seed: int = 0) -> String:
-	return _deck_card_for_target_rarity(deck, BoardRules.target_rarity_for_price(cost, site_seed), site_seed)
+	return _deck_card_for_target_rarity(deck, BoardRules.target_rarity_for_price(cost, site_seed), site_seed, CARD_KIND_ANIMAL)
 
 
 func _card_for_tier_range(min_tier: int, max_tier: int, site_seed: int) -> String:
-	return _deck_card_for_target_rarity(deck, _rarity_for_tier(max_tier), site_seed + min_tier * 17 + max_tier * 31)
+	return _deck_card_for_target_rarity(deck, _rarity_for_tier(max_tier), site_seed + min_tier * 17 + max_tier * 31, CARD_KIND_ANIMAL)
 
 
-func _deck_card_for_target_rarity(roster: Array, target_rarity: String, site_seed: int) -> String:
+func _deck_card_for_target_rarity(roster: Array, target_rarity: String, site_seed: int, required_kind: String = "") -> String:
 	var target_rank = _rarity_sort_rank(target_rarity)
 	for rank in range(target_rank, 0, -1):
 		var rarity = _rarity_for_rank(rank)
@@ -932,12 +1053,20 @@ func _deck_card_for_target_rarity(roster: Array, target_rarity: String, site_see
 			if id == "":
 				continue
 			var card = _card_by_id(id)
-			if not card.is_empty() and String(card.get("rarity", "common")) == rarity:
+			if not card.is_empty() and (required_kind == "" or _card_kind(card) == required_kind) and String(card.get("rarity", "common")) == rarity:
 				options.append(id)
 		if not options.is_empty():
 			var pick_seed = absi(site_seed + rank * 97 + roster.size() * 13)
 			return String(options[pick_seed % options.size()])
 	return ""
+
+
+func _all_card_ids_for_kind(kind: String) -> Array:
+	var result = []
+	for card in cards:
+		if _card_kind(card) == kind:
+			result.append(String(card.get("id", "")))
+	return result
 
 
 func _rarity_for_rank(rank: int) -> String:
@@ -972,12 +1101,16 @@ func _building_hp(building: String, card_id: String = "", team: int = PLAYER) ->
 		var card = _card_by_id(card_id)
 		if not card.is_empty():
 			return float(_card_stats_for_team(card, team)["max_hp"]) * 3.0
+	if building == "tower" or building == "mine":
+		var card = _card_by_id(card_id)
+		if not card.is_empty():
+			return float(_card_stats_for_team(card, team)["max_hp"])
 	return BoardRules.building_hp(building)
 
 
 func _building_delay(building: String, team: int, card_id: String) -> float:
 	var card_interval = -1.0
-	if building == "barracks" or building == "hall":
+	if building == "barracks" or building == "hall" or building == "tower":
 		var card = _card_by_id(card_id)
 		if not card.is_empty():
 			card_interval = float(_card_stats_for_team(card, team)["summon_interval_sec"])
@@ -1214,6 +1347,14 @@ func _equip_pending_card_to_slot(slot_index: int) -> void:
 	if pending_equip_card_id == "" or slot_index < 0 or slot_index >= deck.size():
 		return
 	var card_id = pending_equip_card_id
+	var candidate_deck = deck.duplicate()
+	candidate_deck[slot_index] = card_id
+	if not _deck_meets_required_cards(candidate_deck):
+		if not _deck_has_mine(candidate_deck):
+			_toast("编组必须保留金矿卡")
+		else:
+			_toast("编组至少需要1张防御塔卡")
+		return
 	deck[slot_index] = card_id
 	selected_slot = slot_index
 	selected_card_id = card_id
@@ -1247,9 +1388,31 @@ func _ensure_deck_valid() -> void:
 	var owned = _owned_card_ids()
 	if owned.is_empty():
 		return
+	while deck.size() < DECK_SIZE:
+		deck.append("")
 	for i in range(deck.size()):
 		if _card_total_count(String(deck[i])) <= 0:
 			deck[i] = String(owned[i % owned.size()])
+	for required_id in _mandatory_card_ids():
+		if _card_total_count(required_id) > 0 and not deck.has(required_id):
+			_force_card_into_deck(required_id)
+	if _deck_defense_count(deck) <= 0 and _card_total_count(COMMON_DEFENSE_CARD_ID) > 0:
+		_force_card_into_deck(COMMON_DEFENSE_CARD_ID)
+
+
+func _force_card_into_deck(card_id: String) -> void:
+	if deck.is_empty():
+		return
+	for i in range(deck.size() - 1, -1, -1):
+		var current_id = String(deck[i])
+		if current_id == card_id:
+			return
+		if current_id == MINE_CARD_ID:
+			continue
+		if _is_defense_card_id(current_id) and not _is_defense_card_id(card_id) and _deck_defense_count(deck) <= 1:
+			continue
+		deck[i] = card_id
+		return
 
 
 func _scroll_deck(amount: float) -> void:
@@ -1614,14 +1777,21 @@ func _draw_tile(key: Vector2i, tile: Dictionary) -> void:
 		line = fill.darkened(0.34)
 		line_width = 3.0
 	elif can_unlock:
-		fill = Color(0.98, 0.88, 0.48, 0.92)
+		if territory_team == PLAYER:
+			fill = Color(COLOR_GREEN.r, COLOR_GREEN.g, COLOR_GREEN.b, 0.30)
+		elif territory_team == ENEMY:
+			fill = Color(COLOR_RED.r, COLOR_RED.g, COLOR_RED.b, 0.28)
+		else:
+			fill = Color(0.88, 0.80, 0.58, 0.68)
 		line = COLOR_YELLOW if gold >= int(tile["site_cost"]) else Color(0.78, 0.72, 0.62)
 		line_width = 4.0
 	elif territory_team == PLAYER:
+		fill = Color(COLOR_GREEN.r, COLOR_GREEN.g, COLOR_GREEN.b, 0.24)
 		line = COLOR_GREEN.darkened(0.28)
 		line.a = 0.58
 		line_width = 2.4
 	elif territory_team == ENEMY:
+		fill = Color(COLOR_RED.r, COLOR_RED.g, COLOR_RED.b, 0.22)
 		line = COLOR_RED.darkened(0.22)
 		line.a = 0.58
 		line_width = 2.4
@@ -1640,7 +1810,6 @@ func _draw_tile(key: Vector2i, tile: Dictionary) -> void:
 
 
 func _draw_site(center: Vector2, tile: Dictionary) -> void:
-	var site = String(tile.get("site", ""))
 	_draw_site_icon(center + Vector2(0, -11), tile)
 	var affordable = gold >= int(tile["site_cost"])
 	_draw_site_cost(center + Vector2(0, 18), int(tile["site_cost"]), affordable)
@@ -1679,124 +1848,94 @@ func _draw_mystery_site_icon(center: Vector2, ink: Color, shadow: Color) -> void
 
 
 func _draw_mine_site_icon(center: Vector2, ink: Color, shadow: Color) -> void:
-	var c = center + Vector2(0, 2)
-	_draw_filled_polygon([c + Vector2(-18, 12), c + Vector2(-9, -6), c + Vector2(2, 2), c + Vector2(11, -11), c + Vector2(20, 12)], shadow)
-	_draw_filled_polygon([c + Vector2(-19, 10), c + Vector2(-9, -8), c + Vector2(1, 1), c + Vector2(11, -13), c + Vector2(20, 10)], ink)
-	draw_line(c + Vector2(-16, -15), c + Vector2(14, 15), ink, 4.0, true)
-	draw_line(c + Vector2(-13, -16), c + Vector2(4, -22), ink, 4.0, true)
-	draw_line(c + Vector2(-7, -10), c + Vector2(-14, -1), ink, 3.0, true)
+	_draw_mine_icon(center, ink, Color(0.04, 0.05, 0.08, 0.95), shadow)
 
 
 func _draw_quality_camp(center: Vector2, rarity: String, unlocked: bool) -> void:
-	var rank = _rarity_sort_rank(rarity)
-	var main = _rarity_color(rarity)
-	var outline = COLOR_LINE
-	var accent = main.lightened(0.34)
-	var shade = main.darkened(0.22)
-	if not unlocked:
-		rank = 1
-		main = Color(0.07, 0.09, 0.14, 0.88)
-		outline = Color(0.04, 0.05, 0.08, 0.95)
-		accent = Color(0.23, 0.25, 0.30, 0.90)
-		shade = Color(0.12, 0.13, 0.16, 0.90)
-	var scale = 0.78 + float(rank) * 0.10
-	if not unlocked:
-		scale *= 0.86
-	var c = center + Vector2(0, 5.0 - float(rank) * 1.5)
-	var body_w = (24.0 + float(rank) * 5.0) * scale
-	var body_h = (15.0 + float(rank) * 2.4) * scale
-	var roof_h = (14.0 + float(rank) * 3.0) * scale
-	var base_y = c.y + (18.0 + float(rank)) * scale
-	var body_rect = Rect2(Vector2(c.x - body_w * 0.5, base_y - body_h), Vector2(body_w, body_h))
-	var roof = [
-		Vector2(c.x - body_w * 0.62, base_y - body_h),
-		Vector2(c.x, base_y - body_h - roof_h),
-		Vector2(c.x + body_w * 0.62, base_y - body_h),
-	]
-	draw_rect(Rect2(Vector2(c.x - body_w * 0.58, base_y + 1.0), Vector2(body_w * 1.16, 5.0 * scale)), Color(0, 0, 0, 0.18))
-	draw_rect(body_rect, shade)
-	draw_rect(body_rect, outline, false, 3.0)
-	_draw_shape(roof, main, outline, 3.0)
-	draw_rect(Rect2(Vector2(c.x - body_w * 0.16, base_y - body_h * 0.62), Vector2(body_w * 0.32, body_h * 0.62)), Color(0.09, 0.10, 0.16))
-	draw_line(Vector2(c.x - body_w * 0.42, base_y - body_h * 0.12), Vector2(c.x + body_w * 0.42, base_y - body_h * 0.12), accent, 2.0, true)
-	if rank >= 2:
-		var pole_top = Vector2(c.x + body_w * 0.34, base_y - body_h - roof_h - 8.0 * scale)
-		draw_line(Vector2(c.x + body_w * 0.34, base_y - body_h - roof_h + 1.0), pole_top, outline, 2.0, true)
-		_draw_shape([pole_top, pole_top + Vector2(12.0 * scale, 4.0 * scale), pole_top + Vector2(0, 8.0 * scale)], accent, outline, 2.0)
-	if rank >= 3:
-		draw_circle(Vector2(c.x - body_w * 0.34, base_y - body_h * 0.45), 3.5 * scale, accent)
-		draw_circle(Vector2(c.x + body_w * 0.34, base_y - body_h * 0.45), 3.5 * scale, accent)
-		draw_line(Vector2(c.x - body_w * 0.48, base_y - body_h - roof_h * 0.16), Vector2(c.x + body_w * 0.48, base_y - body_h - roof_h * 0.16), accent, 2.2, true)
-	if rank >= 4:
-		var crown_y = base_y - body_h - roof_h - 4.0 * scale
-		_draw_shape([
-			Vector2(c.x - 11.0 * scale, crown_y + 7.0 * scale),
-			Vector2(c.x - 6.0 * scale, crown_y),
-			Vector2(c.x, crown_y + 6.0 * scale),
-			Vector2(c.x + 6.0 * scale, crown_y),
-			Vector2(c.x + 11.0 * scale, crown_y + 7.0 * scale),
-		], accent, outline, 2.0)
+	var main = _rarity_color(rarity) if unlocked else Color(0.07, 0.09, 0.14, 0.88)
+	var outline = COLOR_LINE if unlocked else Color(0.04, 0.05, 0.08, 0.95)
+	var accent = main.lightened(0.30) if unlocked else Color(0.26, 0.28, 0.33, 0.90)
+	_draw_camp_icon(center, main, outline, accent)
 
 
 func _draw_quality_tower(center: Vector2, rarity: String, unlocked: bool) -> void:
+	var main = _rarity_color(rarity) if unlocked else Color(0.07, 0.09, 0.14, 0.88)
+	var outline = COLOR_LINE if unlocked else Color(0.04, 0.05, 0.08, 0.95)
+	var accent = main.lightened(0.34) if unlocked else Color(0.26, 0.28, 0.33, 0.90)
+	_draw_tower_icon(center, main, outline, accent)
+
+
+func _draw_quality_mine(center: Vector2, unlocked: bool) -> void:
+	var main = _rarity_color("epic") if unlocked else Color(0.07, 0.09, 0.14, 0.88)
+	var outline = COLOR_LINE if unlocked else Color(0.04, 0.05, 0.08, 0.95)
+	var accent = COLOR_GOLD if unlocked else Color(0.26, 0.28, 0.33, 0.90)
+	_draw_mine_icon(center, main, outline, accent)
+
+
+func _draw_camp_icon(center: Vector2, fill: Color, line: Color, accent: Color) -> void:
+	var c = center + Vector2(0, 5)
+	var body = Rect2(c + Vector2(-17, -4), Vector2(34, 22))
+	draw_rect(Rect2(body.position + Vector2(0, 4), body.size), Color(0, 0, 0, 0.18))
+	_draw_shape([
+		c + Vector2(-22, -4),
+		c + Vector2(0, -22),
+		c + Vector2(22, -4),
+	], fill, line, 3.0)
+	draw_rect(body, fill.darkened(0.16))
+	draw_rect(body, line, false, 3.0)
+	draw_rect(Rect2(c + Vector2(-5, 5), Vector2(10, 13)), Color(0.06, 0.07, 0.10, 0.92))
+	draw_line(c + Vector2(-14, 0), c + Vector2(14, 0), accent, 2.2, true)
+
+
+func _draw_tower_icon(center: Vector2, fill: Color, line: Color, accent: Color) -> void:
+	var c = center + Vector2(0, 4)
+	draw_rect(Rect2(c + Vector2(-11, 21), Vector2(22, 5)), Color(0, 0, 0, 0.18))
+	_draw_shape([
+		c + Vector2(-10, 21),
+		c + Vector2(-7, -13),
+		c + Vector2(0, -24),
+		c + Vector2(7, -13),
+		c + Vector2(10, 21),
+	], fill.darkened(0.10), line, 3.0)
+	draw_rect(Rect2(c + Vector2(-5, -5), Vector2(10, 19)), fill)
+	draw_rect(Rect2(c + Vector2(-5, -5), Vector2(10, 19)), line, false, 2.0)
+	draw_line(c + Vector2(-14, -12), c + Vector2(14, -12), accent, 2.4, true)
+	draw_circle(c + Vector2(0, -20), 4.2, accent)
+	draw_circle(c + Vector2(0, -20), 4.2, line, false, 1.6)
+
+
+func _draw_mine_icon(center: Vector2, fill: Color, line: Color, accent: Color) -> void:
+	var c = center + Vector2(0, 5)
+	draw_rect(Rect2(c + Vector2(-21, 17), Vector2(42, 5)), Color(0, 0, 0, 0.18))
+	_draw_shape([
+		c + Vector2(-23, 17),
+		c + Vector2(-10, -9),
+		c + Vector2(0, 4),
+		c + Vector2(11, -17),
+		c + Vector2(24, 17),
+	], fill, line, 3.0)
+	draw_line(c + Vector2(-12, 9), c + Vector2(-4, -3), accent, 3.0, true)
+	draw_line(c + Vector2(3, 7), c + Vector2(12, -9), accent, 3.0, true)
+
+
+func _draw_simple_site_symbol(center: Vector2, symbol: String, ink: Color, shadow: Color) -> void:
+	_draw_text_center(symbol, Rect2(center + Vector2(-17, -21), Vector2(34, 38)), 28, shadow)
+	_draw_text_center(symbol, Rect2(center + Vector2(-17, -23), Vector2(34, 38)), 28, ink)
+	draw_rect(Rect2(center + Vector2(-4, 12), Vector2(8, 5)), ink)
+
+
+func _draw_simple_building_symbol(center: Vector2, symbol: String, rarity: String, unlocked: bool) -> void:
+	if not unlocked:
+		_draw_simple_site_symbol(center, symbol, Color(0.07, 0.09, 0.14, 0.88), Color(0, 0, 0, 0.16))
+		return
 	var rank = _rarity_sort_rank(rarity)
-	var main = _rarity_color(rarity)
-	var outline = COLOR_LINE
-	var accent = main.lightened(0.36)
-	var shade = main.darkened(0.20)
-	if not unlocked:
-		rank = 1
-		main = Color(0.07, 0.09, 0.14, 0.88)
-		outline = Color(0.04, 0.05, 0.08, 0.95)
-		accent = Color(0.23, 0.25, 0.30, 0.90)
-		shade = Color(0.12, 0.13, 0.16, 0.90)
-	var scale = 0.76 + float(rank) * 0.10
-	if not unlocked:
-		scale *= 0.86
-	var c = center + Vector2(0, 4.0 - float(rank) * 1.8)
-	var base_y = c.y + (21.0 + float(rank)) * scale
-	var tower_w = (17.0 + float(rank) * 4.5) * scale
-	var tower_h = (30.0 + float(rank) * 5.0) * scale
-	var top_y = base_y - tower_h
-	draw_rect(Rect2(Vector2(c.x - tower_w * 0.70, base_y + 1.0), Vector2(tower_w * 1.40, 5.0 * scale)), Color(0, 0, 0, 0.18))
-	if rank <= 2:
-		var body_rect = Rect2(Vector2(c.x - tower_w * 0.5, top_y + 8.0 * scale), Vector2(tower_w, tower_h - 8.0 * scale))
-		draw_rect(body_rect, shade)
-		draw_rect(body_rect, outline, false, 3.0)
-		_draw_shape([
-			Vector2(c.x - tower_w * 0.62, top_y + 9.0 * scale),
-			Vector2(c.x, top_y - 4.0 * scale),
-			Vector2(c.x + tower_w * 0.62, top_y + 9.0 * scale),
-		], main, outline, 3.0)
-	else:
-		_draw_shape([
-			Vector2(c.x - tower_w * 0.54, base_y),
-			Vector2(c.x - tower_w * 0.36, top_y + 11.0 * scale),
-			Vector2(c.x, top_y - 8.0 * scale),
-			Vector2(c.x + tower_w * 0.36, top_y + 11.0 * scale),
-			Vector2(c.x + tower_w * 0.54, base_y),
-		], shade, outline, 3.0)
-	draw_rect(Rect2(Vector2(c.x - tower_w * 0.18, base_y - tower_h * 0.50), Vector2(tower_w * 0.36, tower_h * 0.40)), main)
-	draw_rect(Rect2(Vector2(c.x - tower_w * 0.18, base_y - tower_h * 0.50), Vector2(tower_w * 0.36, tower_h * 0.40)), outline, false, 2.0)
-	draw_line(Vector2(c.x - tower_w * 0.42, base_y - tower_h * 0.18), Vector2(c.x + tower_w * 0.42, base_y - tower_h * 0.18), accent, 2.0, true)
-	if rank >= 2:
-		draw_line(Vector2(c.x - tower_w * 0.58, base_y - tower_h * 0.68), Vector2(c.x - tower_w * 0.58, base_y - tower_h * 0.36), outline, 3.0, true)
-		draw_line(Vector2(c.x + tower_w * 0.58, base_y - tower_h * 0.68), Vector2(c.x + tower_w * 0.58, base_y - tower_h * 0.36), outline, 3.0, true)
-	if rank >= 3:
-		draw_circle(Vector2(c.x, top_y + 4.0 * scale), 5.0 * scale, accent)
-		draw_circle(Vector2(c.x, top_y + 4.0 * scale), 5.0 * scale, outline, false, 2.0)
-	if rank >= 4:
-		draw_circle(Vector2(c.x, top_y - 9.0 * scale), 4.0 * scale, accent)
-		_draw_shape([
-			Vector2(c.x - tower_w * 0.74, base_y - tower_h * 0.18),
-			Vector2(c.x - tower_w * 0.48, base_y - tower_h * 0.38),
-			Vector2(c.x - tower_w * 0.48, base_y - tower_h * 0.02),
-		], main, outline, 2.0)
-		_draw_shape([
-			Vector2(c.x + tower_w * 0.74, base_y - tower_h * 0.18),
-			Vector2(c.x + tower_w * 0.48, base_y - tower_h * 0.38),
-			Vector2(c.x + tower_w * 0.48, base_y - tower_h * 0.02),
-		], main, outline, 2.0)
+	var main = COLOR_GOLD if symbol == "矿" else _rarity_color(rarity)
+	var radius = 17.0 + float(rank) * 2.5
+	var c = center + Vector2(0, -2.0 - float(rank) * 0.7)
+	draw_circle(c + Vector2(0, 4), radius, Color(0, 0, 0, 0.18))
+	draw_circle(c, radius, main.darkened(0.05))
+	draw_arc(c, radius + 1.0, 0.0, TAU, 28, COLOR_LINE, 3.0, true)
+	_draw_text_center(symbol, Rect2(c + Vector2(-18, -22), Vector2(36, 40)), 26 + rank, Color.WHITE)
 
 
 func _draw_building(center: Vector2, tile: Dictionary) -> void:
@@ -1805,6 +1944,8 @@ func _draw_building(center: Vector2, tile: Dictionary) -> void:
 		_draw_quality_camp(center + Vector2(0, -7), _building_visual_rarity(tile), true)
 	elif building == "tower":
 		_draw_quality_tower(center + Vector2(0, -7), _building_visual_rarity(tile), true)
+	elif building == "mine":
+		_draw_quality_mine(center + Vector2(0, -7), true)
 	else:
 		var size = Vector2(66, 66)
 		if building == "base":
@@ -1820,7 +1961,7 @@ func _draw_building(center: Vector2, tile: Dictionary) -> void:
 
 func _building_visual_rarity(tile: Dictionary) -> String:
 	var building = String(tile.get("building", ""))
-	if building == "barracks" or building == "hall":
+	if building == "barracks" or building == "hall" or building == "tower":
 		var card = _card_by_id(String(tile.get("site_card", "")))
 		if not card.is_empty():
 			return String(card.get("rarity", "common"))
@@ -1862,8 +2003,29 @@ func _team_health_color(team: int) -> Color:
 	return COLOR_YELLOW
 
 
+func _tile_display_card(tile: Dictionary) -> Dictionary:
+	var building = String(tile.get("building", ""))
+	if building == "mine":
+		var mine_card_id = String(tile.get("site_card", MINE_CARD_ID))
+		return _card_by_id(mine_card_id if mine_card_id != "" else MINE_CARD_ID)
+	if building == "barracks" or building == "hall" or building == "tower":
+		return _card_by_id(String(tile.get("site_card", "")))
+	return {}
+
+
 func _draw_effect(effect: Dictionary) -> void:
 	var kind = String(effect.get("kind", "pulse"))
+	if kind == "card_popup":
+		var duration = maxf(0.01, float(effect.get("duration", UNLOCK_CARD_POPUP_SECONDS)))
+		var progress = clampf(1.0 - float(effect["time"]) / duration, 0.0, 1.0)
+		var card = _card_by_id(String(effect.get("card_id", "")))
+		if card.is_empty():
+			return
+		var popup_scale = 1.0 + sin(progress * PI) * 0.12
+		var size = Vector2(88, 108) * popup_scale
+		var pos = Vector2(effect["pos"]) + Vector2(0, -18.0 * progress)
+		_draw_card(Rect2(pos - size * 0.5, size), card, true)
+		return
 	if kind == "projectile":
 		var duration = maxf(0.01, float(effect.get("duration", PROJECTILE_TIME)))
 		var progress = clampf(1.0 - float(effect["time"]) / duration, 0.0, 1.0)
@@ -1871,23 +2033,25 @@ func _draw_effect(effect: Dictionary) -> void:
 		var end = Vector2(effect["to"])
 		var head = start.lerp(end, progress)
 		var tail = start.lerp(end, maxf(0.0, progress - 0.28))
-		var color = effect["color"]
-		color.a = 0.95
+		var projectile_color = effect["color"]
+		projectile_color.a = 0.95
 		var glow = Color(1.0, 0.96, 0.62, 0.38)
 		draw_line(tail, head, glow, 9.0, true)
-		draw_line(tail, head, color, 5.0, true)
+		draw_line(tail, head, projectile_color, 5.0, true)
 		draw_circle(head, 6.0, Color(1.0, 1.0, 0.82, 0.96))
-		draw_circle(head, 3.2, color)
+		draw_circle(head, 3.2, projectile_color)
 		return
 	var t = clampf(float(effect["time"]) / 0.45, 0.0, 1.0)
-	var color = effect["color"]
-	color.a = t * 0.55
-	draw_circle(Vector2(effect["pos"]), 8.0 + 30.0 * (1.0 - t), color)
+	var pulse_color = effect["color"]
+	pulse_color.a = t * 0.55
+	draw_circle(Vector2(effect["pos"]), 8.0 + 30.0 * (1.0 - t), pulse_color)
 
 
 func _draw_selection_panel() -> void:
 	var rect = Rect2(26, 1132, 668, 118)
 	_box(rect, Color(0.12, 0.10, 0.31, 0.92), Color(0.30, 0.28, 0.62), 4)
+	if _draw_selected_tile_card_panel(rect):
+		return
 	var title = "点击与己方地块接壤的卡牌地块解锁"
 	var detail = "可解锁地块只显示类型和价格，品质会在解锁时随机。"
 	var detail_extra = ""
@@ -1910,7 +2074,7 @@ func _draw_selection_panel() -> void:
 						_card_level_for_team(card_id, int(tile["team"])),
 						int(stats["attack"]),
 						int(stats["max_hp"]),
-						float(stats["move_speed"]),
+						float(stats["move_speed"]) * UNIT_MOVE_SPEED_MULT,
 						_attack_range_label(float(stats["attack_range"])),
 						float(stats["summon_interval_sec"]),
 					]
@@ -1939,6 +2103,40 @@ func _draw_selection_panel() -> void:
 	_draw_text_fit(detail, Rect2(rect.position + Vector2(24, 52), Vector2(620, 26)), 19, Color(0.84, 0.88, 1.0))
 	if detail_extra != "":
 		_draw_text_fit(detail_extra, Rect2(rect.position + Vector2(24, 80), Vector2(620, 24)), 18, Color(0.78, 0.86, 1.0))
+
+
+func _draw_selected_tile_card_panel(rect: Rect2) -> bool:
+	if not tiles.has(selected_tile):
+		return false
+	var tile = tiles[selected_tile]
+	if int(tile.get("team", NEUTRAL)) == NEUTRAL:
+		return false
+	var card = _tile_display_card(tile)
+	if card.is_empty():
+		return false
+	var card_rect = Rect2(rect.position + Vector2(18, 10), Vector2(92, 98))
+	_draw_card(card_rect, card, true)
+	_draw_tile_card_summary(Rect2(rect.position + Vector2(128, 14), Vector2(512, 88)), tile, card)
+	return true
+
+
+func _draw_tile_card_summary(rect: Rect2, tile: Dictionary, card: Dictionary) -> void:
+	var card_id = String(card.get("id", ""))
+	var kind = _card_kind(card)
+	var team = int(tile.get("team", PLAYER))
+	var stats = _card_stats_for_team(card, team)
+	var title = String(card.get("name", "卡牌"))
+	var level = _card_level_for_team(card_id, team)
+	_draw_text_fit("%s  %s Lv.%d" % [_rarity_label(String(card.get("rarity", "common"))), title, level], Rect2(rect.position, Vector2(rect.size.x, 28)), 23, Color.WHITE)
+	if kind == CARD_KIND_MINE:
+		_draw_text_fit("金矿卡  生命%d  每%d秒 +%d金币" % [int(stats["max_hp"]), int(INCOME_INTERVAL), MINE_INCOME], Rect2(rect.position + Vector2(0, 34), Vector2(rect.size.x, 24)), 19, Color(0.84, 0.88, 1.0))
+		_draw_text_fit("金矿不产兵，只提供经济收入。", Rect2(rect.position + Vector2(0, 62), Vector2(rect.size.x, 24)), 17, Color(0.78, 0.86, 1.0))
+	elif kind == CARD_KIND_DEFENSE:
+		_draw_text_fit("防御塔卡  攻%d  生命%d  射程%s  冷却%.1fs" % [int(stats["attack"]), int(stats["max_hp"]), _attack_range_label(float(stats["attack_range"])), float(stats["summon_interval_sec"])], Rect2(rect.position + Vector2(0, 34), Vector2(rect.size.x, 24)), 18, Color(0.84, 0.88, 1.0))
+		_draw_text_fit(_card_skill_text(card), Rect2(rect.position + Vector2(0, 62), Vector2(rect.size.x, 24)), 17, Color(0.78, 0.86, 1.0))
+	else:
+		_draw_text_fit("动物营地  攻%d  生命%d  速度%d  射程%s" % [int(stats["attack"]), int(stats["max_hp"]), roundi(float(stats["move_speed"]) * UNIT_MOVE_SPEED_MULT), _attack_range_label(float(stats["attack_range"]))], Rect2(rect.position + Vector2(0, 34), Vector2(rect.size.x, 24)), 18, Color(0.84, 0.88, 1.0))
+		_draw_text_fit(_card_skill_text(card), Rect2(rect.position + Vector2(0, 62), Vector2(rect.size.x, 24)), 17, Color(0.78, 0.86, 1.0))
 
 
 func _draw_pause_button() -> void:
@@ -2043,10 +2241,21 @@ func _draw_card_detail(rect: Rect2) -> void:
 	draw_texture_rect(_card_texture(card), art_rect, false)
 	_box(name_rect, rarity_fill.darkened(0.16), Color(1, 1, 1, 0.18), 1)
 	_draw_text_center("Lv.%d  %s" % [_card_level(card_id), String(card.get("name", ""))], name_rect, 15, Color.WHITE)
-	_draw_detail_stat_icon_value(rect.position + Vector2(142, 18), "attack", str(int(stats["attack"])), COLOR_RED)
-	_draw_detail_stat_icon_value(rect.position + Vector2(232, 18), "hp", str(int(stats["max_hp"])), COLOR_RED)
-	_draw_detail_stat_icon_value(rect.position + Vector2(330, 18), "speed", str(roundi(float(stats["move_speed"]))), COLOR_BLUE)
-	_draw_text_center(_attack_range_label(float(stats["attack_range"])), Rect2(rect.position + Vector2(434, 20), Vector2(72, 28)), 18, COLOR_LINE)
+	var kind = _card_kind(card)
+	if kind == CARD_KIND_MINE:
+		_draw_detail_stat_icon_value(rect.position + Vector2(142, 18), "hp", str(int(stats["max_hp"])), COLOR_RED)
+		_draw_detail_stat_icon_value(rect.position + Vector2(242, 18), "gold", "+%d" % MINE_INCOME, COLOR_GOLD)
+		_draw_text_center("%d秒" % int(INCOME_INTERVAL), Rect2(rect.position + Vector2(342, 20), Vector2(72, 28)), 18, COLOR_LINE)
+	elif kind == CARD_KIND_DEFENSE:
+		_draw_detail_stat_icon_value(rect.position + Vector2(142, 18), "attack", str(int(stats["attack"])), COLOR_RED)
+		_draw_detail_stat_icon_value(rect.position + Vector2(232, 18), "hp", str(int(stats["max_hp"])), COLOR_RED)
+		_draw_text_center(_attack_range_label(float(stats["attack_range"])), Rect2(rect.position + Vector2(330, 20), Vector2(72, 28)), 18, COLOR_LINE)
+		_draw_text_center("%.1fs" % float(stats["summon_interval_sec"]), Rect2(rect.position + Vector2(424, 20), Vector2(72, 28)), 18, COLOR_LINE)
+	else:
+		_draw_detail_stat_icon_value(rect.position + Vector2(142, 18), "attack", str(int(stats["attack"])), COLOR_RED)
+		_draw_detail_stat_icon_value(rect.position + Vector2(232, 18), "hp", str(int(stats["max_hp"])), COLOR_RED)
+		_draw_detail_stat_icon_value(rect.position + Vector2(330, 18), "speed", str(roundi(float(stats["move_speed"]))), COLOR_BLUE)
+		_draw_text_center(_attack_range_label(float(stats["attack_range"])), Rect2(rect.position + Vector2(434, 20), Vector2(72, 28)), 18, COLOR_LINE)
 	var skill_text = _card_detail_skill_text(card)
 	if skill_text != "":
 		_draw_text_center(skill_text, Rect2(rect.position + Vector2(138, 56), Vector2(370, 28)), 16, COLOR_PURPLE)
@@ -2079,6 +2288,8 @@ func _draw_detail_stat_icon_value(pos: Vector2, icon: String, value: String, col
 			_draw_heart_icon(center, color)
 		"speed":
 			_draw_boot_icon(center, color)
+		"gold":
+			_draw_coin_icon(center, color)
 	_draw_text_fit(value, Rect2(pos + Vector2(32, 0), Vector2(54, 28)), 18, COLOR_LINE)
 
 
@@ -2113,6 +2324,12 @@ func _draw_boot_icon(center: Vector2, color: Color) -> void:
 	])
 	draw_polygon(points, PackedColorArray([color, color, color, color, color, color, color]))
 	draw_line(center + Vector2(-4, -4), center + Vector2(3, -4), Color.WHITE, 2.0)
+
+
+func _draw_coin_icon(center: Vector2, color: Color) -> void:
+	draw_circle(center, 11.0, color)
+	draw_circle(center, 6.2, color.lightened(0.28))
+	draw_arc(center, 11.4, 0.0, TAU, 20, COLOR_LINE, 2.0, true)
 
 
 func _draw_upgrade_progress(rect: Rect2, card_id: String, show_label: bool) -> void:
@@ -2471,6 +2688,21 @@ func _pulse(pos: Vector2, color: Color) -> void:
 		"pos": pos,
 		"color": color,
 		"time": 0.45,
+	})
+
+
+func _show_unlock_card_popup(key: Vector2i) -> void:
+	if not tiles.has(key):
+		return
+	var card = _tile_display_card(tiles[key])
+	if card.is_empty():
+		return
+	effects.append({
+		"kind": "card_popup",
+		"pos": _hex_center(key) + Vector2(0, -74),
+		"card_id": String(card.get("id", "")),
+		"time": UNLOCK_CARD_POPUP_SECONDS,
+		"duration": UNLOCK_CARD_POPUP_SECONDS,
 	})
 
 
