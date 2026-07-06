@@ -10,12 +10,13 @@ This repository is a game project foundation for `zhanchengdashi`.
 - Follow a document-first workflow for every future gameplay, balance, UI, system, or technical change: update the relevant design/workflow document first, then implement the matching game change.
 - Keep project assets, configuration, scripts, and documents easy to move into Godot, Unity, or Unreal later.
 - Prefer data-driven gameplay: design values belong in `config/tables/`, runtime exports belong in `runtime/config/`, and validation belongs in `tools/`.
-- Follow the upstream professional art production flow from the public workflow v1.5+ for any visual-direction, concept-art, UI-art, sprite, map, VFX, or presentation-quality change.
+- Follow the upstream professional art production flow from the public workflow v1.6+ for any visual-direction, concept-art, UI-art, sprite, map, VFX, or presentation-quality change.
 - This project is 2D-first. Art-facing work routes through: Producer -> Creative Director -> Art Director -> Visual Development Artist -> Concept Artist / Environment Artist / UI Artist -> 2D Animation Specialist -> Sprite Forge Specialist -> 2D Technical Artist -> Godot Specialist -> QA Lead.
 - Treat Sprite Forge as an execution and handoff role after art direction is approved; it does not replace Art Director, Visual Development, Concept, Environment, or UI Artist judgment.
 - For current game visual direction, create multi-version effect images first, save review outputs under `output/visual_concepts/`, document them in `docs/CURRENT_GAME_VISUAL_CONCEPT_OPTIONS.md`, and wait for user approval before implementing engine, UI, or asset changes based on them.
 - For page art upgrades, lock UE completely: page information, layout, click targets, control positions, state meanings, and click feedback timing must remain unchanged. Only 2D visual skin, palette, materials, borders, shadows, icons, and illustration polish may change.
 - For skin-only page mockups, derive every preview from the current Godot page coordinates or the approved UI/UE wireframe. Any mockup that adds, removes, moves, renames, or reorders controls, resources, page sections, navigation, buttons, or feedback states is invalid.
+- For 2D page art, prefer simple high-quality 2D: fewer shapes, colors, layers, and states; improve proportion, spacing, contrast, material restraint, reusable components, and readability instead of adding complexity.
 - For procedural feedback and prototype motion, prefer engine-side tween/animation/shader/particle work before requesting new sequence-frame art.
 - Do not copy proprietary names, logos, characters, currencies, layouts, or assets from commercial games.
 

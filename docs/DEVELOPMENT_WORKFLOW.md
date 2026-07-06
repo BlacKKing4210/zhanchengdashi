@@ -5,7 +5,7 @@
 公共流程上游：
 
 - `C:\Users\76398\Documents\Codex\2026-07-03\codex-game-studio-default\outputs\codex-game-studio-general-game-development-process.md`
-- 当前对齐版本：公共流程 v1.5，日期 2026-07-06，重点同步 2D-first 生产线、2D Animation Specialist、2D Technical Artist、专业美术生产线与美术质量 Gate。
+- 当前对齐版本：公共流程 v1.6，日期 2026-07-06，重点同步 2D-first 生产线、2D Animation Specialist、2D Technical Artist、专业美术生产线、美术质量 Gate 与“简单高品质 2D”门槛。
 
 使用方式：公共流程负责角色路由、生命周期、专项流程、任务卡和 Definition of Done；本项目文档负责把这些规则落到 `zhanchengdashi` 的目录结构、Godot/GDScript、配置表、验证脚本和 GitHub 同步上。后续开发必须优先遵循公共流程，再按本项目约定执行。
 
@@ -22,6 +22,7 @@
 - 策划案制图门禁：玩法流程图和 UI/UE 图必须随策划案交付，正式源文件使用 diagrams.net/draw.io、Figma、FigJam、Axure、Adobe XD、Illustrator 等专业工具格式；Mermaid 只能作为草稿或文档内辅助说明。
 - 美术审核门禁：当前游戏视觉方向必须先产出多版效果图和评审文档，经用户确认后才进入 Sprite Forge、Godot 实装或资产替换。
 - 页面美术升级门禁：升级页面美术时必须锁定 UE；页面信息、布局、点击目标、控件位置、状态含义、点击反馈节奏完全不变，只允许升级 2D 视觉皮肤、材质感、描边、阴影、图标、色彩和插画质量。
+- 简单高品质 2D 门禁：页面美术升级不靠堆复杂度体现品质；优先减少形状、颜色、层级和状态数量，用比例、间距、对比、材质克制、组件复用和小屏可读性提升品质。
 - 版本纪律：每次完成修改必须验证、提交 Git，并推送到 GitHub。
 
 ## 1. 开发原则
@@ -30,6 +31,7 @@
 - 玩法数值优先数据驱动：可配置的设计值进入 `config/tables/`，运行时 JSON 由 `tools/export_config.py` 输出到 `runtime/config/`。
 - 美术表现先走专业方向：先做 art brief、参考取舍、视觉方向、可读性检查和多版效果图，再进入资产生成或引擎实现。
 - 2D-first 是项目默认：先明确 2D 视角、目标分辨率、sprite/animation 规格、图层/y-sort、atlas、导入设置、碰撞和性能预算；不产出 3D/2.5D 效果图作为默认方向。
+- 2D 页面品质默认走简单高品质路线：先锁定当前 UE，再用更少的视觉元素做更清晰的层级；不要新增页面信息、控件、点击状态或反馈节奏来制造“高级感”。
 - Sprite Forge 只负责按已批准美术方向执行生成、清理、切图、元数据、预览和 Godot handoff，不替代 Art Director、Visual Development Artist、Concept Artist、Environment Artist 或 UI Artist 的判断。
 - 原型表现优先使用引擎内程序化反馈：Tween、缩放、位移、闪烁、粒子、材质调色和 UI 弹跳，避免过早制作序列帧资源。
 - UI 调整遵循移动端街机风格：粗描边、硬阴影、高饱和按钮、明确进度条、可扫描信息层级。
@@ -44,7 +46,7 @@
 3. 定职责：按任务类型使用最小必要角色组合，例如 UI 走 `Art Director -> UI Artist -> UI Programmer -> Godot Specialist -> QA Lead`，2D 美术表现走 `Art Director -> Visual Development Artist -> Concept Artist / Environment Artist / UI Artist -> 2D Animation Specialist -> Sprite Forge Specialist -> 2D Technical Artist -> Godot Specialist -> QA Lead`。
 4. 文档先行：先更新对应文档。玩法/数值/UI 进入 `design/`，工程流程/结构进入 `docs/`，必要时同步生成 PDF。
 5. 美术预审：涉及视觉方向、资产风格、UI 视觉或宣传级表现时，先输出多版 2D 效果图到 `output/visual_concepts/`，并在评审文档中写清取舍、风险和待用户确认点。
-6. UE 锁定：页面美术升级必须先写清“不改 UE”的锁定范围；效果图只能表现同一页面信息架构下的皮肤差异。
+6. UE 锁定与品质门槛：页面美术升级必须先写清“不改 UE”的锁定范围；效果图只能表现同一页面信息架构下的皮肤差异，并通过“简单高品质 2D”检查。
 7. 专业制图：策划案必须补齐玩法流程图和 UI/UE 图；源文件放 `docs/diagrams/`，预览图放 `output/diagrams/`，PDF 必须嵌入或引用图件。
 8. 定落点：再判断改配置、脚本、场景、资源或工具，避免把设计值写死在代码里。
 9. 小步实现：按已经更新且通过评审的文档实装，保持提交范围聚焦，沿用现有脚本、绘制和数据结构。
@@ -95,7 +97,7 @@
 | 战斗规则和交互逻辑 | 先改 `design/`，再改 `scripts/app/` 或相关 Godot 脚本 | GDScript 缩进检查，Godot 启动 |
 | UI 布局和绘制 | 先改 UI/UE 设计文档和 `docs/diagrams/` 图件，再改 `scripts/app/`、`assets/` | Godot 启动，必要时截图人工检查 |
 | 新资源或美术方向 | 先改美术方向文档，输出多版 2D 效果图并等用户确认，再改 `assets/` | 效果图评审通过，资源能加载，路径不硬编码到错误位置 |
-| 页面美术升级 | 先改 UE 锁定美术评审文档，再输出多版 2D 皮肤效果图 | 页面信息、布局、点击目标、反馈节奏不变；只改美术皮肤 |
+| 页面美术升级 | 先改 UE 锁定美术评审文档，再输出多版 2D 皮肤效果图 | 页面信息、布局、点击目标、反馈节奏不变；只改美术皮肤，并通过简单高品质 2D 检查 |
 | 设计决策和流程 | `docs/` | 生成 PDF，检查可读性 |
 | 校验或导出能力 | `tools/`、`.github/workflows/` | 本地运行工具，确认 CI 入口可用 |
 
@@ -109,6 +111,7 @@
 - 任意策划案交付必须检查玩法流程图和 UI/UE 图是否存在专业源文件、预览图和 PDF 可读版本。
 - 任意美术方向交付必须检查 art brief、候选效果图、评审说明、原创性避让点、移动端可读性和用户确认状态；未确认前不得推进到正式资产替换或 Godot 实装。
 - 任意页面美术升级必须检查 UE 锁定清单：页面信息不变、控件位置不变、点击目标不变、状态含义不变、点击反馈不变、只替换 2D 视觉风格。
+- 任意 2D 页面效果图必须检查简单高品质门槛：少形状、少颜色、少层级、少状态，3 秒内读懂主要信息，UI 覆盖在玩法背景上仍清晰。
 - 提交前运行 `git diff --check`，确认没有尾随空白或格式错误。
 - 推送前确认 `git status --short --branch`，避免遗漏文件。
 
@@ -128,7 +131,7 @@
 
 ## 9. 专业美术表现流程
 
-本项目从公共流程 v1.5 起，默认按 2D-first 专业美术生产线推进。任何会影响游戏视觉身份、资产风格、UI 视觉、关键画面、角色/场景/道具/地图/FX 质量的任务，都必须先完成方向确认，再进入资产生成或 Godot 实装。
+本项目从公共流程 v1.6 起，默认按 2D-first 专业美术生产线推进，并把“简单高品质 2D”作为页面美术和效果图的默认质量门槛。任何会影响游戏视觉身份、资产风格、UI 视觉、关键画面、角色/场景/道具/地图/FX 质量的任务，都必须先完成方向确认，再进入资产生成或 Godot 实装。
 
 默认路由：
 
@@ -140,7 +143,7 @@ Producer -> Creative Director -> Art Director -> Visual Development Artist -> Co
 
 1. Art brief：说明目标玩家、平台、镜头、玩法读图需求、性能约束和商业参考避让点。
 2. Visual direction：整理风格关键词、形状语言、色彩策略、材质策略、光照和氛围原则。
-3. 多版 2D 效果图：至少提供 3 个可比较方向；当前游戏默认存放在 `output/visual_concepts/`。整体视觉方向文档为 `docs/CURRENT_GAME_VISUAL_CONCEPT_OPTIONS.md`，UE 锁定页面皮肤文档为 `docs/CURRENT_GAME_2D_UE_LOCKED_ART_OPTIONS.md`。
+3. 多版 2D 效果图：至少提供 3 个可比较方向；当前游戏默认存放在 `output/visual_concepts/`。整体视觉方向文档为 `docs/CURRENT_GAME_VISUAL_CONCEPT_OPTIONS.md`，UE 锁定页面皮肤文档为 `docs/CURRENT_GAME_2D_UE_LOCKED_ART_OPTIONS.md`。页面皮肤必须以少形状、少颜色、少层级、少状态为起点，用比例、间距、对比、材质克制和组件复用体现品质。
 4. 用户评审：用户明确选择、混合或否定方向前，不推进到正式资产替换、UI 重绘或场景落地。
 5. 生产设定：通过后再产出角色、场景、UI、图标、地图或 FX 的 production sheet、尺寸、状态、pivot、anchor、碰撞提示和命名规则。
 6. Sprite Forge / 引擎执行：只按已批准方向生成、清理、切片、元数据、预览和 Godot handoff。
@@ -157,6 +160,7 @@ Producer -> Creative Director -> Art Director -> Visual Development Artist -> Co
 - 必须使用现有 UI/UE 图和当前 Godot 页面结构作为锁定基准。
 - 不改变信息架构、控件数量、控件位置、点击区域、状态含义和反馈节奏。
 - 效果图只比较 2D 视觉皮肤：面板、边框、按钮材质、色彩、图标风格、地块质感、光影层级和整体品质。
+- 皮肤差异必须足够克制：不新增装饰性页面模块，不增加额外点击状态，不让材质、描边或背景抢走棋盘/CTA/资源条的可读性。
 
 ## 10. 后续结构演进方向
 
