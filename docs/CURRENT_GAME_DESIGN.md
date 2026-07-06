@@ -28,9 +28,11 @@
 
 ### 1.2 当前视觉效果图评审
 
-当前游戏视觉方向按公共流程 v1.4 的专业美术生产线先进入多版效果图评审，不直接推进 Godot 实装或资产替换。
+当前游戏视觉方向按公共流程 v1.5 的 2D-first 专业美术生产线先进入多版效果图评审，不直接推进 Godot 实装或资产替换。
 
-评审文档：`docs/CURRENT_GAME_VISUAL_CONCEPT_OPTIONS.md`
+整体氛围评审文档：`docs/CURRENT_GAME_VISUAL_CONCEPT_OPTIONS.md`
+
+2D UE 锁定页面美术评审文档：`docs/CURRENT_GAME_2D_UE_LOCKED_ART_OPTIONS.md`
 
 候选图输出：
 
@@ -38,8 +40,12 @@
 - `output/visual_concepts/current_game_visual_option_b_sunset_canyon.png`
 - `output/visual_concepts/current_game_visual_option_c_moonlit_ruins.png`
 - `output/visual_concepts/current_game_visual_option_d_floating_island_lobby.png`
+- `output/visual_concepts/current_game_2d_ue_locked_option_a_clean_arcade.png`
+- `output/visual_concepts/current_game_2d_ue_locked_option_b_paper_jungle.png`
+- `output/visual_concepts/current_game_2d_ue_locked_option_c_crystal_night.png`
+- `output/visual_concepts/current_game_2d_ue_locked_option_d_toy_board.png`
 
-用户确认方向后，再进入 art brief、production sheet、Sprite Forge/Godot handoff 和实现阶段。
+用户确认方向后，再进入 art brief、production sheet、2D Technical Artist handoff、Sprite Forge/Godot handoff 和实现阶段。页面美术升级必须锁定 UE：页面信息、布局、点击目标和反馈节奏不变，只换 2D 美术皮肤。
 
 ## 2. 游戏定位
 
@@ -244,7 +250,7 @@ deck_power = 所有出战卡牌 card_power 求和
 - 未解锁的玩家预归属地块使用半透明绿色底色，敌方预归属地块使用半透明红色底色；可解锁状态在该底色上叠加强黄边。
 - 营地、防御塔和金矿图标改为简化几何图标：动物营地是小房子，防御塔是细长塔，金矿是山形图标；未解锁时统一为中性色，不显示品质或具体卡牌颜色。
 - 解锁后的动物营地和防御塔按对应卡牌品质上色；金矿按紫色金矿卡与金币强调色显示。
-- 动物营地/大厅的召唤进度条使用更短、更细的小条，并放在六边形内部偏上位置；建筑生命条同样收窄，避免超出地块边缘。
+- 动物营地/大厅的召唤进度条使用更短、更细的小条，并放在六边形内部偏上位置；建筑生命条同样收窄。战斗中的单位血条、建筑生命条和召唤进度条只保留一条底槽加填充，不额外绘制下方黑色阴影条。
 
 ### 6.6 当前金币收入
 
