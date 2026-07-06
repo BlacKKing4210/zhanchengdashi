@@ -109,7 +109,7 @@ var gacha_reveal_timer = 0.0
 var rank_db = {}
 var active_match_mirror = {}
 var active_match_rank_key = ""
-var active_match_player_elo = RankingRules.INITIAL_ELO
+var active_match_player_stars = RankingRules.INITIAL_STARS
 var last_rank_result = {}
 
 var screen = SCREEN_LOBBY
@@ -390,10 +390,10 @@ func _load_rank_database() -> void:
 func _ensure_rank_database_shape() -> void:
 	if typeof(rank_db) != TYPE_DICTIONARY:
 		rank_db = {}
-	if not rank_db.has("version"):
-		rank_db["version"] = RankingRules.DB_VERSION
+	rank_db["version"] = RankingRules.DB_VERSION
 	if not rank_db.has("player") or typeof(rank_db["player"]) != TYPE_DICTIONARY:
 		rank_db["player"] = RankingRules.default_profile()
+	rank_db["player"] = RankingRules.normalize_profile(rank_db["player"])
 	if not rank_db.has("mirrors") or typeof(rank_db["mirrors"]) != TYPE_DICTIONARY:
 		rank_db["mirrors"] = {}
 
@@ -412,12 +412,12 @@ func _player_profile() -> Dictionary:
 	return rank_db["player"]
 
 
-func _player_elo() -> int:
-	return int(_player_profile().get("elo", RankingRules.INITIAL_ELO))
+func _player_rank_state() -> Dictionary:
+	return RankingRules.rank_state_for_profile(_player_profile())
 
 
 func _current_rank_key() -> String:
-	return RankingRules.rank_key_for_elo(_player_elo())
+	return String(_player_rank_state()["key"])
 
 
 func _mirror_count_for_rank(rank_key: String) -> int:
@@ -429,14 +429,15 @@ func _mirror_count_for_rank(rank_key: String) -> int:
 
 
 func _start_match() -> void:
-	active_match_player_elo = _player_elo()
-	active_match_rank_key = RankingRules.rank_key_for_elo(active_match_player_elo)
+	var player_rank_state = _player_rank_state()
+	active_match_rank_key = String(player_rank_state["key"])
+	active_match_player_stars = int(player_rank_state["stars"])
 	active_match_mirror = _select_match_mirror(active_match_rank_key)
 	_apply_match_mirror(active_match_mirror)
 	last_rank_result = {}
 	screen = SCREEN_BATTLE
 	_reset_battle()
-	_toast("匹配到" + String(active_match_mirror.get("rank_display", RankingRules.display_for_elo(active_match_player_elo))) + "对手")
+	_toast("匹配到" + String(active_match_mirror.get("rank_display", String(player_rank_state["display"]))) + "对手")
 
 
 func _select_match_mirror(rank_key: String) -> Dictionary:
@@ -460,6 +461,7 @@ func _select_match_mirror(rank_key: String) -> Dictionary:
 
 func _generated_match_mirror(rank_key: String) -> Dictionary:
 	var rank = RankingRules.rank_for_key(rank_key)
+	var stars = 1
 	var generated_deck = enemy_deck.duplicate()
 	if generated_deck.is_empty():
 		generated_deck = ["rabbit"]
@@ -471,7 +473,8 @@ func _generated_match_mirror(rank_key: String) -> Dictionary:
 		"player_id": "generated",
 		"name": String(rank["name"]) + "镜像",
 		"rank_key": rank_key,
-		"rank_display": RankingRules.display_for_elo(int(rank["min_elo"])),
+		"rank_display": RankingRules.display_for_key_and_stars(rank_key, stars),
+		"stars": stars,
 		"elo": int(rank["min_elo"]),
 		"deck": generated_deck,
 		"card_levels": levels,
@@ -1170,16 +1173,16 @@ func _finish_battle(text: String) -> void:
 
 
 func _apply_rank_result(won: bool) -> void:
-	var profile = _player_profile()
-	var player_elo = int(profile.get("elo", RankingRules.INITIAL_ELO))
+	var profile = RankingRules.normalize_profile(_player_profile())
 	if active_match_rank_key == "":
-		active_match_player_elo = player_elo
-		active_match_rank_key = RankingRules.rank_key_for_elo(player_elo)
+		var match_rank_state = RankingRules.rank_state_for_profile(profile)
+		active_match_rank_key = String(match_rank_state["key"])
+		active_match_player_stars = int(match_rank_state["stars"])
 	if active_match_mirror.is_empty():
 		active_match_mirror = _generated_match_mirror(active_match_rank_key)
-	var opponent_elo = int(active_match_mirror.get("elo", player_elo))
-	var result = RankingRules.elo_result(player_elo, opponent_elo, won)
-	profile["elo"] = int(result["new_elo"])
+	var result = RankingRules.star_result(String(profile["rank_key"]), int(profile["stars"]), won)
+	profile["rank_key"] = String(result["new_rank"]["key"])
+	profile["stars"] = int(result["new_rank"]["stars"])
 	profile["matches"] = int(profile.get("matches", 0)) + 1
 	if won:
 		profile["wins"] = int(profile.get("wins", 0)) + 1
@@ -1188,16 +1191,16 @@ func _apply_rank_result(won: bool) -> void:
 	rank_db["player"] = profile
 	last_rank_result = result
 	if won:
-		_record_victory_mirror(active_match_rank_key, active_match_player_elo)
+		_record_victory_mirror(active_match_rank_key, active_match_player_stars)
 	_save_rank_database()
 
 
-func _record_victory_mirror(rank_key: String, match_elo: int) -> void:
+func _record_victory_mirror(rank_key: String, match_stars: int) -> void:
 	_ensure_rank_database_shape()
 	var mirrors = rank_db["mirrors"]
 	if not mirrors.has(rank_key) or typeof(mirrors[rank_key]) != TYPE_ARRAY:
 		mirrors[rank_key] = []
-	var rank_state = RankingRules.rank_state_for_elo(match_elo)
+	var rank_state = RankingRules.rank_state_for_key_and_stars(rank_key, match_stars)
 	var profile = _player_profile()
 	var now = int(Time.get_unix_time_from_system())
 	var mirror = {
@@ -1206,7 +1209,8 @@ func _record_victory_mirror(rank_key: String, match_elo: int) -> void:
 		"name": String(profile.get("name", "玩家")) + "镜像",
 		"rank_key": rank_key,
 		"rank_display": String(rank_state["display"]),
-		"elo": match_elo,
+		"stars": int(rank_state["stars"]),
+		"elo": int(rank_state["elo"]),
 		"deck": _snapshot_deck(),
 		"card_levels": _snapshot_card_levels(),
 		"created_at_unix": now,
@@ -1534,8 +1538,7 @@ func _draw_lobby_animal(area: Rect2, card: Dictionary, anchor: Vector2, index: i
 
 
 func _draw_rank_panel(rect: Rect2) -> void:
-	var elo = _player_elo()
-	var state = RankingRules.rank_state_for_elo(elo)
+	var state = _player_rank_state()
 	_box(rect, Color(0.16, 0.13, 0.38, 0.94), COLOR_LINE, 4)
 	_draw_text_fit(String(state["display"]), Rect2(rect.position + Vector2(22, 10), Vector2(260, 34)), 28, Color.WHITE)
 	_draw_text_right("段位赛", Rect2(rect.position + Vector2(350, 12), Vector2(228, 28)), 20, Color(0.88, 0.92, 1.0))
@@ -1742,16 +1745,19 @@ func _draw_match_status() -> void:
 
 
 func _match_status_text() -> String:
-	var player_rank = RankingRules.display_for_elo(active_match_player_elo)
+	var player_rank = String(_player_rank_state()["display"])
+	if active_match_rank_key != "":
+		player_rank = RankingRules.display_for_key_and_stars(active_match_rank_key, active_match_player_stars)
 	var opponent_rank = String(active_match_mirror.get("rank_display", player_rank))
 	return "%s  VS  %s" % [player_rank, opponent_rank]
 
 
 func _rank_result_text() -> String:
 	if last_rank_result.is_empty():
-		return "当前段位 " + RankingRules.display_for_elo(_player_elo())
-	var rank_state = last_rank_result.get("new_rank", RankingRules.rank_state_for_elo(_player_elo()))
-	return "当前段位 " + String(rank_state.get("display", RankingRules.display_for_elo(_player_elo())))
+		return "当前段位 " + String(_player_rank_state()["display"])
+	var fallback_rank = _player_rank_state()
+	var rank_state = last_rank_result.get("new_rank", fallback_rank)
+	return "当前段位 " + String(rank_state.get("display", fallback_rank["display"]))
 
 
 func _draw_nav() -> void:

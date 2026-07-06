@@ -1,9 +1,9 @@
 extends RefCounted
 
-const DB_VERSION = 1
+const DB_VERSION = 2
 const INITIAL_ELO = 1000
-const MIN_ELO = 1000
-const ELO_K_FACTOR = 32
+const INITIAL_RANK_KEY = "bronze"
+const INITIAL_STARS = 1
 const KING_STAR_ELO = 40
 
 const RANKS = [
@@ -20,10 +20,34 @@ static func default_profile() -> Dictionary:
 		"player_id": "local_player",
 		"name": "玩家",
 		"elo": INITIAL_ELO,
+		"rank_key": INITIAL_RANK_KEY,
+		"stars": INITIAL_STARS,
 		"matches": 0,
 		"wins": 0,
 		"losses": 0,
 	}
+
+
+static func normalize_profile(profile: Variant) -> Dictionary:
+	var normalized = default_profile()
+	var has_rank_state = false
+	if typeof(profile) == TYPE_DICTIONARY:
+		has_rank_state = profile.has("rank_key") and profile.has("stars")
+		for key in profile.keys():
+			normalized[key] = profile[key]
+	if not has_rank_state:
+		var legacy_state = rank_state_for_elo(int(normalized.get("elo", INITIAL_ELO)))
+		normalized["rank_key"] = String(legacy_state["key"])
+		normalized["stars"] = int(legacy_state["stars"])
+	var rank_key = String(normalized.get("rank_key", INITIAL_RANK_KEY))
+	if rank_index_for_key(rank_key) < 0:
+		rank_key = INITIAL_RANK_KEY
+	normalized["rank_key"] = rank_key
+	normalized["stars"] = clamp_stars_for_rank(rank_key, int(normalized.get("stars", INITIAL_STARS)))
+	normalized["matches"] = int(normalized.get("matches", 0))
+	normalized["wins"] = int(normalized.get("wins", 0))
+	normalized["losses"] = int(normalized.get("losses", 0))
+	return normalized
 
 
 static func rank_for_elo(elo: int) -> Dictionary:
@@ -35,10 +59,17 @@ static func rank_for_elo(elo: int) -> Dictionary:
 
 
 static func rank_for_key(rank_key: String) -> Dictionary:
-	for rank in RANKS:
-		if String(rank["key"]) == rank_key:
-			return rank.duplicate(true)
+	var index = rank_index_for_key(rank_key)
+	if index >= 0:
+		return RANKS[index].duplicate(true)
 	return RANKS[0].duplicate(true)
+
+
+static func rank_index_for_key(rank_key: String) -> int:
+	for i in range(RANKS.size()):
+		if String(RANKS[i]["key"]) == rank_key:
+			return i
+	return -1
 
 
 static func rank_key_for_elo(elo: int) -> String:
@@ -57,39 +88,75 @@ static func stars_for_elo(elo: int) -> int:
 	return clampi(floori(float(max(0, elo - min_elo)) / star_step) + 1, 1, max_stars)
 
 
+static func clamp_stars_for_rank(rank_key: String, stars: int) -> int:
+	var rank = rank_for_key(rank_key)
+	var max_stars = int(rank["max_stars"])
+	if max_stars <= 0:
+		return max(1, stars)
+	return clampi(stars, 1, max_stars)
+
+
 static func rank_state_for_elo(elo: int) -> Dictionary:
-	var rank = rank_for_elo(elo)
-	var stars = stars_for_elo(elo)
+	var rank_key = rank_key_for_elo(elo)
+	return rank_state_for_key_and_stars(rank_key, stars_for_elo(elo))
+
+
+static func rank_state_for_profile(profile: Variant) -> Dictionary:
+	var normalized = normalize_profile(profile)
+	return rank_state_for_key_and_stars(String(normalized["rank_key"]), int(normalized["stars"]))
+
+
+static func rank_state_for_key_and_stars(rank_key: String, stars: int) -> Dictionary:
+	var rank = rank_for_key(rank_key)
+	var clamped_stars = clamp_stars_for_rank(String(rank["key"]), stars)
 	return {
 		"key": String(rank["key"]),
 		"name": String(rank["name"]),
-		"elo": elo,
-		"stars": stars,
+		"elo": int(rank["min_elo"]),
+		"stars": clamped_stars,
 		"max_stars": int(rank["max_stars"]),
-		"display": display_for_elo(elo),
+		"display": display_for_key_and_stars(String(rank["key"]), clamped_stars),
 	}
 
 
 static func display_for_elo(elo: int) -> String:
-	var rank = rank_for_elo(elo)
-	return "%s %d星" % [String(rank["name"]), stars_for_elo(elo)]
+	var state = rank_state_for_elo(elo)
+	return String(state["display"])
 
 
-static func elo_result(player_elo: int, opponent_elo: int, won: bool) -> Dictionary:
-	var expected = 1.0 / (1.0 + pow(10.0, float(opponent_elo - player_elo) / 400.0))
-	var score = 1.0 if won else 0.0
-	var raw_delta = roundi(float(ELO_K_FACTOR) * (score - expected))
+static func display_for_profile(profile: Variant) -> String:
+	var state = rank_state_for_profile(profile)
+	return String(state["display"])
+
+
+static func display_for_key_and_stars(rank_key: String, stars: int) -> String:
+	var rank = rank_for_key(rank_key)
+	var clamped_stars = clamp_stars_for_rank(String(rank["key"]), stars)
+	return "%s %d星" % [String(rank["name"]), clamped_stars]
+
+
+static func star_result(rank_key: String, stars: int, won: bool) -> Dictionary:
+	var old_state = rank_state_for_key_and_stars(rank_key, stars)
+	var rank_index = rank_index_for_key(String(old_state["key"]))
+	var new_stars = int(old_state["stars"]) + (1 if won else -1)
 	if won:
-		raw_delta = max(1, raw_delta)
-	else:
-		raw_delta = min(-1, raw_delta)
-	var new_elo = max(MIN_ELO, player_elo + raw_delta)
-	var delta = new_elo - player_elo
+		var max_stars = int(RANKS[rank_index]["max_stars"])
+		if max_stars > 0 and new_stars > max_stars:
+			if rank_index < RANKS.size() - 1:
+				rank_index += 1
+				new_stars = 1
+			else:
+				new_stars = max_stars
+	elif new_stars < 1:
+		if rank_index > 0:
+			rank_index -= 1
+			new_stars = max(1, int(RANKS[rank_index]["max_stars"]))
+		else:
+			new_stars = 1
+	var new_state = rank_state_for_key_and_stars(String(RANKS[rank_index]["key"]), new_stars)
 	return {
-		"old_elo": player_elo,
-		"new_elo": new_elo,
-		"delta": delta,
-		"old_rank": rank_state_for_elo(player_elo),
-		"new_rank": rank_state_for_elo(new_elo),
-		"opponent_elo": opponent_elo,
+		"old_rank": old_state,
+		"new_rank": new_state,
+		"star_delta": 1 if won else -1,
+		"won": won,
 	}
