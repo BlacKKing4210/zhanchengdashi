@@ -2010,7 +2010,6 @@ func _draw_building_health_bar(center: Vector2, tile: Dictionary) -> void:
 
 func _draw_compact_bar(rect: Rect2, pct: float, fill: Color) -> void:
 	var clamped_pct = clampf(pct, 0.0, 1.0)
-	draw_rect(Rect2(rect.position + Vector2(0, 1), rect.size), Color(0, 0, 0, 0.18))
 	draw_rect(rect, Color(0.04, 0.05, 0.08, 0.78))
 	if clamped_pct > 0.0:
 		draw_rect(Rect2(rect.position + Vector2(1, 1), Vector2((rect.size.x - 2.0) * clamped_pct, rect.size.y - 2.0)), fill)
@@ -2049,8 +2048,7 @@ func _draw_unit(unit: Dictionary) -> void:
 	draw_circle(pos + Vector2(0, 14), 17, Color(0, 0, 0, 0.18))
 	draw_texture_rect(_card_texture(_card_by_id(String(unit["card"]))), Rect2(pos + Vector2(-22, -30), Vector2(44, 44)), false)
 	var pct = clampf(float(unit["hp"]) / float(unit["max_hp"]), 0.0, 1.0)
-	_box(Rect2(pos + Vector2(-18, 20), Vector2(36, 6)), COLOR_LINE, Color(0, 0, 0, 0), 0)
-	_box(Rect2(pos + Vector2(-17, 21), Vector2(34.0 * pct, 4)), _team_health_color(team), Color(0, 0, 0, 0), 0)
+	_draw_compact_bar(Rect2(pos + Vector2(-18, 20), Vector2(36, 6)), pct, _team_health_color(team))
 
 
 func _team_health_color(team: int) -> Color:
