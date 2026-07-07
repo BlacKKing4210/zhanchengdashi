@@ -2,6 +2,7 @@
 .DS_Store
 Thumbs.db
 desktop.ini
+~$*
 .idea/
 .vscode/
 *.swp
@@ -50,6 +51,7 @@ config/tables/*.translation
 assets/ui/formal_arcade/**/*.import
 output/diagrams/*.import
 output/formal_page_options/*.import
+output/**/*.import
 
 # Unity generated files
 Library/
