@@ -53,17 +53,6 @@ const COLOR_ORANGE = Color(1.0, 0.54, 0.13)
 const COLOR_GREEN = Color(0.49, 0.82, 0.37)
 const COLOR_RED = Color(0.95, 0.34, 0.32)
 const COLOR_GOLD = Color(1.0, 0.62, 0.08)
-const RH_INK = Color(0.145, 0.105, 0.078)
-const RH_INK_SOFT = Color(0.31, 0.22, 0.15)
-const RH_PAPER = Color(0.93, 0.82, 0.58, 0.94)
-const RH_PAPER_LIGHT = Color(1.0, 0.94, 0.76, 0.96)
-const RH_WOOD = Color(0.39, 0.25, 0.16)
-const RH_RED = Color(0.69, 0.22, 0.17)
-const RH_GOLD = Color(0.96, 0.65, 0.12)
-const RH_OLIVE = Color(0.37, 0.56, 0.32)
-const RH_FIELD = Color(0.55, 0.70, 0.38, 0.86)
-const RH_ENEMY = Color(0.65, 0.23, 0.19, 0.82)
-const RH_PLAYER = Color(0.27, 0.55, 0.32, 0.82)
 
 const COLLECTION_COLUMNS = 4
 const COLLECTION_CARD_SIZE = Vector2(132.0, 158.0)
@@ -91,17 +80,6 @@ const BUILDING_ART = {
 	"tower": preload("res://assets/art/buildings/tower.png"),
 	"mine": preload("res://assets/art/buildings/mine.png"),
 	"hall": preload("res://assets/art/buildings/hall.png"),
-}
-
-const RUBBERHOSE_ART = {
-	"lobby_background": preload("res://assets/ui/rubberhose_1930s/lobby_background.png"),
-	"battle_background": preload("res://assets/ui/rubberhose_1930s/battle_background.png"),
-	"base": preload("res://assets/ui/rubberhose_1930s/building_base.png"),
-	"mine": preload("res://assets/ui/rubberhose_1930s/building_mine.png"),
-	"tower": preload("res://assets/ui/rubberhose_1930s/building_tower.png"),
-	"question": preload("res://assets/ui/rubberhose_1930s/site_question.png"),
-	"coin": preload("res://assets/ui/rubberhose_1930s/icon_coin.png"),
-	"ticket": preload("res://assets/ui/rubberhose_1930s/icon_ticket.png"),
 }
 
 const NAV_ITEMS = [
@@ -293,23 +271,8 @@ func _layout(view_size: Vector2) -> void:
 	canvas_scale = minf(view_size.x / DESIGN_SIZE.x, view_size.y / DESIGN_SIZE.y)
 	canvas_scale = maxf(canvas_scale, 0.001)
 	canvas_offset = (view_size - DESIGN_SIZE * canvas_scale) * 0.5
-	var play_rect = Rect2(64, 110, 592, 982)
-	var board_bounds = _board_hex_bounds(Vector2.ZERO)
-	board_origin = play_rect.get_center() - board_bounds.get_center()
-
-
-func _board_hex_bounds(origin: Vector2) -> Rect2:
-	var min_pos = Vector2(999999.0, 999999.0)
-	var max_pos = Vector2(-999999.0, -999999.0)
-	for y in range(GRID_ROWS):
-		for x in range(GRID_COLS):
-			var center = BoardRules.hex_center(Vector2i(x, y), origin, HEX_SIZE)
-			for point in BoardRules.hex_points(center, HEX_SIZE):
-				min_pos.x = minf(min_pos.x, point.x)
-				min_pos.y = minf(min_pos.y, point.y)
-				max_pos.x = maxf(max_pos.x, point.x)
-				max_pos.y = maxf(max_pos.y, point.y)
-	return Rect2(min_pos, max_pos - min_pos)
+	var board_width = sqrt(3.0) * HEX_SIZE * (GRID_COLS + 0.5)
+	board_origin = Vector2((DESIGN_SIZE.x - board_width) * 0.5 + HEX_SIZE * 0.72, 120.0)
 
 
 func _screen_to_canvas(pos: Vector2) -> Vector2:
@@ -962,7 +925,7 @@ func _damage_unit(index: int, damage: float) -> void:
 	if index < 0 or index >= units.size():
 		return
 	units[index]["hp"] = float(units[index]["hp"]) - damage
-	_pulse(Vector2(units[index]["pos"]), RH_GOLD)
+	_pulse(Vector2(units[index]["pos"]), COLOR_YELLOW)
 
 
 func _damage_tile(key: Vector2i, attacker: int, damage: float) -> void:
@@ -1537,18 +1500,11 @@ func _collection_card_at(pos: Vector2) -> Dictionary:
 func _draw_lobby_screen() -> void:
 	_draw_background()
 	_draw_top_bar()
-	_draw_text_center("丛林法则", Rect2(40, 66, 640, 64), 46, RH_PAPER_LIGHT)
+	_draw_text_center("丛林法则", Rect2(40, 66, 640, 64), 46, Color.WHITE)
 	var scene_rect = Rect2(58, 144, 604, 680)
-	_box(scene_rect, RH_FIELD, RH_INK, 5)
-	var inner = scene_rect.grow(-18)
-	draw_rect(inner, Color(0.58, 0.75, 0.39, 0.62))
-	for i in range(7):
-		var y = 210.0 + float(i) * 75.0
-		draw_arc(Vector2(360, y + 68), 264.0, PI * 1.14, PI * 1.86, 48, Color(RH_INK.r, RH_INK.g, RH_INK.b, 0.42), 2.6, true)
-	for i in range(5):
-		var x = 128.0 + float(i) * 118.0
-		draw_line(Vector2(x, 184), Vector2(x + 36, 790), Color(1.0, 0.92, 0.70, 0.30), 2.0, true)
-	draw_texture_rect(RUBBERHOSE_ART["base"], Rect2(260, 270, 200, 166), false)
+	_box(scene_rect, Color(0.39, 0.63, 0.87), COLOR_LINE, 5)
+	draw_rect(scene_rect.grow(-14), Color(0.48, 0.78, 0.39))
+	draw_texture_rect(BUILDING_ART["base"], Rect2(260, 260, 200, 200), false)
 	_draw_lobby_deck_animals(scene_rect.grow(-34))
 	_draw_rank_panel(Rect2(58, 842, 604, 92))
 	_cta(_start_rect(), "匹配", true)
@@ -1583,41 +1539,41 @@ func _draw_lobby_animal(area: Rect2, card: Dictionary, anchor: Vector2, index: i
 
 func _draw_rank_panel(rect: Rect2) -> void:
 	var state = _player_rank_state()
-	_box(rect, RH_PAPER, RH_INK, 4)
-	_draw_text_fit(String(state["display"]), Rect2(rect.position + Vector2(22, 10), Vector2(260, 34)), 28, RH_INK)
-	_draw_text_right("段位赛", Rect2(rect.position + Vector2(350, 12), Vector2(228, 28)), 20, RH_INK_SOFT)
+	_box(rect, Color(0.16, 0.13, 0.38, 0.94), COLOR_LINE, 4)
+	_draw_text_fit(String(state["display"]), Rect2(rect.position + Vector2(22, 10), Vector2(260, 34)), 28, Color.WHITE)
+	_draw_text_right("段位赛", Rect2(rect.position + Vector2(350, 12), Vector2(228, 28)), 20, Color(0.88, 0.92, 1.0))
 	_draw_star_track(Rect2(rect.position + Vector2(22, 52), Vector2(176, 20)), int(state["stars"]), int(state["max_stars"]))
 	var profile = _player_profile()
-	_draw_text_fit("胜 %d  负 %d" % [int(profile.get("wins", 0)), int(profile.get("losses", 0))], Rect2(rect.position + Vector2(224, 52), Vector2(160, 24)), 18, RH_INK)
+	_draw_text_fit("胜 %d  负 %d" % [int(profile.get("wins", 0)), int(profile.get("losses", 0))], Rect2(rect.position + Vector2(224, 52), Vector2(160, 24)), 18, Color(0.88, 0.92, 1.0))
 
 
 func _draw_star_track(rect: Rect2, stars: int, max_stars: int) -> void:
 	if max_stars <= 0:
-		_draw_text_fit("王者星数 " + str(stars), rect, 18, RH_GOLD)
+		_draw_text_fit("王者星数 " + str(stars), rect, 18, COLOR_YELLOW)
 		return
 	var gap = 10.0
 	var radius = 7.5
 	for i in range(max_stars):
 		var center = rect.position + Vector2(radius + float(i) * (radius * 2.0 + gap), rect.size.y * 0.5)
 		draw_circle(center + Vector2(0, 2), radius, Color(0, 0, 0, 0.22))
-		draw_circle(center, radius, RH_GOLD if i < stars else Color(0.45, 0.36, 0.25))
-		draw_arc(center, radius + 0.8, 0.0, TAU, 18, RH_INK, 1.2, true)
+		draw_circle(center, radius, COLOR_YELLOW if i < stars else Color(0.35, 0.34, 0.48))
+		draw_arc(center, radius + 0.8, 0.0, TAU, 18, COLOR_LINE, 1.2, true)
 
 
 func _draw_gacha_screen() -> void:
 	_draw_background()
 	_draw_top_bar()
-	_draw_text_center("抽卡", Rect2(40, 68, 640, 58), 46, RH_PAPER_LIGHT)
-	_resource(Rect2(238, 130, 244, 48), "抽卡券", str(gacha_tickets), RH_GOLD)
+	_draw_text_center("抽卡", Rect2(40, 68, 640, 58), 46, Color.WHITE)
+	_resource(Rect2(238, 130, 244, 48), "抽卡券", str(gacha_tickets), COLOR_YELLOW)
 
 	var reward_panel = Rect2(46, 220, 628, 560)
-	_box(reward_panel, Color(RH_OLIVE.r, RH_OLIVE.g, RH_OLIVE.b, 0.88), RH_INK, 5)
-	_draw_text_center("最近获得", Rect2(reward_panel.position + Vector2(0, 28), Vector2(reward_panel.size.x, 42)), 30, RH_PAPER_LIGHT)
+	_box(reward_panel, Color(0.19, 0.16, 0.45), COLOR_LINE, 5)
+	_draw_text_center("最近获得", Rect2(reward_panel.position + Vector2(0, 28), Vector2(reward_panel.size.x, 42)), 30, Color.WHITE)
 	var display_count = last_gacha_cards.size() + gacha_pending_cards.size()
 	if gacha_fx_timer > 0.0:
 		_draw_gacha_fx(reward_panel)
 	elif last_gacha_cards.is_empty() and display_count <= 0:
-		_draw_text_center("暂无记录", Rect2(reward_panel.position + Vector2(0, 238), Vector2(reward_panel.size.x, 42)), 24, RH_PAPER_LIGHT)
+		_draw_text_center("暂无记录", Rect2(reward_panel.position + Vector2(0, 238), Vector2(reward_panel.size.x, 42)), 24, Color.WHITE)
 	else:
 		for i in range(display_count):
 			if i < last_gacha_cards.size():
@@ -1676,30 +1632,30 @@ func _draw_gacha_fx(panel: Rect2) -> void:
 	var ring_radius = 56.0 + progress * 150.0
 	draw_circle(center, 58.0 + pulse * 22.0, Color(1.0, 0.70, 0.15, 0.16 + pulse * 0.10))
 	draw_arc(center, ring_radius, 0.0, TAU, 72, Color(1.0, 0.88, 0.25, 0.95 - progress * 0.65), 7.0, true)
-	draw_arc(center, 34.0 + pulse * 46.0, ui_time * 4.0, ui_time * 4.0 + TAU * 0.82, 48, RH_RED, 8.0, true)
+	draw_arc(center, 34.0 + pulse * 46.0, ui_time * 4.0, ui_time * 4.0 + TAU * 0.82, 48, COLOR_BLUE, 8.0, true)
 	for i in range(12):
 		var angle = float(i) / 12.0 * TAU + ui_time * 1.5
 		var distance = 38.0 + progress * 190.0 + sin(ui_time * 5.0 + float(i)) * 8.0
 		var pos = center + Vector2(cos(angle), sin(angle)) * distance
 		var size = 5.0 + float(i % 3) * 2.0
-		draw_circle(pos, size, RH_GOLD if i % 2 == 0 else RH_RED)
-		draw_arc(pos, size + 1.5, 0.0, TAU, 12, RH_INK, 1.2, true)
-	_draw_gacha_star(center, 28.0 + pulse * 14.0, RH_PAPER_LIGHT)
+		draw_circle(pos, size, COLOR_YELLOW if i % 2 == 0 else COLOR_ORANGE)
+		draw_arc(pos, size + 1.5, 0.0, TAU, 12, COLOR_LINE, 1.2, true)
+	_draw_gacha_star(center, 28.0 + pulse * 14.0, Color.WHITE)
 
 
 func _draw_gacha_card_back(rect: Rect2, index: int) -> void:
 	var wave = (sin(ui_time * TAU * 1.1 + float(index) * 0.4) + 1.0) * 0.5
-	_box(rect, RH_PAPER, RH_INK, 4)
+	_box(rect, Color(0.18, 0.34, 0.88).lerp(COLOR_PURPLE, 0.35), COLOR_LINE, 4)
 	var inner = rect.grow(-10)
-	draw_rect(inner, Color(RH_GOLD.r, RH_GOLD.g, RH_GOLD.b, 0.20 + wave * 0.08))
-	draw_rect(inner, RH_GOLD, false, 3)
-	draw_texture_rect(RUBBERHOSE_ART["ticket"], Rect2(rect.get_center() + Vector2(-30, -20), Vector2(60, 40)), false)
+	draw_rect(inner, Color(1.0, 0.78, 0.18, 0.20 + wave * 0.08))
+	draw_rect(inner, COLOR_YELLOW, false, 3)
+	_draw_gacha_star(rect.get_center(), minf(rect.size.x, rect.size.y) * 0.18, COLOR_YELLOW)
 
 
 func _draw_gacha_card_glow(rect: Rect2, progress: float) -> void:
 	var alpha = maxf(0.0, 1.0 - progress)
-	draw_rect(rect.grow(8.0), Color(RH_GOLD.r, RH_GOLD.g, RH_GOLD.b, alpha * 0.22))
-	draw_rect(rect.grow(8.0), Color(RH_GOLD.r, RH_GOLD.g, RH_GOLD.b, alpha * 0.75), false, 4)
+	draw_rect(rect.grow(8.0), Color(COLOR_YELLOW.r, COLOR_YELLOW.g, COLOR_YELLOW.b, alpha * 0.22))
+	draw_rect(rect.grow(8.0), Color(COLOR_YELLOW.r, COLOR_YELLOW.g, COLOR_YELLOW.b, alpha * 0.75), false, 4)
 
 
 func _draw_gacha_star(center: Vector2, radius: float, color: Color) -> void:
@@ -1716,8 +1672,8 @@ func _draw_gacha_star(center: Vector2, radius: float, color: Color) -> void:
 func _draw_deck_screen() -> void:
 	_draw_background()
 	_draw_top_bar()
-	_draw_text_center("出战编组", Rect2(40, 68, 640, 58), 42, RH_PAPER_LIGHT)
-	_box(Rect2(34, 140, 652, 360), Color(RH_RED.r, RH_RED.g, RH_RED.b, 0.84), RH_INK, 5)
+	_draw_text_center("出战编组", Rect2(40, 68, 640, 58), 42, Color.WHITE)
+	_box(Rect2(34, 140, 652, 360), COLOR_PURPLE, COLOR_LINE, 5)
 	for i in range(DECK_SIZE):
 		var slot_rect = _deck_slot_rect(i)
 		var card_id = String(deck[i])
@@ -1725,9 +1681,9 @@ func _draw_deck_screen() -> void:
 		if pending_equip_card_id != "":
 			_draw_deck_slot_breath(slot_rect, i)
 	_draw_card_detail(Rect2(34, 520, 652, 128))
-	_draw_text_center("所有卡牌", Rect2(0, 670, DESIGN_SIZE.x, 42), 34, RH_PAPER_LIGHT)
+	_draw_text_center("所有卡牌", Rect2(0, 670, DESIGN_SIZE.x, 42), 34, Color.WHITE)
 	var collection_frame = _collection_frame_rect()
-	_box(collection_frame, Color(RH_OLIVE.r, RH_OLIVE.g, RH_OLIVE.b, 0.82), RH_INK, 4)
+	_box(collection_frame, Color(0.55, 0.78, 0.43), COLOR_LINE, 4)
 	var collection_view = _collection_view_rect()
 	var collection_cards = _available_collection_cards()
 	deck_scroll = clampf(deck_scroll, 0.0, _collection_max_scroll_for_count(collection_cards.size()))
@@ -1738,14 +1694,14 @@ func _draw_deck_screen() -> void:
 			continue
 		var card = collection_cards[i]
 		_draw_card_clipped(rect, card, String(card["id"]) == selected_card_id, collection_view)
-	draw_rect(collection_frame, RH_INK, false, 4)
+	draw_rect(collection_frame, COLOR_LINE, false, 4)
 
 
 func _draw_deck_slot_breath(rect: Rect2, index: int) -> void:
 	var wave = (sin(ui_time * TAU * 1.25 + float(index) * 0.45) + 1.0) * 0.5
 	var glow = rect.grow(5.0 + wave * 4.0)
-	var fill = Color(RH_GOLD.r, RH_GOLD.g, RH_GOLD.b, 0.10 + wave * 0.09)
-	var line = Color(RH_GOLD.r, RH_GOLD.g, RH_GOLD.b, 0.55 + wave * 0.30)
+	var fill = Color(COLOR_YELLOW.r, COLOR_YELLOW.g, COLOR_YELLOW.b, 0.10 + wave * 0.09)
+	var line = Color(COLOR_YELLOW.r, COLOR_YELLOW.g, COLOR_YELLOW.b, 0.55 + wave * 0.30)
 	draw_rect(glow, fill)
 	draw_rect(glow, line, false, 4.0)
 
@@ -1770,20 +1726,22 @@ func _draw_battle_screen() -> void:
 
 
 func _draw_background() -> void:
-	var background = RUBBERHOSE_ART["battle_background"] if screen == SCREEN_BATTLE else RUBBERHOSE_ART["lobby_background"]
-	draw_texture_rect(background, Rect2(Vector2.ZERO, DESIGN_SIZE), false)
-	draw_rect(Rect2(Vector2.ZERO, DESIGN_SIZE), Color(0.98, 0.88, 0.60, 0.05))
+	draw_rect(Rect2(Vector2.ZERO, DESIGN_SIZE), Color(0.60, 0.85, 0.50))
+	draw_rect(Rect2(0, 0, DESIGN_SIZE.x, 220), Color(0.68, 0.90, 0.60))
+	for i in range(12):
+		var x = 40.0 + fmod(float(i) * 96.0 + ui_time * 8.0, DESIGN_SIZE.x)
+		_grass(Vector2(x, 82.0 + float(i % 4) * 36.0))
 
 
 func _draw_top_bar() -> void:
-	_resource(Rect2(46, 18, 186, 44), "金币", str(gold), RH_GOLD)
-	_resource(Rect2(488, 18, 186, 44), "券", str(gacha_tickets), RH_GOLD)
+	_resource(Rect2(46, 18, 186, 44), "金币", str(gold), COLOR_YELLOW)
+	_resource(Rect2(488, 18, 186, 44), "券", str(gacha_tickets), COLOR_BLUE)
 
 
 func _draw_match_status() -> void:
 	var rect = Rect2(250, 18, 220, 44)
-	_box(rect, RH_PAPER, RH_INK, 3)
-	_draw_text_center(_match_status_text(), rect, 17, RH_INK)
+	_box(rect, Color(0.15, 0.12, 0.34, 0.92), COLOR_LINE, 3)
+	_draw_text_center(_match_status_text(), rect, 17, Color.WHITE)
 
 
 func _match_status_text() -> String:
@@ -1803,47 +1761,41 @@ func _rank_result_text() -> String:
 
 
 func _draw_nav() -> void:
-	draw_rect(Rect2(0, 1138, DESIGN_SIZE.x, 142), Color(0.25, 0.17, 0.12, 0.98))
-	draw_rect(Rect2(0, 1138, DESIGN_SIZE.x, 8), Color(RH_GOLD.r, RH_GOLD.g, RH_GOLD.b, 0.78))
+	draw_rect(Rect2(0, 1138, DESIGN_SIZE.x, 142), Color(0.24, 0.21, 0.58))
 	for i in range(NAV_ITEMS.size()):
 		var item = NAV_ITEMS[i]
 		var rect = _nav_rect(i)
 		var id = String(item["id"])
 		var active = (screen == id) or (screen == SCREEN_LOBBY and id == SCREEN_LOBBY)
-		_box(rect, RH_RED if active else RH_PAPER, RH_INK, 3)
+		_box(rect, COLOR_BLUE if active else COLOR_PURPLE, COLOR_LINE, 3)
 		_draw_nav_icon(rect, i, bool(item.get("locked", false)))
-		_draw_text_center(String(item["label"]), Rect2(rect.position + Vector2(0, 84), Vector2(rect.size.x, 34)), 23, RH_PAPER_LIGHT if active else RH_INK)
+		_draw_text_center(String(item["label"]), Rect2(rect.position + Vector2(0, 84), Vector2(rect.size.x, 34)), 23, Color.WHITE)
 
 
 func _draw_nav_icon(rect: Rect2, index: int, locked: bool) -> void:
 	var c = rect.position + Vector2(rect.size.x * 0.5, 42)
 	if index == 0:
-		_box(Rect2(c + Vector2(-28, -10), Vector2(56, 42)), RH_PAPER_LIGHT, RH_INK, 3)
-		draw_rect(Rect2(c + Vector2(-32, -28), Vector2(64, 20)), RH_RED)
+		_box(Rect2(c + Vector2(-28, -10), Vector2(56, 42)), Color(0.92, 0.74, 0.38), COLOR_LINE, 3)
+		draw_rect(Rect2(c + Vector2(-32, -28), Vector2(64, 20)), COLOR_RED)
 	elif index == 1:
-		_box(Rect2(c + Vector2(-28, -26), Vector2(46, 58)), RH_PAPER_LIGHT, RH_INK, 3)
-		_box(Rect2(c + Vector2(-8, -22), Vector2(46, 58)), RH_PAPER, RH_INK, 3)
+		_box(Rect2(c + Vector2(-28, -26), Vector2(46, 58)), COLOR_YELLOW, COLOR_LINE, 3)
+		_box(Rect2(c + Vector2(-8, -22), Vector2(46, 58)), Color(0.65, 0.28, 0.95), COLOR_LINE, 3)
 	elif index == 2:
-		draw_line(c + Vector2(-26, -22), c + Vector2(22, 22), RH_INK, 8, true)
-		draw_line(c + Vector2(26, -22), c + Vector2(-22, 22), RH_INK, 8, true)
-		draw_line(c + Vector2(-26, -22), c + Vector2(22, 22), RH_GOLD, 4, true)
-		draw_line(c + Vector2(26, -22), c + Vector2(-22, 22), RH_GOLD, 4, true)
+		draw_line(c + Vector2(-26, -22), c + Vector2(22, 22), Color.WHITE, 8, true)
+		draw_line(c + Vector2(26, -22), c + Vector2(-22, 22), Color.WHITE, 8, true)
 	elif index == 3:
-		draw_texture_rect(RUBBERHOSE_ART["ticket"], Rect2(c + Vector2(-28, -18), Vector2(56, 36)), false)
+		draw_circle(c, 30, COLOR_GOLD)
+		draw_circle(c, 18, Color(1.0, 0.95, 0.55))
+		_draw_text_center("抽", Rect2(c + Vector2(-24, -22), Vector2(48, 44)), 24, COLOR_LINE)
 	else:
-		for dx in [-15.0, 0.0, 15.0]:
-			draw_circle(c + Vector2(dx, 0), 5, RH_GOLD)
-			draw_arc(c + Vector2(dx, 0), 5.5, 0.0, TAU, 12, RH_INK, 1.5, true)
+		_box(Rect2(c + Vector2(-26, -24), Vector2(52, 52)), COLOR_ORANGE, COLOR_LINE, 3)
 	if locked:
 		_draw_lock(c + Vector2(34, -30))
 
 
 func _draw_board_frame() -> void:
-	_box(Rect2(36, 82, 648, 1038), Color(0.86, 0.73, 0.45, 0.88), RH_INK, 5)
-	_box(Rect2(64, 110, 592, 982), Color(0.50, 0.64, 0.35, 0.82), Color(0.23, 0.34, 0.18, 0.92), 4)
-	for i in range(8):
-		var y = 148.0 + float(i) * 112.0
-		draw_arc(Vector2(360, y + 90), 270.0, PI * 1.13, PI * 1.87, 52, Color(1.0, 0.91, 0.67, 0.25), 2.4, true)
+	_box(Rect2(36, 82, 648, 1038), Color(0.95, 0.80, 0.50), Color(0.37, 0.55, 0.25), 5)
+	_box(Rect2(64, 110, 592, 982), Color(0.62, 0.88, 0.45), Color(0.25, 0.48, 0.22), 4)
 
 
 func _draw_tile(key: Vector2i, tile: Dictionary) -> void:
@@ -1853,26 +1805,41 @@ func _draw_tile(key: Vector2i, tile: Dictionary) -> void:
 	var occupier = int(tile.get("occupier", team))
 	var territory_team = int(tile.get("territory_team", NEUTRAL))
 	var can_unlock = _can_unlock(key, PLAYER)
-	var visual_team = team if team != NEUTRAL else territory_team
-	var fill = Color(0.78, 0.66, 0.43, 0.54)
-	var line = Color(0.46, 0.36, 0.22, 0.50)
+	var fill = Color(0.88, 0.80, 0.58, 0.68)
+	var line = Color(0.61, 0.52, 0.35, 0.48)
 	var line_width = 2.0
-	if visual_team == PLAYER:
-		fill = RH_PLAYER
-		line = Color(0.20, 0.37, 0.19, 0.92)
+	if team == PLAYER:
+		fill = Color(0.49, 0.80, 0.39)
+		line = fill.darkened(0.34)
 		line_width = 3.0
-	elif visual_team == ENEMY:
-		fill = RH_ENEMY
-		line = Color(0.41, 0.12, 0.10, 0.92)
+	elif team == ENEMY:
+		fill = Color(0.95, 0.43, 0.39)
+		line = fill.darkened(0.34)
 		line_width = 3.0
-	if can_unlock:
-		line = RH_GOLD if gold >= int(tile["site_cost"]) else Color(0.52, 0.45, 0.34)
+	elif can_unlock:
+		if territory_team == PLAYER:
+			fill = Color(COLOR_GREEN.r, COLOR_GREEN.g, COLOR_GREEN.b, 0.30)
+		elif territory_team == ENEMY:
+			fill = Color(COLOR_RED.r, COLOR_RED.g, COLOR_RED.b, 0.28)
+		else:
+			fill = Color(0.88, 0.80, 0.58, 0.68)
+		line = COLOR_YELLOW if gold >= int(tile["site_cost"]) else Color(0.78, 0.72, 0.62)
 		line_width = 4.0
-	elif visual_team == NEUTRAL and occupier == PLAYER:
-		line = RH_PLAYER.darkened(0.24)
+	elif territory_team == PLAYER:
+		fill = Color(COLOR_GREEN.r, COLOR_GREEN.g, COLOR_GREEN.b, 0.24)
+		line = COLOR_GREEN.darkened(0.28)
+		line.a = 0.58
+		line_width = 2.4
+	elif territory_team == ENEMY:
+		fill = Color(COLOR_RED.r, COLOR_RED.g, COLOR_RED.b, 0.22)
+		line = COLOR_RED.darkened(0.22)
+		line.a = 0.58
+		line_width = 2.4
+	elif occupier == PLAYER:
+		line = COLOR_GREEN.darkened(0.24)
 		line_width = 3.0
-	elif visual_team == NEUTRAL and occupier == ENEMY:
-		line = RH_RED.darkened(0.24)
+	elif occupier == ENEMY:
+		line = COLOR_RED.darkened(0.24)
 		line_width = 3.0
 	draw_polygon(points, PackedColorArray([fill, fill, fill, fill, fill, fill]))
 	draw_polyline(_closed_points(points), line, line_width)
@@ -1890,21 +1857,26 @@ func _draw_site(center: Vector2, tile: Dictionary) -> void:
 
 func _draw_site_icon(center: Vector2, tile: Dictionary) -> void:
 	var site = String(tile.get("site", ""))
+	var ink = Color(0.07, 0.09, 0.14, 0.88)
+	var shadow = Color(0, 0, 0, 0.16)
 	match site:
 		"mystery":
-			_draw_theme_texture("question", Rect2(center + Vector2(-28, -34), Vector2(56, 56)))
+			_draw_mystery_site_icon(center, ink, shadow)
 		"tower":
-			_draw_theme_texture("tower", Rect2(center + Vector2(-27, -42), Vector2(54, 64)))
+			_draw_quality_tower(center, _tile_visual_rarity(tile), false)
 		"mine":
-			_draw_theme_texture("mine", Rect2(center + Vector2(-31, -35), Vector2(62, 56)))
+			_draw_mine_site_icon(center, ink, shadow)
 		_:
-			_draw_theme_texture("base", Rect2(center + Vector2(-29, -35), Vector2(58, 54)))
+			_draw_quality_camp(center, _tile_visual_rarity(tile), false)
 
 
 func _draw_site_cost(center: Vector2, cost: int, affordable: bool) -> void:
-	var text_color = RH_INK if affordable else Color(0.50, 0.27, 0.16)
+	var coin_color = COLOR_YELLOW if affordable else Color(0.84, 0.64, 0.28)
+	var text_color = COLOR_LINE if affordable else Color(0.50, 0.27, 0.16)
 	var coin_center = center + Vector2(-15, 0)
-	draw_texture_rect(RUBBERHOSE_ART["coin"], Rect2(coin_center + Vector2(-9, -9), Vector2(18, 18)), false)
+	draw_circle(coin_center + Vector2(0, 2), 6.0, Color(0, 0, 0, 0.16))
+	draw_circle(coin_center, 6.0, coin_color)
+	draw_arc(coin_center, 6.8, 0.0, TAU, 18, COLOR_LINE, 1.4, true)
 	var size = 15 if cost < 100 else 14
 	_draw_text_center(str(cost), Rect2(center + Vector2(-2, -12), Vector2(38, 22)), size, text_color)
 
@@ -2008,17 +1980,17 @@ func _draw_simple_building_symbol(center: Vector2, symbol: String, rarity: Strin
 
 func _draw_building(center: Vector2, tile: Dictionary) -> void:
 	var building = String(tile["building"])
-	var size = Vector2(64, 58)
-	if building == "base":
-		size = Vector2(78, 70)
+	if building == "barracks" or building == "hall":
+		_draw_quality_camp(center + Vector2(0, -7), _building_visual_rarity(tile), true)
 	elif building == "tower":
-		size = Vector2(56, 76)
+		_draw_quality_tower(center + Vector2(0, -7), _building_visual_rarity(tile), true)
 	elif building == "mine":
-		size = Vector2(68, 58)
-	elif building == "barracks" or building == "hall":
-		size = Vector2(62, 56)
-	draw_circle(center + Vector2(0, 20), size.x * 0.32, Color(0, 0, 0, 0.18))
-	draw_texture_rect(_building_texture(building), Rect2(center - size * 0.5 + Vector2(0, -10), size), false)
+		_draw_quality_mine(center + Vector2(0, -7), true)
+	else:
+		var size = Vector2(66, 66)
+		if building == "base":
+			size = Vector2(78, 78)
+		draw_texture_rect(_building_texture(building), Rect2(center - size * 0.5 + Vector2(0, -8), size), false)
 	if building == "barracks" or building == "hall":
 		_draw_building_summon_progress(center, tile)
 	_draw_building_health_bar(center, tile)
@@ -2031,7 +2003,7 @@ func _draw_building_summon_progress(center: Vector2, tile: Dictionary) -> void:
 		return
 	var remaining = clampf(float(tile.get("spawn_timer", 0.0)), 0.0, delay)
 	var pct = clampf(1.0 - remaining / delay, 0.0, 1.0)
-	_draw_compact_bar(Rect2(center + Vector2(-21, 19), Vector2(42, 5)), pct, RH_GOLD)
+	_draw_compact_bar(Rect2(center + Vector2(-21, 19), Vector2(42, 5)), pct, COLOR_YELLOW)
 
 
 func _draw_building_health_bar(center: Vector2, tile: Dictionary) -> void:
@@ -2044,10 +2016,10 @@ func _draw_building_health_bar(center: Vector2, tile: Dictionary) -> void:
 
 func _draw_compact_bar(rect: Rect2, pct: float, fill: Color) -> void:
 	var clamped_pct = clampf(pct, 0.0, 1.0)
-	draw_rect(rect, Color(0.13, 0.10, 0.07, 0.78))
+	draw_rect(rect, Color(0.04, 0.05, 0.08, 0.78))
 	if clamped_pct > 0.0:
 		draw_rect(Rect2(rect.position + Vector2(1, 1), Vector2((rect.size.x - 2.0) * clamped_pct, rect.size.y - 2.0)), fill)
-	draw_rect(rect, RH_INK, false, 1.0)
+	draw_rect(rect, COLOR_LINE, false, 1.0)
 
 
 func _building_visual_rarity(tile: Dictionary) -> String:
@@ -2087,10 +2059,10 @@ func _draw_unit(unit: Dictionary) -> void:
 
 func _team_health_color(team: int) -> Color:
 	if team == PLAYER:
-		return RH_OLIVE
+		return COLOR_GREEN
 	if team == ENEMY:
-		return RH_RED
-	return RH_GOLD
+		return COLOR_RED
+	return COLOR_YELLOW
 
 
 func _tile_display_card(tile: Dictionary) -> Dictionary:
@@ -2139,7 +2111,7 @@ func _draw_effect(effect: Dictionary) -> void:
 
 func _draw_selection_panel() -> void:
 	var rect = Rect2(26, 1132, 668, 118)
-	_box(rect, RH_PAPER, RH_INK, 4)
+	_box(rect, Color(0.12, 0.10, 0.31, 0.92), Color(0.30, 0.28, 0.62), 4)
 	if _draw_selected_tile_card_panel(rect):
 		return
 	var title = "点击与己方地块接壤的卡牌地块解锁"
@@ -2189,10 +2161,10 @@ func _draw_selection_panel() -> void:
 		else:
 			title = "未连接地块"
 			detail = "先扩张到相邻地块。"
-	_draw_text_fit(title, Rect2(rect.position + Vector2(24, 14), Vector2(620, 32)), 24, RH_INK)
-	_draw_text_fit(detail, Rect2(rect.position + Vector2(24, 52), Vector2(620, 26)), 19, RH_INK_SOFT)
+	_draw_text_fit(title, Rect2(rect.position + Vector2(24, 14), Vector2(620, 32)), 24, Color.WHITE)
+	_draw_text_fit(detail, Rect2(rect.position + Vector2(24, 52), Vector2(620, 26)), 19, Color(0.84, 0.88, 1.0))
 	if detail_extra != "":
-		_draw_text_fit(detail_extra, Rect2(rect.position + Vector2(24, 80), Vector2(620, 24)), 18, RH_RED)
+		_draw_text_fit(detail_extra, Rect2(rect.position + Vector2(24, 80), Vector2(620, 24)), 18, Color(0.78, 0.86, 1.0))
 
 
 func _draw_selected_tile_card_panel(rect: Rect2) -> bool:
@@ -2217,30 +2189,30 @@ func _draw_tile_card_summary(rect: Rect2, tile: Dictionary, card: Dictionary) ->
 	var stats = _card_stats_for_team(card, team)
 	var title = String(card.get("name", "卡牌"))
 	var level = _card_level_for_team(card_id, team)
-	_draw_text_fit("%s  %s Lv.%d" % [_rarity_label(String(card.get("rarity", "common"))), title, level], Rect2(rect.position, Vector2(rect.size.x, 28)), 23, RH_INK)
+	_draw_text_fit("%s  %s Lv.%d" % [_rarity_label(String(card.get("rarity", "common"))), title, level], Rect2(rect.position, Vector2(rect.size.x, 28)), 23, Color.WHITE)
 	if kind == CARD_KIND_MINE:
-		_draw_text_fit("金矿卡  生命%d  每%d秒 +%d金币" % [int(stats["max_hp"]), int(INCOME_INTERVAL), MINE_INCOME], Rect2(rect.position + Vector2(0, 34), Vector2(rect.size.x, 24)), 19, RH_INK_SOFT)
-		_draw_text_fit("金矿不产兵，只提供经济收入。", Rect2(rect.position + Vector2(0, 62), Vector2(rect.size.x, 24)), 17, RH_INK_SOFT)
+		_draw_text_fit("金矿卡  生命%d  每%d秒 +%d金币" % [int(stats["max_hp"]), int(INCOME_INTERVAL), MINE_INCOME], Rect2(rect.position + Vector2(0, 34), Vector2(rect.size.x, 24)), 19, Color(0.84, 0.88, 1.0))
+		_draw_text_fit("金矿不产兵，只提供经济收入。", Rect2(rect.position + Vector2(0, 62), Vector2(rect.size.x, 24)), 17, Color(0.78, 0.86, 1.0))
 	elif kind == CARD_KIND_DEFENSE:
-		_draw_text_fit("防御塔卡  攻%d  生命%d  射程%s  冷却%.1fs" % [int(stats["attack"]), int(stats["max_hp"]), _attack_range_label(float(stats["attack_range"])), float(stats["summon_interval_sec"])], Rect2(rect.position + Vector2(0, 34), Vector2(rect.size.x, 24)), 18, RH_INK_SOFT)
-		_draw_text_fit(_card_skill_text(card), Rect2(rect.position + Vector2(0, 62), Vector2(rect.size.x, 24)), 17, RH_INK_SOFT)
+		_draw_text_fit("防御塔卡  攻%d  生命%d  射程%s  冷却%.1fs" % [int(stats["attack"]), int(stats["max_hp"]), _attack_range_label(float(stats["attack_range"])), float(stats["summon_interval_sec"])], Rect2(rect.position + Vector2(0, 34), Vector2(rect.size.x, 24)), 18, Color(0.84, 0.88, 1.0))
+		_draw_text_fit(_card_skill_text(card), Rect2(rect.position + Vector2(0, 62), Vector2(rect.size.x, 24)), 17, Color(0.78, 0.86, 1.0))
 	else:
-		_draw_text_fit("动物营地  攻%d  生命%d  速度%d  射程%s" % [int(stats["attack"]), int(stats["max_hp"]), roundi(float(stats["move_speed"]) * UNIT_MOVE_SPEED_MULT), _attack_range_label(float(stats["attack_range"]))], Rect2(rect.position + Vector2(0, 34), Vector2(rect.size.x, 24)), 18, RH_INK_SOFT)
-		_draw_text_fit(_card_skill_text(card), Rect2(rect.position + Vector2(0, 62), Vector2(rect.size.x, 24)), 17, RH_INK_SOFT)
+		_draw_text_fit("动物营地  攻%d  生命%d  速度%d  射程%s" % [int(stats["attack"]), int(stats["max_hp"]), roundi(float(stats["move_speed"]) * UNIT_MOVE_SPEED_MULT), _attack_range_label(float(stats["attack_range"]))], Rect2(rect.position + Vector2(0, 34), Vector2(rect.size.x, 24)), 18, Color(0.84, 0.88, 1.0))
+		_draw_text_fit(_card_skill_text(card), Rect2(rect.position + Vector2(0, 62), Vector2(rect.size.x, 24)), 17, Color(0.78, 0.86, 1.0))
 
 
 func _draw_pause_button() -> void:
 	var rect = _pause_button_rect()
-	_box(rect, RH_PAPER_LIGHT, RH_INK, 3)
-	draw_rect(Rect2(rect.position + Vector2(19, 15), Vector2(8, 26)), RH_INK)
-	draw_rect(Rect2(rect.position + Vector2(35, 15), Vector2(8, 26)), RH_INK)
+	_box(rect, Color(1, 1, 1, 0.92), COLOR_LINE, 3)
+	draw_rect(Rect2(rect.position + Vector2(19, 15), Vector2(8, 26)), COLOR_LINE)
+	draw_rect(Rect2(rect.position + Vector2(35, 15), Vector2(8, 26)), COLOR_LINE)
 
 
 func _draw_pause_overlay() -> void:
 	draw_rect(Rect2(Vector2.ZERO, DESIGN_SIZE), Color(0, 0, 0, 0.48))
 	var panel = Rect2(120, 430, 480, 330)
-	_box(panel, RH_PAPER_LIGHT, RH_INK, 5)
-	_draw_text_center("战斗暂停", Rect2(panel.position + Vector2(0, 38), Vector2(panel.size.x, 52)), 38, RH_INK)
+	_box(panel, Color(1.0, 0.96, 0.78), COLOR_LINE, 5)
+	_draw_text_center("战斗暂停", Rect2(panel.position + Vector2(0, 38), Vector2(panel.size.x, 52)), 38, COLOR_LINE)
 	_cta(_pause_continue_rect(), "继续战斗", true)
 	_cta(_pause_exit_rect(), "退出战斗", false)
 
@@ -2248,27 +2220,25 @@ func _draw_pause_overlay() -> void:
 func _draw_result_overlay() -> void:
 	draw_rect(Rect2(Vector2.ZERO, DESIGN_SIZE), Color(0, 0, 0, 0.42))
 	var panel = Rect2(110, 420, 500, 340)
-	_box(panel, RH_PAPER_LIGHT, RH_INK, 5)
-	_draw_text_center(result_text, Rect2(panel.position + Vector2(0, 48), Vector2(panel.size.x, 68)), 52, RH_GOLD if result_text == "胜利" else RH_RED)
+	_box(panel, Color(1.0, 0.96, 0.78), COLOR_LINE, 5)
+	_draw_text_center(result_text, Rect2(panel.position + Vector2(0, 48), Vector2(panel.size.x, 68)), 52, COLOR_YELLOW if result_text == "胜利" else COLOR_RED)
 	var reward_tickets = last_battle_reward_tickets if last_battle_reward_tickets > 0 else _battle_reward_tickets(result_text)
-	_draw_text_center("奖励：+%d 抽卡券" % reward_tickets, Rect2(panel.position + Vector2(0, 128), Vector2(panel.size.x, 36)), 24, RH_INK)
-	_draw_text_center(_rank_result_text(), Rect2(panel.position + Vector2(0, 170), Vector2(panel.size.x, 36)), 24, RH_RED)
-	_draw_text_center("点击任意位置返回主界面", Rect2(panel.position + Vector2(0, 220), Vector2(panel.size.x, 40)), 24, RH_INK)
+	_draw_text_center("奖励：+%d 抽卡券" % reward_tickets, Rect2(panel.position + Vector2(0, 128), Vector2(panel.size.x, 36)), 24, COLOR_LINE)
+	_draw_text_center(_rank_result_text(), Rect2(panel.position + Vector2(0, 170), Vector2(panel.size.x, 36)), 24, COLOR_PURPLE)
+	_draw_text_center("点击任意位置返回主界面", Rect2(panel.position + Vector2(0, 220), Vector2(panel.size.x, 40)), 24, COLOR_LINE)
 
 
 func _draw_card(rect: Rect2, card: Dictionary, selected: bool) -> void:
 	if card.is_empty():
-		_box(rect, Color(0.35, 0.33, 0.28), RH_INK, 4)
-		_draw_text_center("空", rect, 18, RH_PAPER_LIGHT)
+		_box(rect, Color(0.35, 0.36, 0.40), COLOR_LINE, 4)
+		_draw_text_center("空", rect, 18, Color.WHITE)
 		return
 	var owned = _card_total_count(String(card.get("id", ""))) > 0
 	var fill = _rarity_color(String(card.get("rarity", "common")))
-	_box(rect, RH_PAPER_LIGHT if owned else Color(0.32, 0.32, 0.27), RH_INK, 4)
+	_box(rect, fill.darkened(0.06) if owned else Color(0.35, 0.36, 0.40), COLOR_LINE, 4)
 	if selected:
-		_box(rect.grow(5), Color(RH_GOLD.r, RH_GOLD.g, RH_GOLD.b, 0.28), RH_GOLD, 4)
-	draw_rect(Rect2(rect.position + Vector2(8, 7), Vector2(rect.size.x - 16, 23)), fill.darkened(0.05), true)
-	draw_rect(Rect2(rect.position + Vector2(8, 7), Vector2(rect.size.x - 16, 23)), RH_INK, false, 2)
-	var tint = Color.WHITE if owned else Color(0.35, 0.35, 0.35, 0.86)
+		_box(rect.grow(5), Color(1.0, 0.91, 0.22, 0.28), COLOR_YELLOW, 4)
+	var tint = Color.WHITE if owned else Color(0.35, 0.35, 0.35, 0.85)
 	var card_id = String(card.get("id", ""))
 	var name_rect = Rect2(rect.position + Vector2(8, rect.size.y - 48), Vector2(rect.size.x - 16, 22))
 	var progress_rect = Rect2(rect.position + Vector2(12, rect.size.y - 22), Vector2(rect.size.x - 24, 14))
@@ -2277,12 +2247,12 @@ func _draw_card(rect: Rect2, card: Dictionary, selected: bool) -> void:
 	var art_size = minf(rect.size.x - 30.0, maxf(44.0, art_bottom - art_top))
 	var art_rect = Rect2(Vector2(rect.position.x + (rect.size.x - art_size) * 0.5, art_top), Vector2(art_size, art_size))
 	draw_texture_rect(_card_texture(card), art_rect, false, tint)
-	_box(name_rect, Color(0.16, 0.12, 0.09, 0.42), Color(1, 1, 1, 0.18), 1)
+	_box(name_rect, Color(0, 0, 0, 0.30), Color(1, 1, 1, 0.18), 1)
 	if owned:
-		_draw_text_center("Lv.%d  %s" % [_card_level(card_id), String(card.get("name", ""))], name_rect, 15, RH_PAPER_LIGHT)
+		_draw_text_center("Lv.%d  %s" % [_card_level(card_id), String(card.get("name", ""))], name_rect, 15, Color.WHITE)
 		_draw_upgrade_progress(progress_rect, card_id, false)
 	else:
-		_draw_text_center("未拥有", name_rect, 15, RH_PAPER_LIGHT)
+		_draw_text_center("未拥有", name_rect, 15, Color.WHITE)
 		_draw_empty_progress(progress_rect)
 
 
@@ -2290,16 +2260,14 @@ func _draw_card_clipped(rect: Rect2, card: Dictionary, selected: bool, clip_rect
 	if not rect.intersects(clip_rect, true):
 		return
 	if card.is_empty():
-		_box_clipped(rect, Color(0.35, 0.33, 0.28), RH_INK, 4, clip_rect)
-		_draw_text_center_clipped("空", rect, 18, RH_PAPER_LIGHT, clip_rect)
+		_box_clipped(rect, Color(0.35, 0.36, 0.40), COLOR_LINE, 4, clip_rect)
+		_draw_text_center_clipped("空", rect, 18, Color.WHITE, clip_rect)
 		return
 	var owned = _card_total_count(String(card.get("id", ""))) > 0
 	var fill = _rarity_color(String(card.get("rarity", "common")))
-	_box_clipped(rect, RH_PAPER_LIGHT if owned else Color(0.32, 0.32, 0.27), RH_INK, 4, clip_rect)
+	_box_clipped(rect, fill.darkened(0.06) if owned else Color(0.35, 0.36, 0.40), COLOR_LINE, 4, clip_rect)
 	if selected:
-		_box_clipped(rect.grow(5), Color(RH_GOLD.r, RH_GOLD.g, RH_GOLD.b, 0.28), RH_GOLD, 4, clip_rect)
-	_draw_rect_clipped(Rect2(rect.position + Vector2(8, 7), Vector2(rect.size.x - 16, 23)), fill.darkened(0.05), clip_rect)
-	_draw_rect_outline_clipped(Rect2(rect.position + Vector2(8, 7), Vector2(rect.size.x - 16, 23)), RH_INK, 2, clip_rect)
+		_box_clipped(rect.grow(5), Color(1.0, 0.91, 0.22, 0.28), COLOR_YELLOW, 4, clip_rect)
 	var tint = Color.WHITE if owned else Color(0.35, 0.35, 0.35, 0.85)
 	var card_id = String(card.get("id", ""))
 	var name_rect = Rect2(rect.position + Vector2(8, rect.size.y - 48), Vector2(rect.size.x - 16, 22))
@@ -2309,12 +2277,12 @@ func _draw_card_clipped(rect: Rect2, card: Dictionary, selected: bool, clip_rect
 	var art_size = minf(rect.size.x - 30.0, maxf(44.0, art_bottom - art_top))
 	var art_rect = Rect2(Vector2(rect.position.x + (rect.size.x - art_size) * 0.5, art_top), Vector2(art_size, art_size))
 	_draw_texture_rect_clipped(_card_texture(card), art_rect, clip_rect, tint)
-	_box_clipped(name_rect, Color(0.16, 0.12, 0.09, 0.42), Color(1, 1, 1, 0.18), 1, clip_rect)
+	_box_clipped(name_rect, Color(0, 0, 0, 0.30), Color(1, 1, 1, 0.18), 1, clip_rect)
 	if owned:
-		_draw_text_center_clipped("Lv.%d  %s" % [_card_level(card_id), String(card.get("name", ""))], name_rect, 15, RH_PAPER_LIGHT, clip_rect)
+		_draw_text_center_clipped("Lv.%d  %s" % [_card_level(card_id), String(card.get("name", ""))], name_rect, 15, Color.WHITE, clip_rect)
 		_draw_upgrade_progress_clipped(progress_rect, card_id, false, clip_rect)
 	else:
-		_draw_text_center_clipped("未拥有", name_rect, 15, RH_PAPER_LIGHT, clip_rect)
+		_draw_text_center_clipped("未拥有", name_rect, 15, Color.WHITE, clip_rect)
 		_draw_empty_progress_clipped(progress_rect, clip_rect)
 
 
@@ -2324,7 +2292,7 @@ func _draw_card_detail(rect: Rect2) -> void:
 	if detail_pulse_timer > 0.0:
 		var progress = 1.0 - detail_pulse_timer / DETAIL_PULSE_SECONDS
 		pop = sin(progress * PI) * 6.0
-	_box(rect.grow(pop), RH_PAPER_LIGHT, RH_INK, 3)
+	_box(rect.grow(pop), Color(1, 1, 1, 0.92), COLOR_LINE, 3)
 	if card.is_empty():
 		return
 	var card_id = String(card["id"])
@@ -2333,26 +2301,26 @@ func _draw_card_detail(rect: Rect2) -> void:
 	var art_rect = Rect2(rect.position + Vector2(20, 12), Vector2(88, 78))
 	var name_rect = Rect2(rect.position + Vector2(14, 92), Vector2(104, 28))
 	draw_texture_rect(_card_texture(card), art_rect, false)
-	_box(name_rect, rarity_fill.darkened(0.16), RH_INK, 1)
-	_draw_text_center("Lv.%d  %s" % [_card_level(card_id), String(card.get("name", ""))], name_rect, 15, RH_PAPER_LIGHT)
+	_box(name_rect, rarity_fill.darkened(0.16), Color(1, 1, 1, 0.18), 1)
+	_draw_text_center("Lv.%d  %s" % [_card_level(card_id), String(card.get("name", ""))], name_rect, 15, Color.WHITE)
 	var kind = _card_kind(card)
 	if kind == CARD_KIND_MINE:
 		_draw_detail_stat_icon_value(rect.position + Vector2(142, 18), "hp", str(int(stats["max_hp"])), COLOR_RED)
 		_draw_detail_stat_icon_value(rect.position + Vector2(242, 18), "gold", "+%d" % MINE_INCOME, COLOR_GOLD)
-		_draw_text_center("%d秒" % int(INCOME_INTERVAL), Rect2(rect.position + Vector2(342, 20), Vector2(72, 28)), 18, RH_INK)
+		_draw_text_center("%d秒" % int(INCOME_INTERVAL), Rect2(rect.position + Vector2(342, 20), Vector2(72, 28)), 18, COLOR_LINE)
 	elif kind == CARD_KIND_DEFENSE:
 		_draw_detail_stat_icon_value(rect.position + Vector2(142, 18), "attack", str(int(stats["attack"])), COLOR_RED)
 		_draw_detail_stat_icon_value(rect.position + Vector2(232, 18), "hp", str(int(stats["max_hp"])), COLOR_RED)
-		_draw_text_center(_attack_range_label(float(stats["attack_range"])), Rect2(rect.position + Vector2(330, 20), Vector2(72, 28)), 18, RH_INK)
-		_draw_text_center("%.1fs" % float(stats["summon_interval_sec"]), Rect2(rect.position + Vector2(424, 20), Vector2(72, 28)), 18, RH_INK)
+		_draw_text_center(_attack_range_label(float(stats["attack_range"])), Rect2(rect.position + Vector2(330, 20), Vector2(72, 28)), 18, COLOR_LINE)
+		_draw_text_center("%.1fs" % float(stats["summon_interval_sec"]), Rect2(rect.position + Vector2(424, 20), Vector2(72, 28)), 18, COLOR_LINE)
 	else:
 		_draw_detail_stat_icon_value(rect.position + Vector2(142, 18), "attack", str(int(stats["attack"])), COLOR_RED)
 		_draw_detail_stat_icon_value(rect.position + Vector2(232, 18), "hp", str(int(stats["max_hp"])), COLOR_RED)
-		_draw_detail_stat_icon_value(rect.position + Vector2(330, 18), "speed", str(roundi(float(stats["move_speed"]))), RH_OLIVE)
-		_draw_text_center(_attack_range_label(float(stats["attack_range"])), Rect2(rect.position + Vector2(434, 20), Vector2(72, 28)), 18, RH_INK)
+		_draw_detail_stat_icon_value(rect.position + Vector2(330, 18), "speed", str(roundi(float(stats["move_speed"]))), COLOR_BLUE)
+		_draw_text_center(_attack_range_label(float(stats["attack_range"])), Rect2(rect.position + Vector2(434, 20), Vector2(72, 28)), 18, COLOR_LINE)
 	var skill_text = _card_detail_skill_text(card)
 	if skill_text != "":
-		_draw_text_center(skill_text, Rect2(rect.position + Vector2(138, 56), Vector2(370, 28)), 16, RH_RED)
+		_draw_text_center(skill_text, Rect2(rect.position + Vector2(138, 56), Vector2(370, 28)), 16, COLOR_PURPLE)
 	var cost = _next_upgrade_cost(card_id)
 	_draw_upgrade_progress(Rect2(rect.position + Vector2(138, 92), Vector2(352, 18)), card_id, true)
 	if _can_show_equip_button(card_id):
@@ -2384,7 +2352,7 @@ func _draw_detail_stat_icon_value(pos: Vector2, icon: String, value: String, col
 			_draw_boot_icon(center, color)
 		"gold":
 			_draw_coin_icon(center, color)
-	_draw_text_fit(value, Rect2(pos + Vector2(32, 0), Vector2(54, 28)), 18, RH_INK)
+	_draw_text_fit(value, Rect2(pos + Vector2(32, 0), Vector2(54, 28)), 18, COLOR_LINE)
 
 
 func _draw_paw_icon(center: Vector2, color: Color) -> void:
@@ -2421,7 +2389,9 @@ func _draw_boot_icon(center: Vector2, color: Color) -> void:
 
 
 func _draw_coin_icon(center: Vector2, color: Color) -> void:
-	draw_texture_rect(RUBBERHOSE_ART["coin"], Rect2(center + Vector2(-12, -12), Vector2(24, 24)), false)
+	draw_circle(center, 11.0, color)
+	draw_circle(center, 6.2, color.lightened(0.28))
+	draw_arc(center, 11.4, 0.0, TAU, 20, COLOR_LINE, 2.0, true)
 
 
 func _draw_upgrade_progress(rect: Rect2, card_id: String, show_label: bool) -> void:
@@ -2429,25 +2399,25 @@ func _draw_upgrade_progress(rect: Rect2, card_id: String, show_label: bool) -> v
 	var cost = _next_upgrade_cost(card_id)
 	var max_value = max(1, cost)
 	var pct = 1.0 if cost < 0 else clampf(float(spare) / float(max_value), 0.0, 1.0)
-	var fill = RH_OLIVE if cost >= 0 and spare >= cost else RH_GOLD
+	var fill = COLOR_GREEN if cost >= 0 and spare >= cost else Color(0.26, 0.54, 0.92)
 	if cost < 0:
-		fill = RH_GOLD
+		fill = COLOR_GOLD
 	draw_rect(Rect2(rect.position + Vector2(0, 3), rect.size), Color(0, 0, 0, 0.22))
-	draw_rect(rect, Color(0.13, 0.10, 0.07, 0.82))
+	draw_rect(rect, Color(0.08, 0.10, 0.18, 0.82))
 	var inner = Rect2(rect.position + Vector2(3, 3), rect.size - Vector2(6, 6))
 	if inner.size.x > 0.0 and inner.size.y > 0.0:
 		draw_rect(Rect2(inner.position, Vector2(inner.size.x * pct, inner.size.y)), fill)
-	draw_rect(rect, RH_INK, false, 2)
+	draw_rect(rect, COLOR_LINE, false, 2)
 	if show_label:
 		var label = "满级" if cost < 0 else "%d/%d" % [spare, cost]
 		var label_size = 13 if rect.size.y <= 18.0 else 16
-		_draw_text_center(label, rect, label_size, RH_PAPER_LIGHT)
+		_draw_text_center(label, rect, label_size, Color.WHITE)
 
 
 func _draw_empty_progress(rect: Rect2) -> void:
 	draw_rect(Rect2(rect.position + Vector2(0, 3), rect.size), Color(0, 0, 0, 0.18))
-	draw_rect(rect, Color(0.13, 0.10, 0.07, 0.55))
-	draw_rect(rect, RH_INK, false, 2)
+	draw_rect(rect, Color(0.08, 0.10, 0.18, 0.55))
+	draw_rect(rect, COLOR_LINE, false, 2)
 
 
 func _draw_upgrade_progress_clipped(rect: Rect2, card_id: String, show_label: bool, clip_rect: Rect2) -> void:
@@ -2455,41 +2425,32 @@ func _draw_upgrade_progress_clipped(rect: Rect2, card_id: String, show_label: bo
 	var cost = _next_upgrade_cost(card_id)
 	var max_value = max(1, cost)
 	var pct = 1.0 if cost < 0 else clampf(float(spare) / float(max_value), 0.0, 1.0)
-	var fill = RH_OLIVE if cost >= 0 and spare >= cost else RH_GOLD
+	var fill = COLOR_GREEN if cost >= 0 and spare >= cost else Color(0.26, 0.54, 0.92)
 	if cost < 0:
-		fill = RH_GOLD
+		fill = COLOR_GOLD
 	_draw_rect_clipped(Rect2(rect.position + Vector2(0, 3), rect.size), Color(0, 0, 0, 0.22), clip_rect)
-	_draw_rect_clipped(rect, Color(0.13, 0.10, 0.07, 0.82), clip_rect)
+	_draw_rect_clipped(rect, Color(0.08, 0.10, 0.18, 0.82), clip_rect)
 	var inner = Rect2(rect.position + Vector2(3, 3), rect.size - Vector2(6, 6))
 	if inner.size.x > 0.0 and inner.size.y > 0.0:
 		_draw_rect_clipped(Rect2(inner.position, Vector2(inner.size.x * pct, inner.size.y)), fill, clip_rect)
-	_draw_rect_outline_clipped(rect, RH_INK, 2, clip_rect)
+	_draw_rect_outline_clipped(rect, COLOR_LINE, 2, clip_rect)
 	if show_label:
 		var label = "满级" if cost < 0 else "%d/%d" % [spare, cost]
 		var label_size = 13 if rect.size.y <= 18.0 else 16
-		_draw_text_center_clipped(label, rect, label_size, RH_PAPER_LIGHT, clip_rect)
+		_draw_text_center_clipped(label, rect, label_size, Color.WHITE, clip_rect)
 
 
 func _draw_empty_progress_clipped(rect: Rect2, clip_rect: Rect2) -> void:
 	_draw_rect_clipped(Rect2(rect.position + Vector2(0, 3), rect.size), Color(0, 0, 0, 0.18), clip_rect)
-	_draw_rect_clipped(rect, Color(0.13, 0.10, 0.07, 0.55), clip_rect)
-	_draw_rect_outline_clipped(rect, RH_INK, 2, clip_rect)
+	_draw_rect_clipped(rect, Color(0.08, 0.10, 0.18, 0.55), clip_rect)
+	_draw_rect_outline_clipped(rect, COLOR_LINE, 2, clip_rect)
 
 
 func _box_clipped(rect: Rect2, fill: Color, line: Color, width: float, clip_rect: Rect2) -> void:
-	_draw_rect_clipped(Rect2(rect.position + Vector2(4, 7), rect.size), Color(0, 0, 0, 0.22), clip_rect)
+	_draw_rect_clipped(Rect2(rect.position + Vector2(0, 5), rect.size), Color(0, 0, 0, 0.20), clip_rect)
 	_draw_rect_clipped(rect, fill, clip_rect)
 	if width > 0.0 and line.a > 0.0:
 		_draw_rect_outline_clipped(rect, line, width, clip_rect)
-	if rect.size.y >= 24.0:
-		_draw_rect_clipped(Rect2(rect.position + Vector2(9, 8), Vector2(maxf(0.0, rect.size.x - 18.0), 5)), Color(1.0, 1.0, 1.0, 0.16), clip_rect)
-		_draw_rect_clipped(Rect2(rect.position + Vector2(12, rect.size.y - 8), Vector2(maxf(0.0, rect.size.x - 24.0), 2)), Color(RH_INK.r, RH_INK.g, RH_INK.b, 0.16), clip_rect)
-
-
-func _draw_theme_texture(key: String, rect: Rect2, tint: Color = Color.WHITE) -> void:
-	if not RUBBERHOSE_ART.has(key):
-		return
-	draw_texture_rect(RUBBERHOSE_ART[key], rect, false, tint)
 
 
 func _draw_texture_rect_clipped(texture: Texture2D, rect: Rect2, clip_rect: Rect2, tint: Color = Color.WHITE) -> void:
@@ -2556,33 +2517,27 @@ func _draw_toast() -> void:
 		return
 	var alpha = clampf(toast_timer / 1.4, 0.0, 1.0)
 	var rect = Rect2(130, 1018, 460, 58)
-	_box(rect, Color(0.12, 0.10, 0.08, 0.82 * alpha), Color(RH_PAPER_LIGHT.r, RH_PAPER_LIGHT.g, RH_PAPER_LIGHT.b, 0.18 * alpha), 2)
-	_draw_text_center(toast_text, rect, 23, Color(RH_PAPER_LIGHT.r, RH_PAPER_LIGHT.g, RH_PAPER_LIGHT.b, alpha))
+	_box(rect, Color(0.05, 0.06, 0.10, 0.82 * alpha), Color(1, 1, 1, 0.18 * alpha), 2)
+	_draw_text_center(toast_text, rect, 23, Color(1, 1, 1, alpha))
 
 
 func _resource(rect: Rect2, label: String, value: String, color: Color) -> void:
-	_box(rect, RH_PAPER_LIGHT, RH_INK, 3)
-	var icon_key = "coin" if label == "金币" else "ticket"
-	draw_texture_rect(RUBBERHOSE_ART[icon_key], Rect2(rect.position + Vector2(7, 5), Vector2(32, 32)), false)
-	_draw_text_fit(label, Rect2(rect.position + Vector2(43, 0), Vector2(54, rect.size.y)), 16, RH_INK)
-	_draw_text_right(value, Rect2(rect.position + Vector2(90, 0), Vector2(rect.size.x - 100, rect.size.y)), 20, RH_INK)
+	_box(rect, Color(1, 1, 1, 0.92), COLOR_LINE, 3)
+	draw_circle(rect.position + Vector2(22, rect.size.y * 0.5), 12, color)
+	_draw_text_fit(label, Rect2(rect.position + Vector2(40, 0), Vector2(50, rect.size.y)), 16, COLOR_LINE)
+	_draw_text_right(value, Rect2(rect.position + Vector2(86, 0), Vector2(rect.size.x - 96, rect.size.y)), 20, COLOR_LINE)
 
 
 func _cta(rect: Rect2, label: String, primary: bool) -> void:
-	_box(rect, RH_GOLD if primary else RH_PAPER, RH_INK, 5)
-	draw_rect(Rect2(rect.position + Vector2(14, 10), Vector2(rect.size.x - 28, 14)), Color(1.0, 1.0, 1.0, 0.30))
-	draw_rect(Rect2(rect.position + Vector2(24, rect.size.y - 16), Vector2(rect.size.x - 48, 4)), RH_RED)
-	_draw_text_center(label, rect, 26, RH_INK)
+	_box(rect, COLOR_ORANGE if primary else Color(0.46, 0.50, 0.62), COLOR_LINE, 5)
+	_draw_text_center(label, rect, 26, Color.WHITE)
 
 
 func _box(rect: Rect2, fill: Color, line: Color, width: float) -> void:
-	draw_rect(Rect2(rect.position + Vector2(4, 7), rect.size), Color(0, 0, 0, 0.22))
+	draw_rect(Rect2(rect.position + Vector2(0, 5), rect.size), Color(0, 0, 0, 0.20))
 	draw_rect(rect, fill)
 	if width > 0.0 and line.a > 0.0:
 		draw_rect(rect, line, false, width)
-	if rect.size.y >= 24.0:
-		draw_rect(Rect2(rect.position + Vector2(9, 8), Vector2(maxf(0.0, rect.size.x - 18.0), 5)), Color(1.0, 1.0, 1.0, 0.16))
-		draw_rect(Rect2(rect.position + Vector2(12, rect.size.y - 8), Vector2(maxf(0.0, rect.size.x - 24.0), 2)), Color(RH_INK.r, RH_INK.g, RH_INK.b, 0.16))
 
 
 func _draw_text_fit(text: String, rect: Rect2, size: int, color: Color) -> void:
@@ -2626,8 +2581,8 @@ func _grass(pos: Vector2) -> void:
 
 
 func _draw_lock(center: Vector2) -> void:
-	_box(Rect2(center + Vector2(-10, -1), Vector2(20, 14)), RH_INK, RH_PAPER_LIGHT, 2)
-	draw_arc(center + Vector2(0, -1), 8, PI, TAU, 14, RH_PAPER_LIGHT, 2.5)
+	_box(Rect2(center + Vector2(-10, -1), Vector2(20, 14)), COLOR_LINE, Color(0.88, 0.91, 1.0), 2)
+	draw_arc(center + Vector2(0, -1), 8, PI, TAU, 14, Color(0.88, 0.91, 1.0), 2.5)
 
 
 func _hex_center(key: Vector2i) -> Vector2:
@@ -2708,11 +2663,6 @@ func _nav_rect(index: int) -> Rect2:
 
 
 func _card_texture(card: Dictionary) -> Texture2D:
-	var kind = _card_kind(card)
-	if kind == CARD_KIND_MINE:
-		return RUBBERHOSE_ART["mine"]
-	if kind == CARD_KIND_DEFENSE:
-		return RUBBERHOSE_ART["tower"]
 	var path = String(card.get("art_path", ""))
 	if path != "":
 		if texture_cache.has(path):
@@ -2726,27 +2676,19 @@ func _card_texture(card: Dictionary) -> Texture2D:
 
 
 func _building_texture(building: String) -> Texture2D:
-	if building == "base":
-		return RUBBERHOSE_ART["base"]
-	if building == "mine":
-		return RUBBERHOSE_ART["mine"]
-	if building == "tower":
-		return RUBBERHOSE_ART["tower"]
-	if building == "barracks" or building == "hall":
-		return RUBBERHOSE_ART["base"]
 	return BUILDING_ART.get(building, BUILDING_ART["barracks"])
 
 
 func _rarity_color(rarity: String) -> Color:
 	match rarity:
 		"legendary":
-			return RH_GOLD
+			return COLOR_GOLD
 		"epic":
-			return RH_RED
+			return Color(0.67, 0.26, 0.90)
 		"rare":
-			return Color(0.16, 0.43, 0.52)
+			return Color(0.24, 0.62, 1.0)
 		_:
-			return RH_OLIVE
+			return Color(0.34, 0.78, 0.38)
 
 
 func _rarity_sort_rank(rarity: String) -> int:
