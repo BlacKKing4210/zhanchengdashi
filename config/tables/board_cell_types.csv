@@ -1,6 +1,6 @@
 id,name_key,cell_type,unlock_stage,reveal_pool_id,price_mode,fixed_price,price_pool_id,income_currency,income_amount,income_interval_sec,appearance_weight,appearance_probability_pct,risk_level,effect_tags,notes
 cell_question,cell_question_name,question,stage_tutorial_01,reveal_pool_question,fixed,25,,none,0,0,50,50.0,1,question|mystery,开局随机地块类型之一，价格永远25，购买后按问号池抽空/防御/单位/金币
 cell_unit,cell_unit_name,unit,stage_tutorial_01,reveal_pool_unit_tile,random_pool,0,price_pool_unit_defense,none,0,0,20,20.0,2,unit|card,开局随机出类型和价格，价格从50/100/250中抽，价格越高进入越高品质的单位卡池
-cell_defense,cell_defense_name,defense,stage_tutorial_01,reveal_pool_defense_tile,random_pool,0,price_pool_unit_defense,none,0,0,20,20.0,2,defense|tower|card,开局随机出类型和价格，价格池同单位地块，价格越高进入越高品质的防御卡池
-cell_gold_mine,cell_gold_mine_name,gold_mine,stage_tutorial_01,reveal_pool_gold_mine,fixed,50,,gold,10,3.0,10,10.0,1,gold|income,默认唯一金矿类型，价格永远50，占领后每3秒产出10金币
+cell_defense,cell_defense_name,defense,stage_tutorial_01,reveal_pool_defense_tile,random_pool,0,price_pool_unit_defense,none,0,0,22,22.0,2,defense|tower|card,开局随机出类型和价格，价格池同单位地块，价格越高进入越高品质的防御卡池
+cell_gold_mine,cell_gold_mine_name,gold_mine,stage_tutorial_01,reveal_pool_gold_mine,fixed,50,,gold,10,3.0,8,8.0,1,gold|income,非常稀有的金矿类型，价格永远50，占领后每3秒产出10金币；双方初始可解锁地块中各保证有且仅有1块金矿
 cell_home_base,cell_home_base_name,home_base,stage_tutorial_01,reveal_pool_home_base,free,0,,gold,12,3.0,0,0.0,0,base|income|fixed,固定大本营，不参与普通随机地块池，每3秒产出12金币

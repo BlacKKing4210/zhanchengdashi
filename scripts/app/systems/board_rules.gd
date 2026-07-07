@@ -38,6 +38,8 @@ static func create_initial_tiles(_card_for_cost: Callable, _card_for_tier_range:
 				for field in site.keys():
 					tile[field] = site[field]
 			result[key] = tile
+	_apply_starting_unlock_rules(result, PLAYER_BASE)
+	_apply_starting_unlock_rules(result, ENEMY_BASE)
 	return result
 
 
@@ -66,15 +68,19 @@ static func starting_territory_for_key(key: Vector2i) -> int:
 static func site_for_key(key: Vector2i) -> Dictionary:
 	var site_seed = site_seed_for_key(key)
 	var roll = site_seed % 100
+	return site_for_roll(roll, site_seed, is_next_to_starting_base(key))
+
+
+static func site_for_roll(roll: int, site_seed: int, starting_unlockable: bool) -> Dictionary:
 	var site = "mystery"
 	var cost = QUESTION_PRICE
 	if roll < 50:
 		site = "mystery"
 		cost = QUESTION_PRICE
 	elif roll < 70:
-		cost = UNIT_LOW_PRICE if is_next_to_starting_base(key) else price_for_seed(site_seed)
+		cost = starting_price_for_seed(site_seed) if starting_unlockable else price_for_seed(site_seed)
 		site = "hall" if cost >= UNIT_HIGH_PRICE else "barracks"
-	elif roll < 90:
+	elif roll < 92:
 		site = "tower"
 		cost = TOWER_PRICE
 	else:
@@ -88,6 +94,60 @@ static func site_for_key(key: Vector2i) -> Dictionary:
 		"site_roll_seed": 0,
 		"site_card": "",
 	}
+
+
+static func _apply_starting_unlock_rules(tiles: Dictionary, base_key: Vector2i) -> void:
+	var mine_key = starting_mine_key(base_key)
+	for key in neighbors(base_key):
+		if not tiles.has(key):
+			continue
+		if key == mine_key:
+			tiles[key] = with_site(tiles[key], mine_site())
+			continue
+		var site = site_for_key(key)
+		if String(site["site"]) == "mine":
+			site = non_mine_starting_site_for_key(key)
+		elif String(site["site"]) == "barracks" or String(site["site"]) == "hall":
+			var site_seed = site_seed_for_key(key)
+			var cost = starting_price_for_seed(site_seed)
+			site["site"] = "hall" if cost >= UNIT_HIGH_PRICE else "barracks"
+			site["site_cost"] = cost
+		tiles[key] = with_site(tiles[key], site)
+
+
+static func with_site(tile: Dictionary, site: Dictionary) -> Dictionary:
+	var next = tile.duplicate()
+	for field in site.keys():
+		next[field] = site[field]
+	return next
+
+
+static func mine_site() -> Dictionary:
+	return {
+		"site": "mine",
+		"site_cost": MINE_PRICE,
+		"site_reward": "",
+		"site_target_rarity": "",
+		"site_roll_seed": 0,
+		"site_card": "",
+	}
+
+
+static func non_mine_starting_site_for_key(key: Vector2i) -> Dictionary:
+	var site_seed = site_seed_for_key(key)
+	var roll = floori(float(site_seed) / 11.0) % 92
+	return site_for_roll(roll, site_seed, true)
+
+
+static func starting_mine_key(base_key: Vector2i) -> Vector2i:
+	var best_key = Vector2i(-99, -99)
+	var best_score = 999999999
+	for key in neighbors(base_key):
+		var score = floori(float(site_seed_for_key(key)) / 5.0) % 1000000
+		if score < best_score:
+			best_score = score
+			best_key = key
+	return best_key
 
 
 static func is_next_to_starting_base(key: Vector2i) -> bool:
@@ -105,6 +165,11 @@ static func price_for_seed(site_seed: int) -> int:
 	if roll < 80:
 		return UNIT_MID_PRICE
 	return UNIT_HIGH_PRICE
+
+
+static func starting_price_for_seed(site_seed: int) -> int:
+	var roll = floori(float(site_seed) / 7.0) % 100
+	return UNIT_LOW_PRICE if roll < 45 else UNIT_MID_PRICE
 
 
 static func roll_unlock_result(tile: Dictionary) -> Dictionary:
@@ -214,10 +279,27 @@ static func with_occupier(tile: Dictionary, team: int) -> Dictionary:
 	return next
 
 
+static func with_soft_occupation(tile: Dictionary, team: int) -> Dictionary:
+	var next = tile.duplicate()
+	next["occupier"] = team
+	next["territory_team"] = team
+	return next
+
+
 static func with_territory(tile: Dictionary, team: int) -> Dictionary:
 	var next = tile.duplicate()
 	next["territory_team"] = team
 	return next
+
+
+static func visual_owner(tile: Dictionary) -> int:
+	var occupier = int(tile.get("occupier", NEUTRAL))
+	if occupier != NEUTRAL:
+		return occupier
+	var team = int(tile.get("team", NEUTRAL))
+	if team != NEUTRAL:
+		return team
+	return int(tile.get("territory_team", NEUTRAL))
 
 
 static func as_destroyed_building(tile: Dictionary, attacker: int) -> Dictionary:
@@ -241,7 +323,9 @@ static func can_unlock(tiles: Dictionary, key: Vector2i, team: int) -> bool:
 	if not tiles.has(key):
 		return false
 	var tile = tiles[key]
-	if int(tile["team"]) == team:
+	if int(tile["team"]) != NEUTRAL:
+		return false
+	if visual_owner(tile) != team:
 		return false
 	if String(tile["building"]) != "" or String(tile["site"]) == "":
 		return false

@@ -271,8 +271,23 @@ func _layout(view_size: Vector2) -> void:
 	canvas_scale = minf(view_size.x / DESIGN_SIZE.x, view_size.y / DESIGN_SIZE.y)
 	canvas_scale = maxf(canvas_scale, 0.001)
 	canvas_offset = (view_size - DESIGN_SIZE * canvas_scale) * 0.5
-	var board_width = sqrt(3.0) * HEX_SIZE * (GRID_COLS + 0.5)
-	board_origin = Vector2((DESIGN_SIZE.x - board_width) * 0.5 + HEX_SIZE * 0.72, 120.0)
+	var play_rect = Rect2(64, 110, 592, 982)
+	var board_bounds = _board_hex_bounds(Vector2.ZERO)
+	board_origin = play_rect.get_center() - board_bounds.get_center()
+
+
+func _board_hex_bounds(origin: Vector2) -> Rect2:
+	var min_pos = Vector2(999999.0, 999999.0)
+	var max_pos = Vector2(-999999.0, -999999.0)
+	for y in range(GRID_ROWS):
+		for x in range(GRID_COLS):
+			var center = BoardRules.hex_center(Vector2i(x, y), origin, HEX_SIZE)
+			for point in BoardRules.hex_points(center, HEX_SIZE):
+				min_pos.x = minf(min_pos.x, point.x)
+				min_pos.y = minf(min_pos.y, point.y)
+				max_pos.x = maxf(max_pos.x, point.x)
+				max_pos.y = maxf(max_pos.y, point.y)
+	return Rect2(min_pos, max_pos - min_pos)
 
 
 func _screen_to_canvas(pos: Vector2) -> Vector2:
@@ -722,7 +737,7 @@ func _set_empty_tile(key: Vector2i, team: int) -> void:
 func _mark_occupied_tile(key: Vector2i, team: int) -> void:
 	if not tiles.has(key):
 		return
-	tiles[key] = BoardRules.with_occupier(tiles[key], team)
+	tiles[key] = BoardRules.with_soft_occupation(tiles[key], team)
 
 
 func _apply_unlock(key: Vector2i, team: int, fallback_card_id: String) -> String:
@@ -866,15 +881,13 @@ func _try_paint_crossed_tile(key: Vector2i, team: int) -> void:
 		return
 	var opponent = ENEMY if team == PLAYER else PLAYER
 	var tile = tiles[key]
-	if int(tile.get("team", NEUTRAL)) != NEUTRAL:
-		return
-	if int(tile.get("territory_team", NEUTRAL)) != opponent:
+	if BoardRules.visual_owner(tile) != opponent:
 		return
 	if String(tile.get("building", "")) != "":
 		return
 	if _has_enemy_unit_on_tile(key, team):
 		return
-	tiles[key] = BoardRules.with_territory(tile, team)
+	tiles[key] = BoardRules.with_soft_occupation(tile, team)
 	_pulse(_hex_center(key), COLOR_GREEN if team == PLAYER else COLOR_RED)
 
 
@@ -1802,45 +1815,22 @@ func _draw_tile(key: Vector2i, tile: Dictionary) -> void:
 	var center = _hex_center(key)
 	var points = _hex_points(center)
 	var team = int(tile["team"])
-	var occupier = int(tile.get("occupier", team))
-	var territory_team = int(tile.get("territory_team", NEUTRAL))
 	var can_unlock = _can_unlock(key, PLAYER)
+	var visual_team = BoardRules.visual_owner(tile)
 	var fill = Color(0.88, 0.80, 0.58, 0.68)
 	var line = Color(0.61, 0.52, 0.35, 0.48)
 	var line_width = 2.0
-	if team == PLAYER:
+	if visual_team == PLAYER:
 		fill = Color(0.49, 0.80, 0.39)
 		line = fill.darkened(0.34)
 		line_width = 3.0
-	elif team == ENEMY:
+	elif visual_team == ENEMY:
 		fill = Color(0.95, 0.43, 0.39)
 		line = fill.darkened(0.34)
 		line_width = 3.0
-	elif can_unlock:
-		if territory_team == PLAYER:
-			fill = Color(COLOR_GREEN.r, COLOR_GREEN.g, COLOR_GREEN.b, 0.30)
-		elif territory_team == ENEMY:
-			fill = Color(COLOR_RED.r, COLOR_RED.g, COLOR_RED.b, 0.28)
-		else:
-			fill = Color(0.88, 0.80, 0.58, 0.68)
+	if can_unlock:
 		line = COLOR_YELLOW if gold >= int(tile["site_cost"]) else Color(0.78, 0.72, 0.62)
 		line_width = 4.0
-	elif territory_team == PLAYER:
-		fill = Color(COLOR_GREEN.r, COLOR_GREEN.g, COLOR_GREEN.b, 0.24)
-		line = COLOR_GREEN.darkened(0.28)
-		line.a = 0.58
-		line_width = 2.4
-	elif territory_team == ENEMY:
-		fill = Color(COLOR_RED.r, COLOR_RED.g, COLOR_RED.b, 0.22)
-		line = COLOR_RED.darkened(0.22)
-		line.a = 0.58
-		line_width = 2.4
-	elif occupier == PLAYER:
-		line = COLOR_GREEN.darkened(0.24)
-		line_width = 3.0
-	elif occupier == ENEMY:
-		line = COLOR_RED.darkened(0.24)
-		line_width = 3.0
 	draw_polygon(points, PackedColorArray([fill, fill, fill, fill, fill, fill]))
 	draw_polyline(_closed_points(points), line, line_width)
 	if String(tile["building"]) != "":

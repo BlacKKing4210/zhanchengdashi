@@ -53,8 +53,8 @@
     "income_currency": "none",
     "income_amount": 0,
     "income_interval_sec": 0.0,
-    "appearance_weight": 20,
-    "appearance_probability_pct": 20.0,
+    "appearance_weight": 22,
+    "appearance_probability_pct": 22.0,
     "risk_level": 2,
     "effect_tags": [
       "defense",
@@ -75,14 +75,14 @@
     "income_currency": "gold",
     "income_amount": 10,
     "income_interval_sec": 3.0,
-    "appearance_weight": 10,
-    "appearance_probability_pct": 10.0,
+    "appearance_weight": 8,
+    "appearance_probability_pct": 8.0,
     "risk_level": 1,
     "effect_tags": [
       "gold",
       "income"
     ],
-    "notes": "默认唯一金矿类型，价格永远50，占领后每3秒产出10金币"
+    "notes": "非常稀有的金矿类型，价格永远50，占领后每3秒产出10金币；双方初始可解锁地块中各保证有且仅有1块金矿"
   },
   {
     "id": "cell_home_base",
