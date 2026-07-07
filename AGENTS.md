@@ -32,8 +32,9 @@ This repository is a game project foundation for `zhanchengdashi`.
 
 - CSV source tables live in `config/tables/`.
 - `config/schema/config_schema.json` defines fields, types, uniqueness, and cross-table references.
-- Run `python tools/validate_config.py` before committing table changes.
-- Run `python tools/export_config.py` to update JSON files under `runtime/config/`.
+- After any user or Codex change to `config/tables/*.csv`, immediately run `python tools/validate_config.py` and `python tools/export_config.py` in the same task so the generated JSON under `runtime/config/` reflects the CSV before testing, committing, or pushing.
+- Godot runtime reads `runtime/config/*.json`, not the CSV source tables directly; never leave CSV edits without the matching runtime export.
+- Keep CSV source tables UTF-8 or UTF-8 BOM. If a user-edited CSV is saved as ANSI/GBK, convert it to UTF-8 while preserving the user's values before validating/exporting.
 
 ## Git Hygiene
 

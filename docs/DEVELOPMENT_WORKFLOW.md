@@ -29,6 +29,7 @@
 
 - 所有任务默认按游戏开发任务处理，采用 Codex Game Studio 的角色视角：制作、玩法、技术、美术/UI、Godot、GDScript、QA。
 - 玩法数值优先数据驱动：可配置的设计值进入 `config/tables/`，运行时 JSON 由 `tools/export_config.py` 输出到 `runtime/config/`。
+- 配置即时生效：用户或 Codex 每次修改 `config/tables/*.csv` 后，必须在同一轮立刻运行 `tools/validate_config.py` 和 `tools/export_config.py`，让 `runtime/config/*.json` 同步更新；Godot 运行时读取的是导出的 JSON，不直接读取 CSV。
 - 美术表现先走专业方向：先做 art brief、参考取舍、视觉方向、可读性检查和多版效果图，再进入资产生成或引擎实现。
 - 2D-first 是项目默认：先明确 2D 视角、目标分辨率、sprite/animation 规格、图层/y-sort、atlas、导入设置、碰撞和性能预算；不产出 3D/2.5D 效果图作为默认方向。
 - 2D 页面品质默认走简单高品质路线：先锁定当前 UE，再用更少的视觉元素做更清晰的层级；不要新增页面信息、控件、点击状态或反馈节奏来制造“高级感”。
@@ -48,7 +49,7 @@
 5. 美术预审：涉及视觉方向、资产风格、UI 视觉或宣传级表现时，先输出多版 2D 效果图到 `output/visual_concepts/`，并在评审文档中写清取舍、风险和待用户确认点。
 6. UE 锁定与品质门槛：页面美术升级必须先写清“不改 UE”的锁定范围；效果图只能表现同一页面信息架构下的皮肤差异，并通过“简单高品质 2D”检查。
 7. 专业制图：策划案必须补齐玩法流程图和 UI/UE 图；源文件放 `docs/diagrams/`，预览图放 `output/diagrams/`，PDF 必须嵌入或引用图件。
-8. 定落点：再判断改配置、脚本、场景、资源或工具，避免把设计值写死在代码里。
+8. 定落点：再判断改配置、脚本、场景、资源或工具，避免把设计值写死在代码里。若落点包含 `config/tables/*.csv`，必须立即校验并导出 runtime JSON，让配置在本轮开发中生效。
 9. 小步实现：按已经更新且通过评审的文档实装，保持提交范围聚焦，沿用现有脚本、绘制和数据结构。
 10. 本地验证：按改动类型运行对应检查，Godot 脚本改动必须启动项目确认无解析错误。
 11. 整理差异：查看 `git diff --check` 和 `git diff --stat`，确认没有无关破坏。
@@ -93,7 +94,7 @@
 
 | 需求类型 | 首选落点 | 必要验证 |
 | --- | --- | --- |
-| 卡牌/单位/经济/掉落数值 | 先改 `design/` 或配置说明，再改 `config/tables/` | `tools/validate_config.py`，必要时 `tools/export_config.py` |
+| 卡牌/单位/经济/掉落数值 | 先改 `design/` 或配置说明，再改 `config/tables/`，随后立即导出 `runtime/config/` | `tools/validate_config.py`，`tools/export_config.py` |
 | 战斗规则和交互逻辑 | 先改 `design/`，再改 `scripts/app/` 或相关 Godot 脚本 | GDScript 缩进检查，Godot 启动 |
 | UI 布局和绘制 | 先改 UI/UE 设计文档和 `docs/diagrams/` 图件，再改 `scripts/app/`、`assets/` | Godot 启动，必要时截图人工检查 |
 | 新资源或美术方向 | 先改美术方向文档，输出多版 2D 效果图并等用户确认，再改 `assets/` | 效果图评审通过，资源能加载，路径不硬编码到错误位置 |
@@ -104,7 +105,7 @@
 ## 6. 验证门禁
 
 - 任意 `.gd` 修改后运行 `tools/check_gd_indentation.py`，并启动 Godot 项目确认没有 parser error。
-- 任意配置表修改后运行 `tools/validate_config.py`；如果运行时 JSON 需要更新，再运行 `tools/export_config.py`。
+- 任意配置表修改后必须立即运行 `tools/validate_config.py` 和 `tools/export_config.py`；游戏读取 `runtime/config/`，不允许只改 CSV 却不更新运行时 JSON。
 - Godot 在 Windows 出现 `应用程序错误`、`内存不能为 read` 或启动即崩溃时，优先检查渲染后端；本项目默认不强制 D3D12，`project.godot` 应使用 Vulkan 作为 Windows 默认渲染驱动，只有在专门兼容性测试通过后才恢复 D3D12。
 - `config/tables/` 下的 CSV 必须保持 UTF-8 或 UTF-8 BOM 编码；不要提交 GBK/ANSI 表格。若 `tools/validate_config.py` 报 Unicode decode 错误，先转码源 CSV，再导出 `runtime/config/`。
 - 任意文档交付后生成 PDF 到 `output/pdf/`，并渲染检查页面是否可读、无重叠、无截断。

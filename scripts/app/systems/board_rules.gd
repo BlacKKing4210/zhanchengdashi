@@ -71,16 +71,16 @@ static func site_for_key(key: Vector2i) -> Dictionary:
 	return site_for_roll(roll, site_seed, is_next_to_starting_base(key))
 
 
-static func site_for_roll(roll: int, site_seed: int, starting_unlockable: bool) -> Dictionary:
+static func site_for_roll(roll: int, site_seed: int, _starting_unlockable: bool) -> Dictionary:
 	var site = "mystery"
 	var cost = QUESTION_PRICE
 	if roll < 50:
 		site = "mystery"
 		cost = QUESTION_PRICE
 	elif roll < 70:
-		cost = starting_price_for_seed(site_seed) if starting_unlockable else price_for_seed(site_seed)
+		cost = price_for_seed(site_seed)
 		site = "hall" if cost >= UNIT_HIGH_PRICE else "barracks"
-	elif roll < 92:
+	elif roll < 95:
 		site = "tower"
 		cost = TOWER_PRICE
 	else:
@@ -98,20 +98,19 @@ static func site_for_roll(roll: int, site_seed: int, starting_unlockable: bool) 
 
 static func _apply_starting_unlock_rules(tiles: Dictionary, base_key: Vector2i) -> void:
 	var mine_key = starting_mine_key(base_key)
+	var low_price_camp_key = starting_low_price_camp_key(base_key, mine_key)
 	for key in neighbors(base_key):
 		if not tiles.has(key):
 			continue
 		if key == mine_key:
 			tiles[key] = with_site(tiles[key], mine_site())
 			continue
+		if key == low_price_camp_key:
+			tiles[key] = with_site(tiles[key], camp_site_for_cost(UNIT_LOW_PRICE))
+			continue
 		var site = site_for_key(key)
 		if String(site["site"]) == "mine":
 			site = non_mine_starting_site_for_key(key)
-		elif String(site["site"]) == "barracks" or String(site["site"]) == "hall":
-			var site_seed = site_seed_for_key(key)
-			var cost = starting_price_for_seed(site_seed)
-			site["site"] = "hall" if cost >= UNIT_HIGH_PRICE else "barracks"
-			site["site_cost"] = cost
 		tiles[key] = with_site(tiles[key], site)
 
 
@@ -133,9 +132,20 @@ static func mine_site() -> Dictionary:
 	}
 
 
+static func camp_site_for_cost(cost: int) -> Dictionary:
+	return {
+		"site": "hall" if cost >= UNIT_HIGH_PRICE else "barracks",
+		"site_cost": cost,
+		"site_reward": "",
+		"site_target_rarity": "",
+		"site_roll_seed": 0,
+		"site_card": "",
+	}
+
+
 static func non_mine_starting_site_for_key(key: Vector2i) -> Dictionary:
 	var site_seed = site_seed_for_key(key)
-	var roll = floori(float(site_seed) / 11.0) % 92
+	var roll = floori(float(site_seed) / 11.0) % 95
 	return site_for_roll(roll, site_seed, true)
 
 
@@ -144,6 +154,19 @@ static func starting_mine_key(base_key: Vector2i) -> Vector2i:
 	var best_score = 999999999
 	for key in neighbors(base_key):
 		var score = floori(float(site_seed_for_key(key)) / 5.0) % 1000000
+		if score < best_score:
+			best_score = score
+			best_key = key
+	return best_key
+
+
+static func starting_low_price_camp_key(base_key: Vector2i, mine_key: Vector2i) -> Vector2i:
+	var best_key = Vector2i(-99, -99)
+	var best_score = 999999999
+	for key in neighbors(base_key):
+		if key == mine_key:
+			continue
+		var score = floori(float(site_seed_for_key(key)) / 13.0) % 1000000
 		if score < best_score:
 			best_score = score
 			best_key = key
@@ -165,11 +188,6 @@ static func price_for_seed(site_seed: int) -> int:
 	if roll < 80:
 		return UNIT_MID_PRICE
 	return UNIT_HIGH_PRICE
-
-
-static func starting_price_for_seed(site_seed: int) -> int:
-	var roll = floori(float(site_seed) / 7.0) % 100
-	return UNIT_LOW_PRICE if roll < 45 else UNIT_MID_PRICE
 
 
 static func roll_unlock_result(tile: Dictionary) -> Dictionary:
@@ -360,7 +378,7 @@ static func building_count(tiles: Dictionary, team: int, building: String) -> in
 static func building_hp(building: String) -> float:
 	match building:
 		"base":
-			return 520.0
+			return 50.0
 		"hall":
 			return 210.0
 		"tower":

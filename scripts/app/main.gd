@@ -24,6 +24,7 @@ const INCOME_INTERVAL = 3.0
 const BASE_INCOME = 12
 const MINE_INCOME = 10
 const TOWER_DAMAGE = 44.0
+const BASE_ATTACK_DAMAGE = 2.0
 const TOWER_RANGE = 210.0
 const UNIT_MOVE_SPEED_MULT = 0.5
 const UNIT_ATTACK_SPEED_MULT = 0.5
@@ -913,9 +914,10 @@ func _update_effects(delta: float) -> void:
 func _tower_attack(key: Vector2i, team: int) -> void:
 	var center = _hex_center(key)
 	var tile = tiles.get(key, {})
-	var damage = TOWER_DAMAGE
+	var building = String(tile.get("building", "")) if typeof(tile) == TYPE_DICTIONARY else ""
+	var damage = BASE_ATTACK_DAMAGE if building == "base" else TOWER_DAMAGE
 	var attack_range = TOWER_RANGE
-	var tower_card = _card_by_id(String(tile.get("site_card", ""))) if typeof(tile) == TYPE_DICTIONARY else {}
+	var tower_card = _card_by_id(String(tile.get("site_card", ""))) if building == "tower" else {}
 	if not tower_card.is_empty() and _card_kind(tower_card) == CARD_KIND_DEFENSE:
 		var stats = _card_stats_for_team(tower_card, team)
 		damage = float(stats["attack"])

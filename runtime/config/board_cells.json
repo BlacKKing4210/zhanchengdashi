@@ -53,8 +53,8 @@
     "income_currency": "none",
     "income_amount": 0,
     "income_interval_sec": 0.0,
-    "appearance_weight": 22,
-    "appearance_probability_pct": 22.0,
+    "appearance_weight": 25,
+    "appearance_probability_pct": 25.0,
     "risk_level": 2,
     "effect_tags": [
       "defense",
@@ -75,8 +75,8 @@
     "income_currency": "gold",
     "income_amount": 10,
     "income_interval_sec": 3.0,
-    "appearance_weight": 8,
-    "appearance_probability_pct": 8.0,
+    "appearance_weight": 5,
+    "appearance_probability_pct": 5.0,
     "risk_level": 1,
     "effect_tags": [
       "gold",
