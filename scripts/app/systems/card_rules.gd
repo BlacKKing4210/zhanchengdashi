@@ -15,21 +15,58 @@ static func card_from_row(row: Dictionary) -> Dictionary:
 	var tier = int(row.get("tier", 1))
 	var attack = int(row.get("attack", 5 + tier * 2))
 	var skill_id = row.get("skill_id", "")
+	var skill_trigger = row.get("skill_trigger", "")
+	var skill_effect = row.get("skill_effect", "")
+	var skill_power = row.get("skill_power", 0.0)
+	var skill_cooldown_sec = row.get("skill_cooldown_sec", 0.0)
 	var skill_text = row.get("skill_text", "")
 	return {
-		"id": String(row.get("id", "")),
-		"name": String(row.get("name", row.get("id", ""))),
-		"rarity": String(row.get("rarity", rarity_for_tier(tier))),
+		"id": string_from_value(row.get("id", "")),
+		"name": string_from_value(row.get("name", row.get("id", ""))),
+		"rarity": string_from_value(row.get("rarity", rarity_for_tier(tier))),
 		"tier": tier,
-		"art_path": String(row.get("art_path", "")),
+		"art_path": string_from_value(row.get("art_path", "")),
 		"base_attack": attack,
 		"base_max_hp": int(row.get("max_hp", 40 + tier * 18)),
 		"base_move_speed": float(row.get("move_speed", 58.0 + tier * 2.0)),
 		"base_attack_range": float(row.get("attack_range", 42.0)),
 		"base_summon_interval_sec": float(row.get("summon_interval_sec", maxf(2.2, 4.2 - tier * 0.18))),
-		"skill_id": "" if skill_id == null else String(skill_id),
-		"skill_text": "" if skill_text == null else String(skill_text),
+		"skill_id": string_from_value(skill_id),
+		"skill_trigger": string_from_value(skill_trigger),
+		"skill_effect": string_from_value(skill_effect),
+		"skill_power": float_from_value(skill_power),
+		"skill_cooldown_sec": float_from_value(skill_cooldown_sec),
+		"skill_text": string_from_value(skill_text),
+		"tags": tags_from_value(row.get("tags", [])),
 	}
+
+
+static func string_from_value(value) -> String:
+	if value == null:
+		return ""
+	return str(value)
+
+
+static func float_from_value(value) -> float:
+	if value == null:
+		return 0.0
+	var text = str(value)
+	if text == "":
+		return 0.0
+	return float(value)
+
+
+static func tags_from_value(value) -> Array:
+	if typeof(value) == TYPE_ARRAY:
+		return value.duplicate()
+	if value == null:
+		return []
+	var result = []
+	for tag in str(value).split("|", false):
+		var clean = str(tag).strip_edges()
+		if clean != "":
+			result.append(clean)
+	return result
 
 
 static func rarity_for_tier(tier: int) -> String:
@@ -69,7 +106,7 @@ static func card_stats(card: Dictionary, card_levels: Dictionary) -> Dictionary:
 	var id = String(card.get("id", ""))
 	var mult = card_multiplier(card_levels, id)
 	return {
-		"attack": maxi(1, roundi(float(card.get("base_attack", 1)) * mult)),
+		"attack": maxi(0, roundi(float(card.get("base_attack", 1)) * mult)),
 		"max_hp": maxi(1, roundi(float(card.get("base_max_hp", 1)) * mult)),
 		"move_speed": float(card.get("base_move_speed", 60.0)) * mult,
 		"attack_range": float(card.get("base_attack_range", 42.0)) * mult,

@@ -31,6 +31,11 @@ const UNIT_ATTACK_SPEED_MULT = 0.5
 const UNIT_BASE_ATTACK_COOLDOWN = 0.85
 const CARD_SPEED_FAST_THRESHOLD = 65.0
 const CARD_SPEED_SUPER_FAST_THRESHOLD = 75.0
+const SKILL_AURA_RADIUS = HEX_SIZE * 3.2
+const SKILL_AOE_RADIUS = HEX_SIZE * 1.45
+const SKILL_SUPPORT_RADIUS = HEX_SIZE * 3.4
+const SKILL_SLOW_SECONDS = 2.4
+const SKILL_STUN_SECONDS = 0.72
 const STARTING_GACHA_TICKETS = 10
 const BATTLE_WIN_REWARD_TICKETS = 3
 const BATTLE_LOSS_REWARD_TICKETS = 1
@@ -673,20 +678,59 @@ func _card_skill_text(card: Dictionary) -> String:
 
 
 func _card_display_skill_text(card: Dictionary, include_no_skill: bool) -> String:
-	var parts = []
-	var speed_text = _card_speed_skill_text(card)
-	if speed_text != "":
-		parts.append(speed_text)
-	var summon_text = _card_extra_summon_skill_text(card)
-	if summon_text != "":
-		parts.append(summon_text)
 	var base_skill_text = String(card.get("skill_text", ""))
 	var is_no_skill = base_skill_text == "" or base_skill_text.begins_with("无技能")
-	if not is_no_skill and String(card.get("skill_effect", "")) != "summon":
-		parts.append(base_skill_text)
+	if not is_no_skill:
+		return base_skill_text
+	var parts = []
+	var structured_text = _card_structured_skill_text(card)
+	if structured_text != "":
+		parts.append(structured_text)
+	else:
+		var speed_text = _card_speed_skill_text(card)
+		if speed_text != "":
+			parts.append(speed_text)
 	if parts.is_empty() and include_no_skill:
 		parts.append("无技能")
 	return "；".join(parts)
+
+
+func _card_structured_skill_text(card: Dictionary) -> String:
+	if _card_kind(card) != CARD_KIND_ANIMAL:
+		return ""
+	var trigger = String(card.get("skill_trigger", ""))
+	var effect = String(card.get("skill_effect", ""))
+	if effect == "":
+		return _card_speed_skill_text(card)
+	match effect:
+		"summon":
+			return _card_extra_summon_skill_text(card)
+		"slow":
+			return "攻击时减速目标" if trigger == "on_attack" else "减速目标"
+		"stun":
+			return "登场时眩晕附近敌人" if trigger == "on_spawn" else "眩晕目标"
+		"shield":
+			return "获得护盾" if trigger == "on_spawn" else "提供护盾"
+		"buff_attack":
+			return "提高友军攻击"
+		"buff_hp":
+			return "提高友军生命"
+		"buff_speed":
+			return "提高移动速度"
+		"gold":
+			return "获得金币"
+		"heal", "repair":
+			return "治疗友军"
+		"thorns":
+			return "受到伤害时反击"
+		"execute":
+			return "攻击低生命目标时斩杀"
+		"copy":
+			return "复制友军效果"
+		"revive":
+			return "阵亡后返回战场"
+		_:
+			return _card_speed_skill_text(card)
 
 
 func _card_speed_skill_text(card: Dictionary) -> String:
@@ -1059,12 +1103,16 @@ func _update_enemy(delta: float) -> void:
 
 
 func _update_units(delta: float) -> void:
+	_refresh_unit_skill_state(delta)
 	for i in range(units.size()):
 		var unit = units[i]
 		if float(unit["hp"]) <= 0.0:
 			continue
 		var previous_tile = unit.get("tile", _tile_at(Vector2(unit["pos"])))
 		unit["tile"] = previous_tile
+		if float(unit.get("stun_timer", 0.0)) > 0.0:
+			units[i] = unit
+			continue
 		var target = _nearest_combat_target(Vector2(unit["pos"]), int(unit["team"]), int(unit["id"]))
 		if target.is_empty():
 			units[i] = unit
@@ -1073,21 +1121,22 @@ func _update_units(delta: float) -> void:
 		var offset = target_pos - Vector2(unit["pos"])
 		var distance = offset.length()
 		unit["cooldown"] = maxf(0.0, float(unit.get("cooldown", 0.0)) - delta)
+		units[i] = unit
 		if distance <= float(unit["range"]):
 			if float(unit["cooldown"]) <= 0.0:
-				if distance >= RANGED_PROJECTILE_MIN_DISTANCE:
-					_projectile(Vector2(unit["pos"]), target_pos, int(unit["team"]))
-				if String(target["kind"]) == "unit":
-					_damage_unit(int(target["index"]), float(unit["attack"]))
-				elif String(target["kind"]) == "building":
-					var target_key: Vector2i = target["key"]
-					_damage_tile(target_key, int(unit["team"]), float(unit["attack"]))
-				unit["cooldown"] = UNIT_BASE_ATTACK_COOLDOWN / maxf(0.01, UNIT_ATTACK_SPEED_MULT)
+				_unit_attack_target(i, target, distance)
+				if i >= units.size():
+					continue
+				unit = units[i]
+				unit["cooldown"] = _unit_attack_cooldown(unit)
 		elif distance > 1.0:
+			unit = units[i]
 			unit["pos"] = Vector2(unit["pos"]) + offset.normalized() * float(unit["speed"]) * delta
 		var current_tile = _tile_at(Vector2(unit["pos"]))
 		if current_tile != previous_tile:
-			_try_paint_crossed_tile(previous_tile, int(unit["team"]))
+			_try_paint_crossed_tile(previous_tile, int(unit["team"]), i)
+			if i < units.size():
+				unit = units[i]
 			unit["tile"] = current_tile
 		units[i] = unit
 	var alive = []
@@ -1097,19 +1146,22 @@ func _update_units(delta: float) -> void:
 	units = alive
 
 
-func _try_paint_crossed_tile(key: Vector2i, team: int) -> void:
+func _try_paint_crossed_tile(key: Vector2i, team: int, unit_index: int = -1) -> bool:
 	if not tiles.has(key):
-		return
+		return false
 	var opponent = ENEMY if team == PLAYER else PLAYER
 	var tile = tiles[key]
 	if BoardRules.visual_owner(tile) != opponent:
-		return
+		return false
 	if String(tile.get("building", "")) != "":
-		return
+		return false
 	if _has_enemy_unit_on_tile(key, team):
-		return
+		return false
 	tiles[key] = BoardRules.with_soft_occupation(tile, team)
 	_pulse(_hex_center(key), COLOR_GREEN if team == PLAYER else COLOR_RED)
+	if unit_index >= 0:
+		_apply_unit_capture_skill(unit_index, key)
+	return true
 
 
 func _has_enemy_unit_on_tile(key: Vector2i, team: int) -> bool:
@@ -1156,54 +1208,99 @@ func _tower_attack(key: Vector2i, team: int) -> void:
 		_damage_unit(best_index, damage)
 
 
-func _damage_unit(index: int, damage: float) -> void:
+func _damage_unit(index: int, damage: float, source_index: int = -1, source_team: int = NEUTRAL, trigger_reactive: bool = true) -> bool:
 	if index < 0 or index >= units.size():
-		return
-	units[index]["hp"] = float(units[index]["hp"]) - damage
+		return false
+	var unit = units[index]
+	if float(unit.get("hp", 0.0)) <= 0.0:
+		return false
+	var final_damage = _incoming_unit_damage(index, damage)
+	var shield = float(unit.get("shield", 0.0))
+	if shield > 0.0 and final_damage > 0.0:
+		var absorbed = minf(shield, final_damage)
+		shield -= absorbed
+		final_damage -= absorbed
+		unit["shield"] = shield
+	unit["hp"] = float(unit["hp"]) - final_damage
+	units[index] = unit
 	_pulse(Vector2(units[index]["pos"]), COLOR_YELLOW)
+	if trigger_reactive and final_damage > 0.0 and float(units[index]["hp"]) > 0.0:
+		_apply_unit_damage_skill(index, source_index, source_team)
+	if float(units[index]["hp"]) <= 0.0 and not bool(units[index].get("death_handled", false)):
+		units[index]["death_handled"] = true
+		_handle_unit_death(index, source_index, source_team)
+		return true
+	return false
 
 
-func _damage_tile(key: Vector2i, attacker: int, damage: float) -> void:
+func _damage_tile(key: Vector2i, attacker: int, damage: float) -> bool:
 	if not tiles.has(key):
-		return
+		return false
 	var tile = tiles[key]
 	if int(tile["team"]) == attacker:
-		return
+		return false
 	if String(tile["building"]) == "":
-		return
+		return false
 	tile["hp"] = float(tile["hp"]) - damage
 	if float(tile["hp"]) <= 0.0:
 		if String(tile["building"]) == "base":
 			_finish_battle("胜利" if attacker == PLAYER else "失败")
-			return
+			return true
 		tiles[key] = BoardRules.as_destroyed_building(tile, attacker)
 		_pulse(_hex_center(key), COLOR_GREEN if attacker == PLAYER else COLOR_RED)
-		return
+		return true
 	tiles[key] = tile
+	return false
 
 
-func _spawn_unit(team: int, key: Vector2i, card_id: String) -> void:
+func _spawn_unit(team: int, key: Vector2i, card_id: String, is_extra: bool = false, extra_index: int = 0) -> void:
 	if card_id == "":
 		card_id = _enemy_deck_card(0) if team == ENEMY else String(deck[0])
 	var card = _card_by_id(card_id)
 	if card.is_empty():
 		card = _card_by_id(_enemy_deck_card(0) if team == ENEMY else "rabbit")
 	var stats = _card_stats_for_team(card, team)
+	var base_pos = _hex_center(key)
+	var spawn_pos = base_pos
+	if is_extra:
+		var angle = float(extra_index) * TAU / 6.0
+		spawn_pos += Vector2(cos(angle), sin(angle)) * 12.0
+	var skill_cooldown = _card_skill_cooldown(card)
+	var skill_timer = randf_range(0.35, maxf(0.45, skill_cooldown)) if _card_uses_interval_skill(card) else 0.0
 	units.append({
 		"id": next_unit_id,
 		"team": team,
 		"card": String(card.get("id", card_id)),
-		"pos": _hex_center(key),
+		"skill_trigger": String(card.get("skill_trigger", "")),
+		"skill_effect": String(card.get("skill_effect", "")),
+		"skill_power": float(card.get("skill_power", 0.0)),
+		"skill_cooldown_sec": float(card.get("skill_cooldown_sec", 0.0)),
+		"pos": spawn_pos,
 		"hp": float(stats["max_hp"]),
 		"max_hp": float(stats["max_hp"]),
+		"base_max_hp": float(stats["max_hp"]),
 		"attack": float(stats["attack"]),
+		"base_attack": float(stats["attack"]),
+		"attack_bonus": 0.0,
 		"speed": float(stats["move_speed"]) * UNIT_MOVE_SPEED_MULT,
+		"base_speed": float(stats["move_speed"]) * UNIT_MOVE_SPEED_MULT,
 		"range": float(stats["attack_range"]),
+		"base_range": float(stats["attack_range"]),
+		"shield": 0.0,
+		"stun_timer": 0.0,
+		"slow_timer": 0.0,
+		"haste_timer": 0.0,
+		"skill_timer": skill_timer,
 		"cooldown": randf_range(0.08, 0.55),
 		"tile": key,
 	})
+	var spawned_index = units.size() - 1
 	next_unit_id += 1
-	_pulse(_hex_center(key), Color(0.75, 0.95, 1.0))
+	_apply_unit_spawn_skill(spawned_index)
+	_pulse(base_pos, Color(0.75, 0.95, 1.0))
+	if not is_extra:
+		for n in range(_card_extra_spawn_count(card)):
+			_spawn_unit(team, key, String(card.get("id", card_id)), true, n + 1)
 
 
 func _nearest_combat_target(pos: Vector2, team: int, self_id: int) -> Dictionary:
@@ -1215,6 +1312,11 @@ func _nearest_combat_target(pos: Vector2, team: int, self_id: int) -> Dictionary
 			continue
 		var unit_pos = Vector2(unit["pos"])
 		var score = pos.distance_to(unit_pos) - 80.0
+		score += _target_preference_adjustment(self_id, {
+			"kind": "unit",
+			"index": i,
+			"pos": unit_pos,
+		})
 		if score < best_score:
 			best_score = score
 			best = {
@@ -1231,6 +1333,11 @@ func _nearest_combat_target(pos: Vector2, team: int, self_id: int) -> Dictionary
 			score -= 120.0
 		else:
 			score -= 60.0
+		score += _target_preference_adjustment(self_id, {
+			"kind": "building",
+			"key": key,
+			"pos": _hex_center(key),
+		})
 		if score < best_score:
 			best_score = score
 			best = {
@@ -1239,6 +1346,594 @@ func _nearest_combat_target(pos: Vector2, team: int, self_id: int) -> Dictionary
 				"pos": _hex_center(key),
 			}
 	return best
+
+
+func _refresh_unit_skill_state(delta: float) -> void:
+	for i in range(units.size()):
+		var unit = units[i]
+		if float(unit.get("hp", 0.0)) <= 0.0:
+			continue
+		unit["stun_timer"] = maxf(0.0, float(unit.get("stun_timer", 0.0)) - delta)
+		unit["slow_timer"] = maxf(0.0, float(unit.get("slow_timer", 0.0)) - delta)
+		unit["haste_timer"] = maxf(0.0, float(unit.get("haste_timer", 0.0)) - delta)
+		if _unit_uses_interval_skill(unit):
+			unit["skill_timer"] = maxf(0.0, float(unit.get("skill_timer", 0.0)) - delta)
+		units[i] = unit
+	_refresh_unit_aura_bonuses()
+	for i in range(units.size()):
+		if i >= units.size() or float(units[i].get("hp", 0.0)) <= 0.0:
+			continue
+		if _unit_uses_interval_skill(units[i]) and float(units[i].get("skill_timer", 0.0)) <= 0.0:
+			_apply_unit_interval_skill(i)
+			if i < units.size():
+				units[i]["skill_timer"] = _unit_skill_cooldown(units[i])
+
+
+func _refresh_unit_aura_bonuses() -> void:
+	for i in range(units.size()):
+		var unit = units[i]
+		if float(unit.get("hp", 0.0)) <= 0.0:
+			continue
+		var speed_mult = 1.0
+		if float(unit.get("slow_timer", 0.0)) > 0.0:
+			speed_mult *= 0.55
+		if float(unit.get("haste_timer", 0.0)) > 0.0:
+			speed_mult *= 1.35
+		unit["attack"] = maxf(0.0, float(unit.get("base_attack", unit.get("attack", 0.0))) + float(unit.get("attack_bonus", 0.0)))
+		unit["speed"] = float(unit.get("base_speed", unit.get("speed", 0.0))) * speed_mult
+		unit["range"] = float(unit.get("base_range", unit.get("range", HEX_SIZE)))
+		unit["max_hp"] = maxf(1.0, float(unit.get("base_max_hp", unit.get("max_hp", 1.0))) + float(unit.get("max_hp_bonus", 0.0)))
+		unit["hp"] = minf(float(unit.get("hp", 0.0)), float(unit["max_hp"]))
+		units[i] = unit
+	for source_index in range(units.size()):
+		if float(units[source_index].get("hp", 0.0)) <= 0.0:
+			continue
+		var text = _unit_skill_text(units[source_index])
+		var team = int(units[source_index].get("team", NEUTRAL))
+		var pos = Vector2(units[source_index].get("pos", Vector2.ZERO))
+		if text.contains("我方动物攻击+1") or text.contains("所有动物攻击+1"):
+			_add_aura_attack(team, pos, 1.0, true)
+		if text.contains("每20点速度"):
+			var amount = max(1, floori(float(units[source_index].get("base_speed", 0.0)) / maxf(1.0, 20.0 * UNIT_MOVE_SPEED_MULT)))
+			_add_aura_attack(team, pos, float(amount), true)
+		if text.contains("速度+20%"):
+			_add_aura_speed(team, pos, 1.20, true)
+
+
+func _unit_attack_cooldown(unit: Dictionary) -> float:
+	return UNIT_BASE_ATTACK_COOLDOWN / maxf(0.01, UNIT_ATTACK_SPEED_MULT)
+
+
+func _unit_attack_target(attacker_index: int, target: Dictionary, distance: float) -> void:
+	if attacker_index < 0 or attacker_index >= units.size():
+		return
+	var attacker = units[attacker_index]
+	if float(attacker.get("hp", 0.0)) <= 0.0:
+		return
+	var target_pos = Vector2(target.get("pos", Vector2.ZERO))
+	if distance >= RANGED_PROJECTILE_MIN_DISTANCE:
+		_projectile(Vector2(attacker["pos"]), target_pos, int(attacker["team"]))
+	var killed = false
+	var damage = _unit_attack_damage_against_target(attacker_index, target)
+	if String(target["kind"]) == "unit":
+		var target_index = int(target["index"])
+		killed = _damage_unit(target_index, damage, attacker_index, int(attacker["team"]))
+	elif String(target["kind"]) == "building":
+		var target_key: Vector2i = target["key"]
+		killed = _damage_tile(target_key, int(attacker["team"]), damage)
+	_apply_unit_attack_skill(attacker_index, target)
+	if killed:
+		_apply_unit_kill_skill(attacker_index, target)
+
+
+func _unit_attack_damage_against_target(attacker_index: int, target: Dictionary) -> float:
+	if attacker_index < 0 or attacker_index >= units.size():
+		return 0.0
+	var attacker = units[attacker_index]
+	var damage = float(attacker.get("attack", 0.0))
+	var text = _unit_skill_text(attacker)
+	if String(target.get("kind", "")) == "unit":
+		var target_index = int(target.get("index", -1))
+		if target_index >= 0 and target_index < units.size():
+			var defender = units[target_index]
+			if (text.contains("生命低于敌人") or text.contains("生命值低于对方")) and float(attacker.get("hp", 0.0)) < float(defender.get("hp", 0.0)):
+				damage *= 2.0
+			if text.contains("生命高于对方") and float(attacker.get("hp", 0.0)) > float(defender.get("hp", 0.0)) and text.contains("额外50%"):
+				damage *= 1.5
+	return maxf(0.0, damage)
+
+
+func _target_preference_adjustment(self_id: int, target: Dictionary) -> float:
+	var attacker_index = _unit_index_by_id(self_id)
+	if attacker_index < 0:
+		return 0.0
+	var unit = units[attacker_index]
+	var text = _unit_skill_text(unit)
+	var score = 0.0
+	if text.contains("优先攻击敌方建筑"):
+		score += -220.0 if String(target.get("kind", "")) == "building" else 70.0
+	if String(target.get("kind", "")) == "unit":
+		var target_index = int(target.get("index", -1))
+		if target_index >= 0 and target_index < units.size():
+			var target_unit = units[target_index]
+			if text.contains("优先攻击远程"):
+				score += -180.0 if float(target_unit.get("range", 0.0)) > HEX_SIZE * 1.45 else 40.0
+			if text.contains("优先攻击后排"):
+				score += -150.0 if float(target_unit.get("range", 0.0)) > HEX_SIZE * 1.45 or float(target_unit.get("max_hp", 1.0)) <= 3.0 else 40.0
+			if text.contains("优先攻击前排"):
+				score += -150.0 if float(target_unit.get("max_hp", 1.0)) >= 8.0 else 45.0
+	return score
+
+
+func _incoming_unit_damage(index: int, damage: float) -> float:
+	var result = maxf(0.0, damage)
+	if index < 0 or index >= units.size():
+		return result
+	var text = _unit_skill_text(units[index])
+	if text.contains("受到伤害-1"):
+		result = maxf(0.0, result - 1.0)
+	return result
+
+
+func _apply_unit_spawn_skill(index: int) -> void:
+	if index < 0 or index >= units.size():
+		return
+	var unit = units[index]
+	var text = _unit_skill_text(unit)
+	if text.contains("随机友军") and text.contains("攻击"):
+		_buff_random_allies(int(unit["team"]), index, 1, "attack", 1.0)
+	if text.contains("随机友军") and text.contains("生命"):
+		_buff_random_allies(int(unit["team"]), index, 1, "hp", 2.0)
+	if text.contains("所有友军生命+1") or text.contains("提高所有友军生命值1点"):
+		_buff_allies(int(unit["team"]), index, "hp", 1.0)
+	if text.contains("护盾"):
+		_add_shield_to_unit(index, _unit_shield_amount(unit))
+	if text.contains("移速提高"):
+		units[index]["haste_timer"] = maxf(float(units[index].get("haste_timer", 0.0)), 3.0)
+	if _unit_uses_structured_skill(unit) and String(unit.get("skill_trigger", "")) == "on_spawn":
+		match String(unit.get("skill_effect", "")):
+			"shield":
+				_add_shield_to_unit(index, _unit_shield_amount(unit))
+			"buff_attack":
+				_buff_nearby_allies(int(unit["team"]), Vector2(unit["pos"]), "attack", _unit_buff_amount(unit, 1.0))
+			"buff_hp":
+				_buff_nearby_allies(int(unit["team"]), Vector2(unit["pos"]), "hp", _unit_buff_amount(unit, 1.0))
+			"buff_speed":
+				units[index]["haste_timer"] = maxf(float(units[index].get("haste_timer", 0.0)), 3.0)
+			"stun":
+				_stun_enemy_units_in_radius(int(unit["team"]), Vector2(unit["pos"]), SKILL_AURA_RADIUS, _unit_stun_seconds(unit))
+
+
+func _apply_unit_attack_skill(index: int, target: Dictionary) -> void:
+	if index < 0 or index >= units.size() or float(units[index].get("hp", 0.0)) <= 0.0:
+		return
+	var unit = units[index]
+	var text = _unit_skill_text(unit)
+	if text.contains("35%概率金币+1") and randf() < 0.35:
+		_add_gold(int(unit["team"]), 1)
+	if text.contains("攻击后，攻击+1"):
+		_add_attack_bonus(index, 1.0)
+	if text.contains("攻击后提高2攻击") and _target_unit_has_less_hp(index, target):
+		_add_attack_bonus(index, 2.0)
+	if text.contains("每次攻击造成360°AOE伤害"):
+		_damage_enemy_units_in_radius(int(unit["team"]), Vector2(unit["pos"]), SKILL_AOE_RADIUS, maxf(1.0, float(unit["attack"]) * 0.55), index, int(target.get("index", -1)))
+	if text.contains("额外攻击2个目标"):
+		_attack_extra_targets(index, 2, target)
+	elif text.contains("额外攻击1个敌人"):
+		_attack_extra_targets(index, 1, target)
+	if text.contains("攻击施加剧毒减速"):
+		_slow_target(target, SKILL_SLOW_SECONDS)
+	if _unit_uses_structured_skill(unit) and String(unit.get("skill_trigger", "")) == "on_attack":
+		match String(unit.get("skill_effect", "")):
+			"slow":
+				_slow_target(target, SKILL_SLOW_SECONDS)
+			"stun":
+				_stun_target(target, _unit_stun_seconds(unit))
+			"damage":
+				_damage_target(target, _unit_effect_damage(unit), index, int(unit["team"]))
+			"shield":
+				_add_shield_to_unit(index, _unit_shield_amount(unit))
+			"execute":
+				_execute_target_if_low(target, index, int(unit["team"]))
+
+
+func _apply_unit_damage_skill(index: int, source_index: int, source_team: int) -> void:
+	if index < 0 or index >= units.size() or float(units[index].get("hp", 0.0)) <= 0.0:
+		return
+	var unit = units[index]
+	var text = _unit_skill_text(unit)
+	if text.contains("受到近战伤害") and source_index >= 0 and source_index < units.size():
+		_damage_unit(source_index, 1.0, index, int(unit["team"]), false)
+	if text.contains("受到伤害后，攻击力+1") or text.contains("受到攻击后") and text.contains("提高1攻击"):
+		_add_attack_bonus(index, 1.0)
+	if _unit_uses_structured_skill(unit) and String(unit.get("skill_trigger", "")) == "on_damage":
+		match String(unit.get("skill_effect", "")):
+			"heal":
+				_heal_unit(index, _unit_heal_amount(unit))
+			"shield":
+				_add_shield_to_unit(index, _unit_shield_amount(unit))
+			"thorns":
+				if source_index >= 0 and source_index < units.size():
+					_damage_unit(source_index, 1.0, index, int(unit["team"]), false)
+
+
+func _handle_unit_death(index: int, source_index: int, source_team: int) -> void:
+	if index < 0 or index >= units.size():
+		return
+	var dead = units[index].duplicate()
+	var team = int(dead.get("team", NEUTRAL))
+	var text = _unit_skill_text(dead)
+	if text.contains("阵亡时，金币+1"):
+		_add_gold(team, 1)
+	if text.contains("对方获得5金币"):
+		_add_gold(ENEMY if team == PLAYER else PLAYER, 5)
+	if text.contains("阵亡时，我方2只随机动物攻击+1"):
+		_buff_random_allies(team, index, 2, "attack", 1.0)
+	if text.contains("阵亡时召唤") or (_unit_uses_structured_skill(dead) and String(dead.get("skill_trigger", "")) == "on_death" and String(dead.get("skill_effect", "")) == "summon"):
+		var spawn_card_id = _death_summon_card_id(dead)
+		_spawn_unit(team, dead.get("tile", _tile_at(Vector2(dead.get("pos", Vector2.ZERO)))), spawn_card_id, true, 1)
+	_notify_unit_death(dead, index)
+
+
+func _notify_unit_death(dead: Dictionary, dead_index: int) -> void:
+	var dead_team = int(dead.get("team", NEUTRAL))
+	for i in range(units.size()):
+		if i == dead_index or float(units[i].get("hp", 0.0)) <= 0.0:
+			continue
+		var text = _unit_skill_text(units[i])
+		if text.contains("每当有动物死亡时") and text.contains("生命值+1"):
+			_add_max_hp_bonus(i, 1.0, true)
+		if int(units[i].get("team", NEUTRAL)) == dead_team and text.contains("友军阵亡时") and text.contains("金币"):
+			_add_gold(dead_team, 2)
+
+
+func _apply_unit_kill_skill(index: int, target: Dictionary) -> void:
+	if index < 0 or index >= units.size() or float(units[index].get("hp", 0.0)) <= 0.0:
+		return
+	var text = _unit_skill_text(units[index])
+	if text.contains("击杀后，50%概率攻击+1") and randf() < 0.5:
+		_add_attack_bonus(index, 1.0)
+	if text.contains("击杀后，攻击+1/生命+1"):
+		_add_attack_bonus(index, 1.0)
+		_add_max_hp_bonus(index, 1.0, true)
+	if text.contains("击杀时，提高3生命"):
+		_add_max_hp_bonus(index, 3.0, true)
+	if text.contains("击杀后，提高最大生命值"):
+		var gained = 1.0
+		if String(target.get("kind", "")) == "unit":
+			var target_index = int(target.get("index", -1))
+			if target_index >= 0 and target_index < units.size():
+				gained = maxf(1.0, float(units[target_index].get("max_hp", 1.0)))
+		_add_max_hp_bonus(index, gained, true)
+
+
+func _apply_unit_capture_skill(index: int, key: Vector2i) -> void:
+	if index < 0 or index >= units.size():
+		return
+	var unit = units[index]
+	var text = _unit_skill_text(unit)
+	if text.contains("参与占领") and text.contains("金币"):
+		_add_gold(int(unit["team"]), 1)
+	elif _unit_uses_structured_skill(unit) and String(unit.get("skill_trigger", "")) == "on_capture" and String(unit.get("skill_effect", "")) == "gold":
+		_add_gold(int(unit["team"]), max(1, roundi(float(unit.get("skill_power", 1.0)) / 10.0)))
+
+
+func _apply_unit_interval_skill(index: int) -> void:
+	if index < 0 or index >= units.size() or float(units[index].get("hp", 0.0)) <= 0.0:
+		return
+	var unit = units[index]
+	if not _unit_uses_structured_skill(unit):
+		return
+	match String(unit.get("skill_effect", "")):
+		"gold":
+			_add_gold(int(unit["team"]), max(1, roundi(float(unit.get("skill_power", 1.0)))))
+		"heal":
+			_heal_lowest_ally(int(unit["team"]), _unit_heal_amount(unit))
+		"shield":
+			_shield_nearby_allies(int(unit["team"]), Vector2(unit["pos"]), _unit_shield_amount(unit))
+		"repair":
+			_repair_nearby_building(int(unit["team"]), Vector2(unit["pos"]), _unit_heal_amount(unit))
+
+
+func _card_skill_cooldown(card: Dictionary) -> float:
+	return maxf(1.0, float(card.get("skill_cooldown_sec", 0.0)))
+
+
+func _card_uses_interval_skill(card: Dictionary) -> bool:
+	return String(card.get("skill_trigger", "")) == "on_interval"
+
+
+func _unit_uses_interval_skill(unit: Dictionary) -> bool:
+	return String(unit.get("skill_trigger", "")) == "on_interval"
+
+
+func _unit_uses_structured_skill(unit: Dictionary) -> bool:
+	return _unit_skill_text(unit) == ""
+
+
+func _unit_skill_cooldown(unit: Dictionary) -> float:
+	return maxf(1.0, float(unit.get("skill_cooldown_sec", 0.0)))
+
+
+func _unit_card(unit: Dictionary) -> Dictionary:
+	return _card_by_id(String(unit.get("card", "")))
+
+
+func _unit_skill_text(unit: Dictionary) -> String:
+	var card = _unit_card(unit)
+	if card.is_empty():
+		return ""
+	return String(card.get("skill_text", "")).strip_edges()
+
+
+func _card_extra_spawn_count(card: Dictionary) -> int:
+	var text = String(card.get("skill_text", ""))
+	if text.contains("数量+2"):
+		return 2
+	if text.contains("数量+1") or text.contains("额外召唤一个"):
+		return 1
+	return 0
+
+
+func _unit_index_by_id(unit_id: int) -> int:
+	for i in range(units.size()):
+		if int(units[i].get("id", -1)) == unit_id:
+			return i
+	return -1
+
+
+func _add_gold(team: int, amount: int) -> void:
+	if amount <= 0:
+		return
+	if team == PLAYER:
+		gold += amount
+	else:
+		enemy_gold += amount
+
+
+func _add_attack_bonus(index: int, amount: float) -> void:
+	if index < 0 or index >= units.size() or amount == 0.0:
+		return
+	units[index]["attack_bonus"] = float(units[index].get("attack_bonus", 0.0)) + amount
+	units[index]["attack"] = maxf(0.0, float(units[index].get("attack", 0.0)) + amount)
+	_pulse(Vector2(units[index]["pos"]), COLOR_ORANGE)
+
+
+func _add_max_hp_bonus(index: int, amount: float, heal: bool) -> void:
+	if index < 0 or index >= units.size() or amount == 0.0:
+		return
+	units[index]["max_hp_bonus"] = float(units[index].get("max_hp_bonus", 0.0)) + amount
+	units[index]["max_hp"] = float(units[index].get("max_hp", 1.0)) + amount
+	if heal:
+		units[index]["hp"] = minf(float(units[index].get("max_hp", 1.0)), float(units[index].get("hp", 0.0)) + amount)
+	_pulse(Vector2(units[index]["pos"]), COLOR_GREEN)
+
+
+func _add_shield_to_unit(index: int, amount: float) -> void:
+	if index < 0 or index >= units.size() or amount <= 0.0:
+		return
+	units[index]["shield"] = float(units[index].get("shield", 0.0)) + amount
+	_pulse(Vector2(units[index]["pos"]), COLOR_BLUE)
+
+
+func _heal_unit(index: int, amount: float) -> void:
+	if index < 0 or index >= units.size() or amount <= 0.0:
+		return
+	units[index]["hp"] = minf(float(units[index].get("max_hp", 1.0)), float(units[index].get("hp", 0.0)) + amount)
+	_pulse(Vector2(units[index]["pos"]), COLOR_GREEN)
+
+
+func _buff_random_allies(team: int, source_index: int, count: int, stat: String, amount: float) -> void:
+	var options = []
+	for i in range(units.size()):
+		if i == source_index or int(units[i].get("team", NEUTRAL)) != team or float(units[i].get("hp", 0.0)) <= 0.0:
+			continue
+		options.append(i)
+	for n in range(min(count, options.size())):
+		var pick_pos = randi() % options.size()
+		var target_index = int(options[pick_pos])
+		options.remove_at(pick_pos)
+		_apply_unit_stat_buff(target_index, stat, amount)
+
+
+func _buff_allies(team: int, source_index: int, stat: String, amount: float) -> void:
+	for i in range(units.size()):
+		if i == source_index or int(units[i].get("team", NEUTRAL)) != team or float(units[i].get("hp", 0.0)) <= 0.0:
+			continue
+		_apply_unit_stat_buff(i, stat, amount)
+
+
+func _buff_nearby_allies(team: int, pos: Vector2, stat: String, amount: float) -> void:
+	for i in range(units.size()):
+		if int(units[i].get("team", NEUTRAL)) != team or float(units[i].get("hp", 0.0)) <= 0.0:
+			continue
+		if pos.distance_to(Vector2(units[i]["pos"])) <= SKILL_SUPPORT_RADIUS:
+			_apply_unit_stat_buff(i, stat, amount)
+
+
+func _apply_unit_stat_buff(index: int, stat: String, amount: float) -> void:
+	match stat:
+		"attack":
+			_add_attack_bonus(index, amount)
+		"hp":
+			_add_max_hp_bonus(index, amount, true)
+		"shield":
+			_add_shield_to_unit(index, amount)
+
+
+func _add_aura_attack(team: int, pos: Vector2, amount: float, global: bool) -> void:
+	for i in range(units.size()):
+		if int(units[i].get("team", NEUTRAL)) != team or float(units[i].get("hp", 0.0)) <= 0.0:
+			continue
+		if global or pos.distance_to(Vector2(units[i]["pos"])) <= SKILL_AURA_RADIUS:
+			units[i]["attack"] = maxf(0.0, float(units[i].get("attack", 0.0)) + amount)
+
+
+func _add_aura_speed(team: int, pos: Vector2, mult: float, global: bool) -> void:
+	for i in range(units.size()):
+		if int(units[i].get("team", NEUTRAL)) != team or float(units[i].get("hp", 0.0)) <= 0.0:
+			continue
+		if global or pos.distance_to(Vector2(units[i]["pos"])) <= SKILL_AURA_RADIUS:
+			units[i]["speed"] = float(units[i].get("speed", 0.0)) * mult
+
+
+func _stun_enemy_units_in_radius(team: int, pos: Vector2, radius: float, seconds: float) -> void:
+	for i in range(units.size()):
+		if int(units[i].get("team", NEUTRAL)) == team or float(units[i].get("hp", 0.0)) <= 0.0:
+			continue
+		if pos.distance_to(Vector2(units[i]["pos"])) <= radius:
+			units[i]["stun_timer"] = maxf(float(units[i].get("stun_timer", 0.0)), seconds)
+			_pulse(Vector2(units[i]["pos"]), COLOR_PURPLE)
+
+
+func _slow_target(target: Dictionary, seconds: float) -> void:
+	if String(target.get("kind", "")) != "unit":
+		return
+	var target_index = int(target.get("index", -1))
+	if target_index >= 0 and target_index < units.size():
+		units[target_index]["slow_timer"] = maxf(float(units[target_index].get("slow_timer", 0.0)), seconds)
+		_pulse(Vector2(units[target_index]["pos"]), COLOR_BLUE)
+
+
+func _stun_target(target: Dictionary, seconds: float) -> void:
+	if String(target.get("kind", "")) != "unit":
+		return
+	var target_index = int(target.get("index", -1))
+	if target_index >= 0 and target_index < units.size():
+		units[target_index]["stun_timer"] = maxf(float(units[target_index].get("stun_timer", 0.0)), seconds)
+		_pulse(Vector2(units[target_index]["pos"]), COLOR_PURPLE)
+
+
+func _damage_target(target: Dictionary, damage: float, source_index: int, source_team: int) -> void:
+	if damage <= 0.0:
+		return
+	if String(target.get("kind", "")) == "unit":
+		_damage_unit(int(target.get("index", -1)), damage, source_index, source_team)
+	elif String(target.get("kind", "")) == "building":
+		_damage_tile(target.get("key", Vector2i(-99, -99)), source_team, damage)
+
+
+func _damage_enemy_units_in_radius(team: int, pos: Vector2, radius: float, damage: float, source_index: int, excluded_index: int = -1) -> void:
+	for i in range(units.size()):
+		if i == excluded_index or int(units[i].get("team", NEUTRAL)) == team or float(units[i].get("hp", 0.0)) <= 0.0:
+			continue
+		if pos.distance_to(Vector2(units[i]["pos"])) <= radius:
+			_damage_unit(i, damage, source_index, team)
+
+
+func _attack_extra_targets(index: int, count: int, primary_target: Dictionary) -> void:
+	if index < 0 or index >= units.size():
+		return
+	var unit = units[index]
+	var excluded_index = int(primary_target.get("index", -1)) if String(primary_target.get("kind", "")) == "unit" else -1
+	var picked = []
+	for n in range(count):
+		var best_index = -1
+		var best_distance = 999999.0
+		for i in range(units.size()):
+			if i == excluded_index or picked.has(i) or int(units[i].get("team", NEUTRAL)) == int(unit["team"]) or float(units[i].get("hp", 0.0)) <= 0.0:
+				continue
+			var distance = Vector2(unit["pos"]).distance_to(Vector2(units[i]["pos"]))
+			if distance <= float(unit["range"]) * 1.35 and distance < best_distance:
+				best_distance = distance
+				best_index = i
+		if best_index < 0:
+			return
+		picked.append(best_index)
+		_projectile(Vector2(unit["pos"]), Vector2(units[best_index]["pos"]), int(unit["team"]))
+		_damage_unit(best_index, maxf(1.0, float(unit["attack"]) * 0.75), index, int(unit["team"]))
+
+
+func _execute_target_if_low(target: Dictionary, source_index: int, source_team: int) -> void:
+	if String(target.get("kind", "")) != "unit":
+		return
+	var target_index = int(target.get("index", -1))
+	if target_index < 0 or target_index >= units.size():
+		return
+	if float(units[target_index].get("hp", 0.0)) <= float(units[target_index].get("max_hp", 1.0)) * 0.25:
+		_damage_unit(target_index, float(units[target_index].get("hp", 0.0)) + 999.0, source_index, source_team)
+
+
+func _heal_lowest_ally(team: int, amount: float) -> void:
+	var best_index = -1
+	var best_ratio = 2.0
+	for i in range(units.size()):
+		if int(units[i].get("team", NEUTRAL)) != team or float(units[i].get("hp", 0.0)) <= 0.0:
+			continue
+		var ratio = float(units[i].get("hp", 0.0)) / maxf(1.0, float(units[i].get("max_hp", 1.0)))
+		if ratio < best_ratio:
+			best_ratio = ratio
+			best_index = i
+	if best_index >= 0:
+		_heal_unit(best_index, amount)
+
+
+func _shield_nearby_allies(team: int, pos: Vector2, amount: float) -> void:
+	for i in range(units.size()):
+		if int(units[i].get("team", NEUTRAL)) != team or float(units[i].get("hp", 0.0)) <= 0.0:
+			continue
+		if pos.distance_to(Vector2(units[i]["pos"])) <= SKILL_SUPPORT_RADIUS:
+			_add_shield_to_unit(i, amount)
+
+
+func _repair_nearby_building(team: int, pos: Vector2, amount: float) -> void:
+	var best_key = Vector2i(-99, -99)
+	var best_distance = 999999.0
+	for key in tiles.keys():
+		var tile = tiles[key]
+		if int(tile.get("team", NEUTRAL)) != team or String(tile.get("building", "")) == "":
+			continue
+		if float(tile.get("hp", 0.0)) >= float(tile.get("max_hp", 0.0)):
+			continue
+		var distance = pos.distance_to(_hex_center(key))
+		if distance < best_distance and distance <= SKILL_SUPPORT_RADIUS:
+			best_distance = distance
+			best_key = key
+	if best_key.x == -99:
+		return
+	var tile = tiles[best_key]
+	tile["hp"] = minf(float(tile.get("max_hp", 1.0)), float(tile.get("hp", 0.0)) + amount)
+	tiles[best_key] = tile
+	_pulse(_hex_center(best_key), COLOR_GREEN)
+
+
+func _target_unit_has_less_hp(index: int, target: Dictionary) -> bool:
+	if index < 0 or index >= units.size() or String(target.get("kind", "")) != "unit":
+		return false
+	var target_index = int(target.get("index", -1))
+	if target_index < 0 or target_index >= units.size():
+		return false
+	return float(units[index].get("hp", 0.0)) > float(units[target_index].get("hp", 0.0))
+
+
+func _death_summon_card_id(unit: Dictionary) -> String:
+	var text = _unit_skill_text(unit)
+	if text.contains("大猩猩") and not _card_by_id("gorilla").is_empty():
+		return "gorilla"
+	return String(unit.get("card", ""))
+
+
+func _unit_shield_amount(unit: Dictionary) -> float:
+	return maxf(1.0, roundf(float(unit.get("skill_power", 12.0)) / 18.0))
+
+
+func _unit_heal_amount(unit: Dictionary) -> float:
+	return maxf(1.0, roundf(float(unit.get("skill_power", 12.0)) / 20.0))
+
+
+func _unit_buff_amount(unit: Dictionary, fallback: float) -> float:
+	return maxf(fallback, minf(3.0, roundf(float(unit.get("skill_power", fallback)))))
+
+
+func _unit_effect_damage(unit: Dictionary) -> float:
+	return maxf(1.0, roundf(float(unit.get("skill_power", 8.0)) / 8.0))
+
+
+func _unit_stun_seconds(unit: Dictionary) -> float:
+	var value = float(unit.get("skill_power", SKILL_STUN_SECONDS))
+	if value > 0.0 and value <= 3.0:
+		return value
+	return SKILL_STUN_SECONDS
 
 
 func _try_unlock(key: Vector2i) -> bool:
