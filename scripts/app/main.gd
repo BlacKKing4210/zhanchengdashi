@@ -29,6 +29,8 @@ const TOWER_RANGE = 210.0
 const UNIT_MOVE_SPEED_MULT = 0.5
 const UNIT_ATTACK_SPEED_MULT = 0.5
 const UNIT_BASE_ATTACK_COOLDOWN = 0.85
+const CARD_SPEED_FAST_THRESHOLD = 65.0
+const CARD_SPEED_SUPER_FAST_THRESHOLD = 75.0
 const STARTING_GACHA_TICKETS = 10
 const BATTLE_WIN_REWARD_TICKETS = 3
 const BATTLE_LOSS_REWARD_TICKETS = 1
@@ -666,8 +668,42 @@ func _card_stats_for_team(card: Dictionary, team: int) -> Dictionary:
 
 
 func _card_skill_text(card: Dictionary) -> String:
-	var skill_text = String(card.get("skill_text", ""))
+	var skill_text = _card_display_skill_text(card, true)
 	return skill_text if skill_text != "" else "无技能"
+
+
+func _card_display_skill_text(card: Dictionary, include_no_skill: bool) -> String:
+	var parts = []
+	var speed_text = _card_speed_skill_text(card)
+	if speed_text != "":
+		parts.append(speed_text)
+	var summon_text = _card_extra_summon_skill_text(card)
+	if summon_text != "":
+		parts.append(summon_text)
+	var base_skill_text = String(card.get("skill_text", ""))
+	var is_no_skill = base_skill_text == "" or base_skill_text.begins_with("无技能")
+	if not is_no_skill and String(card.get("skill_effect", "")) != "summon":
+		parts.append(base_skill_text)
+	if parts.is_empty() and include_no_skill:
+		parts.append("无技能")
+	return "；".join(parts)
+
+
+func _card_speed_skill_text(card: Dictionary) -> String:
+	if _card_kind(card) != CARD_KIND_ANIMAL:
+		return ""
+	var speed = float(card.get("base_move_speed", card.get("move_speed", 0.0)))
+	if speed >= CARD_SPEED_SUPER_FAST_THRESHOLD:
+		return "速度超快"
+	if speed >= CARD_SPEED_FAST_THRESHOLD:
+		return "速度快"
+	return ""
+
+
+func _card_extra_summon_skill_text(card: Dictionary) -> String:
+	if _card_kind(card) != CARD_KIND_ANIMAL or String(card.get("skill_effect", "")) != "summon":
+		return ""
+	return "召唤时，额外召唤一个%s动物" % String(card.get("name", ""))
 
 
 func _attack_range_label(value: float) -> String:
@@ -745,7 +781,7 @@ func _apply_unlock(key: Vector2i, team: int, fallback_card_id: String) -> String
 	if not tiles.has(key):
 		return ""
 	var tile = tiles[key]
-	var unlock_roll = BoardRules.roll_unlock_result(tile)
+	var unlock_roll = _roll_unlock_result_from_config(key, tile, team)
 	var result = String(unlock_roll.get("result", String(tile.get("site", ""))))
 	tile = BoardRules.with_unlock_roll(
 		tile,
@@ -754,31 +790,215 @@ func _apply_unlock(key: Vector2i, team: int, fallback_card_id: String) -> String
 		int(unlock_roll.get("roll_seed", 0))
 	)
 	tiles[key] = tile
-	var card_id = String(tile.get("site_card", fallback_card_id))
+	var card_id = String(unlock_roll.get("card_id", String(tile.get("site_card", fallback_card_id))))
 	match result:
 		"empty":
 			_set_empty_tile(key, team)
 			return "空地"
 		"gold":
+			var amount = int(unlock_roll.get("amount", 30))
 			if team == PLAYER:
-				gold += 30
+				gold += amount
 			else:
-				enemy_gold += 30
+				enemy_gold += amount
 			_set_empty_tile(key, team)
-			return "金币 +30"
+			return "金币 +%d" % amount
 		_:
 			var site_card_id = ""
 			if result == "barracks" or result == "hall":
-				site_card_id = _site_card_for_team(key, tile, team, card_id)
+				site_card_id = card_id
+				if site_card_id == "":
+					site_card_id = _site_card_for_team(key, tile, team, fallback_card_id)
 				if site_card_id == "":
 					_set_empty_tile(key, team)
 					return "空地"
 			elif result == "tower":
-				site_card_id = _defense_card_for_team(key, tile, team)
+				site_card_id = card_id
+				if site_card_id == "":
+					site_card_id = _defense_card_for_team(key, tile, team)
 			elif result == "mine":
 				site_card_id = MINE_CARD_ID
 			_set_building(key, team, result, site_card_id)
 			return _site_name(result, site_card_id)
+
+
+func _roll_unlock_result_from_config(key: Vector2i, tile: Dictionary, team: int) -> Dictionary:
+	var roll_seed = int(randi())
+	var site = String(tile.get("site", ""))
+	var reveal_pool_id = _reveal_pool_id_for_site(site)
+	var reveal_entry = _roll_config_pool_entry("cell_reveal_pools", reveal_pool_id)
+	if reveal_entry.is_empty():
+		return {
+			"result": _default_unlock_result_for_site(site),
+			"target_rarity": "common",
+			"roll_seed": roll_seed,
+		}
+
+	var entry_type = String(reveal_entry.get("entry_type", "empty"))
+	var entry_id = String(reveal_entry.get("entry_id", "empty"))
+	var result = "empty"
+	var card_id = ""
+	var target_rarity = ""
+	var amount = _roll_entry_count(reveal_entry)
+
+	match entry_type:
+		"empty":
+			result = "empty"
+		"currency":
+			result = entry_id
+		"gold_mine":
+			result = "mine"
+		"unit_pool":
+			var unit_pool_id = _card_pool_id_for_reveal_entry(reveal_entry, tile, CARD_KIND_ANIMAL)
+			var unit_pick = _roll_card_from_config_pool(unit_pool_id, team, CARD_KIND_ANIMAL, roll_seed)
+			card_id = String(unit_pick.get("card_id", ""))
+			target_rarity = String(unit_pick.get("rarity", "common"))
+			result = _unit_building_result_for_site(site, target_rarity)
+		"defense_pool":
+			var defense_pool_id = _card_pool_id_for_reveal_entry(reveal_entry, tile, CARD_KIND_DEFENSE)
+			var defense_pick = _roll_card_from_config_pool(defense_pool_id, team, CARD_KIND_DEFENSE, roll_seed)
+			card_id = String(defense_pick.get("card_id", ""))
+			target_rarity = String(defense_pick.get("rarity", "common"))
+			result = "tower"
+		"fixed":
+			result = _default_unlock_result_for_site(site)
+		_:
+			result = _default_unlock_result_for_site(site)
+
+	if result != "gold":
+		amount = 0
+	return {
+		"result": result,
+		"target_rarity": target_rarity,
+		"roll_seed": roll_seed,
+		"card_id": card_id,
+		"amount": amount,
+	}
+
+
+func _reveal_pool_id_for_site(site: String) -> String:
+	match site:
+		"mystery":
+			return "reveal_pool_question"
+		"barracks", "hall":
+			return "reveal_pool_unit_tile"
+		"tower":
+			return "reveal_pool_defense_tile"
+		"mine":
+			return "reveal_pool_gold_mine"
+		"base":
+			return "reveal_pool_home_base"
+		_:
+			return ""
+
+
+func _default_unlock_result_for_site(site: String) -> String:
+	match site:
+		"mystery":
+			return "empty"
+		"barracks", "hall", "tower":
+			return site
+		"mine":
+			return "mine"
+		_:
+			return "empty"
+
+
+func _unit_building_result_for_site(site: String, target_rarity: String) -> String:
+	if site == "hall":
+		return "hall"
+	if site == "mystery" and _rarity_sort_rank(target_rarity) >= _rarity_sort_rank("epic"):
+		return "hall"
+	return "barracks"
+
+
+func _roll_config_pool_entry(table_name: String, pool_id: String) -> Dictionary:
+	if pool_id == "" or not ConfigDB.has_table(table_name):
+		return {}
+	var entries = []
+	var total_weight = 0
+	var rows = ConfigDB.get_table(table_name)
+	if typeof(rows) != TYPE_ARRAY:
+		return {}
+	for row in rows:
+		if typeof(row) != TYPE_DICTIONARY or String(row.get("pool_id", "")) != pool_id:
+			continue
+		var weight = maxi(0, int(row.get("weight", 0)))
+		if weight <= 0:
+			continue
+		entries.append(row)
+		total_weight += weight
+	if entries.is_empty() or total_weight <= 0:
+		return {}
+	var roll = int(randi() % total_weight)
+	var cursor = 0
+	for entry in entries:
+		cursor += maxi(0, int(entry.get("weight", 0)))
+		if roll < cursor:
+			return entry
+	return entries[entries.size() - 1]
+
+
+func _roll_entry_count(entry: Dictionary) -> int:
+	var min_count = int(entry.get("min_count", 0))
+	var max_count = int(entry.get("max_count", min_count))
+	if max_count <= min_count:
+		return min_count
+	return min_count + int(randi() % (max_count - min_count + 1))
+
+
+func _card_pool_id_for_reveal_entry(reveal_entry: Dictionary, tile: Dictionary, required_kind: String) -> String:
+	var entry_id = String(reveal_entry.get("entry_id", ""))
+	if entry_id != "selected_price_unit_pool" and entry_id != "selected_price_defense_pool":
+		return entry_id
+	var price_row = _price_pool_row_for_cost(int(tile.get("site_cost", UNIT_LOW_PRICE)))
+	if price_row.is_empty():
+		return ""
+	if required_kind == CARD_KIND_DEFENSE:
+		return String(price_row.get("defense_card_pool_id", ""))
+	return String(price_row.get("unit_card_pool_id", ""))
+
+
+func _price_pool_row_for_cost(cost: int) -> Dictionary:
+	if not ConfigDB.has_table("cell_price_pools"):
+		return {}
+	var rows = ConfigDB.get_table("cell_price_pools")
+	if typeof(rows) != TYPE_ARRAY:
+		return {}
+	for row in rows:
+		if typeof(row) == TYPE_DICTIONARY and int(row.get("price", 0)) == cost:
+			return row
+	return {}
+
+
+func _roll_card_from_config_pool(pool_id: String, team: int, required_kind: String, roll_seed: int) -> Dictionary:
+	var entry = _roll_config_pool_entry("card_random_pools", pool_id)
+	var target_rarity = String(entry.get("rarity", "common")) if not entry.is_empty() else "common"
+	var entry_card_id = String(entry.get("entry_id", "")) if not entry.is_empty() else ""
+	var roster = enemy_deck if team == ENEMY else deck
+	var card_id = ""
+	if _can_use_config_card(entry_card_id, roster, required_kind):
+		card_id = entry_card_id
+	if card_id == "":
+		card_id = _deck_card_for_target_rarity(roster, target_rarity, roll_seed, required_kind)
+	if card_id == "" and required_kind == CARD_KIND_DEFENSE:
+		card_id = _deck_card_for_target_rarity(_all_card_ids_for_kind(CARD_KIND_DEFENSE), target_rarity, roll_seed, CARD_KIND_DEFENSE)
+	return {
+		"card_id": card_id,
+		"rarity": target_rarity,
+		"entry_id": entry_card_id,
+	}
+
+
+func _can_use_config_card(card_id: String, roster: Array, required_kind: String) -> bool:
+	if card_id == "":
+		return false
+	var card = _card_by_id(card_id)
+	if card.is_empty() or (required_kind != "" and _card_kind(card) != required_kind):
+		return false
+	if required_kind == CARD_KIND_DEFENSE:
+		return roster.has(card_id) or _all_card_ids_for_kind(CARD_KIND_DEFENSE).has(card_id)
+	return roster.has(card_id)
 
 
 func _update_battle(delta: float) -> void:
@@ -1060,7 +1280,7 @@ func _site_card_for_team(key: Vector2i, tile: Dictionary, team: int, fallback_ca
 	var site_seed = int(tile.get("site_roll_seed", BoardRules.site_seed_for_key(key)))
 	var target_rarity = String(tile.get("site_target_rarity", ""))
 	if target_rarity == "":
-		target_rarity = BoardRules.target_rarity_for_price(int(tile.get("site_cost", UNIT_LOW_PRICE)), site_seed)
+		target_rarity = "common"
 	var roster = enemy_deck if team == ENEMY else deck
 	return _deck_card_for_target_rarity(roster, target_rarity, site_seed, CARD_KIND_ANIMAL)
 
@@ -1069,7 +1289,7 @@ func _defense_card_for_team(key: Vector2i, tile: Dictionary, team: int) -> Strin
 	var site_seed = int(tile.get("site_roll_seed", BoardRules.site_seed_for_key(key)))
 	var target_rarity = String(tile.get("site_target_rarity", ""))
 	if target_rarity == "":
-		target_rarity = BoardRules.target_rarity_for_tower(site_seed)
+		target_rarity = "common"
 	var roster = enemy_deck if team == ENEMY else deck
 	var card_id = _deck_card_for_target_rarity(roster, target_rarity, site_seed, CARD_KIND_DEFENSE)
 	if card_id != "":
@@ -1078,7 +1298,7 @@ func _defense_card_for_team(key: Vector2i, tile: Dictionary, team: int) -> Strin
 
 
 func _enemy_card_for_cost(cost: int, site_seed: int) -> String:
-	return _deck_card_for_target_rarity(enemy_deck, BoardRules.target_rarity_for_price(cost, site_seed), site_seed, CARD_KIND_ANIMAL)
+	return _deck_card_for_target_rarity(enemy_deck, "common", site_seed + cost, CARD_KIND_ANIMAL)
 
 
 func _enemy_deck_card(index: int) -> String:
@@ -1088,7 +1308,7 @@ func _enemy_deck_card(index: int) -> String:
 
 
 func _card_for_cost(cost: int, site_seed: int = 0) -> String:
-	return _deck_card_for_target_rarity(deck, BoardRules.target_rarity_for_price(cost, site_seed), site_seed, CARD_KIND_ANIMAL)
+	return _deck_card_for_target_rarity(deck, "common", site_seed + cost, CARD_KIND_ANIMAL)
 
 
 func _card_for_tier_range(min_tier: int, max_tier: int, site_seed: int) -> String:
@@ -2123,12 +2343,11 @@ func _draw_selection_panel() -> void:
 				else:
 					title = "动物卡牌：%s" % String(card.get("name", "动物"))
 					var stats = _card_stats_for_team(card, int(tile["team"]))
-					detail = "%s Lv.%d  攻%d 血%d 速%.0f 距%s 召%.1fs" % [
+					detail = "%s Lv.%d  攻%d 血%d 距%s 召%.1fs" % [
 						_rarity_label(String(card.get("rarity", "common"))),
 						_card_level_for_team(card_id, int(tile["team"])),
 						int(stats["attack"]),
 						int(stats["max_hp"]),
-						float(stats["move_speed"]) * UNIT_MOVE_SPEED_MULT,
 						_attack_range_label(float(stats["attack_range"])),
 						float(stats["summon_interval_sec"]),
 					]
@@ -2189,7 +2408,7 @@ func _draw_tile_card_summary(rect: Rect2, tile: Dictionary, card: Dictionary) ->
 		_draw_text_fit("防御塔卡  攻%d  生命%d  射程%s  冷却%.1fs" % [int(stats["attack"]), int(stats["max_hp"]), _attack_range_label(float(stats["attack_range"])), float(stats["summon_interval_sec"])], Rect2(rect.position + Vector2(0, 34), Vector2(rect.size.x, 24)), 18, Color(0.84, 0.88, 1.0))
 		_draw_text_fit(_card_skill_text(card), Rect2(rect.position + Vector2(0, 62), Vector2(rect.size.x, 24)), 17, Color(0.78, 0.86, 1.0))
 	else:
-		_draw_text_fit("动物营地  攻%d  生命%d  速度%d  射程%s" % [int(stats["attack"]), int(stats["max_hp"]), roundi(float(stats["move_speed"]) * UNIT_MOVE_SPEED_MULT), _attack_range_label(float(stats["attack_range"]))], Rect2(rect.position + Vector2(0, 34), Vector2(rect.size.x, 24)), 18, Color(0.84, 0.88, 1.0))
+		_draw_text_fit("动物营地  攻%d  生命%d  射程%s" % [int(stats["attack"]), int(stats["max_hp"]), _attack_range_label(float(stats["attack_range"]))], Rect2(rect.position + Vector2(0, 34), Vector2(rect.size.x, 24)), 18, Color(0.84, 0.88, 1.0))
 		_draw_text_fit(_card_skill_text(card), Rect2(rect.position + Vector2(0, 62), Vector2(rect.size.x, 24)), 17, Color(0.78, 0.86, 1.0))
 
 
@@ -2308,8 +2527,7 @@ func _draw_card_detail(rect: Rect2) -> void:
 	else:
 		_draw_detail_stat_icon_value(rect.position + Vector2(142, 18), "attack", str(int(stats["attack"])), COLOR_RED)
 		_draw_detail_stat_icon_value(rect.position + Vector2(232, 18), "hp", str(int(stats["max_hp"])), COLOR_RED)
-		_draw_detail_stat_icon_value(rect.position + Vector2(330, 18), "speed", str(roundi(float(stats["move_speed"]))), COLOR_BLUE)
-		_draw_text_center(_attack_range_label(float(stats["attack_range"])), Rect2(rect.position + Vector2(434, 20), Vector2(72, 28)), 18, COLOR_LINE)
+		_draw_text_center(_attack_range_label(float(stats["attack_range"])), Rect2(rect.position + Vector2(330, 20), Vector2(72, 28)), 18, COLOR_LINE)
 	var skill_text = _card_detail_skill_text(card)
 	if skill_text != "":
 		_draw_text_center(skill_text, Rect2(rect.position + Vector2(138, 56), Vector2(370, 28)), 16, COLOR_PURPLE)
@@ -2321,12 +2539,7 @@ func _draw_card_detail(rect: Rect2) -> void:
 
 
 func _card_detail_skill_text(card: Dictionary) -> String:
-	if String(card.get("skill_id", "")) == "":
-		return ""
-	var skill_text = String(card.get("skill_text", ""))
-	if skill_text.begins_with("无技能"):
-		return ""
-	return skill_text
+	return _card_display_skill_text(card, false)
 
 
 func _can_show_equip_button(card_id: String) -> bool:

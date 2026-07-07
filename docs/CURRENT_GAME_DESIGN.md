@@ -151,7 +151,14 @@ deck_power = 所有出战卡牌 card_power 求和
 | epic | 2 | 3 |
 | legendary | 3 | 4 |
 
-### 5.3 当前卡牌美术占位
+### 5.3 当前卡牌显示规则
+
+- 动物卡牌不再把移动速度作为独立属性显示，速度只在战斗计算中继续读取 `config/tables/cards.csv` 的 `move_speed`。
+- 动物 `move_speed >= 65` 时，技能栏额外显示 `速度快`；`move_speed >= 75` 时显示 `速度超快`。
+- 动物 `skill_effect=summon` 时，技能栏显示 `召唤时，额外召唤一个{动物名}动物`，其中 `{动物名}` 读取 `config/tables/cards.csv` 的 `name`。
+- 如果动物同时满足高速和额外召唤，技能栏用 `；` 拼接多个展示标签；原始无技能文案不再覆盖这些展示标签。
+
+### 5.4 当前卡牌美术占位
 
 当前编组卡牌暂用三种已有单位图：
 
@@ -220,7 +227,8 @@ deck_power = 所有出战卡牌 card_power 求和
 动物营地显示和揭示规则：
 
 - 解锁前只显示“动物营地”和价格，不提前显示具体是狼、袋鼠或其它动物营地，也不显示品质色。
-- 解锁时才进行品质概率随机，再根据地块价格和本次随机结果在当前阵营编组内筛选同品质卡牌。
+- 解锁时先读取 `config/tables/cell_reveal_rules.csv` 中对应 reveal pool 的权重，决定本次结果类型；若结果为单位池或防御池，再读取 `config/tables/card_random_pools.csv` 中对应 card pool 的权重决定目标卡牌/品质。
+- 营地地块按自身价格从 `config/tables/cell_price_pools.csv` 映射到 `unit_cards_price_50`、`unit_cards_price_100` 或 `unit_cards_price_250`，再按对应池子的概率抽取。
 - 若没有同品质卡牌，则按 legendary -> epic -> rare -> common 的顺序向低品质降级；降到 common 仍没有可用卡牌时，解锁结果为空地。
 - 解锁后的营地、防御塔和金矿会在地块上方短暂弹出对应卡牌；点击已解锁地块后，战斗区下方面板复用卡牌排版展示对应卡牌信息。
 - 解锁后的营地可点击查看对应动物卡牌信息，防御塔显示塔卡攻击、生命、射程和冷却，金矿显示生命和金币收入；编组页详情使用简化属性图标展示关键属性。
@@ -507,6 +515,8 @@ score = 拥有地块数 * 2 + 拥有建筑数 * 5
 | 问号翻开规则 | `config/tables/cell_reveal_rules.csv` | 70% 空、10% 防御、10% 单位、10% 金币为当前目标 |
 | 关卡时间/推荐战力 | `config/tables/stages.csv` | 当前战斗原型使用 `GAME_TIME = 180` |
 | 局内金币收入 | `config/tables/economy.csv` 和 `main.gd` | 当前实装与配置目标不一致 |
+| 随机地块解锁结果 | `config/tables/cell_reveal_rules.csv` | `reveal_pool_question` 控制问号地块解锁为空、金币、单位池或防御池的概率 |
+| 营地/防御地块卡池结果 | `config/tables/cell_price_pools.csv` 和 `config/tables/card_random_pools.csv` | 价格行决定使用哪个卡池；卡池行的 `weight/probability_pct` 控制抽到目标卡牌/品质的概率 |
 | 编组数量/出战位 | `scripts/app/main.gd` | 当前为 5 套、每套 8 位 |
 | 底部导航开放状态 | `scripts/app/main.gd` | 当前商店、抽卡、更多锁定 |
 | 战斗地块布局 | `scripts/app/main.gd` | 当前硬编码，建议迁移到 `board_cells.csv` |

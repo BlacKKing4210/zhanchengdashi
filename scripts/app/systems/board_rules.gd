@@ -190,75 +190,12 @@ static func price_for_seed(site_seed: int) -> int:
 	return UNIT_HIGH_PRICE
 
 
-static func roll_unlock_result(tile: Dictionary) -> Dictionary:
-	var site = String(tile.get("site", ""))
-	var roll_seed = randi()
-	var result = site
-	var target_rarity = ""
-	if site == "mystery":
-		var roll = int(roll_seed % 100)
-		if roll < 70:
-			result = "empty"
-		elif roll < 80:
-			result = "barracks"
-			target_rarity = "rare"
-		elif roll < 95:
-			result = "hall"
-			target_rarity = "epic"
-		else:
-			result = "hall"
-			target_rarity = "legendary"
-	elif site == "tower":
-		target_rarity = target_rarity_for_tower(int(roll_seed))
-	elif site == "barracks" or site == "hall":
-		target_rarity = target_rarity_for_price(int(tile.get("site_cost", UNIT_LOW_PRICE)), int(roll_seed))
-	return {
-		"result": result,
-		"target_rarity": target_rarity,
-		"roll_seed": int(roll_seed),
-	}
-
-
 static func with_unlock_roll(tile: Dictionary, result: String, target_rarity: String, roll_seed: int) -> Dictionary:
 	var next = tile.duplicate()
 	next["site_reward"] = result
 	next["site_target_rarity"] = target_rarity
 	next["site_roll_seed"] = roll_seed
 	return next
-
-
-static func target_rarity_for_price(cost: int, site_seed: int) -> String:
-	var roll = floori(float(site_seed) / 17.0) % 100
-	if cost >= UNIT_HIGH_PRICE:
-		if roll < 10:
-			return "rare"
-		if roll < 60:
-			return "epic"
-		return "legendary"
-	if cost >= UNIT_MID_PRICE:
-		if roll < 29:
-			return "common"
-		if roll < 75:
-			return "rare"
-		if roll < 95:
-			return "epic"
-		return "legendary"
-	if roll < 65:
-		return "common"
-	if roll < 95:
-		return "rare"
-	return "epic"
-
-
-static func target_rarity_for_tower(site_seed: int) -> String:
-	var roll = floori(float(site_seed) / 19.0) % 100
-	if roll < 55:
-		return "common"
-	if roll < 85:
-		return "rare"
-	if roll < 97:
-		return "epic"
-	return "legendary"
 
 
 static func with_building(tile: Dictionary, team: int, building: String, card_id: String, hp: float, delay: float) -> Dictionary:
