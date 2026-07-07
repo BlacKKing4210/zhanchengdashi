@@ -222,6 +222,8 @@ def build_story(markdown: str, styles: dict[str, ParagraphStyle]) -> list:
         stripped = line.strip()
         if not stripped:
             story.append(Spacer(1, 2 * mm))
+        elif stripped in {"<!-- pagebreak -->", "\\newpage"}:
+            story.append(PageBreak())
         elif image_info := markdown_image(stripped):
             add_markdown_image(story, image_info[0], image_info[1], styles)
         elif stripped.startswith("# "):
