@@ -788,10 +788,17 @@ func _reset_battle() -> void:
 	result_text = ""
 	next_unit_id = 1
 
-	tiles = BoardRules.create_initial_tiles(Callable(self, "_card_for_cost"), Callable(self, "_card_for_tier_range"))
+	tiles = BoardRules.create_initial_tiles(Callable(self, "_card_for_cost"), Callable(self, "_card_for_tier_range"), _board_cell_type_rows())
 
 	_set_building(PLAYER_BASE, PLAYER, "base", "")
 	_set_building(ENEMY_BASE, ENEMY, "base", "")
+
+
+func _board_cell_type_rows() -> Array:
+	if not ConfigDB.has_table("board_cells"):
+		return []
+	var rows = ConfigDB.get_table("board_cells")
+	return rows if typeof(rows) == TYPE_ARRAY else []
 
 
 func _set_building(key: Vector2i, team: int, building: String, card_id: String) -> void:
@@ -1195,6 +1202,8 @@ func _tower_attack(key: Vector2i, team: int) -> void:
 		damage = float(stats["attack"])
 		attack_range = float(stats["attack_range"])
 	var best_index = -1
+	var best_key = Vector2i(-99, -99)
+	var best_kind = ""
 	var best_distance = 999999.0
 	for i in range(units.size()):
 		if int(units[i]["team"]) == team or float(units[i]["hp"]) <= 0.0:
@@ -1203,9 +1212,27 @@ func _tower_attack(key: Vector2i, team: int) -> void:
 		if distance < attack_range and distance < best_distance:
 			best_distance = distance
 			best_index = i
-	if best_index >= 0:
+			best_key = Vector2i(-99, -99)
+			best_kind = "unit"
+	if building == "tower":
+		for target_key in tiles.keys():
+			var target_tile = tiles[target_key]
+			if int(target_tile.get("team", NEUTRAL)) == team or int(target_tile.get("team", NEUTRAL)) == NEUTRAL:
+				continue
+			if String(target_tile.get("building", "")) == "" or float(target_tile.get("hp", 0.0)) <= 0.0:
+				continue
+			var distance = center.distance_to(_hex_center(target_key))
+			if distance < attack_range and distance < best_distance:
+				best_distance = distance
+				best_index = -1
+				best_key = target_key
+				best_kind = "building"
+	if best_kind == "unit" and best_index >= 0:
 		_projectile(center, Vector2(units[best_index]["pos"]), team)
 		_damage_unit(best_index, damage)
+	elif best_kind == "building" and best_key.x != -99:
+		_projectile(center, _hex_center(best_key), team)
+		_damage_tile(best_key, team, damage)
 
 
 func _damage_unit(index: int, damage: float, source_index: int = -1, source_team: int = NEUTRAL, trigger_reactive: bool = true) -> bool:

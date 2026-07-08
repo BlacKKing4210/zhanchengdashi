@@ -26,7 +26,7 @@ const NEIGHBORS_ODD = [
 ]
 
 
-static func create_initial_tiles(_card_for_cost: Callable, _card_for_tier_range: Callable) -> Dictionary:
+static func create_initial_tiles(_card_for_cost: Callable, _card_for_tier_range: Callable, cell_type_rows: Array = []) -> Dictionary:
 	var result = {}
 	for y in range(GRID_ROWS):
 		for x in range(GRID_COLS):
@@ -34,12 +34,12 @@ static func create_initial_tiles(_card_for_cost: Callable, _card_for_tier_range:
 			var tile = empty_locked_tile()
 			tile["territory_team"] = starting_territory_for_key(key)
 			if key != PLAYER_BASE and key != ENEMY_BASE:
-				var site = site_for_key(key)
+				var site = site_for_key(key, cell_type_rows)
 				for field in site.keys():
 					tile[field] = site[field]
 			result[key] = tile
-	_apply_starting_unlock_rules(result, PLAYER_BASE)
-	_apply_starting_unlock_rules(result, ENEMY_BASE)
+	_apply_starting_unlock_rules(result, PLAYER_BASE, cell_type_rows)
+	_apply_starting_unlock_rules(result, ENEMY_BASE, cell_type_rows)
 	return result
 
 
@@ -65,19 +65,22 @@ static func starting_territory_for_key(key: Vector2i) -> int:
 	return PLAYER if key.y >= floori(float(GRID_ROWS) * 0.5) else ENEMY
 
 
-static func site_for_key(key: Vector2i) -> Dictionary:
+static func site_for_key(key: Vector2i, cell_type_rows: Array = []) -> Dictionary:
 	var site_seed = site_seed_for_key(key)
 	var roll = site_seed % 100
-	return site_for_roll(roll, site_seed, is_next_to_starting_base(key))
+	return site_for_roll(roll, site_seed, is_next_to_starting_base(key), cell_type_rows)
 
 
-static func site_for_roll(roll: int, site_seed: int, _starting_unlockable: bool) -> Dictionary:
+static func site_for_roll(roll: int, site_seed: int, _starting_unlockable: bool, cell_type_rows: Array = []) -> Dictionary:
+	var configured_site = site_for_configured_roll(site_seed, cell_type_rows)
+	if not configured_site.is_empty():
+		return configured_site
 	var site = "mystery"
 	var cost = QUESTION_PRICE
 	if roll < 50:
 		site = "mystery"
 		cost = QUESTION_PRICE
-	elif roll < 70:
+	elif roll < 80:
 		cost = price_for_seed(site_seed)
 		site = "hall" if cost >= UNIT_HIGH_PRICE else "barracks"
 	elif roll < 95:
@@ -96,7 +99,63 @@ static func site_for_roll(roll: int, site_seed: int, _starting_unlockable: bool)
 	}
 
 
-static func _apply_starting_unlock_rules(tiles: Dictionary, base_key: Vector2i) -> void:
+static func site_for_configured_roll(site_seed: int, cell_type_rows: Array) -> Dictionary:
+	var total_weight = 0
+	for row in cell_type_rows:
+		if typeof(row) != TYPE_DICTIONARY:
+			continue
+		var cell_type = String(row.get("cell_type", ""))
+		if cell_type == "" or cell_type == "home_base":
+			continue
+		total_weight += maxi(0, int(row.get("appearance_weight", 0)))
+	if total_weight <= 0:
+		return {}
+	var roll = site_seed % total_weight
+	var cursor = 0
+	for row in cell_type_rows:
+		if typeof(row) != TYPE_DICTIONARY:
+			continue
+		var weighted_cell_type = String(row.get("cell_type", ""))
+		if weighted_cell_type == "" or weighted_cell_type == "home_base":
+			continue
+		cursor += maxi(0, int(row.get("appearance_weight", 0)))
+		if roll < cursor:
+			return site_for_cell_type(row, site_seed)
+	return {}
+
+
+static func site_for_cell_type(row: Dictionary, site_seed: int) -> Dictionary:
+	match String(row.get("cell_type", "")):
+		"question":
+			return site_payload("mystery", configured_fixed_price(row, QUESTION_PRICE))
+		"unit":
+			var cost = price_for_seed(site_seed)
+			return site_payload("hall" if cost >= UNIT_HIGH_PRICE else "barracks", cost)
+		"defense":
+			return site_payload("tower", TOWER_PRICE)
+		"gold_mine":
+			return site_payload("mine", configured_fixed_price(row, MINE_PRICE))
+		_:
+			return {}
+
+
+static func site_payload(site: String, cost: int) -> Dictionary:
+	return {
+		"site": site,
+		"site_cost": cost,
+		"site_reward": "",
+		"site_target_rarity": "",
+		"site_roll_seed": 0,
+		"site_card": "",
+	}
+
+
+static func configured_fixed_price(row: Dictionary, fallback: int) -> int:
+	var value = int(row.get("fixed_price", 0))
+	return value if value > 0 else fallback
+
+
+static func _apply_starting_unlock_rules(tiles: Dictionary, base_key: Vector2i, cell_type_rows: Array = []) -> void:
 	var mine_key = starting_mine_key(base_key)
 	var low_price_camp_key = starting_low_price_camp_key(base_key, mine_key)
 	for key in neighbors(base_key):
@@ -108,9 +167,9 @@ static func _apply_starting_unlock_rules(tiles: Dictionary, base_key: Vector2i) 
 		if key == low_price_camp_key:
 			tiles[key] = with_site(tiles[key], camp_site_for_cost(UNIT_LOW_PRICE))
 			continue
-		var site = site_for_key(key)
+		var site = site_for_key(key, cell_type_rows)
 		if String(site["site"]) == "mine":
-			site = non_mine_starting_site_for_key(key)
+			site = non_mine_starting_site_for_key(key, cell_type_rows)
 		tiles[key] = with_site(tiles[key], site)
 
 
@@ -143,10 +202,13 @@ static func camp_site_for_cost(cost: int) -> Dictionary:
 	}
 
 
-static func non_mine_starting_site_for_key(key: Vector2i) -> Dictionary:
+static func non_mine_starting_site_for_key(key: Vector2i, cell_type_rows: Array = []) -> Dictionary:
 	var site_seed = site_seed_for_key(key)
 	var roll = floori(float(site_seed) / 11.0) % 95
-	return site_for_roll(roll, site_seed, true)
+	var site = site_for_roll(roll, site_seed, true, cell_type_rows)
+	if String(site.get("site", "")) == "mine":
+		return camp_site_for_cost(price_for_seed(site_seed))
+	return site
 
 
 static func starting_mine_key(base_key: Vector2i) -> Vector2i:

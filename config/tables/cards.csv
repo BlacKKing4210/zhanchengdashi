@@ -60,7 +60,7 @@ silverback,银背猩猩,legendary,5,res://assets/card_art/animals/silverback.png
 golden_eagle,金雕,legendary,5,res://assets/card_art/animals/golden_eagle.png,2,6,40,80,12,golden_eagle_judgement,on_attack,damage,28,6.5,额外攻击2个目标,tier_6|legendary|ranged|skill,金雕：传说远程点杀。
 mammoth,猛犸象,legendary,5,res://assets/card_art/animals/mammoth.png,4,36,40,40,12,mammoth_wall,on_spawn,shield,70,0,为周围友军承受伤害,tier_6|legendary|guard|shield|tank|skill,猛犸象：传说终局肉盾。
 gold_mine_card,金矿,epic,4,res://assets/art/buildings/mine.png,3,8,0,0,3,mine_income,on_interval,gold,10,3,每3秒提供10金币。,building|mine|gold|economy|mandatory,金矿：紫色品质经济建筑卡，每套编组必须携带。
-defense_watch_tower,哨戒箭塔,common,2,res://assets/art/buildings/tower.png,1,5,0,210,2,skill_ranger_shot,on_interval,damage,16,1.2,稳定攻击最近敌方单位。,building|defense|tower|common|starter,哨戒箭塔：玩家初始拥有的绿色防御塔卡。
-defense_cannon_tower,火炮塔,rare,3,res://assets/art/buildings/tower.png,2,10,0,235,2,skill_cannon_blast,on_interval,damage,34,1.9,较慢但伤害更高的远程防御塔。,building|defense|tower|rare|gacha,火炮塔：可通过抽卡获得的蓝色防御塔卡。
-defense_repair_beacon,修复信标,epic,4,res://assets/art/buildings/tower.png,3,20,0,185,2,skill_repair_field,on_interval,damage,24,1.6,原型中先作为中速防御塔攻击最近敌人。,building|defense|tower|epic|gacha,修复信标：紫色防御塔卡，后续可接入修复光环。
-defense_storm_obelisk,风暴方尖碑,legendary,5,res://assets/art/buildings/tower.png,4,30,0,258,2,skill_chain_storm,on_interval,damage,42,2.2,长射程高伤害防御塔。,building|defense|tower|legendary|gacha,风暴方尖碑：金色防御塔卡，可通过抽卡获得。
+defense_watch_tower,哨戒箭塔,common,2,res://assets/art/buildings/tower.png,1,5,0,100,2,skill_ranger_shot,on_interval,damage,16,2,稳定攻击最近敌方单位。,building|defense|tower|common|starter,哨戒箭塔：玩家初始拥有的绿色防御塔卡。
+defense_cannon_tower,火炮塔,rare,3,res://assets/art/buildings/tower.png,1,10,0,120,2,skill_cannon_blast,on_interval,damage,34,2,较慢但伤害更高的远程防御塔。,building|defense|tower|rare|gacha,火炮塔：可通过抽卡获得的蓝色防御塔卡。
+defense_repair_beacon,修复信标,epic,4,res://assets/art/buildings/tower.png,2,20,0,100,2,skill_repair_field,on_interval,damage,24,2,原型中先作为中速防御塔攻击最近敌人。,building|defense|tower|epic|gacha,修复信标：紫色防御塔卡，后续可接入修复光环。
+defense_storm_obelisk,风暴方尖碑,legendary,5,res://assets/art/buildings/tower.png,2,30,0,120,2,skill_chain_storm,on_interval,damage,42,2,长射程高伤害防御塔。,building|defense|tower|legendary|gacha,风暴方尖碑：金色防御塔卡，可通过抽卡获得。

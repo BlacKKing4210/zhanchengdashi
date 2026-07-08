@@ -249,7 +249,7 @@ deck_power = 所有出战卡牌 card_power 求和
 | base | 50 | 基地，提供金币和固定低伤攻击，被摧毁则直接失败/胜利，不产兵 |
 | barracks | 绑定动物最大生命 x 3 | 周期生成单位 |
 | hall | 绑定动物最大生命 x 3 | 周期生成强单位 |
-| tower | 180 | 周期攻击范围内敌方单位 |
+| tower | 180 | 周期攻击范围内敌方单位和敌方建筑 |
 | mine | 125 | 提供金币收入 |
 | empty | 0 | 空地 |
 
@@ -257,7 +257,7 @@ deck_power = 所有出战卡牌 card_power 求和
 
 | 建筑 | 周期/冷却 | 范围 | 伤害 | 说明 |
 | --- | ---: | ---: | ---: | --- |
-| tower | 1.1 秒 | 210 | 44 | 自动攻击最近敌方单位 |
+| tower | 1.1 秒 | 210 | 44 | 自动攻击最近敌方单位或敌方建筑 |
 | base | 1.1 秒 | 210 | 2 | 双方基地统一攻击，不生产单位 |
 | barracks / hall | 读取绑定动物召唤间隔 | - | - | 玩家和敌方使用相同生产间隔 |
 
@@ -410,8 +410,8 @@ score = 拥有地块数 * 2 + 拥有建筑数 * 5
 | 地块 | 类型 | 价格模式 | 价格/价格池 | 收入 | 出现概率 | 说明 |
 | --- | --- | --- | --- | --- | ---: | --- |
 | cell_question | question | fixed | 25 | 无 | 50% | 购买后抽空、防御、单位或金币 |
-| cell_unit | unit | random_pool | 50/100/250 | 无 | 20% | 价格越高，单位卡池品质越高 |
-| cell_defense | defense | random_pool | 50/100/250 | 无 | 25% | 价格越高，防御卡池品质越高 |
+| cell_unit | unit | random_pool | 50/100/250 | 无 | 30% | 价格越高，单位卡池品质越高 |
+| cell_defense | defense | random_pool | 50/100/250 | 无 | 15% | 价格越高，防御卡池品质越高 |
 | cell_gold_mine | gold_mine | fixed | 50 | 10 金币 / 3 秒 | 5% | 非常稀有的固定金矿；双方初始可解锁地块各保底且仅保底 1 块 |
 | cell_home_base | home_base | free | 0 | 12 金币 / 3 秒 | 0% | 固定基地，不参与随机 |
 
@@ -524,7 +524,7 @@ score = 拥有地块数 * 2 + 拥有建筑数 * 5
 | 动物技能描述/效果 | `config/tables/cards.csv` | `skill_text` 优先，结构化技能字段作为兜底；改完运行校验和导出 |
 | 防御塔属性 | `config/tables/defenses.csv` | 当前战斗原型塔逻辑仍较简化 |
 | 卡池概率 | `config/tables/card_random_pools.csv` | 同一 pool 的概率建议合计 100 |
-| 地块类型概率 | `config/tables/board_cell_types.csv` | 当前目标规则，战斗原型尚未完全接入 |
+| 地块类型概率 | `config/tables/board_cell_types.csv` | 改 `appearance_weight`，导出后开局地块会按该权重生成；当前为问号50、营地30、防御15、金矿5 |
 | 地块价格概率 | `config/tables/cell_price_pools.csv` | 影响单位/防御池品质档 |
 | 问号翻开规则 | `config/tables/cell_reveal_rules.csv` | 70% 空、10% 防御、10% 单位、10% 金币为当前目标 |
 | 关卡时间/推荐战力 | `config/tables/stages.csv` | 当前战斗原型使用 `GAME_TIME = 180` |

@@ -32,8 +32,8 @@
     "income_currency": "none",
     "income_amount": 0,
     "income_interval_sec": 0.0,
-    "appearance_weight": 20,
-    "appearance_probability_pct": 20.0,
+    "appearance_weight": 30,
+    "appearance_probability_pct": 30.0,
     "risk_level": 2,
     "effect_tags": [
       "unit",
@@ -53,8 +53,8 @@
     "income_currency": "none",
     "income_amount": 0,
     "income_interval_sec": 0.0,
-    "appearance_weight": 25,
-    "appearance_probability_pct": 25.0,
+    "appearance_weight": 15,
+    "appearance_probability_pct": 15.0,
     "risk_level": 2,
     "effect_tags": [
       "defense",
