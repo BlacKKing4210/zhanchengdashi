@@ -1214,6 +1214,12 @@ func _damage_unit(index: int, damage: float, source_index: int = -1, source_team
 	var unit = units[index]
 	if float(unit.get("hp", 0.0)) <= 0.0:
 		return false
+	if trigger_reactive:
+		var guardian_index = _damage_guardian_index(index, source_team)
+		if guardian_index >= 0:
+			_pulse(Vector2(units[index]["pos"]), COLOR_BLUE)
+			_damage_unit(guardian_index, damage, source_index, source_team, false)
+			return false
 	var final_damage = _incoming_unit_damage(index, damage)
 	var shield = float(unit.get("shield", 0.0))
 	if shield > 0.0 and final_damage > 0.0:
@@ -1291,7 +1297,7 @@ func _spawn_unit(team: int, key: Vector2i, card_id: String, is_extra: bool = fal
 		"slow_timer": 0.0,
 		"haste_timer": 0.0,
 		"skill_timer": skill_timer,
-		"cooldown": randf_range(0.08, 0.55),
+		"cooldown": 0.0 if String(card.get("skill_text", "")).contains("会比敌人优先攻击") else randf_range(0.08, 0.55),
 		"tile": key,
 	})
 	var spawned_index = units.size() - 1
@@ -1401,7 +1407,10 @@ func _refresh_unit_aura_bonuses() -> void:
 
 
 func _unit_attack_cooldown(unit: Dictionary) -> float:
-	return UNIT_BASE_ATTACK_COOLDOWN / maxf(0.01, UNIT_ATTACK_SPEED_MULT)
+	var cooldown = UNIT_BASE_ATTACK_COOLDOWN / maxf(0.01, UNIT_ATTACK_SPEED_MULT)
+	if _unit_skill_text(unit).contains("会比敌人优先攻击"):
+		cooldown *= 0.65
+	return cooldown
 
 
 func _unit_attack_target(attacker_index: int, target: Dictionary, distance: float) -> void:
@@ -1475,6 +1484,42 @@ func _incoming_unit_damage(index: int, damage: float) -> float:
 	return result
 
 
+func _damage_guardian_index(target_index: int, source_team: int) -> int:
+	if target_index < 0 or target_index >= units.size() or source_team == NEUTRAL:
+		return -1
+	var target = units[target_index]
+	var target_team = int(target.get("team", NEUTRAL))
+	if source_team == target_team or _unit_skill_text(target).contains("承受伤害"):
+		return -1
+	var target_pos = Vector2(target.get("pos", Vector2.ZERO))
+	var best_index = -1
+	var best_distance = 999999.0
+	for i in range(units.size()):
+		if i == target_index or int(units[i].get("team", NEUTRAL)) != target_team or float(units[i].get("hp", 0.0)) <= 0.0:
+			continue
+		if not _unit_skill_text(units[i]).contains("承受伤害"):
+			continue
+		var distance = target_pos.distance_to(Vector2(units[i].get("pos", Vector2.ZERO)))
+		if distance <= SKILL_SUPPORT_RADIUS and distance < best_distance:
+			best_distance = distance
+			best_index = i
+	return best_index
+
+
+func _lose_unit_hp(index: int, amount: float, source_index: int = -1, source_team: int = NEUTRAL) -> bool:
+	if index < 0 or index >= units.size() or amount <= 0.0:
+		return false
+	if float(units[index].get("hp", 0.0)) <= 0.0:
+		return false
+	units[index]["hp"] = float(units[index].get("hp", 0.0)) - amount
+	_pulse(Vector2(units[index]["pos"]), COLOR_YELLOW)
+	if float(units[index]["hp"]) <= 0.0 and not bool(units[index].get("death_handled", false)):
+		units[index]["death_handled"] = true
+		_handle_unit_death(index, source_index, source_team)
+		return true
+	return false
+
+
 func _apply_unit_spawn_skill(index: int) -> void:
 	if index < 0 or index >= units.size():
 		return
@@ -1523,6 +1568,8 @@ func _apply_unit_attack_skill(index: int, target: Dictionary) -> void:
 		_attack_extra_targets(index, 1, target)
 	if text.contains("攻击施加剧毒减速"):
 		_slow_target(target, SKILL_SLOW_SECONDS)
+	if text.contains("每次攻击降低自身1生命值") and _lose_unit_hp(index, 1.0):
+		return
 	if _unit_uses_structured_skill(unit) and String(unit.get("skill_trigger", "")) == "on_attack":
 		match String(unit.get("skill_effect", "")):
 			"slow":
@@ -1544,8 +1591,10 @@ func _apply_unit_damage_skill(index: int, source_index: int, source_team: int) -
 	var text = _unit_skill_text(unit)
 	if text.contains("受到近战伤害") and source_index >= 0 and source_index < units.size():
 		_damage_unit(source_index, 1.0, index, int(unit["team"]), false)
-	if text.contains("受到伤害后，攻击力+1") or text.contains("受到攻击后") and text.contains("提高1攻击"):
+	if text.contains("受到伤害后，攻击力+1") or (text.contains("受到攻击后") and text.contains("提高1攻击")):
 		_add_attack_bonus(index, 1.0)
+	if text.contains("受到攻击后") and text.contains("降低1生命值") and _lose_unit_hp(index, 1.0, source_index, source_team):
+		return
 	if _unit_uses_structured_skill(unit) and String(unit.get("skill_trigger", "")) == "on_damage":
 		match String(unit.get("skill_effect", "")):
 			"heal":
