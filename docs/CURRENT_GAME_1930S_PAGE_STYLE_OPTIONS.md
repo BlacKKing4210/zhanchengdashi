@@ -145,13 +145,113 @@
 
 说明：本轮尝试在线编辑新的空白战斗底稿时遇到网络错误，因此没有切换到需要 API Key 的备用模型；战斗页改为复用已生成的 AI 手绘纸张、边框和舞台资源，再按当前工程坐标确定性重建棋盘。
 
-## 初步建议
+## 产品负责人验收：第 1 轮
 
-1. 选 A：如果你想要最有艺术辨识度、最高级、最克制的复古动画质感。
-2. 选 B：如果你想要更亮、更美、更商业化、更适合后续活动包装。
-3. 选 C：如果你只想评审背景气氛，不评审整套 UI。
-4. 选 D：如果你想看上一轮“程序合成整套 UI”的对照。
-5. 选 E：如果你想看完整信息但尚未清理冗余标签的版本。
-6. 选 F：如果你想确认当前最干净、最接近标注反馈的主页面版本。
+验收结论：**不通过**。v11 可作为风格方向稿，但仍存在四项实装前阻断问题：战斗外框侵入有效内场、战斗单位和资源过小、抽卡与商店仍有占位内容、三个弹窗被拼贴在同一页面。
 
-我建议这次优先评审页面套件 v11。v11 已包含主页面资源数值对齐、其他页面信息归位，以及恢复原尺寸的 `7 x 13` 战斗棋盘；确认后再决定是否继续细化独立页面底稿，仍不直接进入实装。
+v12 必须达到以下验收线：
+
+1. 战斗页保持 `648 x 1038` 外框与 `592 x 982` 内场，外框不透明像素不得进入内场，`7 x 13` 共 91 格完整可见。
+2. 战斗动物显示提高到 `56-64px`，资源图标提高到 `32-36px`，关键数值不小于 `18px`；动物源图保持不变。
+3. 抽卡页和商店页移除问号与空商品卡，核心卡必须同时具备图像、名称、状态或价格。
+4. 卡牌详情、战斗胜利、确认购买分别输出独立 `720 x 1280` 状态图，每张只展示一个弹窗，背景信息完整并统一压暗。
+5. 全套统一资源数值居中、状态栏、导航选中态、标题槽、按钮按压语言和字号规则，消除控件重叠。
+
+## 产品负责人验收：第 2 轮
+
+验收结论：**有条件通过，仅允许进入 v13 精修，不代表允许实装。** v12 已清除功能性 P0：91 格完整显示，战斗单位与资源可读，抽卡/商店无占位，三个弹窗已独立输出。
+
+v12 复验总览：`output/visual_concepts/current_game_1930s_v12_j_product_review_page_set_overview.png`
+
+v13 聚焦以下视觉质量问题：
+
+1. 战斗内场增加半透明手绘内阴影与纸张晕边，连接外框但不得遮挡任何格子。
+2. 抽卡和商店底部操作底板降低约 25% 视觉高度，减少蓝色面积、粗边和装饰孔。
+3. 分页圆点独立进入清晰分隔带，不与按钮底板争夺层级。
+4. 商店商品图标必须为透明底切片，彻底清除方形与横向裁切边。
+5. 三类弹窗使用保角拉伸边框，保持四角比例、描边粗细和纹理清晰度。
+6. 统一弹窗标题上边距、正文中轴和操作按钮基线，并以 50% 缩放复查。
+
+## 页面套件 v13：产品负责人验收通过
+
+![页面套件 v13 总览](../output/visual_concepts/current_game_1930s_v13_k_product_approved_page_set_overview.png)
+
+v13 完成三轮“产品负责人验收 -> 修改 -> 复验”闭环。最终结论为：**通过，可冻结为等待用户确认的最终效果图；不代表允许进入 Godot 实装。**
+
+| 页面 | 文件 | 最终状态 |
+| --- | --- | --- |
+| 主页面 | `output/visual_concepts/current_game_1930s_v13_k_product_approved_lobby_mockup.png` | 资源数值、双栏状态和导航选中态统一 |
+| 编组页 | `output/visual_concepts/current_game_1930s_v13_k_product_approved_deck_page_mockup.png` | 卡框主体、名称基线和状态栏统一 |
+| 战斗页 | `output/visual_concepts/current_game_1930s_v13_k_product_approved_battle_page_mockup.png` | `7 x 13` 完整可见，单位/资源放大，纸张内阴影通过验收 |
+| 抽卡页 | `output/visual_concepts/current_game_1930s_v13_k_product_approved_gacha_page_mockup.png` | 无占位卡，分页与按钮分层，操作区减重 |
+| 商店页 | `output/visual_concepts/current_game_1930s_v13_k_product_approved_shop_page_mockup.png` | 商品图像齐全，刷新图标透明化，正常/不可购买状态明确 |
+| 更多/任务页 | `output/visual_concepts/current_game_1930s_v13_k_product_approved_more_tasks_page_mockup.png` | 任务奖励和进度字号统一 |
+| 卡牌详情弹窗 | `output/visual_concepts/current_game_1930s_v13_k_product_approved_popup_card_detail_mockup.png` | 独立完整页面，保角边框和动作层级通过验收 |
+| 战斗胜利弹窗 | `output/visual_concepts/current_game_1930s_v13_k_product_approved_popup_battle_victory_mockup.png` | 独立完整页面，标题/奖励/返回动作明确 |
+| 确认购买弹窗 | `output/visual_concepts/current_game_1930s_v13_k_product_approved_popup_purchase_mockup.png` | 独立完整页面，商品/价格/双按钮层级明确 |
+| 总览 | `output/visual_concepts/current_game_1930s_v13_k_product_approved_page_set_overview.png` | 九张页面按 3 x 3 汇总 |
+
+## 产品负责人验收：最终轮
+
+最终结论：**通过。P0：无；P1：无。**
+
+- 战斗内场纸张晕边与外框衔接达成，未重新遮挡格子。
+- 抽卡/商店底板高度、蓝色面积和装饰重量已降低。
+- 分页圆点进入独立分隔带，不再与按钮或卡片重叠。
+- 商店刷新相关图标已清除方形背景和横向裁切。
+- 三类弹窗采用保角拉伸，四角比例、描边粗细和纹理清晰度可接受。
+- 弹窗标题、正文中轴和按钮基线统一，在套件总览缩放下仍可辨认。
+
+冻结规则：继续保持纯效果图状态。只有用户明确说“实装”后，才允许把本视觉方案拆分并应用到 Godot。
+
+## 当前结论
+
+当前优先评审并冻结页面套件 v13。v13 已完成三轮产品负责人验收并通过；在用户明确确认前继续保持纯效果图状态，不直接进入实装。A-F 与 v10-v12 继续保留为历史对照，不作为当前推荐方案。
+
+## 页面套件 v14：ui-ux-pro-max 重新评审计划
+
+用户要求按公共流程 v1.9 重新生成整套美术效果图，并明确说明是否使用 `ui-ux-pro-max`。本轮已从用户提供的 GitHub 路径安装并实际运行该 skill 的 design-system、UX、style、color 和 typography 查询；详细取舍、design tokens 与 QA Gate 见 `docs/CURRENT_GAME_1930S_UI_UX_PRO_MAX_AUDIT.md`。
+
+v14 继续锁定现有 UE 和动物资源，只解决以下 UI 质量问题：
+
+1. 用统一手绘票券组件替换残留的简单圆角状态块，降低组件与背景的风格割裂。
+2. 明确主 CTA、次操作、选中、已完成和不可购买状态，避免只靠颜色或相同按钮材质表达。
+3. 继续保证金币、票券、价格等动态数字在稳定槽位居中，防止位数变化造成布局跳动。
+4. 保持战斗页 `7 x 13`、91 格、`592 x 982` 内场和动物原图不变。
+5. 所有页面和三个独立弹窗继续输出完整中文信息，不只输出背景或组件样张。
+
+本节是生成前规格，不代表已经通过产品负责人验收，更不代表允许 Godot 实装。
+
+## 页面套件 v14：ui-ux-pro-max 复验通过
+
+![页面套件 v14 总览](../output/visual_concepts/current_game_1930s_v14_l_uiux_pro_max_reviewed_page_set_overview.png)
+
+本轮实际运行 `ui-ux-pro-max` 后，按游戏化取舍完成三轮“Producer / Art Director / UI Programmer / QA Lead -> 修改 -> 复验”。最终结论：**效果图通过，P0：无，P1：无；继续等待用户确认，不允许实装。**
+
+| 页面 | 文件 | v14 结果 |
+| --- | --- | --- |
+| 主页面 | `output/visual_concepts/current_game_1930s_v14_l_uiux_pro_max_reviewed_lobby_mockup.png` | 资源数字保持居中；状态条改用手绘票券；战斗入口选中提示增强 |
+| 编组页 | `output/visual_concepts/current_game_1930s_v14_l_uiux_pro_max_reviewed_deck_page_mockup.png` | 状态条、分区条和导航状态统一；动物原图不变 |
+| 战斗页 | `output/visual_concepts/current_game_1930s_v14_l_uiux_pro_max_reviewed_battle_page_mockup.png` | 与 v13 哈希一致；`7 x 13`、91 格和战斗内场完全锁定 |
+| 抽卡页 | `output/visual_concepts/current_game_1930s_v14_l_uiux_pro_max_reviewed_gacha_page_mockup.png` | 抽 10 次为主 CTA，抽 1 次为次操作 |
+| 商店页 | `output/visual_concepts/current_game_1930s_v14_l_uiux_pro_max_reviewed_shop_page_mockup.png` | 不可购买商品使用褪色纸张 + 余额不足文字，保留手绘卡框 |
+| 更多/任务页 | `output/visual_concepts/current_game_1930s_v14_l_uiux_pro_max_reviewed_more_tasks_page_mockup.png` | 已完成状态不只靠颜色；三个工具入口降级，领取全部保持主 CTA |
+| 卡牌详情弹窗 | `output/visual_concepts/current_game_1930s_v14_l_uiux_pro_max_reviewed_popup_card_detail_mockup.png` | 背景退后，属性和唯一升级操作层级清楚 |
+| 战斗胜利弹窗 | `output/visual_concepts/current_game_1930s_v14_l_uiux_pro_max_reviewed_popup_battle_victory_mockup.png` | 奖励、段位和唯一返回操作顺序明确 |
+| 确认购买弹窗 | `output/visual_concepts/current_game_1930s_v14_l_uiux_pro_max_reviewed_popup_purchase_mockup.png` | 购买为主 CTA，取消为次操作 |
+| 大厅背景 | `output/visual_concepts/current_game_1930s_v14_l_uiux_pro_max_reviewed_lobby_background.png` | 与 v13 哈希一致，场景和 UE 未漂移 |
+| 总览 | `output/visual_concepts/current_game_1930s_v14_l_uiux_pro_max_reviewed_page_set_overview.png` | 9 张完整页面按 3 x 3 汇总 |
+
+验收过程：
+
+1. 首轮发现商店禁用洗色覆盖卡框，记为 P1，不通过。
+2. 第二轮将洗色收回内芯，P1 清零；Art Director 要求继续柔化规则边缘，记为 P2。
+3. 最终轮改为柔和褪色纸张，卡框、图标、标题和余额不足原因均可辨认，P2 关闭。
+
+详细 skill 查询、采用/拒绝项、design tokens、对比度和 QA 证据见 `docs/CURRENT_GAME_1930S_UI_UX_PRO_MAX_AUDIT.md`。
+
+冻结规则保持不变：v14 仍然只是效果图。用户明确说“实装”前，不修改 Godot UI、场景、脚本、运行时资源绑定、输入逻辑或点击区域。
+
+## 当前结论（v14）
+
+当前优先评审页面套件 v14。v14 是在 v13 已通过美术方向上，由 `ui-ux-pro-max` 补齐设计系统、状态层级、动态信息稳定性和 QA 证据后的新推荐版；v13 及更早版本继续保留为历史对照。

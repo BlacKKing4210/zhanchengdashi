@@ -8,8 +8,8 @@ from PIL import Image, ImageDraw, ImageFont
 ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / "output" / "visual_concepts"
 SOURCE = OUT / "current_game_1930s_v7_e_ai_painted_full_ui_base_with_icons.png"
-BACKGROUND = OUT / "current_game_1930s_v11_i_aligned_lobby_background.png"
-MOCKUP = OUT / "current_game_1930s_v11_i_aligned_lobby_mockup.png"
+BACKGROUND = OUT / "current_game_1930s_v14_l_uiux_pro_max_reviewed_lobby_background.png"
+MOCKUP = OUT / "current_game_1930s_v14_l_uiux_pro_max_reviewed_lobby_mockup.png"
 W, H = 720, 1280
 
 INK = (48, 30, 22, 255)
@@ -95,6 +95,37 @@ def cover_resize(image: Image.Image, size: tuple[int, int]) -> Image.Image:
   return image.resize(size, Image.Resampling.LANCZOS)
 
 
+def nine_slice(
+  source: Image.Image,
+  src_rect: tuple[int, int, int, int],
+  size: tuple[int, int],
+  margins: tuple[int, int, int, int],
+) -> Image.Image:
+  src = source.crop(src_rect).convert("RGBA")
+  left, top, right, bottom = margins
+  src_x = (0, left, src.width - right, src.width)
+  src_y = (0, top, src.height - bottom, src.height)
+  dst_x = (0, left, size[0] - right, size[0])
+  dst_y = (0, top, size[1] - bottom, size[1])
+  result = Image.new("RGBA", size, (0, 0, 0, 0))
+  for row in range(3):
+    for col in range(3):
+      piece = src.crop((src_x[col], src_y[row], src_x[col + 1], src_y[row + 1]))
+      target = (dst_x[col + 1] - dst_x[col], dst_y[row + 1] - dst_y[row])
+      if piece.size != target:
+        piece = piece.resize(target, Image.Resampling.LANCZOS)
+      result.alpha_composite(piece, (dst_x[col], dst_y[row]))
+  return result
+
+
+def paste_status_strip(base: Image.Image, rect: tuple[int, int, int, int]) -> None:
+  source = cover_resize(Image.open(SOURCE), (W, H))
+  width = rect[2] - rect[0]
+  height = rect[3] - rect[1]
+  strip = nine_slice(source, (92, 868, 628, 928), (width, height), (58, 15, 58, 15))
+  base.alpha_composite(strip, (rect[0], rect[1]))
+
+
 def animal(name: str, max_size: tuple[int, int]) -> Image.Image:
   image = Image.open(ROOT / "assets" / "card_art" / "animals" / f"{name}.png").convert("RGBA")
   box = image.getbbox()
@@ -129,10 +160,13 @@ def add_labels(base: Image.Image) -> None:
 
   center_text(draw, "丛林法则", (138, 184, 582, 270), INK, 52, False, 1, LIGHT)
 
-  center_text(draw, "阵容 6/6", (126, 390, 306, 424), INK, 23, True, 1, LIGHT)
-  center_text(draw, "战力 1280", (414, 390, 594, 424), INK, 23, True, 1, LIGHT)
+  for rect in ((130, 384, 306, 426), (414, 384, 590, 426)):
+    paste_status_strip(base, rect)
+  draw = ImageDraw.Draw(base)
+  center_text(draw, "出战 6/6", (136, 388, 300, 423), INK, 20, True, 1, LIGHT)
+  center_text(draw, "战力 1280", (420, 388, 584, 423), INK, 20, True, 1, LIGHT)
 
-  center_text(draw, "青铜一星  ·  胜 0 负 0", (170, 878, 550, 925), INK, 23, True)
+  center_text(draw, "青铜一星  ·  胜 0  负 0", (170, 878, 550, 925), INK, 21, True)
 
   center_text(draw, "匹配", (214, 970, 506, 1050), INK, 42, False, 1, LIGHT)
 
@@ -144,6 +178,10 @@ def add_labels(base: Image.Image) -> None:
     ((592, 1200, 700, 1236), "更多"),
   ]:
     center_text(draw, label, rect, INK, 21, True, 1, LIGHT)
+  draw.line((332, 1240, 388, 1240), fill=INK, width=5)
+  draw.line((334, 1239, 386, 1239), fill=GOLD, width=2)
+  draw.ellipse((344, 1245, 376, 1275), fill=(236, 183, 50, 255), outline=INK, width=3)
+  draw.ellipse((352, 1253, 368, 1269), fill=(255, 235, 120, 255))
 
 
 def build() -> None:
