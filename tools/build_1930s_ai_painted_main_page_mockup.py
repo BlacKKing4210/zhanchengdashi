@@ -8,8 +8,8 @@ from PIL import Image, ImageDraw, ImageFont
 ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / "output" / "visual_concepts"
 SOURCE = OUT / "current_game_1930s_v7_e_ai_painted_full_ui_base_with_icons.png"
-BACKGROUND = OUT / "current_game_1930s_v9_g_ai_painted_clean_info_ui_background.png"
-MOCKUP = OUT / "current_game_1930s_v9_g_ai_painted_clean_info_ui_lobby_mockup.png"
+BACKGROUND = OUT / "current_game_1930s_v11_i_aligned_lobby_background.png"
+MOCKUP = OUT / "current_game_1930s_v11_i_aligned_lobby_mockup.png"
 W, H = 720, 1280
 
 INK = (48, 30, 22, 255)
@@ -22,10 +22,10 @@ GOLD = (205, 128, 30, 255)
 
 def font(size: int, bold: bool = False) -> ImageFont.FreeTypeFont:
   candidates = [
-    Path("C:/Windows/Fonts/simkai.ttf"),
-    Path("C:/Windows/Fonts/STXINGKA.TTF"),
-    Path("C:/Windows/Fonts/msyhbd.ttc" if bold else "C:/Windows/Fonts/msyh.ttc"),
+    Path("C:/Windows/Fonts/msyhbd.ttc" if bold else "C:/Windows/Fonts/simkai.ttf"),
     Path("C:/Windows/Fonts/simhei.ttf"),
+    Path("C:/Windows/Fonts/msyh.ttc"),
+    Path("C:/Windows/Fonts/STXINGKA.TTF"),
   ]
   for path in candidates:
     if path.exists():
@@ -123,17 +123,18 @@ def add_existing_animals(base: Image.Image) -> None:
 
 def add_labels(base: Image.Image) -> None:
   draw = ImageDraw.Draw(base)
-  center_text(draw, "60", (142, 34, 206, 66), INK, 22, True)
-  center_text(draw, "10", (618, 34, 672, 66), INK, 21, True)
+  # Center values inside the usable parchment area to the right of each icon.
+  center_text(draw, "60", (103, 30, 222, 70), INK, 22, True)
+  center_text(draw, "10", (554, 30, 678, 70), INK, 21, True)
 
-  center_text(draw, "丛林法则", (138, 184, 582, 270), INK, 52, True, 1, LIGHT)
+  center_text(draw, "丛林法则", (138, 184, 582, 270), INK, 52, False, 1, LIGHT)
 
   center_text(draw, "阵容 6/6", (126, 390, 306, 424), INK, 23, True, 1, LIGHT)
   center_text(draw, "战力 1280", (414, 390, 594, 424), INK, 23, True, 1, LIGHT)
 
   center_text(draw, "青铜一星  ·  胜 0 负 0", (170, 878, 550, 925), INK, 23, True)
 
-  center_text(draw, "匹配", (214, 970, 506, 1050), INK, 42, True, 1, LIGHT)
+  center_text(draw, "匹配", (214, 970, 506, 1050), INK, 42, False, 1, LIGHT)
 
   for rect, label in [
     ((20, 1200, 128, 1236), "商店"),

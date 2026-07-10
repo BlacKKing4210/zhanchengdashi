@@ -120,6 +120,31 @@
 
 说明：抽卡页和商店页的独立 AI 生成请求曾遇到网络错误，因此本轮先用已生成成功的 AI 手绘卡框页面作为组件基底进行效果图合成。后续若确认方向，可再为这些页面补独立 AI 底稿。
 
+## 页面套件 v11：信息对齐与原尺寸战场
+
+![页面套件 v11 总览](../output/visual_concepts/current_game_1930s_v11_i_aligned_page_set_overview.png)
+
+本轮继续只制作视觉评审图，不进入 Godot 实装。页面沿用已生成的 AI 手绘底稿和项目现有动物 PNG，重点修正信息与承载组件的对齐关系，并恢复战斗页原有棋盘规格。
+
+- 资源栏：数值以图标右侧的有效空白内框为基准做水平、垂直居中，不再按整张票券或旧文字坐标摆放。
+- 页面标题与分区标题：放回对应横幅、分隔条或按钮的有效内框，避免压住边框、装饰和动物。
+- 按钮文字：只放在真实按钮底图内，不再落在分页条或空白装饰区。
+- 战斗棋盘：严格采用当前工程 `7 x 13` 单元格；中间战斗内场保持 `592 x 982`，外框保持 `648 x 1038`，只替换为 1930s 手绘资源皮肤。
+- 动物约束：继续直接使用项目现有动物 PNG，不重绘、不风格化。
+
+| 页面 | 文件 | 本轮校正 |
+| --- | --- | --- |
+| 主页面 | `output/visual_concepts/current_game_1930s_v11_i_aligned_lobby_mockup.png` | 金币与招募券数值回到各自空白栏中心 |
+| 编组页 | `output/visual_concepts/current_game_1930s_v11_i_aligned_deck_page_mockup.png` | 标题、阵容摘要、卡牌名和状态按卡框内框重新排布 |
+| 战斗页 | `output/visual_concepts/current_game_1930s_v11_i_aligned_battle_page_mockup.png` | 恢复原尺寸战斗区与 `7 x 13` 棋盘 |
+| 抽卡页 | `output/visual_concepts/current_game_1930s_v11_i_aligned_gacha_page_mockup.png` | 分区标题与抽取按钮文字回到对应组件内 |
+| 商店页 | `output/visual_concepts/current_game_1930s_v11_i_aligned_shop_page_mockup.png` | 商品名与价格分别对齐卡面和价格带 |
+| 更多/任务页 | `output/visual_concepts/current_game_1930s_v11_i_aligned_more_tasks_page_mockup.png` | 任务标题、奖励和进度统一进入任务票券 |
+| 弹窗合集 | `output/visual_concepts/current_game_1930s_v11_i_aligned_popup_sheet_mockup.png` | 标题、内容、按钮按弹窗内框分层排布 |
+| 总览 | `output/visual_concepts/current_game_1930s_v11_i_aligned_page_set_overview.png` | 汇总本轮全部页面效果图 |
+
+说明：本轮尝试在线编辑新的空白战斗底稿时遇到网络错误，因此没有切换到需要 API Key 的备用模型；战斗页改为复用已生成的 AI 手绘纸张、边框和舞台资源，再按当前工程坐标确定性重建棋盘。
+
 ## 初步建议
 
 1. 选 A：如果你想要最有艺术辨识度、最高级、最克制的复古动画质感。
@@ -129,4 +154,4 @@
 5. 选 E：如果你想看完整信息但尚未清理冗余标签的版本。
 6. 选 F：如果你想确认当前最干净、最接近标注反馈的主页面版本。
 
-我建议这次优先评审 F 和页面套件 v10。F 作为主页面基准，v10 作为其他页面和弹窗的流程验证；确认后再继续细化每个页面的独立 AI 底稿和信息密度。
+我建议这次优先评审页面套件 v11。v11 已包含主页面资源数值对齐、其他页面信息归位，以及恢复原尺寸的 `7 x 13` 战斗棋盘；确认后再决定是否继续细化独立页面底稿，仍不直接进入实装。
