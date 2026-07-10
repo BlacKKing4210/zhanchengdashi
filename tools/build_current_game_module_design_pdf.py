@@ -47,6 +47,11 @@ SOURCE_PATH = project_path_from_env("DOC_SOURCE_PATH", ROOT / "design" / "curren
 OUTPUT_PATH = project_path_from_env("DOC_OUTPUT_PATH", ROOT / "output" / "pdf" / "current-game-module-design.pdf")
 DOC_TITLE = os.environ.get("DOC_TITLE", "Jungle Law current game module design")
 SOURCE_LABEL = project_relative(SOURCE_PATH)
+BREAK_BEFORE_SECTION_ONE = os.environ.get("DOC_BREAK_BEFORE_SECTION_ONE", "1").strip().lower() not in {
+    "0",
+    "false",
+    "no",
+}
 
 
 def register_project_font() -> str:
@@ -118,7 +123,7 @@ def table_widths(column_count: int) -> list[float]:
     if column_count == 2:
         return [54 * mm, total - 54 * mm]
     if column_count == 3:
-        return [42 * mm, 42 * mm, total - 84 * mm]
+        return [40 * mm, 67 * mm, total - 107 * mm]
     if column_count == 4:
         return [32 * mm, 34 * mm, 56 * mm, total - 122 * mm]
     return [total / max(1, column_count)] * column_count
@@ -230,7 +235,7 @@ def build_story(markdown: str, styles: dict[str, ParagraphStyle]) -> list:
             story.append(paragraph(stripped[2:], styles["Title"]))
             story.append(paragraph(f"PDF 生成日期：{date.today().isoformat()} | 源文件：{SOURCE_LABEL}", styles["Meta"]))
         elif stripped.startswith("## "):
-            if stripped.startswith("## 1."):
+            if BREAK_BEFORE_SECTION_ONE and stripped.startswith("## 1."):
                 story.append(PageBreak())
             story.append(paragraph(stripped[3:], styles["Heading2"]))
         elif stripped.startswith("### "):
