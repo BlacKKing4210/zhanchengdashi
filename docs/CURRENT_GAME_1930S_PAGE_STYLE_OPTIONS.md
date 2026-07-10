@@ -21,6 +21,7 @@
 | C | 轻欢游园背景版 | 阳光游园入口 + 手绘墨线 + 明亮复古 CTA。 | 主页面背景气氛成立，但 UI 仍混有旧按钮体系，暂不作为最终主推。 | `output/visual_concepts/current_game_1930s_v5_c_cheerful_fair_lobby_background.png` | 暂不生成 | `output/visual_concepts/current_game_1930s_v5_c_cheerful_fair_lobby_mockup.png` |
 | D | 全套手绘主页面 | 票券资源条 + 舞台海报框 + 椭圆匹配按钮 + 剪纸票券导航。 | 针对反馈重做整套主页面 UI，动物图暂时保留项目原图不改。 | `output/visual_concepts/current_game_1930s_v6_d_full_rubberhose_lobby_background.png` | 暂不生成 | `output/visual_concepts/current_game_1930s_v6_d_full_rubberhose_lobby_mockup.png` |
 | E | AI 手绘信息完整版 | AI 手绘整套 UI 底稿 + 完整页面信息 + 原项目动物 PNG 合成。 | 当前最接近目标的主页面效果图：不是空白皮肤稿，也不是简单几何按钮，而是带真实信息的完整页面。 | `output/visual_concepts/current_game_1930s_v8_f_ai_painted_info_ui_background.png` | 暂不生成 | `output/visual_concepts/current_game_1930s_v8_f_ai_painted_info_ui_lobby_mockup.png` |
+| F | 干净信息主页面 | 去掉图标旁冗余文字，保留并放大必要信息。 | 当前主页面推荐版，已按标注删除金币/券等冗余标签，保留信息更清楚。 | `output/visual_concepts/current_game_1930s_v9_g_ai_painted_clean_info_ui_background.png` | 暂不生成 | `output/visual_concepts/current_game_1930s_v9_g_ai_painted_clean_info_ui_lobby_mockup.png` |
 
 ## 方案 A：经典赛璐璐
 
@@ -89,12 +90,43 @@
 - 主页面背景底图：`output/visual_concepts/current_game_1930s_v8_f_ai_painted_info_ui_background.png`
 - 主页面效果图：`output/visual_concepts/current_game_1930s_v8_f_ai_painted_info_ui_lobby_mockup.png`
 
+## 方案 F：干净信息主页面
+
+![方案 F：干净信息主页面](../output/visual_concepts/current_game_1930s_v9_g_ai_painted_clean_info_ui_lobby_mockup.png)
+
+- 视觉句子：图标表达资源类型 + 必要文字信息清晰保留。
+- 定位：针对标注反馈清理主页面信息层。金币、招募券等已有图标表达的文字被删除，只保留数值；玩法副标、首胜奖励、底部小状态等冗余小字被删除。
+- 保留信息：资源数值、主标题、阵容数量、战力、段位胜负、匹配按钮、底部主入口名。
+- 动物约束：仍不改动物图片，只使用项目现有动物 PNG 合成。
+- 当前建议：主页面以 F 作为评审基准，后续页面套件按 F 的信息密度执行。
+- 主页面背景底图：`output/visual_concepts/current_game_1930s_v9_g_ai_painted_clean_info_ui_background.png`
+- 主页面效果图：`output/visual_concepts/current_game_1930s_v9_g_ai_painted_clean_info_ui_lobby_mockup.png`
+
+## 页面套件 v10
+
+![页面套件 v10 总览](../output/visual_concepts/current_game_1930s_v10_h_page_set_overview.png)
+
+本轮按“AI 手绘底稿/组件 + 清晰中文信息叠层 + 不改动物图片”的流程，继续制作其他页面效果图。所有页面仍然只是视觉评审图，不进入 Godot 实装。
+
+| 页面 | 文件 | 制作说明 |
+| --- | --- | --- |
+| 主页面 | `output/visual_concepts/current_game_1930s_v9_g_ai_painted_clean_info_ui_lobby_mockup.png` | 推荐主页面基准，清理冗余文字 |
+| 编组页 | `output/visual_concepts/current_game_1930s_v10_h_deck_page_mockup.png` | AI 手绘编组底稿 + 当前动物 PNG + 编组信息 |
+| 战斗页 | `output/visual_concepts/current_game_1930s_v10_h_battle_page_mockup.png` | AI 手绘战斗底稿 + 棋盘信息 + 当前动物 PNG |
+| 抽卡页 | `output/visual_concepts/current_game_1930s_v10_h_gacha_page_mockup.png` | 复用 AI 手绘卡框底稿 + 抽卡信息 |
+| 商店页 | `output/visual_concepts/current_game_1930s_v10_h_shop_page_mockup.png` | 复用 AI 手绘卡框底稿 + 商品信息 |
+| 更多/任务页 | `output/visual_concepts/current_game_1930s_v10_h_more_tasks_page_mockup.png` | 任务信息页效果图 |
+| 弹窗合集 | `output/visual_concepts/current_game_1930s_v10_h_popup_sheet_mockup.png` | 卡牌详情、战斗胜利、确认购买三个弹窗效果 |
+
+说明：抽卡页和商店页的独立 AI 生成请求曾遇到网络错误，因此本轮先用已生成成功的 AI 手绘卡框页面作为组件基底进行效果图合成。后续若确认方向，可再为这些页面补独立 AI 底稿。
+
 ## 初步建议
 
 1. 选 A：如果你想要最有艺术辨识度、最高级、最克制的复古动画质感。
 2. 选 B：如果你想要更亮、更美、更商业化、更适合后续活动包装。
 3. 选 C：如果你只想评审背景气氛，不评审整套 UI。
 4. 选 D：如果你想看上一轮“程序合成整套 UI”的对照。
-5. 选 E：如果你想确认当前最完整的主页面信息版，这是当前最符合反馈的一版。
+5. 选 E：如果你想看完整信息但尚未清理冗余标签的版本。
+6. 选 F：如果你想确认当前最干净、最接近标注反馈的主页面版本。
 
-我建议这次优先评审 E。E 通过后再进入下一步：战场页同风格效果图，或拆分资源条、主场景框、段位板、匹配按钮、底部导航的 UI 组件状态。
+我建议这次优先评审 F 和页面套件 v10。F 作为主页面基准，v10 作为其他页面和弹窗的流程验证；确认后再继续细化每个页面的独立 AI 底稿和信息密度。

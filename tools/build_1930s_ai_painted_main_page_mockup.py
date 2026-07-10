@@ -8,8 +8,8 @@ from PIL import Image, ImageDraw, ImageFont
 ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / "output" / "visual_concepts"
 SOURCE = OUT / "current_game_1930s_v7_e_ai_painted_full_ui_base_with_icons.png"
-BACKGROUND = OUT / "current_game_1930s_v8_f_ai_painted_info_ui_background.png"
-MOCKUP = OUT / "current_game_1930s_v8_f_ai_painted_info_ui_lobby_mockup.png"
+BACKGROUND = OUT / "current_game_1930s_v9_g_ai_painted_clean_info_ui_background.png"
+MOCKUP = OUT / "current_game_1930s_v9_g_ai_painted_clean_info_ui_lobby_mockup.png"
 W, H = 720, 1280
 
 INK = (48, 30, 22, 255)
@@ -123,30 +123,26 @@ def add_existing_animals(base: Image.Image) -> None:
 
 def add_labels(base: Image.Image) -> None:
   draw = ImageDraw.Draw(base)
-  center_text(draw, "金币 60", (92, 34, 206, 66), INK, 18, True)
-  center_text(draw, "招募券 10", (566, 34, 686, 66), INK, 16, True)
+  center_text(draw, "60", (142, 34, 206, 66), INK, 22, True)
+  center_text(draw, "10", (618, 34, 672, 66), INK, 21, True)
 
-  center_text(draw, "丛林法则", (138, 176, 582, 242), INK, 48, True, 1, LIGHT)
-  center_text(draw, "动物卡牌 · 占地自动战斗", (166, 236, 554, 275), GOLD, 20, True, 1, LIGHT)
+  center_text(draw, "丛林法则", (138, 184, 582, 270), INK, 52, True, 1, LIGHT)
 
-  center_text(draw, "当前阵容 6/6", (116, 390, 296, 424), INK, 21, True, 1, LIGHT)
-  center_text(draw, "总战力 1280", (424, 390, 604, 424), INK, 21, True, 1, LIGHT)
+  center_text(draw, "阵容 6/6", (126, 390, 306, 424), INK, 23, True, 1, LIGHT)
+  center_text(draw, "战力 1280", (414, 390, 594, 424), INK, 23, True, 1, LIGHT)
 
-  center_text(draw, "青铜一星 · 胜 0 负 0 · 段位赛", (152, 878, 568, 925), INK, 21, True)
-  center_text(draw, "首胜奖励", (540, 896, 650, 926), RED, 14, True, 1, LIGHT)
+  center_text(draw, "青铜一星  ·  胜 0 负 0", (170, 878, 550, 925), INK, 23, True)
 
-  center_text(draw, "匹配", (214, 970, 506, 1028), INK, 38, True, 1, LIGHT)
-  center_text(draw, "预计 15 秒 · 免费", (214, 1018, 506, 1055), RED, 18, True, 1, LIGHT)
+  center_text(draw, "匹配", (214, 970, 506, 1050), INK, 42, True, 1, LIGHT)
 
-  for rect, label, sub in [
-    ((20, 1192, 128, 1250), "商店", "上新"),
-    ((166, 1192, 274, 1250), "编组", "6/6"),
-    ((310, 1192, 418, 1250), "战斗", "当前"),
-    ((456, 1192, 564, 1250), "抽卡", "免费"),
-    ((592, 1192, 700, 1250), "更多", "任务"),
+  for rect, label in [
+    ((20, 1200, 128, 1236), "商店"),
+    ((166, 1200, 274, 1236), "编组"),
+    ((310, 1200, 418, 1236), "战斗"),
+    ((456, 1200, 564, 1236), "抽卡"),
+    ((592, 1200, 700, 1236), "更多"),
   ]:
-    center_text(draw, label, (rect[0], rect[1], rect[2], rect[1] + 34), INK, 20, True)
-    center_text(draw, sub, (rect[0], rect[1] + 28, rect[2], rect[3]), RED if sub in {"上新", "免费", "当前"} else GOLD, 12, True, 1, LIGHT)
+    center_text(draw, label, rect, INK, 21, True, 1, LIGHT)
 
 
 def build() -> None:
