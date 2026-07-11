@@ -864,9 +864,10 @@ func _apply_unlock(key: Vector2i, team: int, fallback_card_id: String) -> String
 					_set_empty_tile(key, team)
 					return "空地"
 			elif result == "tower":
-				site_card_id = card_id
+				site_card_id = _defense_card_for_team(key, tile, team, card_id)
 				if site_card_id == "":
-					site_card_id = _defense_card_for_team(key, tile, team)
+					_set_empty_tile(key, team)
+					return _site_name("empty")
 			elif result == "mine":
 				site_card_id = MINE_CARD_ID
 			_set_building(key, team, result, site_card_id)
@@ -1028,15 +1029,19 @@ func _roll_card_from_config_pool(pool_id: String, team: int, required_kind: Stri
 	var entry_card_id = String(entry.get("entry_id", "")) if not entry.is_empty() else ""
 	var roster = enemy_deck if team == ENEMY else deck
 	var card_id = ""
-	if _can_use_config_card(entry_card_id, roster, required_kind):
-		card_id = entry_card_id
-	if card_id == "":
-		card_id = _deck_card_for_target_rarity(roster, target_rarity, roll_seed, required_kind)
-	if card_id == "" and required_kind == CARD_KIND_DEFENSE:
-		card_id = _deck_card_for_target_rarity(_all_card_ids_for_kind(CARD_KIND_DEFENSE), target_rarity, roll_seed, CARD_KIND_DEFENSE)
+	if required_kind == CARD_KIND_DEFENSE:
+		card_id = _defense_card_for_target_rarity(target_rarity, roll_seed, entry_card_id)
+	else:
+		if _can_use_config_card(entry_card_id, roster, required_kind):
+			card_id = entry_card_id
+		if card_id == "":
+			card_id = _deck_card_for_target_rarity(roster, target_rarity, roll_seed, required_kind)
+	var resolved_rarity = target_rarity
+	if required_kind == CARD_KIND_DEFENSE and card_id != "":
+		resolved_rarity = String(_card_by_id(card_id).get("rarity", target_rarity))
 	return {
 		"card_id": card_id,
-		"rarity": target_rarity,
+		"rarity": resolved_rarity,
 		"entry_id": entry_card_id,
 	}
 
@@ -2056,16 +2061,16 @@ func _site_card_for_team(key: Vector2i, tile: Dictionary, team: int, fallback_ca
 	return _deck_card_for_target_rarity(roster, target_rarity, site_seed, CARD_KIND_ANIMAL)
 
 
-func _defense_card_for_team(key: Vector2i, tile: Dictionary, team: int) -> String:
+func _defense_card_for_team(key: Vector2i, tile: Dictionary, _team: int, candidate_card_id: String = "") -> String:
 	var site_seed = int(tile.get("site_roll_seed", BoardRules.site_seed_for_key(key)))
 	var target_rarity = String(tile.get("site_target_rarity", ""))
 	if target_rarity == "":
 		target_rarity = "common"
-	var roster = enemy_deck if team == ENEMY else deck
-	var card_id = _deck_card_for_target_rarity(roster, target_rarity, site_seed, CARD_KIND_DEFENSE)
-	if card_id != "":
-		return card_id
-	return _deck_card_for_target_rarity(_all_card_ids_for_kind(CARD_KIND_DEFENSE), target_rarity, site_seed, CARD_KIND_DEFENSE)
+	return _defense_card_for_target_rarity(target_rarity, site_seed, candidate_card_id)
+
+
+func _defense_card_for_target_rarity(target_rarity: String, site_seed: int, candidate_card_id: String = "") -> String:
+	return CardRules.resolve_defense_card_id(candidate_card_id, _all_cards_for_kind(CARD_KIND_DEFENSE), target_rarity, site_seed)
 
 
 func _enemy_card_for_cost(cost: int, site_seed: int) -> String:
@@ -2087,9 +2092,8 @@ func _card_for_tier_range(min_tier: int, max_tier: int, site_seed: int) -> Strin
 
 
 func _deck_card_for_target_rarity(roster: Array, target_rarity: String, site_seed: int, required_kind: String = "") -> String:
-	var target_rank = _rarity_sort_rank(target_rarity)
-	for rank in range(target_rank, 0, -1):
-		var rarity = _rarity_for_rank(rank)
+	for rarity in CardRules.rarity_search_order(target_rarity):
+		var rank = _rarity_sort_rank(String(rarity))
 		var options = []
 		for card_id in roster:
 			var id = String(card_id)
@@ -2106,22 +2110,17 @@ func _deck_card_for_target_rarity(roster: Array, target_rarity: String, site_see
 
 func _all_card_ids_for_kind(kind: String) -> Array:
 	var result = []
-	for card in cards:
-		if _card_kind(card) == kind:
-			result.append(String(card.get("id", "")))
+	for card in _all_cards_for_kind(kind):
+		result.append(String(card.get("id", "")))
 	return result
 
 
-func _rarity_for_rank(rank: int) -> String:
-	match rank:
-		4:
-			return "legendary"
-		3:
-			return "epic"
-		2:
-			return "rare"
-		_:
-			return "common"
+func _all_cards_for_kind(kind: String) -> Array:
+	var result = []
+	for card in cards:
+		if _card_kind(card) == kind:
+			result.append(card)
+	return result
 
 
 func _card_by_id(card_id: String) -> Dictionary:

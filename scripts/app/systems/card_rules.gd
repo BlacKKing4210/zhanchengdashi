@@ -134,6 +134,62 @@ static func rarity_sort_rank(rarity: String) -> int:
 			return 1
 
 
+static func rarity_for_rank(rank: int) -> String:
+	match rank:
+		4:
+			return "legendary"
+		3:
+			return "epic"
+		2:
+			return "rare"
+		_:
+			return "common"
+
+
+static func rarity_search_order(target_rarity: String, search_higher: bool = false) -> Array:
+	var target_rank = rarity_sort_rank(target_rarity)
+	var rank_end = 5 if search_higher else 0
+	var rank_step = 1 if search_higher else -1
+	var result = []
+	for rank in range(target_rank, rank_end, rank_step):
+		result.append(rarity_for_rank(rank))
+	return result
+
+
+static func defense_rarity_search_order(target_rarity: String) -> Array:
+	var result = rarity_search_order(target_rarity, true)
+	for rarity in rarity_search_order(target_rarity):
+		if not result.has(rarity):
+			result.append(rarity)
+	return result
+
+
+static func defense_card_id_for_target_rarity(defense_cards: Array, target_rarity: String, site_seed: int) -> String:
+	for rarity in defense_rarity_search_order(target_rarity):
+		var options = []
+		for card in defense_cards:
+			if typeof(card) != TYPE_DICTIONARY:
+				continue
+			var card_id = String(card.get("id", ""))
+			if card_id != "" and String(card.get("rarity", "common")) == rarity:
+				options.append(card_id)
+		if not options.is_empty():
+			var rank = rarity_sort_rank(String(rarity))
+			var pick_seed = absi(site_seed + rank * 97 + defense_cards.size() * 13)
+			return String(options[pick_seed % options.size()])
+	return ""
+
+
+static func resolve_defense_card_id(candidate_card_id: String, defense_cards: Array, target_rarity: String, site_seed: int) -> String:
+	if candidate_card_id != "":
+		for card in defense_cards:
+			if typeof(card) != TYPE_DICTIONARY:
+				continue
+			if String(card.get("id", "")) == candidate_card_id and String(card.get("rarity", "common")) == target_rarity:
+				return candidate_card_id
+	return defense_card_id_for_target_rarity(defense_cards, target_rarity, site_seed)
+
+
 static func rarity_label(rarity: String) -> String:
 	match rarity:
 		"legendary":
