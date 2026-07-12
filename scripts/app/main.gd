@@ -2,6 +2,7 @@ extends Node2D
 
 const CardRules = preload("res://scripts/app/systems/card_rules.gd")
 const BoardRules = preload("res://scripts/app/systems/board_rules.gd")
+const MultiplayerRules = preload("res://scripts/app/systems/multiplayer_rules.gd")
 const RankingRules = preload("res://scripts/app/systems/ranking_rules.gd")
 
 const DESIGN_SIZE = Vector2(720.0, 1280.0)
@@ -16,6 +17,9 @@ const SCREEN_LOBBY = "lobby"
 const SCREEN_DECK = "deck"
 const SCREEN_BATTLE = "battle"
 const SCREEN_GACHA = "gacha"
+
+const BATTLE_MODE_CLASSIC = "classic"
+const BATTLE_MODE_MULTIPLAYER = "multiplayer"
 
 const DECK_SIZE = 8
 const BATTLE_TIME = 180.0
@@ -45,6 +49,13 @@ const ENEMY_FIRST_UNLOCK_DELAY = 4.0
 const ENEMY_UNLOCK_INTERVAL = 2.2
 const PROJECTILE_TIME = 0.30
 const RANGED_PROJECTILE_MIN_DISTANCE = HEX_SIZE * 1.35
+const MULTIPLAYER_BATTLE_TIME = 300.0
+const MULTIPLAYER_ATTACK_ORDER_COOLDOWN = 3.0
+const MULTIPLAYER_AI_UNLOCK_INTERVAL = 4.5
+const MULTIPLAYER_MAX_UNITS_PER_TEAM = 12
+const MULTIPLAYER_ORDER_SEARCH_RADIUS = 3
+const MULTIPLAYER_ORDER_ARRIVAL_DISTANCE = HEX_SIZE * 0.28
+const BOARD_DRAG_THRESHOLD = 12.0
 
 const UNIT_LOW_PRICE = BoardRules.UNIT_LOW_PRICE
 const UNIT_MID_PRICE = BoardRules.UNIT_MID_PRICE
@@ -121,6 +132,7 @@ var active_match_player_stars = RankingRules.INITIAL_STARS
 var last_rank_result = {}
 
 var screen = SCREEN_LOBBY
+var battle_mode = BATTLE_MODE_CLASSIC
 var selected_tile = Vector2i(-99, -99)
 var selected_slot = 0
 var selected_card_id = ""
@@ -132,6 +144,15 @@ var enemy_gold = STARTING_GOLD
 var battle_timer = BATTLE_TIME
 var income_timer = INCOME_INTERVAL
 var enemy_timer = 1.0
+var multiplayer_gold = {}
+var multiplayer_ai_timers = {}
+var multiplayer_attack_orders = {}
+var multiplayer_attack_cooldowns = {}
+var multiplayer_alive = {}
+var multiplayer_placements = {}
+var multiplayer_placement = 0
+var last_multiplayer_star_delta = 0
+var combat_building_keys = []
 var game_over = false
 var pause_open = false
 var battle_reward_given = false
@@ -142,9 +163,17 @@ var toast_timer = 0.0
 var detail_pulse_timer = 0.0
 var ui_time = 0.0
 var board_origin = Vector2.ZERO
+var board_pan = Vector2.ZERO
+var multiplayer_board_bounds = Rect2(Vector2.ZERO, Vector2.ZERO)
 var canvas_scale = 1.0
 var canvas_offset = Vector2.ZERO
 var next_unit_id = 1
+var board_pointer_down = false
+var board_pointer_dragged = false
+var board_pointer_started_in_view = false
+var board_pointer_start = Vector2.ZERO
+var board_pointer_last = Vector2.ZERO
+var board_pointer_distance = 0.0
 
 var font: Font
 var texture_cache = {}
@@ -176,6 +205,8 @@ func _process(delta: float) -> void:
 
 
 func _unhandled_input(event: InputEvent) -> void:
+	if _handle_multiplayer_pointer_input(event):
+		return
 	if event is InputEventMouseButton:
 		if screen == SCREEN_DECK and event.pressed:
 			_layout(get_viewport_rect().size)
@@ -209,12 +240,73 @@ func _unhandled_input(event: InputEvent) -> void:
 			pause_open = not pause_open
 
 
+func _handle_multiplayer_pointer_input(event: InputEvent) -> bool:
+	if screen != SCREEN_BATTLE or battle_mode != BATTLE_MODE_MULTIPLAYER:
+		return false
+	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
+		if event.pressed:
+			_begin_board_pointer(event.position)
+		else:
+			_end_board_pointer(event.position)
+		return true
+	if event is InputEventMouseMotion and board_pointer_down:
+		_move_board_pointer(event.position, event.relative)
+		return true
+	if event is InputEventScreenTouch:
+		if event.pressed:
+			_begin_board_pointer(event.position)
+		else:
+			_end_board_pointer(event.position)
+		return true
+	if event is InputEventScreenDrag and board_pointer_down:
+		_move_board_pointer(event.position, event.relative)
+		return true
+	return false
+
+
+func _begin_board_pointer(screen_pos: Vector2) -> void:
+	_layout(get_viewport_rect().size)
+	board_pointer_down = true
+	board_pointer_dragged = false
+	board_pointer_start = screen_pos
+	board_pointer_last = screen_pos
+	board_pointer_distance = 0.0
+	var canvas_pos = _screen_to_canvas(screen_pos)
+	board_pointer_started_in_view = _battle_view_rect().has_point(canvas_pos) and not pause_open and not game_over
+
+
+func _move_board_pointer(screen_pos: Vector2, relative: Vector2) -> void:
+	if not board_pointer_down:
+		return
+	board_pointer_distance = screen_pos.distance_to(board_pointer_start) / maxf(canvas_scale, 0.001)
+	if board_pointer_started_in_view and board_pointer_distance >= BOARD_DRAG_THRESHOLD:
+		board_pointer_dragged = true
+	if board_pointer_dragged:
+		board_pan += relative / maxf(canvas_scale, 0.001)
+		_clamp_board_pan()
+	board_pointer_last = screen_pos
+
+
+func _end_board_pointer(screen_pos: Vector2) -> void:
+	if not board_pointer_down:
+		return
+	var should_tap = not board_pointer_dragged
+	board_pointer_down = false
+	board_pointer_started_in_view = false
+	board_pointer_distance = 0.0
+	if should_tap:
+		_handle_tap(screen_pos)
+
+
 func _handle_tap(screen_pos: Vector2) -> void:
 	_layout(get_viewport_rect().size)
 	var pos = _screen_to_canvas(screen_pos)
 
 	if screen != SCREEN_BATTLE:
 		if _handle_nav(pos):
+			return
+		if screen == SCREEN_LOBBY and _multiplayer_start_rect().has_point(pos):
+			_start_multiplayer_match()
 			return
 		if screen == SCREEN_LOBBY and _start_rect().has_point(pos):
 			_start_match()
@@ -227,20 +319,24 @@ func _handle_tap(screen_pos: Vector2) -> void:
 			return
 
 	if game_over:
-		screen = SCREEN_LOBBY
-		_reset_battle()
+		_return_to_lobby()
 		return
 
 	if pause_open:
 		if _pause_continue_rect().has_point(pos):
 			pause_open = false
 		elif _pause_exit_rect().has_point(pos):
-			_finish_battle("失败")
-			screen = SCREEN_LOBBY
+			if battle_mode == BATTLE_MODE_MULTIPLAYER:
+				_finish_multiplayer_battle(maxi(1, _multiplayer_alive_count()))
+			else:
+				_finish_battle("失败")
+			_return_to_lobby()
 		return
 
 	if _pause_button_rect().has_point(pos):
 		pause_open = true
+		return
+	if battle_mode == BATTLE_MODE_MULTIPLAYER and not _battle_view_rect().has_point(pos):
 		return
 
 	var key = _tile_at(pos)
@@ -250,9 +346,11 @@ func _handle_tap(screen_pos: Vector2) -> void:
 
 	if _try_unlock(key):
 		return
+	if battle_mode == BATTLE_MODE_MULTIPLAYER and _try_issue_attack_order(PLAYER, key):
+		return
 
 	if tiles.has(key) and int(tiles[key]["team"]) == PLAYER:
-		_pulse(_hex_center(key), Color(0.75, 0.95, 1.0))
+		_pulse(_hex_center(key), _team_color(PLAYER).lightened(0.22))
 
 
 func _draw() -> void:
@@ -279,7 +377,11 @@ func _layout(view_size: Vector2) -> void:
 	canvas_scale = minf(view_size.x / DESIGN_SIZE.x, view_size.y / DESIGN_SIZE.y)
 	canvas_scale = maxf(canvas_scale, 0.001)
 	canvas_offset = (view_size - DESIGN_SIZE * canvas_scale) * 0.5
-	var play_rect = Rect2(64, 110, 592, 982)
+	var play_rect = _battle_view_rect()
+	if battle_mode == BATTLE_MODE_MULTIPLAYER:
+		_clamp_board_pan()
+		board_origin = play_rect.get_center() + board_pan
+		return
 	var board_bounds = _board_hex_bounds(Vector2.ZERO)
 	board_origin = play_rect.get_center() - board_bounds.get_center()
 
@@ -300,6 +402,38 @@ func _board_hex_bounds(origin: Vector2) -> Rect2:
 
 func _screen_to_canvas(pos: Vector2) -> Vector2:
 	return (pos - canvas_offset) / maxf(canvas_scale, 0.001)
+
+
+func _battle_view_rect() -> Rect2:
+	return Rect2(64, 110, 592, 982)
+
+
+func _reset_multiplayer_board_pan() -> void:
+	var view_rect = _battle_view_rect()
+	var base_pos = MultiplayerRules.hex_center(MultiplayerRules.base_key(PLAYER), Vector2.ZERO, HEX_SIZE)
+	var desired_pos = view_rect.position + Vector2(view_rect.size.x * 0.5, view_rect.size.y * 0.76)
+	board_pan = desired_pos - view_rect.get_center() - base_pos
+	_clamp_board_pan()
+	board_origin = view_rect.get_center() + board_pan
+
+
+func _clamp_board_pan() -> void:
+	if battle_mode != BATTLE_MODE_MULTIPLAYER:
+		return
+	var view_rect = _battle_view_rect()
+	var bounds = multiplayer_board_bounds
+	if bounds.size.x <= 0.0 or bounds.size.y <= 0.0:
+		bounds = MultiplayerRules.board_bounds(Vector2.ZERO, HEX_SIZE)
+	var view_center = view_rect.get_center()
+	var margin = HEX_SIZE * 1.5
+	var bounds_right = bounds.position.x + bounds.size.x
+	var bounds_bottom = bounds.position.y + bounds.size.y
+	var min_x = view_rect.position.x + margin - view_center.x - bounds_right
+	var max_x = view_rect.position.x + view_rect.size.x - margin - view_center.x - bounds.position.x
+	var min_y = view_rect.position.y + margin - view_center.y - bounds_bottom
+	var max_y = view_rect.position.y + view_rect.size.y - margin - view_center.y - bounds.position.y
+	board_pan.x = clampf(board_pan.x, min_x, max_x)
+	board_pan.y = clampf(board_pan.y, min_y, max_y)
 
 
 func _load_cards() -> void:
@@ -452,6 +586,7 @@ func _mirror_count_for_rank(rank_key: String) -> int:
 
 
 func _start_match() -> void:
+	battle_mode = BATTLE_MODE_CLASSIC
 	var player_rank_state = _player_rank_state()
 	active_match_rank_key = String(player_rank_state["key"])
 	active_match_player_stars = int(player_rank_state["stars"])
@@ -461,6 +596,25 @@ func _start_match() -> void:
 	screen = SCREEN_BATTLE
 	_reset_battle()
 	_toast("匹配到" + String(active_match_mirror.get("rank_display", String(player_rank_state["display"]))) + "对手")
+
+
+func _start_multiplayer_match() -> void:
+	battle_mode = BATTLE_MODE_MULTIPLAYER
+	var player_rank_state = _player_rank_state()
+	active_match_rank_key = String(player_rank_state["key"])
+	active_match_player_stars = int(player_rank_state["stars"])
+	active_match_mirror = {}
+	_init_enemy_deck()
+	last_rank_result = {}
+	screen = SCREEN_BATTLE
+	_reset_battle()
+	_toast("进入6人自由混战")
+
+
+func _return_to_lobby() -> void:
+	screen = SCREEN_LOBBY
+	battle_mode = BATTLE_MODE_CLASSIC
+	_reset_battle()
 
 
 func _select_match_mirror(rank_key: String) -> Dictionary:
@@ -640,8 +794,23 @@ func _card_level(card_id: String) -> int:
 	return CardRules.card_level(card_levels, card_id)
 
 
+func _uses_enemy_roster(team: int) -> bool:
+	return team == ENEMY or (battle_mode == BATTLE_MODE_MULTIPLAYER and team != PLAYER)
+
+
+func _team_deck(team: int) -> Array:
+	return enemy_deck if _uses_enemy_roster(team) else deck
+
+
+func _team_deck_card(team: int, index: int) -> String:
+	var roster = _team_deck(team)
+	if roster.is_empty():
+		return "rabbit"
+	return String(roster[index % roster.size()])
+
+
 func _card_level_for_team(card_id: String, team: int) -> int:
-	if team == ENEMY:
+	if _uses_enemy_roster(team):
 		return CardRules.card_level(enemy_card_levels, card_id)
 	return _card_level(card_id)
 
@@ -667,7 +836,7 @@ func _card_stats(card: Dictionary) -> Dictionary:
 
 
 func _card_stats_for_team(card: Dictionary, team: int) -> Dictionary:
-	if team == ENEMY:
+	if _uses_enemy_roster(team):
 		return CardRules.card_stats(card, enemy_card_levels)
 	return _card_stats(card)
 
@@ -776,9 +945,10 @@ func _reset_battle() -> void:
 	units.clear()
 	effects.clear()
 	selected_tile = Vector2i(-99, -99)
+	combat_building_keys.clear()
 	gold = STARTING_GOLD
 	enemy_gold = STARTING_GOLD
-	battle_timer = BATTLE_TIME
+	battle_timer = MULTIPLAYER_BATTLE_TIME if battle_mode == BATTLE_MODE_MULTIPLAYER else BATTLE_TIME
 	income_timer = INCOME_INTERVAL
 	enemy_timer = ENEMY_FIRST_UNLOCK_DELAY
 	game_over = false
@@ -787,11 +957,39 @@ func _reset_battle() -> void:
 	last_battle_reward_tickets = 0
 	result_text = ""
 	next_unit_id = 1
+	board_pointer_down = false
+	board_pointer_dragged = false
+	board_pointer_started_in_view = false
+	board_pointer_distance = 0.0
+	multiplayer_placement = 0
+	last_multiplayer_star_delta = 0
+
+	if battle_mode == BATTLE_MODE_MULTIPLAYER:
+		_init_multiplayer_state()
+		tiles = MultiplayerRules.create_initial_tiles(_board_cell_type_rows())
+		multiplayer_board_bounds = MultiplayerRules.board_bounds(Vector2.ZERO, HEX_SIZE)
+		_reset_multiplayer_board_pan()
+		return
 
 	tiles = BoardRules.create_initial_tiles(Callable(self, "_card_for_cost"), Callable(self, "_card_for_tier_range"), _board_cell_type_rows())
 
 	_set_building(PLAYER_BASE, PLAYER, "base", "")
 	_set_building(ENEMY_BASE, ENEMY, "base", "")
+
+
+func _init_multiplayer_state() -> void:
+	multiplayer_gold.clear()
+	multiplayer_ai_timers.clear()
+	multiplayer_attack_orders.clear()
+	multiplayer_attack_cooldowns.clear()
+	multiplayer_alive.clear()
+	multiplayer_placements.clear()
+	for team in MultiplayerRules.TEAM_IDS:
+		multiplayer_gold[team] = STARTING_GOLD
+		multiplayer_attack_cooldowns[team] = 0.0
+		multiplayer_alive[team] = true
+		if team != PLAYER:
+			multiplayer_ai_timers[team] = ENEMY_FIRST_UNLOCK_DELAY + float(team - 2) * 0.35
 
 
 func _board_cell_type_rows() -> Array:
@@ -848,10 +1046,7 @@ func _apply_unlock(key: Vector2i, team: int, fallback_card_id: String) -> String
 			return "空地"
 		"gold":
 			var amount = int(unlock_roll.get("amount", 30))
-			if team == PLAYER:
-				gold += amount
-			else:
-				enemy_gold += amount
+			_add_gold(team, amount)
 			_set_empty_tile(key, team)
 			return "金币 +%d" % amount
 		_:
@@ -1027,7 +1222,7 @@ func _roll_card_from_config_pool(pool_id: String, team: int, required_kind: Stri
 	var entry = _roll_config_pool_entry("card_random_pools", pool_id)
 	var target_rarity = String(entry.get("rarity", "common")) if not entry.is_empty() else "common"
 	var entry_card_id = String(entry.get("entry_id", "")) if not entry.is_empty() else ""
-	var roster = enemy_deck if team == ENEMY else deck
+	var roster = _team_deck(team)
 	var card_id = ""
 	if required_kind == CARD_KIND_DEFENSE:
 		card_id = _defense_card_for_target_rarity(target_rarity, roll_seed, entry_card_id)
@@ -1060,18 +1255,32 @@ func _can_use_config_card(card_id: String, roster: Array, required_kind: String)
 func _update_battle(delta: float) -> void:
 	battle_timer = maxf(0.0, battle_timer - delta)
 	if battle_timer <= 0.0:
-		var won = _tile_count(PLAYER) >= _tile_count(ENEMY)
-		_finish_battle("胜利" if won else "失败")
+		if battle_mode == BATTLE_MODE_MULTIPLAYER:
+			_finish_multiplayer_battle(_multiplayer_timeout_placement())
+		else:
+			var won = _tile_count(PLAYER) >= _tile_count(ENEMY)
+			_finish_battle("胜利" if won else "失败")
 		return
 
 	income_timer -= delta
 	if income_timer <= 0.0:
 		income_timer = INCOME_INTERVAL
-		gold += _building_count(PLAYER, "base") * BASE_INCOME + _building_count(PLAYER, "mine") * MINE_INCOME
-		enemy_gold += _building_count(ENEMY, "base") * BASE_INCOME + _building_count(ENEMY, "mine") * MINE_INCOME
+		if battle_mode == BATTLE_MODE_MULTIPLAYER:
+			for team in MultiplayerRules.TEAM_IDS:
+				if _is_multiplayer_team_alive(team):
+					_add_gold(team, _building_count(team, "base") * BASE_INCOME + _building_count(team, "mine") * MINE_INCOME)
+		else:
+			gold += _building_count(PLAYER, "base") * BASE_INCOME + _building_count(PLAYER, "mine") * MINE_INCOME
+			enemy_gold += _building_count(ENEMY, "base") * BASE_INCOME + _building_count(ENEMY, "mine") * MINE_INCOME
 
+	_update_attack_order_cooldowns(delta)
 	_update_buildings(delta)
-	_update_enemy(delta)
+	if game_over:
+		return
+	if battle_mode == BATTLE_MODE_MULTIPLAYER:
+		_update_multiplayer_ai(delta)
+	else:
+		_update_enemy(delta)
 	_update_units(delta)
 	_update_effects(delta)
 
@@ -1083,12 +1292,14 @@ func _update_buildings(delta: float) -> void:
 		if building == "" or building == "mine":
 			continue
 		var team = int(tile["team"])
+		if battle_mode == BATTLE_MODE_MULTIPLAYER and not _is_multiplayer_team_alive(team):
+			continue
 		tile["spawn_timer"] = float(tile.get("spawn_timer", 0.0)) - delta
 		if float(tile["spawn_timer"]) <= 0.0:
 			tile["spawn_timer"] = _building_delay(building, team, String(tile.get("site_card", "")))
 			if building == "tower" or building == "base":
 				_tower_attack(key, team)
-			else:
+			elif _can_spawn_multiplayer_unit(team):
 				_spawn_unit(team, key, _spawn_card_for_tile(tile, team))
 		tiles[key] = tile
 
@@ -1114,9 +1325,104 @@ func _update_enemy(delta: float) -> void:
 	_apply_unlock(best_key, ENEMY, _enemy_deck_card(0))
 
 
+func _update_attack_order_cooldowns(delta: float) -> void:
+	if battle_mode != BATTLE_MODE_MULTIPLAYER:
+		return
+	for team in MultiplayerRules.TEAM_IDS:
+		var remaining = maxf(0.0, float(multiplayer_attack_cooldowns.get(team, 0.0)) - delta)
+		multiplayer_attack_cooldowns[team] = remaining
+		if team != PLAYER and remaining <= 0.0 and _is_multiplayer_team_alive(team):
+			var target_key = _nearest_alive_enemy_base(team)
+			if target_key != MultiplayerRules.INVALID_KEY:
+				_issue_attack_order(team, target_key, false)
+
+
+func _update_multiplayer_ai(delta: float) -> void:
+	for team in MultiplayerRules.TEAM_IDS:
+		if team == PLAYER or not _is_multiplayer_team_alive(team):
+			continue
+		var timer = float(multiplayer_ai_timers.get(team, ENEMY_FIRST_UNLOCK_DELAY)) - delta
+		if timer > 0.0:
+			multiplayer_ai_timers[team] = timer
+			continue
+		multiplayer_ai_timers[team] = MULTIPLAYER_AI_UNLOCK_INTERVAL
+		var best_key = MultiplayerRules.INVALID_KEY
+		var best_score = INF
+		var order_key = multiplayer_attack_orders.get(team, Vector2i.ZERO)
+		var order_pos = _hex_center(order_key) if tiles.has(order_key) else _hex_center(Vector2i.ZERO)
+		for key in tiles.keys():
+			var cost = int(tiles[key].get("site_cost", 0))
+			if cost <= 0 or cost > _gold_for_team(team) or not _can_unlock(key, team):
+				continue
+			var score = _hex_center(key).distance_to(order_pos) + float(cost) * 0.08
+			if score < best_score:
+				best_score = score
+				best_key = key
+		if best_key == MultiplayerRules.INVALID_KEY:
+			continue
+		var cost = int(tiles[best_key].get("site_cost", 0))
+		if _spend_team_gold(team, cost):
+			_apply_unlock(best_key, team, _team_deck_card(team, 0))
+
+
+func _can_spawn_multiplayer_unit(team: int) -> bool:
+	if battle_mode != BATTLE_MODE_MULTIPLAYER:
+		return true
+	var count = 0
+	for unit in units:
+		if int(unit.get("team", NEUTRAL)) == team and float(unit.get("hp", 0.0)) > 0.0:
+			count += 1
+	return count < MULTIPLAYER_MAX_UNITS_PER_TEAM
+
+
+func _try_issue_attack_order(team: int, key: Vector2i) -> bool:
+	if battle_mode != BATTLE_MODE_MULTIPLAYER or not tiles.has(key):
+		return false
+	var tile = tiles[key]
+	var owner = BoardRules.visual_owner(tile)
+	if owner == team and int(tile.get("team", NEUTRAL)) in [team, NEUTRAL]:
+		return false
+	var cooldown = float(multiplayer_attack_cooldowns.get(team, 0.0))
+	if cooldown > 0.0:
+		if team == PLAYER:
+			_toast("攻击指令冷却 %.1f秒" % cooldown)
+		return true
+	return _issue_attack_order(team, key, team == PLAYER)
+
+
+func _issue_attack_order(team: int, key: Vector2i, show_feedback: bool) -> bool:
+	if not tiles.has(key) or not _is_multiplayer_team_alive(team):
+		return false
+	multiplayer_attack_orders[team] = key
+	multiplayer_attack_cooldowns[team] = MULTIPLAYER_ATTACK_ORDER_COOLDOWN
+	_pulse(_hex_center(key), _team_color(team).lightened(0.22))
+	if show_feedback:
+		_toast("已指定攻击区域，3秒后可再次下令")
+	return true
+
+
+func _nearest_alive_enemy_base(team: int) -> Vector2i:
+	var source_key = MultiplayerRules.base_key(team)
+	var source_pos = MultiplayerRules.hex_center(source_key, Vector2.ZERO, HEX_SIZE)
+	var best_key = MultiplayerRules.INVALID_KEY
+	var best_distance = INF
+	for other_team in MultiplayerRules.TEAM_IDS:
+		if other_team == team or not _is_multiplayer_team_alive(other_team):
+			continue
+		var candidate = MultiplayerRules.base_key(other_team)
+		var distance = source_pos.distance_to(MultiplayerRules.hex_center(candidate, Vector2.ZERO, HEX_SIZE))
+		if distance < best_distance:
+			best_distance = distance
+			best_key = candidate
+	return best_key
+
+
 func _update_units(delta: float) -> void:
 	_refresh_unit_skill_state(delta)
+	_refresh_combat_building_keys()
 	for i in range(units.size()):
+		if game_over:
+			break
 		var unit = units[i]
 		if float(unit["hp"]) <= 0.0:
 			continue
@@ -1134,7 +1440,11 @@ func _update_units(delta: float) -> void:
 		var distance = offset.length()
 		unit["cooldown"] = maxf(0.0, float(unit.get("cooldown", 0.0)) - delta)
 		units[i] = unit
-		if distance <= float(unit["range"]):
+		if String(target.get("kind", "")) == "waypoint":
+			if distance > 1.0:
+				unit = units[i]
+				unit["pos"] = Vector2(unit["pos"]) + offset.normalized() * float(unit["speed"]) * delta
+		elif distance <= float(unit["range"]):
 			if float(unit["cooldown"]) <= 0.0:
 				_unit_attack_target(i, target, distance)
 				if i >= units.size():
@@ -1161,16 +1471,21 @@ func _update_units(delta: float) -> void:
 func _try_paint_crossed_tile(key: Vector2i, team: int, unit_index: int = -1) -> bool:
 	if not tiles.has(key):
 		return false
-	var opponent = ENEMY if team == PLAYER else PLAYER
 	var tile = tiles[key]
-	if BoardRules.visual_owner(tile) != opponent:
-		return false
+	var visual_owner = BoardRules.visual_owner(tile)
+	if battle_mode == BATTLE_MODE_MULTIPLAYER:
+		if visual_owner == team:
+			return false
+	else:
+		var opponent = ENEMY if team == PLAYER else PLAYER
+		if visual_owner != opponent:
+			return false
 	if String(tile.get("building", "")) != "":
 		return false
 	if _has_enemy_unit_on_tile(key, team):
 		return false
 	tiles[key] = BoardRules.with_soft_occupation(tile, team)
-	_pulse(_hex_center(key), COLOR_GREEN if team == PLAYER else COLOR_RED)
+	_pulse(_hex_center(key), _team_color(team))
 	if unit_index >= 0:
 		_apply_unit_capture_skill(unit_index, key)
 	return true
@@ -1220,7 +1535,11 @@ func _tower_attack(key: Vector2i, team: int) -> void:
 			best_key = Vector2i(-99, -99)
 			best_kind = "unit"
 	if building == "tower":
-		for target_key in tiles.keys():
+		var target_keys = tiles.keys()
+		if battle_mode == BATTLE_MODE_MULTIPLAYER:
+			var search_radius = ceili(attack_range / (HEX_SIZE * 1.5)) + 1
+			target_keys = _keys_in_hex_radius(key, search_radius)
+		for target_key in target_keys:
 			var target_tile = tiles[target_key]
 			if int(target_tile.get("team", NEUTRAL)) == team or int(target_tile.get("team", NEUTRAL)) == NEUTRAL:
 				continue
@@ -1234,7 +1553,7 @@ func _tower_attack(key: Vector2i, team: int) -> void:
 				best_kind = "building"
 	if best_kind == "unit" and best_index >= 0:
 		_projectile(center, Vector2(units[best_index]["pos"]), team)
-		_damage_unit(best_index, damage)
+		_damage_unit(best_index, damage, -1, team if battle_mode == BATTLE_MODE_MULTIPLAYER else NEUTRAL)
 	elif best_kind == "building" and best_key.x != -99:
 		_projectile(center, _hex_center(best_key), team)
 		_damage_tile(best_key, team, damage)
@@ -1282,21 +1601,28 @@ func _damage_tile(key: Vector2i, attacker: int, damage: float) -> bool:
 	tile["hp"] = float(tile["hp"]) - damage
 	if float(tile["hp"]) <= 0.0:
 		if String(tile["building"]) == "base":
-			_finish_battle("胜利" if attacker == PLAYER else "失败")
+			if battle_mode == BATTLE_MODE_MULTIPLAYER:
+				var defeated_team = int(tile.get("team", NEUTRAL))
+				tiles[key] = BoardRules.as_destroyed_building(tile, attacker)
+				_eliminate_multiplayer_team(defeated_team, attacker)
+			else:
+				_finish_battle("胜利" if attacker == PLAYER else "失败")
 			return true
 		tiles[key] = BoardRules.as_destroyed_building(tile, attacker)
-		_pulse(_hex_center(key), COLOR_GREEN if attacker == PLAYER else COLOR_RED)
+		_pulse(_hex_center(key), _team_color(attacker))
 		return true
 	tiles[key] = tile
 	return false
 
 
 func _spawn_unit(team: int, key: Vector2i, card_id: String, is_extra: bool = false, extra_index: int = 0) -> void:
+	if not _can_spawn_multiplayer_unit(team):
+		return
 	if card_id == "":
-		card_id = _enemy_deck_card(0) if team == ENEMY else String(deck[0])
+		card_id = _team_deck_card(team, 0)
 	var card = _card_by_id(card_id)
 	if card.is_empty():
-		card = _card_by_id(_enemy_deck_card(0) if team == ENEMY else "rabbit")
+		card = _card_by_id(_team_deck_card(team, 0))
 	var stats = _card_stats_for_team(card, team)
 	var base_pos = _hex_center(key)
 	var spawn_pos = base_pos
@@ -1342,6 +1668,10 @@ func _spawn_unit(team: int, key: Vector2i, card_id: String, is_extra: bool = fal
 
 
 func _nearest_combat_target(pos: Vector2, team: int, self_id: int) -> Dictionary:
+	if battle_mode == BATTLE_MODE_MULTIPLAYER:
+		var ordered_target = _ordered_combat_target(pos, team, self_id)
+		if not ordered_target.is_empty():
+			return ordered_target
 	var best = {}
 	var best_score = 999999.0
 	for i in range(units.size()):
@@ -1362,7 +1692,7 @@ func _nearest_combat_target(pos: Vector2, team: int, self_id: int) -> Dictionary
 				"index": i,
 				"pos": unit_pos,
 			}
-	for key in tiles.keys():
+	for key in combat_building_keys:
 		var tile = tiles[key]
 		if int(tile["team"]) == team or String(tile["building"]) == "":
 			continue
@@ -1384,6 +1714,81 @@ func _nearest_combat_target(pos: Vector2, team: int, self_id: int) -> Dictionary
 				"pos": _hex_center(key),
 			}
 	return best
+
+
+func _refresh_combat_building_keys() -> void:
+	combat_building_keys.clear()
+	for key in tiles.keys():
+		var tile = tiles[key]
+		if String(tile.get("building", "")) != "" and float(tile.get("hp", 0.0)) > 0.0:
+			combat_building_keys.append(key)
+
+
+func _ordered_combat_target(pos: Vector2, team: int, self_id: int) -> Dictionary:
+	if not multiplayer_attack_orders.has(team):
+		return {}
+	var order_key = multiplayer_attack_orders[team]
+	if not tiles.has(order_key):
+		return {}
+	var order_pos = _hex_center(order_key)
+	var ordered_tile = tiles[order_key]
+	var ordered_tile_team = int(ordered_tile.get("team", NEUTRAL))
+	if ordered_tile_team != team and ordered_tile_team != NEUTRAL and String(ordered_tile.get("building", "")) != "" and float(ordered_tile.get("hp", 0.0)) > 0.0:
+		return {
+			"kind": "building",
+			"key": order_key,
+			"pos": order_pos,
+		}
+	var best = {}
+	var best_distance = INF
+	for i in range(units.size()):
+		var unit = units[i]
+		if int(unit.get("id", -1)) == self_id or int(unit.get("team", NEUTRAL)) == team or float(unit.get("hp", 0.0)) <= 0.0:
+			continue
+		var distance = order_pos.distance_to(Vector2(unit.get("pos", Vector2.ZERO)))
+		if distance > HEX_SIZE * 1.8 * float(MULTIPLAYER_ORDER_SEARCH_RADIUS):
+			continue
+		if distance < best_distance:
+			best_distance = distance
+			best = {
+				"kind": "unit",
+				"index": i,
+				"pos": Vector2(unit.get("pos", Vector2.ZERO)),
+			}
+	for key in _keys_in_hex_radius(order_key, MULTIPLAYER_ORDER_SEARCH_RADIUS):
+		var tile = tiles[key]
+		var tile_team = int(tile.get("team", NEUTRAL))
+		if tile_team == team or tile_team == NEUTRAL or String(tile.get("building", "")) == "" or float(tile.get("hp", 0.0)) <= 0.0:
+			continue
+		var distance = order_pos.distance_to(_hex_center(key))
+		if distance < best_distance:
+			best_distance = distance
+			best = {
+				"kind": "building",
+				"key": key,
+				"pos": _hex_center(key),
+			}
+	if not best.is_empty():
+		return best
+	if pos.distance_to(order_pos) > MULTIPLAYER_ORDER_ARRIVAL_DISTANCE:
+		return {
+			"kind": "waypoint",
+			"key": order_key,
+			"pos": order_pos,
+		}
+	return {}
+
+
+func _keys_in_hex_radius(center: Vector2i, radius: int) -> Array:
+	var result = []
+	for delta_q in range(-radius, radius + 1):
+		var min_delta_r = maxi(-radius, -delta_q - radius)
+		var max_delta_r = mini(radius, -delta_q + radius)
+		for delta_r in range(min_delta_r, max_delta_r + 1):
+			var key = center + Vector2i(delta_q, delta_r)
+			if tiles.has(key):
+				result.append(key)
+	return result
 
 
 func _refresh_unit_skill_state(delta: float) -> void:
@@ -1647,7 +2052,10 @@ func _handle_unit_death(index: int, source_index: int, source_team: int) -> void
 	if text.contains("阵亡时，金币+1"):
 		_add_gold(team, 1)
 	if text.contains("对方获得5金币"):
-		_add_gold(ENEMY if team == PLAYER else PLAYER, 5)
+		if source_team != NEUTRAL and source_team != team:
+			_add_gold(source_team, 5)
+		elif battle_mode != BATTLE_MODE_MULTIPLAYER:
+			_add_gold(ENEMY if team == PLAYER else PLAYER, 5)
 	if text.contains("阵亡时，我方2只随机动物攻击+1"):
 		_buff_random_allies(team, index, 2, "attack", 1.0)
 	if text.contains("阵亡时召唤") or (_unit_uses_structured_skill(dead) and String(dead.get("skill_trigger", "")) == "on_death" and String(dead.get("skill_effect", "")) == "summon"):
@@ -1768,8 +2176,30 @@ func _add_gold(team: int, amount: int) -> void:
 		return
 	if team == PLAYER:
 		gold += amount
+	elif battle_mode == BATTLE_MODE_MULTIPLAYER:
+		multiplayer_gold[team] = int(multiplayer_gold.get(team, STARTING_GOLD)) + amount
 	else:
 		enemy_gold += amount
+
+
+func _gold_for_team(team: int) -> int:
+	if team == PLAYER:
+		return gold
+	if battle_mode == BATTLE_MODE_MULTIPLAYER:
+		return int(multiplayer_gold.get(team, 0))
+	return enemy_gold
+
+
+func _spend_team_gold(team: int, amount: int) -> bool:
+	if amount < 0 or _gold_for_team(team) < amount:
+		return false
+	if team == PLAYER:
+		gold -= amount
+	elif battle_mode == BATTLE_MODE_MULTIPLAYER:
+		multiplayer_gold[team] = int(multiplayer_gold.get(team, 0)) - amount
+	else:
+		enemy_gold -= amount
+	return true
 
 
 func _add_attack_bonus(index: int, amount: float) -> void:
@@ -2033,6 +2463,8 @@ func _try_unlock(key: Vector2i) -> bool:
 
 
 func _can_unlock(key: Vector2i, team: int) -> bool:
+	if battle_mode == BATTLE_MODE_MULTIPLAYER:
+		return MultiplayerRules.can_unlock(tiles, key, team)
 	return BoardRules.can_unlock(tiles, key, team)
 
 
@@ -2044,9 +2476,7 @@ func _spawn_card_for_tile(tile: Dictionary, team: int) -> String:
 	var card_id = String(tile.get("site_card", ""))
 	if card_id != "":
 		return card_id
-	if team == ENEMY:
-		return _enemy_deck_card(0)
-	return String(deck[0])
+	return _team_deck_card(team, 0)
 
 
 func _site_card_for_team(key: Vector2i, tile: Dictionary, team: int, fallback_card_id: String) -> String:
@@ -2057,7 +2487,7 @@ func _site_card_for_team(key: Vector2i, tile: Dictionary, team: int, fallback_ca
 	var target_rarity = String(tile.get("site_target_rarity", ""))
 	if target_rarity == "":
 		target_rarity = "common"
-	var roster = enemy_deck if team == ENEMY else deck
+	var roster = _team_deck(team)
 	return _deck_card_for_target_rarity(roster, target_rarity, site_seed, CARD_KIND_ANIMAL)
 
 
@@ -2175,6 +2605,119 @@ func _finish_battle(text: String) -> void:
 		last_battle_reward_tickets = _battle_reward_tickets(text)
 		gacha_tickets += last_battle_reward_tickets
 		_toast("获得%d张抽卡券" % last_battle_reward_tickets)
+
+
+func _is_multiplayer_team_alive(team: int) -> bool:
+	return bool(multiplayer_alive.get(team, false))
+
+
+func _multiplayer_alive_count() -> int:
+	var count = 0
+	for team in MultiplayerRules.TEAM_IDS:
+		if _is_multiplayer_team_alive(team):
+			count += 1
+	return count
+
+
+func _eliminate_multiplayer_team(defeated_team: int, attacker: int) -> void:
+	if battle_mode != BATTLE_MODE_MULTIPLAYER or defeated_team == NEUTRAL or not _is_multiplayer_team_alive(defeated_team):
+		return
+	var placement = _multiplayer_alive_count()
+	multiplayer_alive[defeated_team] = false
+	multiplayer_placements[defeated_team] = placement
+	multiplayer_attack_orders.erase(defeated_team)
+	multiplayer_attack_cooldowns[defeated_team] = 0.0
+	for i in range(units.size()):
+		if int(units[i].get("team", NEUTRAL)) == defeated_team:
+			units[i]["hp"] = 0.0
+			units[i]["death_handled"] = true
+	for key in tiles.keys():
+		var tile = tiles[key]
+		var tile_team = int(tile.get("team", NEUTRAL))
+		if tile_team == defeated_team:
+			if String(tile.get("building", "")) != "":
+				tiles[key] = BoardRules.as_destroyed_building(tile, attacker)
+			else:
+				tiles[key] = BoardRules.as_unlocked_empty(tile, attacker)
+			continue
+		if int(tile.get("territory_team", NEUTRAL)) == defeated_team or int(tile.get("occupier", NEUTRAL)) == defeated_team:
+			var neutralized = tile.duplicate()
+			if int(neutralized.get("territory_team", NEUTRAL)) == defeated_team:
+				neutralized["territory_team"] = NEUTRAL
+			if int(neutralized.get("occupier", NEUTRAL)) == defeated_team:
+				neutralized["occupier"] = NEUTRAL
+			tiles[key] = neutralized
+	if defeated_team == PLAYER:
+		_finish_multiplayer_battle(placement)
+		return
+	_toast("%d号玩家被淘汰" % defeated_team)
+	if _is_multiplayer_team_alive(PLAYER) and _multiplayer_alive_count() == 1:
+		_finish_multiplayer_battle(1)
+
+
+func _finish_multiplayer_battle(placement: int) -> void:
+	if game_over:
+		return
+	multiplayer_placement = clampi(placement, 1, MultiplayerRules.TEAM_IDS.size())
+	multiplayer_placements[PLAYER] = multiplayer_placement
+	result_text = "第%d名" % multiplayer_placement
+	game_over = true
+	pause_open = false
+	var reward = MultiplayerRules.placement_rewards(multiplayer_placement)
+	last_multiplayer_star_delta = int(reward.get("star_delta", -1))
+	last_battle_reward_tickets = int(reward.get("gacha_tickets", 1))
+	if not battle_reward_given:
+		battle_reward_given = true
+		gacha_tickets += last_battle_reward_tickets
+		_apply_multiplayer_rank_result(multiplayer_placement, last_multiplayer_star_delta)
+		var star_text = ("+" if last_multiplayer_star_delta > 0 else "") + str(last_multiplayer_star_delta)
+		_toast("第%d名：%s星，%d张抽卡券" % [multiplayer_placement, star_text, last_battle_reward_tickets])
+
+
+func _apply_multiplayer_rank_result(placement: int, star_delta: int) -> void:
+	var profile = RankingRules.normalize_profile(_player_profile())
+	var result = RankingRules.star_result_for_delta(String(profile["rank_key"]), int(profile["stars"]), star_delta)
+	profile["rank_key"] = String(result["new_rank"]["key"])
+	profile["stars"] = int(result["new_rank"]["stars"])
+	profile["matches"] = int(profile.get("matches", 0)) + 1
+	if placement == 1:
+		profile["wins"] = int(profile.get("wins", 0)) + 1
+	else:
+		profile["losses"] = int(profile.get("losses", 0)) + 1
+	rank_db["player"] = profile
+	last_rank_result = result
+	_save_rank_database()
+
+
+func _multiplayer_timeout_placement() -> int:
+	var scores = []
+	for team in MultiplayerRules.TEAM_IDS:
+		var base_key = MultiplayerRules.base_key(team)
+		var base_tile = tiles.get(base_key, {})
+		scores.append({
+			"team": team,
+			"alive": _is_multiplayer_team_alive(team),
+			"base_hp": float(base_tile.get("hp", 0.0)) if typeof(base_tile) == TYPE_DICTIONARY else 0.0,
+			"tiles": _tile_count(team),
+			"buildings": _building_count(team, "base") + _building_count(team, "mine") + _building_count(team, "tower") + _building_count(team, "barracks") + _building_count(team, "hall"),
+		})
+	scores.sort_custom(Callable(self, "_is_multiplayer_score_before"))
+	for i in range(scores.size()):
+		if int(scores[i].get("team", NEUTRAL)) == PLAYER:
+			return i + 1
+	return MultiplayerRules.TEAM_IDS.size()
+
+
+func _is_multiplayer_score_before(a: Dictionary, b: Dictionary) -> bool:
+	if bool(a.get("alive", false)) != bool(b.get("alive", false)):
+		return bool(a.get("alive", false))
+	if not is_equal_approx(float(a.get("base_hp", 0.0)), float(b.get("base_hp", 0.0))):
+		return float(a.get("base_hp", 0.0)) > float(b.get("base_hp", 0.0))
+	if int(a.get("tiles", 0)) != int(b.get("tiles", 0)):
+		return int(a.get("tiles", 0)) > int(b.get("tiles", 0))
+	if int(a.get("buildings", 0)) != int(b.get("buildings", 0)):
+		return int(a.get("buildings", 0)) > int(b.get("buildings", 0))
+	return int(a.get("team", 99)) < int(b.get("team", 99))
 
 
 func _apply_rank_result(won: bool) -> void:
@@ -2512,7 +3055,8 @@ func _draw_lobby_screen() -> void:
 	draw_texture_rect(BUILDING_ART["base"], Rect2(260, 260, 200, 200), false)
 	_draw_lobby_deck_animals(scene_rect.grow(-34))
 	_draw_rank_panel(Rect2(58, 842, 604, 92))
-	_cta(_start_rect(), "匹配", true)
+	_cta(_start_rect(), "单人对战", true)
+	_cta(_multiplayer_start_rect(), "多人对战", false)
 
 
 func _draw_lobby_deck_animals(area: Rect2) -> void:
@@ -2713,8 +3257,6 @@ func _draw_deck_slot_breath(rect: Rect2, index: int) -> void:
 
 func _draw_battle_screen() -> void:
 	_draw_background()
-	_draw_top_bar()
-	_draw_match_status()
 	_draw_board_frame()
 	for key in tiles.keys():
 		_draw_tile(key, tiles[key])
@@ -2722,6 +3264,10 @@ func _draw_battle_screen() -> void:
 		_draw_unit(unit)
 	for effect in effects:
 		_draw_effect(effect)
+	if battle_mode == BATTLE_MODE_MULTIPLAYER:
+		_draw_board_view_mask()
+	_draw_top_bar()
+	_draw_match_status()
 	_draw_selection_panel()
 	_draw_pause_button()
 	if pause_open:
@@ -2750,6 +3296,9 @@ func _draw_match_status() -> void:
 
 
 func _match_status_text() -> String:
+	if battle_mode == BATTLE_MODE_MULTIPLAYER:
+		var cooldown = float(multiplayer_attack_cooldowns.get(PLAYER, 0.0))
+		return "多人 %d/6  指令 %.1fs" % [_multiplayer_alive_count(), cooldown]
 	var player_rank = String(_player_rank_state()["display"])
 	if active_match_rank_key != "":
 		player_rank = RankingRules.display_for_key_and_stars(active_match_rank_key, active_match_player_stars)
@@ -2803,16 +3352,37 @@ func _draw_board_frame() -> void:
 	_box(Rect2(64, 110, 592, 982), Color(0.62, 0.88, 0.45), Color(0.25, 0.48, 0.22), 4)
 
 
+func _draw_board_view_mask() -> void:
+	var outer = Rect2(36, 82, 648, 1038)
+	var view = _battle_view_rect()
+	var frame_fill = Color(0.95, 0.80, 0.50)
+	draw_rect(Rect2(0, 0, DESIGN_SIZE.x, outer.position.y), Color(0.68, 0.90, 0.60))
+	draw_rect(Rect2(0, outer.end.y, DESIGN_SIZE.x, DESIGN_SIZE.y - outer.end.y), Color(0.60, 0.85, 0.50))
+	draw_rect(Rect2(0, outer.position.y, outer.position.x, outer.size.y), Color(0.60, 0.85, 0.50))
+	draw_rect(Rect2(outer.end.x, outer.position.y, DESIGN_SIZE.x - outer.end.x, outer.size.y), Color(0.60, 0.85, 0.50))
+	draw_rect(Rect2(outer.position, Vector2(outer.size.x, view.position.y - outer.position.y)), frame_fill)
+	draw_rect(Rect2(Vector2(outer.position.x, view.end.y), Vector2(outer.size.x, outer.end.y - view.end.y)), frame_fill)
+	draw_rect(Rect2(Vector2(outer.position.x, view.position.y), Vector2(view.position.x - outer.position.x, view.size.y)), frame_fill)
+	draw_rect(Rect2(Vector2(view.end.x, view.position.y), Vector2(outer.end.x - view.end.x, view.size.y)), frame_fill)
+	draw_rect(outer, Color(0.37, 0.55, 0.25), false, 5.0)
+	draw_rect(view, Color(0.25, 0.48, 0.22), false, 4.0)
+
+
 func _draw_tile(key: Vector2i, tile: Dictionary) -> void:
 	var center = _hex_center(key)
+	if battle_mode == BATTLE_MODE_MULTIPLAYER and not _is_world_pos_visible(center, HEX_SIZE * 1.1):
+		return
 	var points = _hex_points(center)
-	var team = int(tile["team"])
 	var can_unlock = _can_unlock(key, PLAYER)
 	var visual_team = BoardRules.visual_owner(tile)
 	var fill = Color(0.88, 0.80, 0.58, 0.68)
 	var line = Color(0.61, 0.52, 0.35, 0.48)
 	var line_width = 2.0
-	if visual_team == PLAYER:
+	if battle_mode == BATTLE_MODE_MULTIPLAYER and visual_team != NEUTRAL:
+		fill = _team_color(visual_team)
+		line = fill.darkened(0.34)
+		line_width = 3.0
+	elif visual_team == PLAYER:
 		fill = Color(0.49, 0.80, 0.39)
 		line = fill.darkened(0.34)
 		line_width = 3.0
@@ -2823,8 +3393,15 @@ func _draw_tile(key: Vector2i, tile: Dictionary) -> void:
 	if can_unlock:
 		line = COLOR_YELLOW if gold >= int(tile["site_cost"]) else Color(0.78, 0.72, 0.62)
 		line_width = 4.0
+	if battle_mode == BATTLE_MODE_MULTIPLAYER and multiplayer_attack_orders.get(PLAYER, MultiplayerRules.INVALID_KEY) == key:
+		line = Color.WHITE
+		line_width = 6.0
 	draw_polygon(points, PackedColorArray([fill, fill, fill, fill, fill, fill]))
 	draw_polyline(_closed_points(points), line, line_width)
+	if battle_mode == BATTLE_MODE_MULTIPLAYER and multiplayer_attack_orders.get(PLAYER, MultiplayerRules.INVALID_KEY) == key:
+		draw_arc(center, HEX_SIZE * 0.46, 0.0, TAU, 24, COLOR_YELLOW, 3.0, true)
+		draw_line(center + Vector2(-13, 0), center + Vector2(13, 0), COLOR_YELLOW, 2.0, true)
+		draw_line(center + Vector2(0, -13), center + Vector2(0, 13), COLOR_YELLOW, 2.0, true)
 	if String(tile["building"]) != "":
 		_draw_building(center, tile)
 	elif can_unlock:
@@ -2993,7 +3570,10 @@ func _draw_building_health_bar(center: Vector2, tile: Dictionary) -> void:
 	if max_hp <= 0.0:
 		return
 	var pct = clampf(float(tile["hp"]) / max_hp, 0.0, 1.0)
-	_draw_compact_bar(Rect2(center + Vector2(-23, 27), Vector2(46, 5)), pct, _team_health_color(int(tile["team"])))
+	var team = int(tile["team"])
+	_draw_compact_bar(Rect2(center + Vector2(-23, 27), Vector2(46, 5)), pct, _team_health_color(team))
+	if battle_mode == BATTLE_MODE_MULTIPLAYER:
+		_draw_team_marker(center + Vector2(29, 29), team)
 
 
 func _draw_compact_bar(rect: Rect2, pct: float, fill: Color) -> void:
@@ -3032,19 +3612,53 @@ func _draw_shape(points: Array, fill: Color, line: Color, width: float) -> void:
 
 func _draw_unit(unit: Dictionary) -> void:
 	var pos = Vector2(unit["pos"])
+	if battle_mode == BATTLE_MODE_MULTIPLAYER and not _is_world_pos_visible(pos, 36.0):
+		return
 	var team = int(unit["team"])
 	draw_circle(pos + Vector2(0, 14), 17, Color(0, 0, 0, 0.18))
 	draw_texture_rect(_card_texture(_card_by_id(String(unit["card"]))), Rect2(pos + Vector2(-22, -30), Vector2(44, 44)), false)
 	var pct = clampf(float(unit["hp"]) / float(unit["max_hp"]), 0.0, 1.0)
 	_draw_compact_bar(Rect2(pos + Vector2(-18, 20), Vector2(36, 6)), pct, _team_health_color(team))
+	if battle_mode == BATTLE_MODE_MULTIPLAYER:
+		_draw_team_marker(pos + Vector2(23, 23), team)
 
 
 func _team_health_color(team: int) -> Color:
-	if team == PLAYER:
-		return COLOR_GREEN
-	if team == ENEMY:
-		return COLOR_RED
-	return COLOR_YELLOW
+	return _team_color(team)
+
+
+func _team_color(team: int) -> Color:
+	if battle_mode != BATTLE_MODE_MULTIPLAYER:
+		if team == PLAYER:
+			return COLOR_GREEN
+		if team == ENEMY:
+			return COLOR_RED
+		return COLOR_YELLOW
+	match team:
+		1:
+			return Color(0.26, 0.78, 0.36)
+		2:
+			return Color(0.93, 0.28, 0.28)
+		3:
+			return Color(0.24, 0.52, 0.96)
+		4:
+			return Color(0.96, 0.67, 0.16)
+		5:
+			return Color(0.66, 0.35, 0.94)
+		6:
+			return Color(0.10, 0.72, 0.78)
+		_:
+			return Color(0.70, 0.70, 0.64)
+
+
+func _draw_team_marker(center: Vector2, team: int) -> void:
+	draw_circle(center, 8.0, Color(0.04, 0.05, 0.08, 0.92))
+	draw_circle(center, 6.2, _team_color(team))
+	_draw_text_center(str(team), Rect2(center + Vector2(-6, -7), Vector2(12, 12)), 10, Color.WHITE)
+
+
+func _is_world_pos_visible(pos: Vector2, margin: float = 0.0) -> bool:
+	return _battle_view_rect().grow(margin).has_point(pos)
 
 
 func _tile_display_card(tile: Dictionary) -> Dictionary:
@@ -3059,6 +3673,12 @@ func _tile_display_card(tile: Dictionary) -> Dictionary:
 
 func _draw_effect(effect: Dictionary) -> void:
 	var kind = String(effect.get("kind", "pulse"))
+	if battle_mode == BATTLE_MODE_MULTIPLAYER:
+		if kind == "projectile":
+			if not _is_world_pos_visible(Vector2(effect.get("from", Vector2.ZERO)), 80.0) and not _is_world_pos_visible(Vector2(effect.get("to", Vector2.ZERO)), 80.0):
+				return
+		elif effect.has("pos") and not _is_world_pos_visible(Vector2(effect.get("pos", Vector2.ZERO)), 120.0):
+			return
 	if kind == "card_popup":
 		var duration = maxf(0.01, float(effect.get("duration", UNLOCK_CARD_POPUP_SECONDS)))
 		var progress = clampf(1.0 - float(effect["time"]) / duration, 0.0, 1.0)
@@ -3098,6 +3718,9 @@ func _draw_selection_panel() -> void:
 		return
 	var title = "点击与己方地块接壤的卡牌地块解锁"
 	var detail = "可解锁地块只显示类型和价格，品质会在解锁时随机。"
+	if battle_mode == BATTLE_MODE_MULTIPLAYER:
+		title = "拖动查看大地图，点击非己方区域下达攻击指令"
+		detail = "单位优先向高亮目标推进；每次下令冷却3秒。"
 	var detail_extra = ""
 	if tiles.has(selected_tile):
 		var tile = tiles[selected_tile]
@@ -3127,6 +3750,11 @@ func _draw_selection_panel() -> void:
 		elif int(tile["team"]) == PLAYER:
 			title = "空地"
 			detail = "已解锁区域，可作为继续扩张的连接点。"
+		elif battle_mode == BATTLE_MODE_MULTIPLAYER and BoardRules.visual_owner(tile) != PLAYER:
+			var owner = BoardRules.visual_owner(tile)
+			title = "中立争夺区域" if owner == NEUTRAL else "%d号玩家区域" % owner
+			var cooldown = float(multiplayer_attack_cooldowns.get(PLAYER, 0.0))
+			detail = "点击下令攻击。" if cooldown <= 0.0 else "攻击指令冷却还剩 %.1f 秒。" % cooldown
 		elif int(tile["team"]) == ENEMY:
 			title = "敌方区域"
 			detail = "派出单位推进后可占领。"
@@ -3202,9 +3830,14 @@ func _draw_result_overlay() -> void:
 	draw_rect(Rect2(Vector2.ZERO, DESIGN_SIZE), Color(0, 0, 0, 0.42))
 	var panel = Rect2(110, 420, 500, 340)
 	_box(panel, Color(1.0, 0.96, 0.78), COLOR_LINE, 5)
-	_draw_text_center(result_text, Rect2(panel.position + Vector2(0, 48), Vector2(panel.size.x, 68)), 52, COLOR_YELLOW if result_text == "胜利" else COLOR_RED)
+	var result_color = COLOR_YELLOW if result_text == "胜利" or multiplayer_placement == 1 else COLOR_RED
+	_draw_text_center(result_text, Rect2(panel.position + Vector2(0, 48), Vector2(panel.size.x, 68)), 52, result_color)
 	var reward_tickets = last_battle_reward_tickets if last_battle_reward_tickets > 0 else _battle_reward_tickets(result_text)
-	_draw_text_center("奖励：+%d 抽卡券" % reward_tickets, Rect2(panel.position + Vector2(0, 128), Vector2(panel.size.x, 36)), 24, COLOR_LINE)
+	if battle_mode == BATTLE_MODE_MULTIPLAYER:
+		var star_text = ("+" if last_multiplayer_star_delta > 0 else "") + str(last_multiplayer_star_delta)
+		_draw_text_center("奖励：%s星  %d抽卡券" % [star_text, reward_tickets], Rect2(panel.position + Vector2(0, 128), Vector2(panel.size.x, 36)), 24, COLOR_LINE)
+	else:
+		_draw_text_center("奖励：+%d 抽卡券" % reward_tickets, Rect2(panel.position + Vector2(0, 128), Vector2(panel.size.x, 36)), 24, COLOR_LINE)
 	_draw_text_center(_rank_result_text(), Rect2(panel.position + Vector2(0, 170), Vector2(panel.size.x, 36)), 24, COLOR_PURPLE)
 	_draw_text_center("点击任意位置返回主界面", Rect2(panel.position + Vector2(0, 220), Vector2(panel.size.x, 40)), 24, COLOR_LINE)
 
@@ -3561,6 +4194,8 @@ func _draw_lock(center: Vector2) -> void:
 
 
 func _hex_center(key: Vector2i) -> Vector2:
+	if battle_mode == BATTLE_MODE_MULTIPLAYER:
+		return MultiplayerRules.hex_center(key, board_origin, HEX_SIZE)
 	return BoardRules.hex_center(key, board_origin, HEX_SIZE)
 
 
@@ -3587,10 +4222,14 @@ func _draw_filled_polygon(points: Array, color: Color) -> void:
 
 
 func _neighbors(key: Vector2i) -> Array:
+	if battle_mode == BATTLE_MODE_MULTIPLAYER:
+		return MultiplayerRules.neighbors(key)
 	return BoardRules.neighbors(key)
 
 
 func _tile_at(pos: Vector2) -> Vector2i:
+	if battle_mode == BATTLE_MODE_MULTIPLAYER:
+		return MultiplayerRules.tile_at(tiles, pos, board_origin, HEX_SIZE)
 	return BoardRules.tile_at(tiles, pos, board_origin, HEX_SIZE)
 
 
@@ -3601,7 +4240,11 @@ func _deck_slot_rect(index: int) -> Rect2:
 
 
 func _start_rect() -> Rect2:
-	return Rect2(190, 958, 340, 76)
+	return Rect2(190, 950, 340, 68)
+
+
+func _multiplayer_start_rect() -> Rect2:
+	return Rect2(190, 1030, 340, 68)
 
 
 func _gacha_draw_rect() -> Rect2:
@@ -3744,7 +4387,7 @@ func _show_unlock_card_popup(key: Vector2i) -> void:
 
 
 func _projectile(start: Vector2, end: Vector2, team: int) -> void:
-	var color = COLOR_YELLOW if team == PLAYER else COLOR_ORANGE
+	var color = _team_color(team).lightened(0.18) if battle_mode == BATTLE_MODE_MULTIPLAYER else (COLOR_YELLOW if team == PLAYER else COLOR_ORANGE)
 	effects.append({
 		"kind": "projectile",
 		"from": start,

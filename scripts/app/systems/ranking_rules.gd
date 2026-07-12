@@ -136,27 +136,30 @@ static func display_for_key_and_stars(rank_key: String, stars: int) -> String:
 
 
 static func star_result(rank_key: String, stars: int, won: bool) -> Dictionary:
+	return star_result_for_delta(rank_key, stars, 1 if won else -1)
+
+
+static func star_result_for_delta(rank_key: String, stars: int, star_delta: int) -> Dictionary:
 	var old_state = rank_state_for_key_and_stars(rank_key, stars)
 	var rank_index = rank_index_for_key(String(old_state["key"]))
-	var new_stars = int(old_state["stars"]) + (1 if won else -1)
-	if won:
-		var max_stars = int(RANKS[rank_index]["max_stars"])
-		if max_stars > 0 and new_stars > max_stars:
-			if rank_index < RANKS.size() - 1:
+	var new_stars = int(old_state["stars"])
+	for _step in range(absi(star_delta)):
+		if star_delta > 0:
+			var max_stars = int(RANKS[rank_index]["max_stars"])
+			if max_stars <= 0 or new_stars < max_stars:
+				new_stars += 1
+			elif rank_index < RANKS.size() - 1:
 				rank_index += 1
 				new_stars = 1
-			else:
-				new_stars = max_stars
-	elif new_stars < 1:
-		if rank_index > 0:
+		elif new_stars > 1:
+			new_stars -= 1
+		elif rank_index > 0:
 			rank_index -= 1
 			new_stars = max(1, int(RANKS[rank_index]["max_stars"]))
-		else:
-			new_stars = 1
 	var new_state = rank_state_for_key_and_stars(String(RANKS[rank_index]["key"]), new_stars)
 	return {
 		"old_rank": old_state,
 		"new_rank": new_state,
-		"star_delta": 1 if won else -1,
-		"won": won,
+		"star_delta": star_delta,
+		"won": star_delta > 0,
 	}
