@@ -4,6 +4,7 @@ const CardRules = preload("res://scripts/app/systems/card_rules.gd")
 const BoardRules = preload("res://scripts/app/systems/board_rules.gd")
 const MultiplayerRules = preload("res://scripts/app/systems/multiplayer_rules.gd")
 const RankingRules = preload("res://scripts/app/systems/ranking_rules.gd")
+const UnitMotionFeedback = preload("res://scripts/app/systems/unit_motion_feedback.gd")
 
 const DESIGN_SIZE = Vector2(720.0, 1280.0)
 const HEX_SIZE = 43.0
@@ -77,6 +78,7 @@ const COLLECTION_COLUMNS = 4
 const COLLECTION_CARD_SIZE = Vector2(132.0, 158.0)
 const COLLECTION_CARD_GAP = Vector2(24.0, 18.0)
 const DETAIL_PULSE_SECONDS = 0.28
+const DETAIL_UPGRADE_MOTION_SECONDS = 0.55
 const GACHA_FX_SECONDS = 0.72
 const GACHA_CARD_REVEAL_INTERVAL = 0.18
 const GACHA_CARD_FLIP_SECONDS = 0.34
@@ -161,6 +163,7 @@ var result_text = ""
 var toast_text = ""
 var toast_timer = 0.0
 var detail_pulse_timer = 0.0
+var detail_upgrade_motion_timer = 0.0
 var ui_time = 0.0
 var board_origin = Vector2.ZERO
 var board_pan = Vector2.ZERO
@@ -196,10 +199,15 @@ func _process(delta: float) -> void:
 		toast_timer -= delta
 	if detail_pulse_timer > 0.0:
 		detail_pulse_timer = maxf(0.0, detail_pulse_timer - delta)
+	if detail_upgrade_motion_timer > 0.0:
+		detail_upgrade_motion_timer = maxf(0.0, detail_upgrade_motion_timer - delta)
 	_update_gacha_animation(delta)
 
-	if screen == SCREEN_BATTLE and not game_over and not pause_open:
-		_update_battle(delta)
+	if screen == SCREEN_BATTLE and not pause_open:
+		if game_over:
+			_update_effects(delta)
+		else:
+			_update_battle(delta)
 
 	queue_redraw()
 
@@ -950,6 +958,8 @@ func _try_upgrade_selected_card() -> void:
 		return
 	card_counts[card_id] = _card_total_count(card_id) - cost
 	card_levels[card_id] = _card_level(card_id) + 1
+	detail_pulse_timer = DETAIL_PULSE_SECONDS
+	detail_upgrade_motion_timer = DETAIL_UPGRADE_MOTION_SECONDS
 	_toast("升级成功 Lv.%d" % _card_level(card_id))
 
 
@@ -1437,6 +1447,8 @@ func _update_units(delta: float) -> void:
 		if game_over:
 			break
 		var unit = units[i]
+		UnitMotionFeedback.begin_frame(unit, delta)
+		units[i] = unit
 		if float(unit["hp"]) <= 0.0:
 			continue
 		var previous_tile = unit.get("tile", _tile_at(Vector2(unit["pos"])))
@@ -1456,7 +1468,9 @@ func _update_units(delta: float) -> void:
 		if String(target.get("kind", "")) == "waypoint":
 			if distance > 1.0:
 				unit = units[i]
-				unit["pos"] = Vector2(unit["pos"]) + offset.normalized() * float(unit["speed"]) * delta
+				var waypoint_direction = offset.normalized()
+				unit["pos"] = Vector2(unit["pos"]) + waypoint_direction * float(unit["speed"]) * delta
+				UnitMotionFeedback.mark_moving(unit, waypoint_direction, delta)
 		elif distance <= float(unit["range"]):
 			if float(unit["cooldown"]) <= 0.0:
 				_unit_attack_target(i, target, distance)
@@ -1466,7 +1480,9 @@ func _update_units(delta: float) -> void:
 				unit["cooldown"] = _unit_attack_cooldown(unit)
 		elif distance > 1.0:
 			unit = units[i]
-			unit["pos"] = Vector2(unit["pos"]) + offset.normalized() * float(unit["speed"]) * delta
+			var move_direction = offset.normalized()
+			unit["pos"] = Vector2(unit["pos"]) + move_direction * float(unit["speed"]) * delta
+			UnitMotionFeedback.mark_moving(unit, move_direction, delta)
 		var current_tile = _tile_at(Vector2(unit["pos"]))
 		if current_tile != previous_tile:
 			_try_paint_crossed_tile(previous_tile, int(unit["team"]), i)
@@ -1521,6 +1537,62 @@ func _update_effects(delta: float) -> void:
 		if float(effect["time"]) > 0.0:
 			kept.append(effect)
 	effects = kept
+
+
+func _trigger_unit_motion(index: int, kind: String, direction: Vector2 = Vector2.ZERO) -> void:
+	if index < 0 or index >= units.size():
+		return
+	var unit = units[index]
+	UnitMotionFeedback.trigger(unit, kind, direction)
+	units[index] = unit
+
+
+func _unit_hit_direction(index: int, source_index: int, _source_team: int) -> Vector2:
+	if index < 0 or index >= units.size():
+		return Vector2.RIGHT
+	var target_pos = Vector2(units[index].get("pos", Vector2.ZERO))
+	if source_index >= 0 and source_index < units.size() and source_index != index:
+		var from_source = target_pos - Vector2(units[source_index].get("pos", target_pos))
+		if from_source.length_squared() > 0.0001:
+			return from_source.normalized()
+	var last_direction = Vector2(units[index].get("motion_move_direction", units[index].get("motion_direction", Vector2.ZERO)))
+	if last_direction.length_squared() > 0.0001:
+		return -last_direction.normalized()
+	var target_team = int(units[index].get("team", NEUTRAL))
+	return _unit_motion_fallback_direction(target_team)
+
+
+func _unit_motion_fallback_direction(team: int) -> Vector2:
+	var faces_down = team == PLAYER
+	if battle_mode == BATTLE_MODE_MULTIPLAYER:
+		faces_down = team >= 1 and team <= 3
+	return Vector2(0.35, 1.0 if faces_down else -1.0).normalized()
+
+
+func _queue_unit_death_snapshot(dead: Dictionary, source_index: int = -1, source_team: int = NEUTRAL) -> void:
+	var card_id = String(dead.get("card", ""))
+	if card_id == "":
+		return
+	var direction = Vector2.ZERO
+	if source_index >= 0 and source_index < units.size():
+		direction = Vector2(dead.get("pos", Vector2.ZERO)) - Vector2(units[source_index].get("pos", Vector2.ZERO))
+	if direction.length_squared() <= 0.0001:
+		var dead_team = int(dead.get("team", NEUTRAL))
+		direction = _unit_motion_fallback_direction(dead_team)
+		if source_team == NEUTRAL:
+			direction.x *= -1.0
+	direction = direction.normalized()
+	effects.append({
+		"kind": UnitMotionFeedback.KIND_DEATH,
+		"unit_id": int(dead.get("id", -1)),
+		"card_id": card_id,
+		"team": int(dead.get("team", NEUTRAL)),
+		"pos": Vector2(dead.get("pos", Vector2.ZERO)),
+		"tile": dead.get("tile", Vector2i(-99, -99)),
+		"direction": direction,
+		"duration": UnitMotionFeedback.DEATH_DURATION,
+		"time": UnitMotionFeedback.DEATH_DURATION,
+	})
 
 
 func _tower_attack(key: Vector2i, team: int) -> void:
@@ -1585,6 +1657,7 @@ func _damage_unit(index: int, damage: float, source_index: int = -1, source_team
 			_damage_unit(guardian_index, damage, source_index, source_team, false)
 			return false
 	var final_damage = _incoming_unit_damage(index, damage)
+	var impact_damage = final_damage
 	var shield = float(unit.get("shield", 0.0))
 	if shield > 0.0 and final_damage > 0.0:
 		var absorbed = minf(shield, final_damage)
@@ -1593,6 +1666,8 @@ func _damage_unit(index: int, damage: float, source_index: int = -1, source_team
 		unit["shield"] = shield
 	unit["hp"] = float(unit["hp"]) - final_damage
 	units[index] = unit
+	if impact_damage > 0.0:
+		_trigger_unit_motion(index, UnitMotionFeedback.KIND_HIT, _unit_hit_direction(index, source_index, source_team))
 	_pulse(Vector2(units[index]["pos"]), COLOR_YELLOW)
 	if trigger_reactive and final_damage > 0.0 and float(units[index]["hp"]) > 0.0:
 		_apply_unit_damage_skill(index, source_index, source_team)
@@ -1870,6 +1945,7 @@ func _unit_attack_target(attacker_index: int, target: Dictionary, distance: floa
 	if float(attacker.get("hp", 0.0)) <= 0.0:
 		return
 	var target_pos = Vector2(target.get("pos", Vector2.ZERO))
+	_trigger_unit_motion(attacker_index, UnitMotionFeedback.KIND_ATTACK, target_pos - Vector2(attacker["pos"]))
 	if distance >= RANGED_PROJECTILE_MIN_DISTANCE:
 		_projectile(Vector2(attacker["pos"]), target_pos, int(attacker["team"]))
 	var killed = false
@@ -1962,6 +2038,7 @@ func _lose_unit_hp(index: int, amount: float, source_index: int = -1, source_tea
 	if float(units[index].get("hp", 0.0)) <= 0.0:
 		return false
 	units[index]["hp"] = float(units[index].get("hp", 0.0)) - amount
+	_trigger_unit_motion(index, UnitMotionFeedback.KIND_HIT, _unit_hit_direction(index, source_index, source_team))
 	_pulse(Vector2(units[index]["pos"]), COLOR_YELLOW)
 	if float(units[index]["hp"]) <= 0.0 and not bool(units[index].get("death_handled", false)):
 		units[index]["death_handled"] = true
@@ -1985,6 +2062,7 @@ func _apply_unit_spawn_skill(index: int) -> void:
 		_add_shield_to_unit(index, _unit_shield_amount(unit))
 	if text.contains("移速提高"):
 		units[index]["haste_timer"] = maxf(float(units[index].get("haste_timer", 0.0)), 3.0)
+		_trigger_unit_motion(index, UnitMotionFeedback.KIND_STAT_GAIN)
 	if _unit_uses_structured_skill(unit) and String(unit.get("skill_trigger", "")) == "on_spawn":
 		match String(unit.get("skill_effect", "")):
 			"shield":
@@ -1995,6 +2073,7 @@ func _apply_unit_spawn_skill(index: int) -> void:
 				_buff_nearby_allies(int(unit["team"]), Vector2(unit["pos"]), "hp", _unit_buff_amount(unit, 1.0))
 			"buff_speed":
 				units[index]["haste_timer"] = maxf(float(units[index].get("haste_timer", 0.0)), 3.0)
+				_trigger_unit_motion(index, UnitMotionFeedback.KIND_STAT_GAIN)
 			"stun":
 				_stun_enemy_units_in_radius(int(unit["team"]), Vector2(unit["pos"]), SKILL_AURA_RADIUS, _unit_stun_seconds(unit))
 
@@ -2059,7 +2138,8 @@ func _apply_unit_damage_skill(index: int, source_index: int, source_team: int) -
 func _handle_unit_death(index: int, source_index: int, source_team: int) -> void:
 	if index < 0 or index >= units.size():
 		return
-	var dead = units[index].duplicate()
+	var dead = units[index].duplicate(true)
+	_queue_unit_death_snapshot(dead, source_index, source_team)
 	var team = int(dead.get("team", NEUTRAL))
 	var text = _unit_skill_text(dead)
 	if text.contains("阵亡时，金币+1"):
@@ -2092,6 +2172,8 @@ func _notify_unit_death(dead: Dictionary, dead_index: int) -> void:
 func _apply_unit_kill_skill(index: int, target: Dictionary) -> void:
 	if index < 0 or index >= units.size() or float(units[index].get("hp", 0.0)) <= 0.0:
 		return
+	var attack_before = float(units[index].get("attack", 0.0))
+	var max_hp_before = float(units[index].get("max_hp", 0.0))
 	var text = _unit_skill_text(units[index])
 	if text.contains("击杀后，50%概率攻击+1") and randf() < 0.5:
 		_add_attack_bonus(index, 1.0)
@@ -2107,6 +2189,8 @@ func _apply_unit_kill_skill(index: int, target: Dictionary) -> void:
 			if target_index >= 0 and target_index < units.size():
 				gained = maxf(1.0, float(units[target_index].get("max_hp", 1.0)))
 		_add_max_hp_bonus(index, gained, true)
+	if index < units.size() and (float(units[index].get("attack", 0.0)) > attack_before or float(units[index].get("max_hp", 0.0)) > max_hp_before):
+		_trigger_unit_motion(index, UnitMotionFeedback.KIND_POWER_UP)
 
 
 func _apply_unit_capture_skill(index: int, key: Vector2i) -> void:
@@ -2220,6 +2304,8 @@ func _add_attack_bonus(index: int, amount: float) -> void:
 		return
 	units[index]["attack_bonus"] = float(units[index].get("attack_bonus", 0.0)) + amount
 	units[index]["attack"] = maxf(0.0, float(units[index].get("attack", 0.0)) + amount)
+	if amount > 0.0:
+		_trigger_unit_motion(index, UnitMotionFeedback.KIND_STAT_GAIN)
 	_pulse(Vector2(units[index]["pos"]), COLOR_ORANGE)
 
 
@@ -2230,6 +2316,8 @@ func _add_max_hp_bonus(index: int, amount: float, heal: bool) -> void:
 	units[index]["max_hp"] = float(units[index].get("max_hp", 1.0)) + amount
 	if heal:
 		units[index]["hp"] = minf(float(units[index].get("max_hp", 1.0)), float(units[index].get("hp", 0.0)) + amount)
+	if amount > 0.0:
+		_trigger_unit_motion(index, UnitMotionFeedback.KIND_STAT_GAIN)
 	_pulse(Vector2(units[index]["pos"]), COLOR_GREEN)
 
 
@@ -2237,13 +2325,17 @@ func _add_shield_to_unit(index: int, amount: float) -> void:
 	if index < 0 or index >= units.size() or amount <= 0.0:
 		return
 	units[index]["shield"] = float(units[index].get("shield", 0.0)) + amount
+	_trigger_unit_motion(index, UnitMotionFeedback.KIND_STAT_GAIN)
 	_pulse(Vector2(units[index]["pos"]), COLOR_BLUE)
 
 
 func _heal_unit(index: int, amount: float) -> void:
 	if index < 0 or index >= units.size() or amount <= 0.0:
 		return
+	var hp_before = float(units[index].get("hp", 0.0))
 	units[index]["hp"] = minf(float(units[index].get("max_hp", 1.0)), float(units[index].get("hp", 0.0)) + amount)
+	if float(units[index].get("hp", 0.0)) > hp_before:
+		_trigger_unit_motion(index, UnitMotionFeedback.KIND_STAT_GAIN)
 	_pulse(Vector2(units[index]["pos"]), COLOR_GREEN)
 
 
@@ -2657,6 +2749,8 @@ func _eliminate_multiplayer_team(defeated_team: int, attacker: int) -> void:
 	multiplayer_attack_cooldowns[defeated_team] = 0.0
 	for i in range(units.size()):
 		if int(units[i].get("team", NEUTRAL)) == defeated_team:
+			if float(units[i].get("hp", 0.0)) > 0.0:
+				_queue_unit_death_snapshot(units[i].duplicate(true), -1, attacker)
 			units[i]["hp"] = 0.0
 			units[i]["death_handled"] = true
 	for key in tiles.keys():
@@ -3640,15 +3734,29 @@ func _draw_shape(points: Array, fill: Color, line: Color, width: float) -> void:
 
 func _draw_unit(unit: Dictionary) -> void:
 	var pos = Vector2(unit["pos"])
-	if battle_mode == BATTLE_MODE_MULTIPLAYER and not _is_world_pos_visible(pos, 36.0):
+	if battle_mode == BATTLE_MODE_MULTIPLAYER and not _is_world_pos_visible(pos, 48.0):
 		return
 	var team = int(unit["team"])
 	draw_circle(pos + Vector2(0, 14), 17, Color(0, 0, 0, 0.18))
-	draw_texture_rect(_card_texture(_card_by_id(String(unit["card"]))), Rect2(pos + Vector2(-22, -30), Vector2(44, 44)), false)
+	_draw_animal_texture_at_foot(
+		_card_texture(_card_by_id(String(unit["card"]))),
+		pos + Vector2(0, 14),
+		Vector2(44, 44),
+		UnitMotionFeedback.pose(unit)
+	)
 	var pct = clampf(float(unit["hp"]) / float(unit["max_hp"]), 0.0, 1.0)
 	_draw_compact_bar(Rect2(pos + Vector2(-18, 20), Vector2(36, 6)), pct, _team_health_color(team))
 	if battle_mode == BATTLE_MODE_MULTIPLAYER:
 		_draw_team_marker(pos + Vector2(23, 23), team)
+
+
+func _draw_animal_texture_at_foot(texture: Texture2D, foot: Vector2, size: Vector2, pose: Dictionary) -> void:
+	var offset = Vector2(pose.get("offset", Vector2.ZERO))
+	var motion_scale = Vector2(pose.get("scale", Vector2.ONE))
+	var rotation = float(pose.get("rotation", 0.0))
+	draw_set_transform(canvas_offset + (foot + offset) * canvas_scale, rotation, motion_scale * canvas_scale)
+	draw_texture_rect(texture, Rect2(Vector2(-size.x * 0.5, -size.y), size), false)
+	draw_set_transform(canvas_offset, 0.0, Vector2(canvas_scale, canvas_scale))
 
 
 func _team_health_color(team: int) -> Color:
@@ -3707,6 +3815,18 @@ func _draw_effect(effect: Dictionary) -> void:
 				return
 		elif effect.has("pos") and not _is_world_pos_visible(Vector2(effect.get("pos", Vector2.ZERO)), 120.0):
 			return
+	if kind == UnitMotionFeedback.KIND_DEATH:
+		var dead_card = _card_by_id(String(effect.get("card_id", "")))
+		if dead_card.is_empty():
+			return
+		var dead_pos = Vector2(effect.get("pos", Vector2.ZERO))
+		_draw_animal_texture_at_foot(
+			_card_texture(dead_card),
+			dead_pos + Vector2(0, 14),
+			Vector2(44, 44),
+			UnitMotionFeedback.death_pose(effect)
+		)
+		return
 	if kind == "card_popup":
 		var duration = maxf(0.01, float(effect.get("duration", UNLOCK_CARD_POPUP_SECONDS)))
 		var progress = clampf(1.0 - float(effect["time"]) / duration, 0.0, 1.0)
@@ -3931,6 +4051,9 @@ func _draw_card_clipped(rect: Rect2, card: Dictionary, selected: bool, clip_rect
 func _draw_card_detail(rect: Rect2) -> void:
 	var card = _card_by_id(selected_card_id)
 	var pop = 0.0
+	var detail_motion_progress = -1.0
+	if detail_upgrade_motion_timer > 0.0:
+		detail_motion_progress = 1.0 - detail_upgrade_motion_timer / DETAIL_UPGRADE_MOTION_SECONDS
 	if detail_pulse_timer > 0.0:
 		var progress = 1.0 - detail_pulse_timer / DETAIL_PULSE_SECONDS
 		pop = sin(progress * PI) * 6.0
@@ -3942,7 +4065,10 @@ func _draw_card_detail(rect: Rect2) -> void:
 	var rarity_fill = _rarity_color(String(card.get("rarity", "common")))
 	var art_rect = Rect2(rect.position + Vector2(20, 12), Vector2(88, 78))
 	var name_rect = Rect2(rect.position + Vector2(14, 92), Vector2(104, 28))
-	draw_texture_rect(_card_texture(card), art_rect, false)
+	if detail_motion_progress >= 0.0:
+		_draw_animal_texture_at_foot(_card_texture(card), Vector2(art_rect.get_center().x, art_rect.end.y), art_rect.size, UnitMotionFeedback.power_up_pose(detail_motion_progress))
+	else:
+		draw_texture_rect(_card_texture(card), art_rect, false)
 	_box(name_rect, rarity_fill.darkened(0.16), Color(1, 1, 1, 0.18), 1)
 	_draw_text_center("Lv.%d  %s" % [_card_level(card_id), String(card.get("name", ""))], name_rect, 15, Color.WHITE)
 	var kind = _card_kind(card)
