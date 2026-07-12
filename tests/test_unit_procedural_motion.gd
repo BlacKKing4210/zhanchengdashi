@@ -16,6 +16,7 @@ func _ready() -> void:
 	_test_death_pose_uses_only_the_animal_snapshot()
 	app = MainApp.new()
 	add_child(app)
+	_test_rarity_visual_scaling_keeps_logic_state_stable()
 	_test_runtime_triggers_keep_world_state_stable()
 	_test_card_upgrade_triggers_power_motion_only_on_success()
 	_test_rejected_image_fx_are_absent()
@@ -47,6 +48,41 @@ func _test_motion_math_keeps_logic_state_stable() -> void:
 	_expect_true(Vector2(attack_pose["offset"]).x > 0.0, "attack pose lunges toward the target")
 	_expect_equal(unit["pos"], pos_before, "attack pose does not mutate unit world position")
 	_expect_equal(unit["tile"], tile_before, "attack pose does not mutate unit tile")
+
+
+func _test_rarity_visual_scaling_keeps_logic_state_stable() -> void:
+	var cases = [
+		{"card_id": "mouse", "rarity": "common", "scale": 1.0},
+		{"card_id": "cat", "rarity": "rare", "scale": 1.2},
+		{"card_id": "fox", "rarity": "epic", "scale": 1.5},
+		{"card_id": "bear", "rarity": "legendary", "scale": 1.8},
+	]
+	var unit = {
+		"pos": Vector2(184.0, 362.0),
+		"tile": Vector2i(4, 7),
+	}
+	var pose = {
+		"offset": Vector2(3.0, -2.0),
+		"scale": Vector2(1.1, 0.9),
+		"rotation": 0.2,
+	}
+	var unit_before = unit.duplicate(true)
+	var pose_before = pose.duplicate(true)
+	for test_case in cases:
+		var card_id = String(test_case["card_id"])
+		var expected_rarity = String(test_case["rarity"])
+		var expected_visual_scale = float(test_case["scale"])
+		var card: Dictionary = app.call("_card_by_id", card_id)
+		_expect_false(card.is_empty(), "%s card is available for rarity scale test" % card_id)
+		_expect_equal(String(card.get("rarity", "")), expected_rarity, "%s uses the expected rarity" % card_id)
+		var visual_scale = float(app.call("_animal_rarity_visual_scale", card))
+		_expect_close(visual_scale, expected_visual_scale, "%s uses the configured visual scale" % expected_rarity)
+		var combined_scale = Vector2(app.call("_animal_texture_draw_scale", pose, visual_scale))
+		var expected_combined = Vector2(pose["scale"]) * expected_visual_scale
+		_expect_close(combined_scale.x, expected_combined.x, "%s multiplies procedural x scale" % expected_rarity)
+		_expect_close(combined_scale.y, expected_combined.y, "%s multiplies procedural y scale" % expected_rarity)
+	_expect_equal(pose, pose_before, "rarity visual scaling does not mutate the procedural pose")
+	_expect_equal(unit, unit_before, "rarity visual scaling does not mutate unit world state")
 
 
 func _test_priority_and_pending_motion() -> void:

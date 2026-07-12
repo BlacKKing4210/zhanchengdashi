@@ -35,6 +35,12 @@ const TOWER_RANGE = 210.0
 const UNIT_MOVE_SPEED_MULT = 0.5
 const UNIT_ATTACK_SPEED_MULT = 0.5
 const UNIT_BASE_ATTACK_COOLDOWN = 0.85
+const ANIMAL_RARITY_VISUAL_SCALES = {
+	"common": 1.0,
+	"rare": 1.2,
+	"epic": 1.5,
+	"legendary": 1.8,
+}
 const CARD_SPEED_FAST_THRESHOLD = 65.0
 const CARD_SPEED_SUPER_FAST_THRESHOLD = 75.0
 const SKILL_AURA_RADIUS = HEX_SIZE * 3.2
@@ -3854,15 +3860,18 @@ func _draw_shape(points: Array, fill: Color, line: Color, width: float) -> void:
 
 func _draw_unit(unit: Dictionary) -> void:
 	var pos = Vector2(unit["pos"])
-	if battle_mode == BATTLE_MODE_MULTIPLAYER and not _is_world_pos_visible(pos, 48.0):
+	var card = _unit_card(unit)
+	var visual_scale = _animal_rarity_visual_scale(card)
+	if battle_mode == BATTLE_MODE_MULTIPLAYER and not _is_world_pos_visible(pos, 54.0 * visual_scale):
 		return
 	var team = int(unit["team"])
-	draw_circle(pos + Vector2(0, 14), 17, Color(0, 0, 0, 0.18))
+	draw_circle(pos + Vector2(0, 14), 17.0 * visual_scale, Color(0, 0, 0, 0.18))
 	_draw_animal_texture_at_foot(
-		_card_texture(_card_by_id(String(unit["card"]))),
+		_card_texture(card),
 		pos + Vector2(0, 14),
 		Vector2(44, 44),
-		UnitMotionFeedback.pose(unit)
+		UnitMotionFeedback.pose(unit),
+		visual_scale
 	)
 	var pct = clampf(float(unit["hp"]) / float(unit["max_hp"]), 0.0, 1.0)
 	_draw_compact_bar(Rect2(pos + Vector2(-18, 20), Vector2(36, 6)), pct, _team_health_color(team))
@@ -3870,11 +3879,20 @@ func _draw_unit(unit: Dictionary) -> void:
 		_draw_team_marker(pos + Vector2(23, 23), team)
 
 
-func _draw_animal_texture_at_foot(texture: Texture2D, foot: Vector2, size: Vector2, pose: Dictionary) -> void:
+func _animal_rarity_visual_scale(card: Dictionary) -> float:
+	var rarity = String(card.get("rarity", "common")).to_lower()
+	return float(ANIMAL_RARITY_VISUAL_SCALES.get(rarity, 1.0))
+
+
+func _animal_texture_draw_scale(pose: Dictionary, visual_scale: float) -> Vector2:
+	return Vector2(pose.get("scale", Vector2.ONE)) * visual_scale
+
+
+func _draw_animal_texture_at_foot(texture: Texture2D, foot: Vector2, size: Vector2, pose: Dictionary, visual_scale: float = 1.0) -> void:
 	var offset = Vector2(pose.get("offset", Vector2.ZERO))
-	var motion_scale = Vector2(pose.get("scale", Vector2.ONE))
+	var draw_scale = _animal_texture_draw_scale(pose, visual_scale)
 	var rotation = float(pose.get("rotation", 0.0))
-	draw_set_transform(canvas_offset + (foot + offset) * canvas_scale, rotation, motion_scale * canvas_scale)
+	draw_set_transform(canvas_offset + (foot + offset) * canvas_scale, rotation, draw_scale * canvas_scale)
 	draw_texture_rect(texture, Rect2(Vector2(-size.x * 0.5, -size.y), size), false)
 	draw_set_transform(canvas_offset, 0.0, Vector2(canvas_scale, canvas_scale))
 
@@ -3944,7 +3962,8 @@ func _draw_effect(effect: Dictionary) -> void:
 			_card_texture(dead_card),
 			dead_pos + Vector2(0, 14),
 			Vector2(44, 44),
-			UnitMotionFeedback.death_pose(effect)
+			UnitMotionFeedback.death_pose(effect),
+			_animal_rarity_visual_scale(dead_card)
 		)
 		return
 	if kind == "card_popup":
