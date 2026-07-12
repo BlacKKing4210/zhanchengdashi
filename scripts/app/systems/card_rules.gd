@@ -157,11 +157,7 @@ static func rarity_search_order(target_rarity: String, search_higher: bool = fal
 
 
 static func defense_rarity_search_order(target_rarity: String) -> Array:
-	var result = rarity_search_order(target_rarity, true)
-	for rarity in rarity_search_order(target_rarity):
-		if not result.has(rarity):
-			result.append(rarity)
-	return result
+	return rarity_search_order(target_rarity)
 
 
 static func defense_card_id_for_target_rarity(defense_cards: Array, target_rarity: String, site_seed: int) -> String:
@@ -180,13 +176,7 @@ static func defense_card_id_for_target_rarity(defense_cards: Array, target_rarit
 	return ""
 
 
-static func resolve_defense_card_id(candidate_card_id: String, defense_cards: Array, target_rarity: String, site_seed: int) -> String:
-	if candidate_card_id != "":
-		for card in defense_cards:
-			if typeof(card) != TYPE_DICTIONARY:
-				continue
-			if String(card.get("id", "")) == candidate_card_id and String(card.get("rarity", "common")) == target_rarity:
-				return candidate_card_id
+static func resolve_defense_card_id(_candidate_card_id: String, defense_cards: Array, target_rarity: String, site_seed: int) -> String:
 	return defense_card_id_for_target_rarity(defense_cards, target_rarity, site_seed)
 
 

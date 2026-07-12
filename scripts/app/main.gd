@@ -519,15 +519,20 @@ func _init_deck() -> void:
 func _init_enemy_deck() -> void:
 	enemy_deck.clear()
 	enemy_card_levels.clear()
+	for required_id in _mandatory_card_ids():
+		if not _card_by_id(String(required_id)).is_empty() and not enemy_deck.has(required_id):
+			enemy_deck.append(String(required_id))
 	var common_cards = []
 	for card in cards:
 		if _card_kind(card) == CARD_KIND_ANIMAL and String(card.get("rarity", "common")) == "common":
 			common_cards.append(String(card.get("id", "")))
-	for i in range(DECK_SIZE):
+	var animal_index = 0
+	while enemy_deck.size() < DECK_SIZE:
 		if common_cards.is_empty():
 			enemy_deck.append("rabbit")
 		else:
-			enemy_deck.append(String(common_cards[i % common_cards.size()]))
+			enemy_deck.append(String(common_cards[animal_index % common_cards.size()]))
+		animal_index += 1
 	for card_id in enemy_deck:
 		enemy_card_levels[String(card_id)] = 1
 
@@ -768,8 +773,16 @@ func _deck_has_mine(candidate_deck: Array) -> bool:
 	return false
 
 
+func _deck_has_common_defense(candidate_deck: Array) -> bool:
+	for card_id in candidate_deck:
+		var card = _card_by_id(String(card_id))
+		if not card.is_empty() and _card_kind(card) == CARD_KIND_DEFENSE and String(card.get("rarity", "common")) == "common":
+			return true
+	return false
+
+
 func _deck_meets_required_cards(candidate_deck: Array) -> bool:
-	return _deck_has_mine(candidate_deck) and _deck_defense_count(candidate_deck) >= 1
+	return _deck_has_mine(candidate_deck) and _deck_has_common_defense(candidate_deck)
 
 
 func _is_collection_card_before(a, b) -> bool:
@@ -1225,7 +1238,7 @@ func _roll_card_from_config_pool(pool_id: String, team: int, required_kind: Stri
 	var roster = _team_deck(team)
 	var card_id = ""
 	if required_kind == CARD_KIND_DEFENSE:
-		card_id = _defense_card_for_target_rarity(target_rarity, roll_seed, entry_card_id)
+		card_id = _defense_card_for_target_rarity(target_rarity, roll_seed, team)
 	else:
 		if _can_use_config_card(entry_card_id, roster, required_kind):
 			card_id = entry_card_id
@@ -2491,16 +2504,31 @@ func _site_card_for_team(key: Vector2i, tile: Dictionary, team: int, fallback_ca
 	return _deck_card_for_target_rarity(roster, target_rarity, site_seed, CARD_KIND_ANIMAL)
 
 
-func _defense_card_for_team(key: Vector2i, tile: Dictionary, _team: int, candidate_card_id: String = "") -> String:
+func _defense_card_for_team(key: Vector2i, tile: Dictionary, team: int, _candidate_card_id: String = "") -> String:
 	var site_seed = int(tile.get("site_roll_seed", BoardRules.site_seed_for_key(key)))
 	var target_rarity = String(tile.get("site_target_rarity", ""))
 	if target_rarity == "":
 		target_rarity = "common"
-	return _defense_card_for_target_rarity(target_rarity, site_seed, candidate_card_id)
+	return _defense_card_for_target_rarity(target_rarity, site_seed, team)
 
 
-func _defense_card_for_target_rarity(target_rarity: String, site_seed: int, candidate_card_id: String = "") -> String:
-	return CardRules.resolve_defense_card_id(candidate_card_id, _all_cards_for_kind(CARD_KIND_DEFENSE), target_rarity, site_seed)
+func _defense_card_for_target_rarity(target_rarity: String, site_seed: int, team: int) -> String:
+	return CardRules.defense_card_id_for_target_rarity(_defense_cards_in_team_deck(team), target_rarity, site_seed)
+
+
+func _defense_cards_in_team_deck(team: int) -> Array:
+	var result = []
+	var added = {}
+	for card_id in _team_deck(team):
+		var id = String(card_id)
+		if id == "" or added.has(id):
+			continue
+		var card = _card_by_id(id)
+		if card.is_empty() or _card_kind(card) != CARD_KIND_DEFENSE:
+			continue
+		result.append(card)
+		added[id] = true
+	return result
 
 
 func _enemy_card_for_cost(cost: int, site_seed: int) -> String:
@@ -2939,7 +2967,7 @@ func _equip_pending_card_to_slot(slot_index: int) -> void:
 		if not _deck_has_mine(candidate_deck):
 			_toast("编组必须保留金矿卡")
 		else:
-			_toast("编组至少需要1张防御塔卡")
+			_toast("绿色防御塔必须在卡组中，否则会变成空地")
 		return
 	deck[slot_index] = card_id
 	selected_slot = slot_index
@@ -2982,7 +3010,7 @@ func _ensure_deck_valid() -> void:
 	for required_id in _mandatory_card_ids():
 		if _card_total_count(required_id) > 0 and not deck.has(required_id):
 			_force_card_into_deck(required_id)
-	if _deck_defense_count(deck) <= 0 and _card_total_count(COMMON_DEFENSE_CARD_ID) > 0:
+	if not _deck_has_common_defense(deck) and _card_total_count(COMMON_DEFENSE_CARD_ID) > 0:
 		_force_card_into_deck(COMMON_DEFENSE_CARD_ID)
 
 
