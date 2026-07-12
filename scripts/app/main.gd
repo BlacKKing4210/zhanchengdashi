@@ -242,10 +242,18 @@ func _unhandled_input(event: InputEvent) -> void:
 			if _collection_frame_rect().has_point(drag_pos):
 				_scroll_deck(-event.relative.y / maxf(canvas_scale, 0.001))
 	elif event is InputEventKey and event.pressed and not event.echo:
-		if event.keycode == KEY_R:
-			_reset_battle()
+		if event.keycode == KEY_R and screen == SCREEN_BATTLE:
+			_restart_battle()
 		elif event.keycode == KEY_ESCAPE and screen == SCREEN_BATTLE:
 			pause_open = not pause_open
+			GameAudio.set_paused_mix(pause_open)
+
+
+func _restart_battle() -> void:
+	if screen != SCREEN_BATTLE:
+		return
+	_reset_battle()
+	GameAudio.play_battle_music()
 
 
 func _handle_multiplayer_pointer_input(event: InputEvent) -> bool:
@@ -327,22 +335,26 @@ func _handle_tap(screen_pos: Vector2) -> void:
 			return
 
 	if game_over:
+		GameAudio.play_sfx("ui_confirm")
 		_return_to_lobby()
 		return
 
 	if pause_open:
 		if _pause_continue_rect().has_point(pos):
 			pause_open = false
+			GameAudio.set_paused_mix(false)
 		elif _pause_exit_rect().has_point(pos):
+			GameAudio.set_paused_mix(false)
 			if battle_mode == BATTLE_MODE_MULTIPLAYER:
-				_finish_multiplayer_battle(maxi(1, _multiplayer_alive_count()))
+				_finish_multiplayer_battle(maxi(1, _multiplayer_alive_count()), false)
 			else:
-				_finish_battle("失败")
+				_finish_battle("失败", false)
 			_return_to_lobby()
 		return
 
 	if _pause_button_rect().has_point(pos):
 		pause_open = true
+		GameAudio.set_paused_mix(true)
 		return
 	if battle_mode == BATTLE_MODE_MULTIPLAYER and not _battle_view_rect().has_point(pos):
 		return
@@ -608,6 +620,7 @@ func _start_match() -> void:
 	last_rank_result = {}
 	screen = SCREEN_BATTLE
 	_reset_battle()
+	GameAudio.play_battle_music()
 	_toast("匹配到" + String(active_match_mirror.get("rank_display", String(player_rank_state["display"]))) + "对手")
 
 
@@ -621,6 +634,7 @@ func _start_multiplayer_match() -> void:
 	last_rank_result = {}
 	screen = SCREEN_BATTLE
 	_reset_battle()
+	GameAudio.play_battle_music()
 	_toast("进入6人自由混战")
 
 
@@ -628,6 +642,7 @@ func _return_to_lobby() -> void:
 	screen = SCREEN_LOBBY
 	battle_mode = BATTLE_MODE_CLASSIC
 	_reset_battle()
+	GameAudio.play_menu_music()
 
 
 func _select_match_mirror(rank_key: String) -> Dictionary:
@@ -947,19 +962,23 @@ func _attack_range_label(value: float) -> String:
 func _try_upgrade_selected_card() -> void:
 	var card_id = selected_card_id
 	if card_id == "" or _card_total_count(card_id) <= 0:
+		GameAudio.play_sfx("ui_error")
 		_toast("未拥有该卡牌")
 		return
 	var cost = _next_upgrade_cost(card_id)
 	if cost < 0:
+		GameAudio.play_sfx("ui_error")
 		_toast("已满级")
 		return
 	if _card_spare_count(card_id) < cost:
+		GameAudio.play_sfx("ui_error")
 		_toast("碎片不足：需要%d，当前%d" % [cost, _card_spare_count(card_id)])
 		return
 	card_counts[card_id] = _card_total_count(card_id) - cost
 	card_levels[card_id] = _card_level(card_id) + 1
 	detail_pulse_timer = DETAIL_PULSE_SECONDS
 	detail_upgrade_motion_timer = DETAIL_UPGRADE_MOTION_SECONDS
+	GameAudio.play_sfx("card_upgrade")
 	_toast("升级成功 Lv.%d" % _card_level(card_id))
 
 
@@ -1515,6 +1534,7 @@ func _try_paint_crossed_tile(key: Vector2i, team: int, unit_index: int = -1) -> 
 		return false
 	tiles[key] = BoardRules.with_soft_occupation(tile, team)
 	_pulse(_hex_center(key), _team_color(team))
+	_play_world_sfx("territory_capture", _hex_center(key), team, -5.0, 0.92)
 	if unit_index >= 0:
 		_apply_unit_capture_skill(unit_index, key)
 	return true
@@ -1545,6 +1565,20 @@ func _trigger_unit_motion(index: int, kind: String, direction: Vector2 = Vector2
 	var unit = units[index]
 	UnitMotionFeedback.trigger(unit, kind, direction)
 	units[index] = unit
+
+
+func _play_world_sfx(event_id: String, world_pos: Vector2, team: int = NEUTRAL, volume_offset_db: float = 0.0, pitch_override: float = -1.0) -> bool:
+	if not _is_world_pos_visible(world_pos, 140.0):
+		return false
+	var adjusted_volume = volume_offset_db
+	var player_side = team == PLAYER or (battle_mode == BATTLE_MODE_MULTIPLAYER and team >= 1 and team <= 3)
+	if team != NEUTRAL and not player_side:
+		if event_id in ["unit_spawn", "unit_attack", "ranged_attack", "tower_attack", "stat_gain", "power_up"]:
+			return false
+		adjusted_volume -= 3.0
+	elif team != NEUTRAL and team != PLAYER:
+		adjusted_volume -= 2.0
+	return GameAudio.play_sfx(event_id, adjusted_volume, pitch_override)
 
 
 func _unit_hit_direction(index: int, source_index: int, _source_team: int) -> Vector2:
@@ -1637,9 +1671,11 @@ func _tower_attack(key: Vector2i, team: int) -> void:
 				best_key = target_key
 				best_kind = "building"
 	if best_kind == "unit" and best_index >= 0:
+		_play_world_sfx("tower_attack", center, team, -3.0)
 		_projectile(center, Vector2(units[best_index]["pos"]), team)
 		_damage_unit(best_index, damage, -1, team if battle_mode == BATTLE_MODE_MULTIPLAYER else NEUTRAL)
 	elif best_kind == "building" and best_key.x != -99:
+		_play_world_sfx("tower_attack", center, team, -3.0)
 		_projectile(center, _hex_center(best_key), team)
 		_damage_tile(best_key, team, damage)
 
@@ -1658,9 +1694,11 @@ func _damage_unit(index: int, damage: float, source_index: int = -1, source_team
 			return false
 	var final_damage = _incoming_unit_damage(index, damage)
 	var impact_damage = final_damage
+	var absorbed_damage = 0.0
 	var shield = float(unit.get("shield", 0.0))
 	if shield > 0.0 and final_damage > 0.0:
 		var absorbed = minf(shield, final_damage)
+		absorbed_damage = absorbed
 		shield -= absorbed
 		final_damage -= absorbed
 		unit["shield"] = shield
@@ -1668,6 +1706,7 @@ func _damage_unit(index: int, damage: float, source_index: int = -1, source_team
 	units[index] = unit
 	if impact_damage > 0.0:
 		_trigger_unit_motion(index, UnitMotionFeedback.KIND_HIT, _unit_hit_direction(index, source_index, source_team))
+		_play_world_sfx("shield_hit" if absorbed_damage > 0.0 else "unit_hit", Vector2(units[index]["pos"]), int(units[index].get("team", NEUTRAL)), -5.0)
 	_pulse(Vector2(units[index]["pos"]), COLOR_YELLOW)
 	if trigger_reactive and final_damage > 0.0 and float(units[index]["hp"]) > 0.0:
 		_apply_unit_damage_skill(index, source_index, source_team)
@@ -1688,6 +1727,7 @@ func _damage_tile(key: Vector2i, attacker: int, damage: float) -> bool:
 		return false
 	tile["hp"] = float(tile["hp"]) - damage
 	if float(tile["hp"]) <= 0.0:
+		_play_world_sfx("building_break", _hex_center(key), attacker, -2.0)
 		if String(tile["building"]) == "base":
 			if battle_mode == BATTLE_MODE_MULTIPLAYER:
 				var defeated_team = int(tile.get("team", NEUTRAL))
@@ -1750,6 +1790,7 @@ func _spawn_unit(team: int, key: Vector2i, card_id: String, is_extra: bool = fal
 	next_unit_id += 1
 	_apply_unit_spawn_skill(spawned_index)
 	_pulse(base_pos, Color(0.75, 0.95, 1.0))
+	_play_world_sfx("unit_spawn", spawn_pos, team, -7.0 if is_extra else 0.0)
 	if not is_extra:
 		for n in range(_card_extra_spawn_count(card)):
 			_spawn_unit(team, key, String(card.get("id", card_id)), true, n + 1)
@@ -1947,7 +1988,10 @@ func _unit_attack_target(attacker_index: int, target: Dictionary, distance: floa
 	var target_pos = Vector2(target.get("pos", Vector2.ZERO))
 	_trigger_unit_motion(attacker_index, UnitMotionFeedback.KIND_ATTACK, target_pos - Vector2(attacker["pos"]))
 	if distance >= RANGED_PROJECTILE_MIN_DISTANCE:
+		_play_world_sfx("ranged_attack", Vector2(attacker["pos"]), int(attacker["team"]), -4.0)
 		_projectile(Vector2(attacker["pos"]), target_pos, int(attacker["team"]))
+	else:
+		_play_world_sfx("unit_attack", Vector2(attacker["pos"]), int(attacker["team"]), -3.0)
 	var killed = false
 	var damage = _unit_attack_damage_against_target(attacker_index, target)
 	if String(target["kind"]) == "unit":
@@ -2140,6 +2184,7 @@ func _handle_unit_death(index: int, source_index: int, source_team: int) -> void
 		return
 	var dead = units[index].duplicate(true)
 	_queue_unit_death_snapshot(dead, source_index, source_team)
+	_play_world_sfx("unit_death", Vector2(dead.get("pos", Vector2.ZERO)), int(dead.get("team", NEUTRAL)), -3.0)
 	var team = int(dead.get("team", NEUTRAL))
 	var text = _unit_skill_text(dead)
 	if text.contains("阵亡时，金币+1"):
@@ -2176,21 +2221,22 @@ func _apply_unit_kill_skill(index: int, target: Dictionary) -> void:
 	var max_hp_before = float(units[index].get("max_hp", 0.0))
 	var text = _unit_skill_text(units[index])
 	if text.contains("击杀后，50%概率攻击+1") and randf() < 0.5:
-		_add_attack_bonus(index, 1.0)
+		_add_attack_bonus(index, 1.0, false)
 	if text.contains("击杀后，攻击+1/生命+1"):
-		_add_attack_bonus(index, 1.0)
-		_add_max_hp_bonus(index, 1.0, true)
+		_add_attack_bonus(index, 1.0, false)
+		_add_max_hp_bonus(index, 1.0, true, false)
 	if text.contains("击杀时，提高3生命"):
-		_add_max_hp_bonus(index, 3.0, true)
+		_add_max_hp_bonus(index, 3.0, true, false)
 	if text.contains("击杀后，提高最大生命值"):
 		var gained = 1.0
 		if String(target.get("kind", "")) == "unit":
 			var target_index = int(target.get("index", -1))
 			if target_index >= 0 and target_index < units.size():
 				gained = maxf(1.0, float(units[target_index].get("max_hp", 1.0)))
-		_add_max_hp_bonus(index, gained, true)
+		_add_max_hp_bonus(index, gained, true, false)
 	if index < units.size() and (float(units[index].get("attack", 0.0)) > attack_before or float(units[index].get("max_hp", 0.0)) > max_hp_before):
 		_trigger_unit_motion(index, UnitMotionFeedback.KIND_POWER_UP)
+		_play_world_sfx("power_up", Vector2(units[index]["pos"]), int(units[index].get("team", NEUTRAL)), -3.0)
 
 
 func _apply_unit_capture_skill(index: int, key: Vector2i) -> void:
@@ -2299,17 +2345,19 @@ func _spend_team_gold(team: int, amount: int) -> bool:
 	return true
 
 
-func _add_attack_bonus(index: int, amount: float) -> void:
+func _add_attack_bonus(index: int, amount: float, play_audio: bool = true) -> void:
 	if index < 0 or index >= units.size() or amount == 0.0:
 		return
 	units[index]["attack_bonus"] = float(units[index].get("attack_bonus", 0.0)) + amount
 	units[index]["attack"] = maxf(0.0, float(units[index].get("attack", 0.0)) + amount)
 	if amount > 0.0:
 		_trigger_unit_motion(index, UnitMotionFeedback.KIND_STAT_GAIN)
+		if play_audio:
+			_play_world_sfx("stat_gain", Vector2(units[index]["pos"]), int(units[index].get("team", NEUTRAL)), -6.0)
 	_pulse(Vector2(units[index]["pos"]), COLOR_ORANGE)
 
 
-func _add_max_hp_bonus(index: int, amount: float, heal: bool) -> void:
+func _add_max_hp_bonus(index: int, amount: float, heal: bool, play_audio: bool = true) -> void:
 	if index < 0 or index >= units.size() or amount == 0.0:
 		return
 	units[index]["max_hp_bonus"] = float(units[index].get("max_hp_bonus", 0.0)) + amount
@@ -2318,6 +2366,8 @@ func _add_max_hp_bonus(index: int, amount: float, heal: bool) -> void:
 		units[index]["hp"] = minf(float(units[index].get("max_hp", 1.0)), float(units[index].get("hp", 0.0)) + amount)
 	if amount > 0.0:
 		_trigger_unit_motion(index, UnitMotionFeedback.KIND_STAT_GAIN)
+		if play_audio:
+			_play_world_sfx("stat_gain", Vector2(units[index]["pos"]), int(units[index].get("team", NEUTRAL)), -6.0)
 	_pulse(Vector2(units[index]["pos"]), COLOR_GREEN)
 
 
@@ -2326,6 +2376,7 @@ func _add_shield_to_unit(index: int, amount: float) -> void:
 		return
 	units[index]["shield"] = float(units[index].get("shield", 0.0)) + amount
 	_trigger_unit_motion(index, UnitMotionFeedback.KIND_STAT_GAIN)
+	_play_world_sfx("stat_gain", Vector2(units[index]["pos"]), int(units[index].get("team", NEUTRAL)), -6.0)
 	_pulse(Vector2(units[index]["pos"]), COLOR_BLUE)
 
 
@@ -2336,6 +2387,7 @@ func _heal_unit(index: int, amount: float) -> void:
 	units[index]["hp"] = minf(float(units[index].get("max_hp", 1.0)), float(units[index].get("hp", 0.0)) + amount)
 	if float(units[index].get("hp", 0.0)) > hp_before:
 		_trigger_unit_motion(index, UnitMotionFeedback.KIND_STAT_GAIN)
+		_play_world_sfx("stat_gain", Vector2(units[index]["pos"]), int(units[index].get("team", NEUTRAL)), -6.0)
 	_pulse(Vector2(units[index]["pos"]), COLOR_GREEN)
 
 
@@ -2558,11 +2610,13 @@ func _try_unlock(key: Vector2i) -> bool:
 	var tile = tiles[key]
 	var cost = int(tile["site_cost"])
 	if gold < cost:
+		GameAudio.play_sfx("ui_error")
 		_toast("金币不足，还差%d" % [cost - gold])
 		return true
 	gold -= cost
 	var result_label = _apply_unlock(key, PLAYER, String(tile.get("site_card", "")))
 	_show_unlock_card_popup(key)
+	GameAudio.play_sfx("unlock")
 	_toast("已解锁 " + result_label)
 	return true
 
@@ -2713,12 +2767,14 @@ func _battle_reward_tickets(text: String) -> int:
 	return BATTLE_WIN_REWARD_TICKETS if text == "胜利" else BATTLE_LOSS_REWARD_TICKETS
 
 
-func _finish_battle(text: String) -> void:
+func _finish_battle(text: String, play_audio: bool = true) -> void:
 	if game_over:
 		return
 	result_text = text
 	game_over = true
 	pause_open = false
+	if play_audio:
+		GameAudio.play_result("victory" if text == "胜利" else "defeat")
 	_apply_rank_result(text == "胜利")
 	if not battle_reward_given:
 		battle_reward_given = true
@@ -2777,7 +2833,7 @@ func _eliminate_multiplayer_team(defeated_team: int, attacker: int) -> void:
 		_finish_multiplayer_battle(1)
 
 
-func _finish_multiplayer_battle(placement: int) -> void:
+func _finish_multiplayer_battle(placement: int, play_audio: bool = true) -> void:
 	if game_over:
 		return
 	multiplayer_placement = clampi(placement, 1, MultiplayerRules.TEAM_IDS.size())
@@ -2785,6 +2841,8 @@ func _finish_multiplayer_battle(placement: int) -> void:
 	result_text = "第%d名" % multiplayer_placement
 	game_over = true
 	pause_open = false
+	if play_audio:
+		GameAudio.play_result("victory" if multiplayer_placement == 1 else "defeat")
 	var reward = MultiplayerRules.placement_rewards(multiplayer_placement)
 	last_multiplayer_star_delta = int(reward.get("star_delta", -1))
 	last_battle_reward_tickets = int(reward.get("gacha_tickets", 1))
@@ -2945,6 +3003,7 @@ func _handle_gacha_tap(pos: Vector2) -> void:
 
 func _draw_gacha_rewards(count: int) -> void:
 	if gacha_tickets < count:
+		GameAudio.play_sfx("ui_error")
 		_toast("抽卡券不足")
 		return
 	gacha_tickets -= count
@@ -2959,6 +3018,7 @@ func _draw_gacha_rewards(count: int) -> void:
 		selected_card_id = String(card["id"])
 	if gacha_pending_cards.is_empty():
 		return
+	GameAudio.play_sfx("gacha_open")
 	gacha_fx_timer = GACHA_FX_SECONDS
 	gacha_reveal_timer = 0.0
 
@@ -2994,6 +3054,7 @@ func _reveal_next_gacha_card() -> void:
 		return
 	var card_id = String(gacha_pending_cards.pop_front())
 	last_gacha_cards.append(card_id)
+	GameAudio.play_sfx("gacha_reveal")
 	gacha_card_flip_timers.append(GACHA_CARD_FLIP_SECONDS)
 	selected_card_id = card_id
 	if gacha_pending_cards.is_empty():
@@ -3034,6 +3095,7 @@ func _show_card_detail(card_id: String) -> void:
 	selected_card_id = card_id
 	pending_equip_card_id = ""
 	detail_pulse_timer = DETAIL_PULSE_SECONDS
+	GameAudio.play_sfx("card_select")
 
 
 func _start_equip_selected_card() -> void:
@@ -3041,13 +3103,16 @@ func _start_equip_selected_card() -> void:
 	if card_id == "":
 		return
 	if _card_total_count(card_id) <= 0:
+		GameAudio.play_sfx("ui_error")
 		_toast("尚未拥有该卡牌")
 		return
 	if _is_card_in_deck(card_id):
+		GameAudio.play_sfx("ui_error")
 		_toast("已在出战编组")
 		return
 	pending_equip_card_id = card_id
 	detail_pulse_timer = DETAIL_PULSE_SECONDS
+	GameAudio.play_sfx("ui_confirm")
 	_toast("选择要替换的出战动物")
 
 
@@ -3058,6 +3123,7 @@ func _equip_pending_card_to_slot(slot_index: int) -> void:
 	var candidate_deck = deck.duplicate()
 	candidate_deck[slot_index] = card_id
 	if not _deck_meets_required_cards(candidate_deck):
+		GameAudio.play_sfx("ui_error")
 		if not _deck_has_mine(candidate_deck):
 			_toast("编组必须保留金矿卡")
 		else:
@@ -3068,6 +3134,7 @@ func _equip_pending_card_to_slot(slot_index: int) -> void:
 	selected_card_id = card_id
 	pending_equip_card_id = ""
 	detail_pulse_timer = DETAIL_PULSE_SECONDS
+	GameAudio.play_sfx("ui_confirm")
 	_toast("已加入出战编组")
 
 
@@ -3077,6 +3144,7 @@ func _handle_nav(pos: Vector2) -> bool:
 			continue
 		var item = NAV_ITEMS[i]
 		if bool(item.get("locked", false)):
+			GameAudio.play_sfx("ui_error")
 			_toast(String(item["label"]) + "暂未开放")
 			return true
 		var id = String(item["id"])
@@ -3088,6 +3156,7 @@ func _handle_nav(pos: Vector2) -> bool:
 		elif id == SCREEN_LOBBY:
 			screen = SCREEN_LOBBY
 			pending_equip_card_id = ""
+		GameAudio.play_sfx("ui_click")
 		return true
 	return false
 
