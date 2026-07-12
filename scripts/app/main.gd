@@ -1730,10 +1730,17 @@ func _damage_tile(key: Vector2i, attacker: int, damage: float) -> bool:
 		_play_world_sfx("building_break", _hex_center(key), attacker, -2.0)
 		if String(tile["building"]) == "base":
 			if battle_mode == BATTLE_MODE_MULTIPLAYER:
-				var defeated_team = int(tile.get("team", NEUTRAL))
-				tiles[key] = BoardRules.as_destroyed_building(tile, attacker)
-				_eliminate_multiplayer_team(defeated_team, attacker)
+				var original_team = _original_multiplayer_base_team(key)
+				tiles[key] = BoardRules.as_captured_base(tile, attacker)
+				_pulse(_hex_center(key), _team_color(attacker))
+				if original_team != NEUTRAL and _is_multiplayer_team_alive(original_team):
+					_eliminate_multiplayer_team(original_team, attacker, key)
 			else:
+				var defeated_team = int(tile.get("team", NEUTRAL))
+				tiles[key] = BoardRules.as_captured_base(tile, attacker)
+				_clear_eliminated_team_units(defeated_team, attacker)
+				_transfer_eliminated_territory(defeated_team, attacker, key)
+				_pulse(_hex_center(key), _team_color(attacker))
 				_finish_battle("胜利" if attacker == PLAYER else "失败")
 			return true
 		tiles[key] = BoardRules.as_destroyed_building(tile, attacker)
@@ -2787,6 +2794,13 @@ func _is_multiplayer_team_alive(team: int) -> bool:
 	return bool(multiplayer_alive.get(team, false))
 
 
+func _original_multiplayer_base_team(key: Vector2i) -> int:
+	for team in MultiplayerRules.TEAM_IDS:
+		if MultiplayerRules.base_key(team) == key:
+			return int(team)
+	return NEUTRAL
+
+
 func _multiplayer_alive_count() -> int:
 	var count = 0
 	for team in MultiplayerRules.TEAM_IDS:
@@ -2795,42 +2809,64 @@ func _multiplayer_alive_count() -> int:
 	return count
 
 
-func _eliminate_multiplayer_team(defeated_team: int, attacker: int) -> void:
+func _eliminate_multiplayer_team(defeated_team: int, attacker: int, captured_base_key: Vector2i = MultiplayerRules.INVALID_KEY) -> void:
 	if battle_mode != BATTLE_MODE_MULTIPLAYER or defeated_team == NEUTRAL or not _is_multiplayer_team_alive(defeated_team):
 		return
+	if captured_base_key == MultiplayerRules.INVALID_KEY:
+		captured_base_key = MultiplayerRules.base_key(defeated_team)
 	var placement = _multiplayer_alive_count()
 	multiplayer_alive[defeated_team] = false
 	multiplayer_placements[defeated_team] = placement
 	multiplayer_attack_orders.erase(defeated_team)
 	multiplayer_attack_cooldowns[defeated_team] = 0.0
-	for i in range(units.size()):
-		if int(units[i].get("team", NEUTRAL)) == defeated_team:
-			if float(units[i].get("hp", 0.0)) > 0.0:
-				_queue_unit_death_snapshot(units[i].duplicate(true), -1, attacker)
-			units[i]["hp"] = 0.0
-			units[i]["death_handled"] = true
-	for key in tiles.keys():
-		var tile = tiles[key]
-		var tile_team = int(tile.get("team", NEUTRAL))
-		if tile_team == defeated_team:
-			if String(tile.get("building", "")) != "":
-				tiles[key] = BoardRules.as_destroyed_building(tile, attacker)
-			else:
-				tiles[key] = BoardRules.as_unlocked_empty(tile, attacker)
-			continue
-		if int(tile.get("territory_team", NEUTRAL)) == defeated_team or int(tile.get("occupier", NEUTRAL)) == defeated_team:
-			var neutralized = tile.duplicate()
-			if int(neutralized.get("territory_team", NEUTRAL)) == defeated_team:
-				neutralized["territory_team"] = NEUTRAL
-			if int(neutralized.get("occupier", NEUTRAL)) == defeated_team:
-				neutralized["occupier"] = NEUTRAL
-			tiles[key] = neutralized
+	_clear_eliminated_team_units(defeated_team, attacker)
+	_transfer_eliminated_territory(defeated_team, attacker, captured_base_key)
 	if defeated_team == PLAYER:
 		_finish_multiplayer_battle(placement)
 		return
 	_toast("%d号玩家被淘汰" % defeated_team)
 	if _is_multiplayer_team_alive(PLAYER) and _multiplayer_alive_count() == 1:
 		_finish_multiplayer_battle(1)
+
+
+func _clear_eliminated_team_units(defeated_team: int, attacker: int) -> void:
+	for i in range(units.size()):
+		if int(units[i].get("team", NEUTRAL)) == defeated_team:
+			if float(units[i].get("hp", 0.0)) > 0.0:
+				_queue_unit_death_snapshot(units[i].duplicate(true), -1, attacker)
+			units[i]["hp"] = 0.0
+			units[i]["death_handled"] = true
+
+
+func _transfer_eliminated_territory(defeated_team: int, attacker: int, captured_base_key: Vector2i) -> void:
+	for key in tiles.keys():
+		var tile: Dictionary = tiles[key]
+		if key == captured_base_key:
+			tiles[key] = BoardRules.as_captured_base(tile, attacker)
+			continue
+		var tile_team = int(tile.get("team", NEUTRAL))
+		var is_defeated_locked_territory = tile_team == NEUTRAL and BoardRules.visual_owner(tile) == defeated_team
+		if tile_team != defeated_team and not is_defeated_locked_territory:
+			continue
+		var restored_site = _conquered_site_for_tile(key, tile)
+		tiles[key] = BoardRules.as_conquered_locked(tile, attacker, restored_site)
+
+
+func _conquered_site_for_tile(key: Vector2i, tile: Dictionary) -> Dictionary:
+	var generated = BoardRules.site_for_key(key, _board_cell_type_rows())
+	var site_name = String(tile.get("site", ""))
+	var site_cost = int(tile.get("site_cost", 0))
+	if site_name != "" and site_cost > 0:
+		return {
+			"site": site_name,
+			"site_cost": site_cost,
+		}
+	if String(generated.get("site", "")) != "" and int(generated.get("site_cost", 0)) > 0:
+		return generated
+	return {
+		"site": "mystery",
+		"site_cost": BoardRules.QUESTION_PRICE,
+	}
 
 
 func _finish_multiplayer_battle(placement: int, play_audio: bool = true) -> void:
@@ -2872,12 +2908,10 @@ func _apply_multiplayer_rank_result(placement: int, star_delta: int) -> void:
 func _multiplayer_timeout_placement() -> int:
 	var scores = []
 	for team in MultiplayerRules.TEAM_IDS:
-		var base_key = MultiplayerRules.base_key(team)
-		var base_tile = tiles.get(base_key, {})
 		scores.append({
 			"team": team,
 			"alive": _is_multiplayer_team_alive(team),
-			"base_hp": float(base_tile.get("hp", 0.0)) if typeof(base_tile) == TYPE_DICTIONARY else 0.0,
+			"base_hp": _original_base_hp(team),
 			"tiles": _tile_count(team),
 			"buildings": _building_count(team, "base") + _building_count(team, "mine") + _building_count(team, "tower") + _building_count(team, "barracks") + _building_count(team, "hall"),
 		})
@@ -2886,6 +2920,15 @@ func _multiplayer_timeout_placement() -> int:
 		if int(scores[i].get("team", NEUTRAL)) == PLAYER:
 			return i + 1
 	return MultiplayerRules.TEAM_IDS.size()
+
+
+func _original_base_hp(team: int) -> float:
+	var base_tile = tiles.get(MultiplayerRules.base_key(team), {})
+	if typeof(base_tile) != TYPE_DICTIONARY:
+		return 0.0
+	if int(base_tile.get("team", NEUTRAL)) != team or String(base_tile.get("building", "")) != "base":
+		return 0.0
+	return maxf(0.0, float(base_tile.get("hp", 0.0)))
 
 
 func _is_multiplayer_score_before(a: Dictionary, b: Dictionary) -> bool:

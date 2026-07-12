@@ -336,6 +336,43 @@ static func as_destroyed_building(tile: Dictionary, attacker: int) -> Dictionary
 	return next
 
 
+static func as_conquered_locked(tile: Dictionary, attacker: int, site: Dictionary) -> Dictionary:
+	var next = tile.duplicate()
+	next["team"] = NEUTRAL
+	next["occupier"] = attacker
+	next["territory_team"] = attacker
+	next["building"] = ""
+	next["hp"] = 0.0
+	next["max_hp"] = 0.0
+	next["spawn_timer"] = 0.0
+	next["site"] = String(site.get("site", ""))
+	next["site_cost"] = maxi(0, int(site.get("site_cost", 0)))
+	next["site_reward"] = ""
+	next["site_target_rarity"] = ""
+	next["site_roll_seed"] = 0
+	next["site_card"] = ""
+	return next
+
+
+static func as_captured_base(tile: Dictionary, attacker: int) -> Dictionary:
+	var next = with_building(
+		tile,
+		attacker,
+		"base",
+		"",
+		building_hp("base"),
+		building_delay("base", attacker)
+	)
+	next["territory_team"] = attacker
+	next["site"] = ""
+	next["site_cost"] = 0
+	next["site_reward"] = ""
+	next["site_target_rarity"] = ""
+	next["site_roll_seed"] = 0
+	next["site_card"] = ""
+	return next
+
+
 static func can_unlock(tiles: Dictionary, key: Vector2i, team: int) -> bool:
 	if not tiles.has(key):
 		return false
