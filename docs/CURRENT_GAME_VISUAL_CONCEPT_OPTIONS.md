@@ -126,3 +126,19 @@ Producer -> Creative Director -> Art Director -> Visual Development Artist -> Co
 5. 最后才改 Godot UI/场景/资产引用。
 
 本轮当前状态：等待用户审核。
+
+## 10. 独立功能评审：动物通用动作反馈（2026-07-12）
+
+本节只登记动物通用动作反馈提案，不重新启用本文件前述旧页面方向，也不代表当前页面视觉已经定稿。动物 PNG、战斗 `7 x 13` 几何、逻辑位置和点击区保持不变；本轮只比较程序化姿态与通用图片 FX 的动作语言。
+
+![动物通用动作反馈三版实际战场对比](../output/visual_concepts/animal_universal_motion_options_overview.png)
+
+| 方案 | 定位 | 评审图 |
+| --- | --- | --- |
+| A 弹性墨线动作 | 动作/遮挡平衡最好，当前推荐 | `output/visual_concepts/animal_universal_motion_option_a_review_board.png` |
+| B 粗笔战斗印章 | 小屏最醒目，但同屏遮挡风险最高 | `output/visual_concepts/animal_universal_motion_option_b_review_board.png` |
+| C 克制舞台轨迹 | 干扰最低，可作为减弱动效基线 | `output/visual_concepts/animal_universal_motion_option_c_review_board.png` |
+
+覆盖状态：攻击、受击、移动、获得属性、获得提升、死亡；建议获批后顺带补齐出生反馈。完整触发、时序、锚点、打断、性能、减弱动效和 Godot 落地规格见 `docs/ANIMAL_UNIVERSAL_MOTION_FEEDBACK_DESIGN.md`。
+
+当前结论：建议选择 A。用户明确确认方案并说“实装”前，不修改运行时脚本、场景、资源绑定、输入或点击区域。
