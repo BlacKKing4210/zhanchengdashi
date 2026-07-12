@@ -21,6 +21,7 @@ const SCREEN_GACHA = "gacha"
 
 const BATTLE_MODE_CLASSIC = "classic"
 const BATTLE_MODE_MULTIPLAYER = "multiplayer"
+const MULTIPLAYER_REWARD_BADGE_TEXT = "奖励提升！"
 
 const DECK_SIZE = 8
 const BATTLE_TIME = 180.0
@@ -3291,6 +3292,13 @@ func _draw_lobby_screen() -> void:
 	_draw_rank_panel(Rect2(58, 842, 604, 92))
 	_cta(_start_rect(), "单人对战", true)
 	_cta(_multiplayer_start_rect(), "多人对战", false)
+	_draw_multiplayer_reward_badge()
+
+
+func _draw_multiplayer_reward_badge() -> void:
+	var rect = _multiplayer_reward_badge_rect()
+	_box(rect, COLOR_RED.darkened(0.25), COLOR_LINE, 3)
+	_draw_text_center(MULTIPLAYER_REWARD_BADGE_TEXT, rect, 16, Color.WHITE)
 
 
 func _draw_lobby_deck_animals(area: Rect2) -> void:
@@ -4511,6 +4519,11 @@ func _start_rect() -> Rect2:
 
 func _multiplayer_start_rect() -> Rect2:
 	return Rect2(190, 1030, 340, 68)
+
+
+func _multiplayer_reward_badge_rect() -> Rect2:
+	var button = _multiplayer_start_rect()
+	return Rect2(button.position + Vector2(button.size.x - 112.0, 4.0), Vector2(106, 28))
 
 
 func _gacha_draw_rect() -> Rect2:
