@@ -321,6 +321,7 @@ func start_room(peer_id_value: Variant) -> Dictionary:
 		var participant: Dictionary = slots[team_id]
 		if String(participant["kind"]) == "human" and not bool(participant["ready"]):
 			return RoomProtocol.failure("players_not_ready")
+	_randomize_active_slots(room)
 	room["status"] = RoomProtocol.RUNNING_STATUS
 	_touch_room(room)
 	room_changed.emit(String(room["room_code"]))
@@ -332,6 +333,25 @@ func start_room(peer_id_value: Variant) -> Dictionary:
 		"assignments": _human_assignments(room),
 		"affected_peer_ids": _human_peer_ids(room),
 	})
+
+
+func _randomize_active_slots(room: Dictionary) -> void:
+	var active = RoomProtocol.active_team_ids(int(room["players_per_side"]))
+	var slots: Dictionary = room["slots"]
+	var participants = []
+	for team_id in active:
+		participants.append((slots[team_id] as Dictionary).duplicate(true))
+	for index in range(participants.size() - 1, 0, -1):
+		var swap_index = _rng.randi_range(0, index)
+		var temporary = participants[index]
+		participants[index] = participants[swap_index]
+		participants[swap_index] = temporary
+	for index in range(active.size()):
+		var team_id = int(active[index])
+		var participant: Dictionary = participants[index]
+		slots[team_id] = participant
+		if String(participant.get("kind", "")) == "human":
+			_peer_teams[int(participant["peer_id"])] = team_id
 
 
 func assignment_for_peer(peer_id_value: Variant) -> Dictionary:

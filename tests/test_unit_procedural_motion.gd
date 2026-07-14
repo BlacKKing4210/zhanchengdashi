@@ -19,6 +19,7 @@ func _ready() -> void:
 	_test_rarity_visual_scaling_keeps_logic_state_stable()
 	_test_runtime_triggers_keep_world_state_stable()
 	_test_gold_gain_feedback()
+	_test_unit_value_feedback()
 	_test_card_upgrade_triggers_power_motion_only_on_success()
 	_test_rejected_image_fx_are_absent()
 	if failures == 0:
@@ -193,18 +194,50 @@ func _test_gold_gain_feedback() -> void:
 	var unit_index = all_units.size() - 1
 	var source_unit: Dictionary = all_units[unit_index]
 	var gold_before = int(app.get("gold"))
-	app.call("_apply_unit_capture_skill", unit_index, _base_key(BoardRules.PLAYER))
-	_expect_equal(int(app.get("gold")), gold_before + 1, "capture gold skill credits the owning player")
+	app.set("effects", [])
+	app.call("_add_gold", BoardRules.PLAYER, 1, app.call("_unit_gold_feedback_position", source_unit))
+	_expect_equal(int(app.get("gold")), gold_before + 1, "animal gold gain credits the owning player")
 	var feedback = _last_effect("gold_gain")
 	_expect_false(feedback.is_empty(), "animal gold gain creates a floating coin effect")
 	_expect_equal(int(feedback.get("amount", 0)), 1, "floating coin effect displays the credited amount")
 	_expect_equal(int(feedback.get("team", BoardRules.NEUTRAL)), BoardRules.PLAYER, "floating coin effect keeps the source team")
 	_expect_equal(Vector2(feedback.get("pos", Vector2.ZERO)), Vector2(source_unit["pos"]) + Vector2(0, -34), "floating coin starts above the animal's head")
-	app.call("_apply_unit_capture_skill", unit_index, _base_key(BoardRules.PLAYER))
+	all_units[unit_index]["pos"] = Vector2(source_unit["pos"]) + Vector2(80, 0)
+	app.set("units", all_units)
+	_expect_equal(Vector2(app.call("_effect_world_position", feedback)), Vector2(all_units[unit_index]["pos"]) + Vector2(0, -34), "floating coin follows the affected animal while it moves")
+	app.call("_add_gold", BoardRules.PLAYER, 1, app.call("_unit_gold_feedback_position", all_units[unit_index]))
 	feedback = _last_effect("gold_gain")
 	_expect_equal(int(feedback.get("amount", 0)), 2, "rapid gains from the same animal merge into one readable amount")
 	app.call("_update_effects", float(feedback.get("duration", 0.9)) + 0.01)
 	_expect_true(_last_effect("gold_gain").is_empty(), "floating coin effect disappears after its short duration")
+
+
+func _test_unit_value_feedback() -> void:
+	app.call("_start_match")
+	app.call("_spawn_unit", BoardRules.PLAYER, _base_key(BoardRules.PLAYER), "rabbit")
+	var all_units: Array = app.get("units")
+	var unit_index = all_units.size() - 1
+	var unit_id = int(all_units[unit_index]["id"])
+	app.set("effects", [])
+	app.call("_add_attack_bonus", unit_index, 1.0, false)
+	var feedback = _last_effect("unit_value")
+	_expect_equal(String(feedback.get("stat", "")), "attack", "attack gain uses the attack feedback icon")
+	_expect_close(float(feedback.get("amount", 0.0)), 1.0, "attack feedback displays the gained value")
+	_expect_equal(int(feedback.get("unit_id", -1)), unit_id, "stat feedback binds to the affected animal")
+	all_units = app.get("units")
+	all_units[unit_index]["pos"] = Vector2(all_units[unit_index]["pos"]) + Vector2(-60, 25)
+	app.set("units", all_units)
+	_expect_equal(Vector2(app.call("_effect_world_position", feedback)), Vector2(all_units[unit_index]["pos"]) + Vector2(0, -34), "stat feedback follows the affected animal while it moves")
+	app.call("_add_max_hp_bonus", unit_index, 2.0, true, false)
+	_expect_equal(String(_last_effect("unit_value").get("stat", "")), "hp", "maximum health gain uses health feedback")
+	app.call("_add_shield_to_unit", unit_index, 3.0)
+	_expect_equal(String(_last_effect("unit_value").get("stat", "")), "shield", "shield gain uses shield feedback")
+	app.call("_slow_target", {"kind": "unit", "index": unit_index}, 1.5)
+	feedback = _last_effect("unit_value")
+	_expect_equal(String(feedback.get("stat", "")), "slow", "slow uses slow feedback on its target")
+	_expect_equal(String(app.call("_unit_value_feedback_text", "slow", 1.5, "s")), "-1.5s", "slow feedback displays a signed duration")
+	app.call("_update_effects", float(feedback.get("duration", 0.9)) + 0.01)
+	_expect_true(_last_effect("unit_value").is_empty(), "stat feedback disappears after its short duration")
 
 
 func _test_rejected_image_fx_are_absent() -> void:

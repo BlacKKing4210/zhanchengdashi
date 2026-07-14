@@ -111,8 +111,9 @@ func _run_loopback_test() -> void:
 	_expect_equal(int(host_match.get("match_seed", 0)), int(guest_match.get("match_seed", -1)), "all clients receive the same match seed")
 	_expect_true(bool(host_match.get("is_authority", false)), "room host is the battle authority")
 	_expect_false(bool(guest_match.get("is_authority", true)), "guest is not the battle authority")
-	_expect_equal(int(host_match.get("local_team_id", 0)), 1, "host receives its local team assignment")
-	_expect_equal(int(guest_match.get("local_team_id", 0)), 4, "guest receives its local team assignment")
+	var host_team = int(host_match.get("local_team_id", 0))
+	var guest_team = int(guest_match.get("local_team_id", 0))
+	_expect_true(host_team in [1, 4] and guest_team in [1, 4] and host_team != guest_team, "server randomizes distinct active spawn slots")
 
 	host.battle_command_received.connect(func(envelope: Dictionary): host_command = envelope)
 	guest.call("send_battle_command", {"type": "unlock", "cell": Vector2i(2, 3)})
@@ -121,7 +122,7 @@ func _run_loopback_test() -> void:
 		"reliable battle command reaches the host authority"
 	)
 	_expect_equal(int(host_command.get("sender_peer_id", 0)), int(guest.call("local_peer_id")), "server stamps the authenticated sender peer")
-	_expect_equal(int(host_command.get("sender_team_id", 0)), 4, "server stamps the sender team from registry assignment")
+	_expect_equal(int(host_command.get("sender_team_id", 0)), guest_team, "server stamps the randomized sender team from registry assignment")
 
 	guest.authority_snapshot_received.connect(func(envelope: Dictionary): guest_authority_snapshot = envelope)
 	host.call("send_authority_snapshot", {"sequence": 1, "tick": 12, "units": []})

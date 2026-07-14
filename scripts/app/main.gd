@@ -71,6 +71,9 @@ const ONLINE_ROOM_CODE_LENGTH = 6
 const GOLD_GAIN_FEEDBACK_DURATION = 0.90
 const GOLD_GAIN_FEEDBACK_RISE = 38.0
 const GOLD_GAIN_FEEDBACK_MERGE_WINDOW = 0.18
+const UNIT_VALUE_FEEDBACK_DURATION = 0.90
+const UNIT_VALUE_FEEDBACK_RISE = 38.0
+const UNIT_VALUE_FEEDBACK_MERGE_WINDOW = 0.18
 const ROOM_WARM_HUES = [0.015, 0.075, 0.135]
 const ROOM_COOL_HUES = [0.50, 0.59, 0.69]
 
@@ -3116,6 +3119,7 @@ func _apply_unit_spawn_skill(index: int) -> void:
 	if text.contains("移速提高"):
 		units[index]["haste_timer"] = maxf(float(units[index].get("haste_timer", 0.0)), 3.0)
 		_trigger_unit_motion(index, UnitMotionFeedback.KIND_STAT_GAIN)
+		_show_unit_value_feedback(index, "speed", 3.0, "s")
 	if _unit_uses_structured_skill(unit) and String(unit.get("skill_trigger", "")) == "on_spawn":
 		match String(unit.get("skill_effect", "")):
 			"gold":
@@ -3133,6 +3137,7 @@ func _apply_unit_spawn_skill(index: int) -> void:
 			"buff_speed":
 				units[index]["haste_timer"] = maxf(float(units[index].get("haste_timer", 0.0)), 3.0)
 				_trigger_unit_motion(index, UnitMotionFeedback.KIND_STAT_GAIN)
+				_show_unit_value_feedback(index, "speed", 3.0, "s")
 			"stun":
 				_stun_enemy_units_in_radius(int(unit["team"]), Vector2(unit["pos"]), SKILL_AURA_RADIUS, _unit_stun_seconds(unit))
 
@@ -3374,7 +3379,7 @@ func _unit_index_by_id(unit_id: int) -> int:
 	return -1
 
 
-func _add_gold(team: int, amount: int, feedback_pos: Variant = null) -> void:
+func _add_gold(team: int, amount: int, feedback_anchor: Variant = null) -> void:
 	if amount <= 0:
 		return
 	if team == PLAYER:
@@ -3383,24 +3388,31 @@ func _add_gold(team: int, amount: int, feedback_pos: Variant = null) -> void:
 		multiplayer_gold[team] = int(multiplayer_gold.get(team, STARTING_GOLD)) + amount
 	else:
 		enemy_gold += amount
-	if typeof(feedback_pos) == TYPE_VECTOR2:
-		_show_gold_gain_feedback(Vector2(feedback_pos), amount, team)
+	if typeof(feedback_anchor) == TYPE_DICTIONARY:
+		_show_gold_gain_feedback(feedback_anchor, amount, team)
+	elif typeof(feedback_anchor) == TYPE_VECTOR2:
+		_show_gold_gain_feedback({"pos": Vector2(feedback_anchor), "unit_id": -1}, amount, team)
 
 
-func _unit_gold_feedback_position(unit: Dictionary) -> Vector2:
-	return Vector2(unit.get("pos", Vector2.ZERO)) + Vector2(0, -34)
+func _unit_gold_feedback_position(unit: Dictionary) -> Dictionary:
+	return {
+		"pos": Vector2(unit.get("pos", Vector2.ZERO)) + Vector2(0, -34),
+		"unit_id": int(unit.get("id", -1)),
+	}
 
 
-func _show_gold_gain_feedback(pos: Vector2, amount: int, team: int) -> void:
+func _show_gold_gain_feedback(anchor: Dictionary, amount: int, team: int) -> void:
 	if amount <= 0:
 		return
+	var pos = Vector2(anchor.get("pos", Vector2.ZERO))
+	var unit_id = int(anchor.get("unit_id", -1))
 	for index in range(effects.size() - 1, -1, -1):
 		var effect: Dictionary = effects[index]
-		if String(effect.get("kind", "")) != "gold_gain" or int(effect.get("team", NEUTRAL)) != team:
+		if String(effect.get("kind", "")) != "gold_gain" or int(effect.get("team", NEUTRAL)) != team or int(effect.get("unit_id", -1)) != unit_id:
 			continue
 		var duration = maxf(0.01, float(effect.get("duration", GOLD_GAIN_FEEDBACK_DURATION)))
 		var elapsed = duration - float(effect.get("time", 0.0))
-		if elapsed > GOLD_GAIN_FEEDBACK_MERGE_WINDOW or Vector2(effect.get("pos", pos)).distance_to(pos) > 18.0:
+		if elapsed > GOLD_GAIN_FEEDBACK_MERGE_WINDOW or (unit_id < 0 and Vector2(effect.get("pos", pos)).distance_to(pos) > 18.0):
 			continue
 		effect["amount"] = int(effect.get("amount", 0)) + amount
 		effect["time"] = duration
@@ -3409,11 +3421,51 @@ func _show_gold_gain_feedback(pos: Vector2, amount: int, team: int) -> void:
 	effects.append({
 		"kind": "gold_gain",
 		"pos": pos,
+		"unit_id": unit_id,
 		"team": team,
 		"amount": amount,
 		"time": GOLD_GAIN_FEEDBACK_DURATION,
 		"duration": GOLD_GAIN_FEEDBACK_DURATION,
 	})
+
+
+func _show_unit_value_feedback(index: int, stat: String, amount: float, suffix: String = "") -> void:
+	if index < 0 or index >= units.size() or is_zero_approx(amount):
+		return
+	var unit_id = int(units[index].get("id", -1))
+	var pos = Vector2(units[index].get("pos", Vector2.ZERO)) + Vector2(0, -34)
+	for effect_index in range(effects.size() - 1, -1, -1):
+		var effect: Dictionary = effects[effect_index]
+		if String(effect.get("kind", "")) != "unit_value" or String(effect.get("stat", "")) != stat or int(effect.get("unit_id", -1)) != unit_id:
+			continue
+		var duration = maxf(0.01, float(effect.get("duration", UNIT_VALUE_FEEDBACK_DURATION)))
+		var elapsed = duration - float(effect.get("time", 0.0))
+		if elapsed > UNIT_VALUE_FEEDBACK_MERGE_WINDOW:
+			continue
+		effect["amount"] = float(effect.get("amount", 0.0)) + amount
+		effect["suffix"] = suffix
+		effect["time"] = duration
+		effects[effect_index] = effect
+		return
+	effects.append({
+		"kind": "unit_value",
+		"stat": stat,
+		"unit_id": unit_id,
+		"pos": pos,
+		"amount": amount,
+		"suffix": suffix,
+		"time": UNIT_VALUE_FEEDBACK_DURATION,
+		"duration": UNIT_VALUE_FEEDBACK_DURATION,
+	})
+
+
+func _effect_world_position(effect: Dictionary) -> Vector2:
+	var unit_id = int(effect.get("unit_id", -1))
+	if unit_id >= 0:
+		var index = _unit_index_by_id(unit_id)
+		if index >= 0 and index < units.size():
+			return Vector2(units[index].get("pos", Vector2.ZERO)) + Vector2(0, -34)
+	return Vector2(effect.get("pos", Vector2.ZERO))
 
 
 func _gold_for_team(team: int) -> int:
@@ -3447,6 +3499,7 @@ func _add_attack_bonus(index: int, amount: float, play_audio: bool = true) -> vo
 	units[index]["attack"] = maxf(0.0, float(units[index].get("attack", 0.0)) + amount)
 	if amount > 0.0:
 		_trigger_unit_motion(index, UnitMotionFeedback.KIND_STAT_GAIN)
+		_show_unit_value_feedback(index, "attack", amount)
 		if play_audio:
 			_play_world_sfx("stat_gain", Vector2(units[index]["pos"]), int(units[index].get("team", NEUTRAL)), -6.0)
 	_pulse(Vector2(units[index]["pos"]), COLOR_ORANGE)
@@ -3461,6 +3514,7 @@ func _add_max_hp_bonus(index: int, amount: float, heal: bool, play_audio: bool =
 		units[index]["hp"] = minf(float(units[index].get("max_hp", 1.0)), float(units[index].get("hp", 0.0)) + amount)
 	if amount > 0.0:
 		_trigger_unit_motion(index, UnitMotionFeedback.KIND_STAT_GAIN)
+		_show_unit_value_feedback(index, "hp", amount)
 		if play_audio:
 			_play_world_sfx("stat_gain", Vector2(units[index]["pos"]), int(units[index].get("team", NEUTRAL)), -6.0)
 	_pulse(Vector2(units[index]["pos"]), COLOR_GREEN)
@@ -3471,6 +3525,7 @@ func _add_shield_to_unit(index: int, amount: float) -> void:
 		return
 	units[index]["shield"] = float(units[index].get("shield", 0.0)) + amount
 	_trigger_unit_motion(index, UnitMotionFeedback.KIND_STAT_GAIN)
+	_show_unit_value_feedback(index, "shield", amount)
 	_play_world_sfx("stat_gain", Vector2(units[index]["pos"]), int(units[index].get("team", NEUTRAL)), -6.0)
 	_pulse(Vector2(units[index]["pos"]), COLOR_BLUE)
 
@@ -3481,7 +3536,9 @@ func _heal_unit(index: int, amount: float) -> void:
 	var hp_before = float(units[index].get("hp", 0.0))
 	units[index]["hp"] = minf(float(units[index].get("max_hp", 1.0)), float(units[index].get("hp", 0.0)) + amount)
 	if float(units[index].get("hp", 0.0)) > hp_before:
+		var healed = float(units[index].get("hp", 0.0)) - hp_before
 		_trigger_unit_motion(index, UnitMotionFeedback.KIND_STAT_GAIN)
+		_show_unit_value_feedback(index, "heal", healed)
 		_play_world_sfx("stat_gain", Vector2(units[index]["pos"]), int(units[index].get("team", NEUTRAL)), -6.0)
 	_pulse(Vector2(units[index]["pos"]), COLOR_GREEN)
 
@@ -3530,6 +3587,7 @@ func _add_aura_attack(team: int, pos: Vector2, amount: float, global: bool) -> v
 			continue
 		if global or pos.distance_to(Vector2(units[i]["pos"])) <= SKILL_AURA_RADIUS:
 			units[i]["attack"] = maxf(0.0, float(units[i].get("attack", 0.0)) + amount)
+			_show_unit_value_feedback(i, "attack", amount)
 
 
 func _add_aura_speed(team: int, pos: Vector2, mult: float, global: bool) -> void:
@@ -3537,7 +3595,9 @@ func _add_aura_speed(team: int, pos: Vector2, mult: float, global: bool) -> void
 		if not _are_allies(int(units[i].get("team", NEUTRAL)), team) or float(units[i].get("hp", 0.0)) <= 0.0:
 			continue
 		if global or pos.distance_to(Vector2(units[i]["pos"])) <= SKILL_AURA_RADIUS:
-			units[i]["speed"] = float(units[i].get("speed", 0.0)) * mult
+			var speed_before = float(units[i].get("speed", 0.0))
+			units[i]["speed"] = speed_before * mult
+			_show_unit_value_feedback(i, "speed", float(units[i]["speed"]) - speed_before)
 
 
 func _stun_enemy_units_in_radius(team: int, pos: Vector2, radius: float, seconds: float) -> void:
@@ -3546,6 +3606,7 @@ func _stun_enemy_units_in_radius(team: int, pos: Vector2, radius: float, seconds
 			continue
 		if pos.distance_to(Vector2(units[i]["pos"])) <= radius:
 			units[i]["stun_timer"] = maxf(float(units[i].get("stun_timer", 0.0)), seconds)
+			_show_unit_value_feedback(i, "stun", seconds, "s")
 			_pulse(Vector2(units[i]["pos"]), COLOR_PURPLE)
 
 
@@ -3555,6 +3616,7 @@ func _slow_target(target: Dictionary, seconds: float) -> void:
 	var target_index = int(target.get("index", -1))
 	if target_index >= 0 and target_index < units.size():
 		units[target_index]["slow_timer"] = maxf(float(units[target_index].get("slow_timer", 0.0)), seconds)
+		_show_unit_value_feedback(target_index, "slow", seconds, "s")
 		_pulse(Vector2(units[target_index]["pos"]), COLOR_BLUE)
 
 
@@ -3564,6 +3626,7 @@ func _stun_target(target: Dictionary, seconds: float) -> void:
 	var target_index = int(target.get("index", -1))
 	if target_index >= 0 and target_index < units.size():
 		units[target_index]["stun_timer"] = maxf(float(units[target_index].get("stun_timer", 0.0)), seconds)
+		_show_unit_value_feedback(target_index, "stun", seconds, "s")
 		_pulse(Vector2(units[target_index]["pos"]), COLOR_PURPLE)
 
 
@@ -5707,7 +5770,7 @@ func _draw_effect(effect: Dictionary) -> void:
 		if kind == "projectile":
 			if not _is_world_pos_visible(Vector2(effect.get("from", Vector2.ZERO)), 80.0) and not _is_world_pos_visible(Vector2(effect.get("to", Vector2.ZERO)), 80.0):
 				return
-		elif effect.has("pos") and not _is_world_pos_visible(Vector2(effect.get("pos", Vector2.ZERO)), 120.0):
+		elif effect.has("pos") and not _is_world_pos_visible(_effect_world_position(effect), 120.0):
 			return
 	if kind == UnitMotionFeedback.KIND_DEATH:
 		var dead_card = _card_by_id(String(effect.get("card_id", "")))
@@ -5738,7 +5801,7 @@ func _draw_effect(effect: Dictionary) -> void:
 		var progress = clampf(1.0 - float(effect.get("time", 0.0)) / duration, 0.0, 1.0)
 		var alpha = clampf(float(effect.get("time", 0.0)) / (duration * 0.34), 0.0, 1.0)
 		var rise = GOLD_GAIN_FEEDBACK_RISE * (1.0 - pow(1.0 - progress, 2.0))
-		var pos = _world_to_canvas(Vector2(effect.get("pos", Vector2.ZERO))) + Vector2(0, -rise)
+		var pos = _world_to_canvas(_effect_world_position(effect)) + Vector2(0, -rise)
 		var pop = 1.0 + 0.18 * sin(minf(progress / 0.24, 1.0) * PI)
 		var coin_center = pos + Vector2(-19, 0)
 		var coin_radius = 7.0 * pop
@@ -5759,6 +5822,22 @@ func _draw_effect(effect: Dictionary) -> void:
 		)
 		_draw_text_center("+%d" % int(effect.get("amount", 0)), amount_rect, 17, Color(1.0, 0.88, 0.30, alpha))
 		return
+	if kind == "unit_value":
+		var duration = maxf(0.01, float(effect.get("duration", UNIT_VALUE_FEEDBACK_DURATION)))
+		var progress = clampf(1.0 - float(effect.get("time", 0.0)) / duration, 0.0, 1.0)
+		var alpha = clampf(float(effect.get("time", 0.0)) / (duration * 0.34), 0.0, 1.0)
+		var rise = UNIT_VALUE_FEEDBACK_RISE * (1.0 - pow(1.0 - progress, 2.0))
+		var pos = _world_to_canvas(_effect_world_position(effect)) + Vector2(0, -rise)
+		var stat = String(effect.get("stat", "attack"))
+		var color = _unit_value_feedback_color(stat)
+		color.a = alpha
+		var shadow = Color(0.04, 0.05, 0.07, 0.38 * alpha)
+		_draw_unit_value_icon(pos + Vector2(-19, 0), stat, color, shadow)
+		var value_rect = Rect2(pos + Vector2(-8, -13), Vector2(64, 25))
+		var value_text = _unit_value_feedback_text(stat, float(effect.get("amount", 0.0)), String(effect.get("suffix", "")))
+		_draw_text_center(value_text, Rect2(value_rect.position + Vector2(1.5, 2.0), value_rect.size), 17, shadow)
+		_draw_text_center(value_text, value_rect, 17, color)
+		return
 	if kind == "projectile":
 		var duration = maxf(0.01, float(effect.get("duration", PROJECTILE_TIME)))
 		var progress = clampf(1.0 - float(effect["time"]) / duration, 0.0, 1.0)
@@ -5778,6 +5857,54 @@ func _draw_effect(effect: Dictionary) -> void:
 	var pulse_color = effect["color"]
 	pulse_color.a = t * 0.55
 	draw_circle(_world_to_canvas(Vector2(effect["pos"])), 8.0 + 30.0 * (1.0 - t), pulse_color)
+
+
+func _unit_value_feedback_text(stat: String, amount: float, suffix: String) -> String:
+	var magnitude = str(roundi(absf(amount))) if is_equal_approx(absf(amount), float(roundi(absf(amount)))) else "%.1f" % absf(amount)
+	var sign_text = "-" if amount < 0.0 or stat in ["slow", "stun"] else "+"
+	return "%s%s%s" % [sign_text, magnitude, suffix]
+
+
+func _unit_value_feedback_color(stat: String) -> Color:
+	match stat:
+		"attack":
+			return Color(1.0, 0.54, 0.20)
+		"hp", "heal":
+			return Color(0.42, 0.92, 0.48)
+		"shield":
+			return Color(0.32, 0.68, 1.0)
+		"speed":
+			return Color(1.0, 0.86, 0.28)
+		"slow":
+			return Color(0.40, 0.76, 1.0)
+		"stun":
+			return Color(0.74, 0.50, 1.0)
+	return Color.WHITE
+
+
+func _draw_unit_value_icon(center: Vector2, stat: String, color: Color, shadow: Color) -> void:
+	draw_circle(center + Vector2(0, 2), 9.0, shadow)
+	match stat:
+		"attack":
+			draw_line(center + Vector2(-5, 6), center + Vector2(5, -6), color, 4.0, true)
+			draw_line(center + Vector2(-6, 2), center + Vector2(-1, 7), color, 2.5, true)
+			draw_colored_polygon(PackedVector2Array([center + Vector2(3, -7), center + Vector2(8, -8), center + Vector2(6, -3)]), color)
+		"hp", "heal":
+			draw_circle(center + Vector2(-3.5, -2), 4.5, color)
+			draw_circle(center + Vector2(3.5, -2), 4.5, color)
+			draw_colored_polygon(PackedVector2Array([center + Vector2(-7, 0), center + Vector2(7, 0), center + Vector2(0, 8)]), color)
+		"shield":
+			draw_colored_polygon(PackedVector2Array([center + Vector2(-7, -7), center + Vector2(7, -7), center + Vector2(6, 2), center + Vector2(0, 8), center + Vector2(-6, 2)]), color)
+		"speed", "slow":
+			var direction = -1.0 if stat == "slow" else 1.0
+			for offset in [-4.0, 2.0]:
+				draw_line(center + Vector2(offset - 3.0 * direction, -5), center + Vector2(offset + 3.0 * direction, 0), color, 2.5, true)
+				draw_line(center + Vector2(offset + 3.0 * direction, 0), center + Vector2(offset - 3.0 * direction, 5), color, 2.5, true)
+		"stun":
+			for angle in range(0, 360, 72):
+				var direction = Vector2.RIGHT.rotated(deg_to_rad(float(angle)))
+				draw_line(center + direction * 3.0, center + direction * 8.0, color, 2.5, true)
+			draw_circle(center, 3.5, color)
 
 
 func _draw_selection_panel() -> void:
