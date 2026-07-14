@@ -103,44 +103,44 @@
     "entry_id": "unit_beast_swift_fox",
     "entry_type": "unit",
     "rarity": "common",
-    "weight": 16,
-    "probability_pct": 16.0,
+    "weight": 18,
+    "probability_pct": 18.0,
     "min_count": 1,
     "max_count": 1,
-    "notes": "50金币单位池，常见快跑"
+    "notes": "50金币单位池，普通主概率快跑"
   },
   {
     "pool_id": "unit_cards_price_50",
     "entry_id": "unit_fiend_imp_runner",
     "entry_type": "unit",
     "rarity": "common",
-    "weight": 13,
-    "probability_pct": 13.0,
+    "weight": 14,
+    "probability_pct": 14.0,
     "min_count": 1,
     "max_count": 1,
-    "notes": "50金币单位池，常见突进"
+    "notes": "50金币单位池，普通主概率突进"
   },
   {
     "pool_id": "unit_cards_price_50",
     "entry_id": "unit_elemental_spark",
     "entry_type": "unit",
     "rarity": "common",
-    "weight": 13,
-    "probability_pct": 13.0,
+    "weight": 14,
+    "probability_pct": 14.0,
     "min_count": 1,
     "max_count": 1,
-    "notes": "50金币单位池，常见远程"
+    "notes": "50金币单位池，普通主概率远程"
   },
   {
     "pool_id": "unit_cards_price_50",
     "entry_id": "unit_clockwork_gearling",
     "entry_type": "unit",
     "rarity": "common",
-    "weight": 11,
-    "probability_pct": 11.0,
+    "weight": 12,
+    "probability_pct": 12.0,
     "min_count": 1,
     "max_count": 1,
-    "notes": "50金币单位池，常见耐打"
+    "notes": "50金币单位池，普通主概率耐打"
   },
   {
     "pool_id": "unit_cards_price_50",
@@ -151,15 +151,15 @@
     "probability_pct": 12.0,
     "min_count": 1,
     "max_count": 1,
-    "notes": "50金币单位池，常见追击"
+    "notes": "50金币单位池，普通主概率追击"
   },
   {
     "pool_id": "unit_cards_price_50",
     "entry_id": "unit_beast_alpha_wolf",
     "entry_type": "unit",
     "rarity": "rare",
-    "weight": 8,
-    "probability_pct": 8.0,
+    "weight": 7,
+    "probability_pct": 7.0,
     "min_count": 1,
     "max_count": 1,
     "notes": "50金币单位池，少量稀有光环"
@@ -169,8 +169,8 @@
     "entry_id": "unit_marshkin_bog_shaman",
     "entry_type": "unit",
     "rarity": "rare",
-    "weight": 7,
-    "probability_pct": 7.0,
+    "weight": 6,
+    "probability_pct": 6.0,
     "min_count": 1,
     "max_count": 1,
     "notes": "50金币单位池，少量稀有回复"
@@ -180,8 +180,8 @@
     "entry_id": "unit_serpentfolk_siren_archer",
     "entry_type": "unit",
     "rarity": "rare",
-    "weight": 5,
-    "probability_pct": 5.0,
+    "weight": 4,
+    "probability_pct": 4.0,
     "min_count": 1,
     "max_count": 1,
     "notes": "50金币单位池，少量稀有远程"
@@ -191,8 +191,8 @@
     "entry_id": "unit_clockwork_cannon_walker",
     "entry_type": "unit",
     "rarity": "rare",
-    "weight": 5,
-    "probability_pct": 5.0,
+    "weight": 4,
+    "probability_pct": 4.0,
     "min_count": 1,
     "max_count": 1,
     "notes": "50金币单位池，少量稀有炮手"
@@ -202,8 +202,8 @@
     "entry_id": "unit_elemental_stone",
     "entry_type": "unit",
     "rarity": "rare",
-    "weight": 5,
-    "probability_pct": 5.0,
+    "weight": 4,
+    "probability_pct": 4.0,
     "min_count": 1,
     "max_count": 1,
     "notes": "50金币单位池，少量稀有护盾坦克"
@@ -235,173 +235,173 @@
     "entry_id": "unit_dragonkin_spark_whelp",
     "entry_type": "unit",
     "rarity": "common",
-    "weight": 8,
-    "probability_pct": 8.0,
+    "weight": 4,
+    "probability_pct": 4.0,
     "min_count": 1,
     "max_count": 1,
-    "notes": "100金币单位池，普通远程龙裔"
+    "notes": "100金币单位池，少量普通远程龙裔"
   },
   {
     "pool_id": "unit_cards_price_100",
     "entry_id": "unit_pirate_corsair",
     "entry_type": "unit",
     "rarity": "common",
-    "weight": 8,
-    "probability_pct": 8.0,
+    "weight": 4,
+    "probability_pct": 4.0,
     "min_count": 1,
     "max_count": 1,
-    "notes": "100金币单位池，普通高攻近战"
+    "notes": "100金币单位池，少量普通高攻近战"
   },
   {
     "pool_id": "unit_cards_price_100",
     "entry_id": "unit_serpentfolk_reef_lancer",
     "entry_type": "unit",
     "rarity": "common",
-    "weight": 7,
-    "probability_pct": 7.0,
+    "weight": 4,
+    "probability_pct": 4.0,
     "min_count": 1,
     "max_count": 1,
-    "notes": "100金币单位池，普通穿透远程"
+    "notes": "100金币单位池，少量普通穿透远程"
   },
   {
     "pool_id": "unit_cards_price_100",
     "entry_id": "unit_boarfolk_tusk_runner",
     "entry_type": "unit",
     "rarity": "common",
-    "weight": 6,
-    "probability_pct": 6.0,
+    "weight": 3,
+    "probability_pct": 3.0,
     "min_count": 1,
     "max_count": 1,
-    "notes": "100金币单位池，普通冲锋"
+    "notes": "100金币单位池，少量普通冲锋"
   },
   {
     "pool_id": "unit_cards_price_100",
     "entry_id": "unit_beast_alpha_wolf",
     "entry_type": "unit",
     "rarity": "rare",
-    "weight": 8,
-    "probability_pct": 8.0,
+    "weight": 10,
+    "probability_pct": 10.0,
     "min_count": 1,
     "max_count": 1,
-    "notes": "100金币单位池，稀有光环"
+    "notes": "100金币单位池，稀有主概率光环"
   },
   {
     "pool_id": "unit_cards_price_100",
     "entry_id": "unit_fiend_pact_bruiser",
     "entry_type": "unit",
     "rarity": "rare",
-    "weight": 7,
-    "probability_pct": 7.0,
+    "weight": 10,
+    "probability_pct": 10.0,
     "min_count": 1,
     "max_count": 1,
-    "notes": "100金币单位池，稀有高攻吸血"
+    "notes": "100金币单位池，稀有主概率高攻吸血"
   },
   {
     "pool_id": "unit_cards_price_100",
     "entry_id": "unit_clockwork_cannon_walker",
     "entry_type": "unit",
     "rarity": "rare",
-    "weight": 7,
-    "probability_pct": 7.0,
+    "weight": 10,
+    "probability_pct": 10.0,
     "min_count": 1,
     "max_count": 1,
-    "notes": "100金币单位池，稀有远程炮手"
+    "notes": "100金币单位池，稀有主概率远程炮手"
   },
   {
     "pool_id": "unit_cards_price_100",
     "entry_id": "unit_serpentfolk_siren_archer",
     "entry_type": "unit",
     "rarity": "rare",
-    "weight": 7,
-    "probability_pct": 7.0,
+    "weight": 10,
+    "probability_pct": 10.0,
     "min_count": 1,
     "max_count": 1,
-    "notes": "100金币单位池，稀有专注射手"
+    "notes": "100金币单位池，稀有主概率专注射手"
   },
   {
     "pool_id": "unit_cards_price_100",
     "entry_id": "unit_undead_grave_archer",
     "entry_type": "unit",
     "rarity": "rare",
-    "weight": 7,
-    "probability_pct": 7.0,
+    "weight": 10,
+    "probability_pct": 10.0,
     "min_count": 1,
     "max_count": 1,
-    "notes": "100金币单位池，稀有诅咒远程"
+    "notes": "100金币单位池，稀有主概率诅咒远程"
   },
   {
     "pool_id": "unit_cards_price_100",
     "entry_id": "unit_pirate_bombardier",
     "entry_type": "unit",
     "rarity": "rare",
-    "weight": 5,
-    "probability_pct": 5.0,
+    "weight": 10,
+    "probability_pct": 10.0,
     "min_count": 1,
     "max_count": 1,
-    "notes": "100金币单位池，稀有范围炮手"
+    "notes": "100金币单位池，稀有主概率范围炮手"
   },
   {
     "pool_id": "unit_cards_price_100",
     "entry_id": "unit_boarfolk_bristle_guard",
     "entry_type": "unit",
     "rarity": "rare",
-    "weight": 5,
-    "probability_pct": 5.0,
+    "weight": 10,
+    "probability_pct": 10.0,
     "min_count": 1,
     "max_count": 1,
-    "notes": "100金币单位池，稀有反刺坦克"
+    "notes": "100金币单位池，稀有主概率反刺坦克"
   },
   {
     "pool_id": "unit_cards_price_100",
     "entry_id": "unit_beast_thunder_bear",
     "entry_type": "unit",
     "rarity": "epic",
-    "weight": 5,
-    "probability_pct": 5.0,
+    "weight": 3,
+    "probability_pct": 3.0,
     "min_count": 1,
     "max_count": 1,
-    "notes": "100金币单位池，史诗高血重击"
+    "notes": "100金币单位池，少量史诗高血重击"
   },
   {
     "pool_id": "unit_cards_price_100",
     "entry_id": "unit_dragonkin_sky_drake",
     "entry_type": "unit",
     "rarity": "epic",
-    "weight": 5,
-    "probability_pct": 5.0,
+    "weight": 3,
+    "probability_pct": 3.0,
     "min_count": 1,
     "max_count": 1,
-    "notes": "100金币单位池，史诗扇形火焰"
+    "notes": "100金币单位池，少量史诗扇形火焰"
   },
   {
     "pool_id": "unit_cards_price_100",
     "entry_id": "unit_clockwork_repair_core",
     "entry_type": "unit",
     "rarity": "epic",
-    "weight": 5,
-    "probability_pct": 5.0,
+    "weight": 3,
+    "probability_pct": 3.0,
     "min_count": 1,
     "max_count": 1,
-    "notes": "100金币单位池，史诗修复核心"
+    "notes": "100金币单位池，少量史诗修复核心"
   },
   {
     "pool_id": "unit_cards_price_100",
     "entry_id": "unit_marshkin_mud_champion",
     "entry_type": "unit",
     "rarity": "epic",
-    "weight": 5,
-    "probability_pct": 5.0,
+    "weight": 3,
+    "probability_pct": 3.0,
     "min_count": 1,
     "max_count": 1,
-    "notes": "100金币单位池，史诗泥浪前排"
+    "notes": "100金币单位池，少量史诗泥浪前排"
   },
   {
     "pool_id": "unit_cards_price_100",
     "entry_id": "unit_pirate_admiral",
     "entry_type": "unit",
     "rarity": "legendary",
-    "weight": 2,
-    "probability_pct": 2.0,
+    "weight": 1,
+    "probability_pct": 1.0,
     "min_count": 1,
     "max_count": 1,
     "notes": "100金币单位池，极低概率传说"
@@ -422,8 +422,8 @@
     "entry_id": "unit_dragonkin_ancient_wyrm",
     "entry_type": "unit",
     "rarity": "legendary",
-    "weight": 2,
-    "probability_pct": 2.0,
+    "weight": 1,
+    "probability_pct": 1.0,
     "min_count": 1,
     "max_count": 1,
     "notes": "100金币单位池，极低概率传说"
@@ -455,110 +455,110 @@
     "entry_id": "unit_beast_thunder_bear",
     "entry_type": "unit",
     "rarity": "epic",
-    "weight": 9,
-    "probability_pct": 9.0,
+    "weight": 10,
+    "probability_pct": 10.0,
     "min_count": 1,
     "max_count": 1,
-    "notes": "250金币单位池，主力史诗"
+    "notes": "250金币单位池，史诗主概率重击"
   },
   {
     "pool_id": "unit_cards_price_250",
     "entry_id": "unit_dragonkin_sky_drake",
     "entry_type": "unit",
     "rarity": "epic",
-    "weight": 9,
-    "probability_pct": 9.0,
+    "weight": 10,
+    "probability_pct": 10.0,
     "min_count": 1,
     "max_count": 1,
-    "notes": "250金币单位池，主力史诗"
+    "notes": "250金币单位池，史诗主概率火焰"
   },
   {
     "pool_id": "unit_cards_price_250",
     "entry_id": "unit_elemental_storm",
     "entry_type": "unit",
     "rarity": "epic",
-    "weight": 8,
-    "probability_pct": 8.0,
+    "weight": 10,
+    "probability_pct": 10.0,
     "min_count": 1,
     "max_count": 1,
-    "notes": "250金币单位池，主力史诗"
+    "notes": "250金币单位池，史诗主概率风暴"
   },
   {
     "pool_id": "unit_cards_price_250",
     "entry_id": "unit_clockwork_repair_core",
     "entry_type": "unit",
     "rarity": "epic",
-    "weight": 7,
-    "probability_pct": 7.0,
+    "weight": 10,
+    "probability_pct": 10.0,
     "min_count": 1,
     "max_count": 1,
-    "notes": "250金币单位池，主力史诗辅助"
+    "notes": "250金币单位池，史诗主概率修复"
   },
   {
     "pool_id": "unit_cards_price_250",
     "entry_id": "unit_serpentfolk_tide_oracle",
     "entry_type": "unit",
     "rarity": "epic",
-    "weight": 5,
-    "probability_pct": 5.0,
+    "weight": 10,
+    "probability_pct": 10.0,
     "min_count": 1,
     "max_count": 1,
-    "notes": "250金币单位池，主力史诗辅助"
+    "notes": "250金币单位池，史诗主概率辅助"
   },
   {
     "pool_id": "unit_cards_price_250",
     "entry_id": "unit_undead_wraith_knight",
     "entry_type": "unit",
     "rarity": "epic",
-    "weight": 5,
-    "probability_pct": 5.0,
+    "weight": 10,
+    "probability_pct": 10.0,
     "min_count": 1,
     "max_count": 1,
-    "notes": "250金币单位池，主力史诗返场"
+    "notes": "250金币单位池，史诗主概率返场"
   },
   {
     "pool_id": "unit_cards_price_250",
     "entry_id": "unit_boarfolk_quill_captain",
     "entry_type": "unit",
     "rarity": "epic",
-    "weight": 7,
-    "probability_pct": 7.0,
+    "weight": 10,
+    "probability_pct": 10.0,
     "min_count": 1,
     "max_count": 1,
-    "notes": "250金币单位池，主力史诗反击光环"
+    "notes": "250金币单位池，史诗主概率反击光环"
   },
   {
     "pool_id": "unit_cards_price_250",
     "entry_id": "unit_fiend_rift_lord",
     "entry_type": "unit",
     "rarity": "legendary",
-    "weight": 14,
-    "probability_pct": 14.0,
+    "weight": 7,
+    "probability_pct": 7.0,
     "min_count": 1,
     "max_count": 1,
-    "notes": "250金币单位池，高概率传说"
+    "notes": "250金币单位池，少量传说"
   },
   {
     "pool_id": "unit_cards_price_250",
     "entry_id": "unit_dragonkin_ancient_wyrm",
     "entry_type": "unit",
     "rarity": "legendary",
-    "weight": 14,
-    "probability_pct": 14.0,
+    "weight": 7,
+    "probability_pct": 7.0,
     "min_count": 1,
     "max_count": 1,
-    "notes": "250金币单位池，高概率传说"
+    "notes": "250金币单位池，少量传说"
   },
   {
     "pool_id": "unit_cards_price_250",
     "entry_id": "unit_pirate_admiral",
     "entry_type": "unit",
     "rarity": "legendary",
-    "weight": 12,
-    "probability_pct": 12.0,
+    "weight": 6,
+    "probability_pct": 6.0,
     "min_count": 1,
     "max_count": 1,
-    "notes": "250金币单位池，高概率传说"
+    "notes": "250金币单位池，少量传说"
   },
   {
     "pool_id": "defense_cards_price_50",

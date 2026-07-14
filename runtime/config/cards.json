@@ -72,7 +72,8 @@
       "tier_1",
       "common",
       "scout",
-      "no_skill"
+      "no_skill",
+      "flying"
     ],
     "design_notes": "麻雀：最快的基础侦察单位，用来抢中线。"
   },
@@ -179,7 +180,8 @@
       "scout",
       "gold",
       "economy",
-      "skill"
+      "skill",
+      "flying"
     ],
     "design_notes": "鸽子：低血高速，失败损失小。"
   },
@@ -334,7 +336,8 @@
       "common",
       "swarm",
       "summon",
-      "skill"
+      "skill",
+      "flying"
     ],
     "design_notes": "鸭：阵亡补位，单体属性偏低。"
   },
@@ -494,7 +497,8 @@
       "common",
       "support",
       "copy",
-      "skill"
+      "skill",
+      "flying"
     ],
     "design_notes": "鹦鹉：复制玩法核心，基础属性低。"
   },
@@ -706,7 +710,8 @@
       "rare",
       "ranged",
       "burst",
-      "skill"
+      "skill",
+      "flying"
     ],
     "design_notes": "孔雀：中距离爆发。"
   },
@@ -785,7 +790,8 @@
       "support",
       "shield",
       "aura",
-      "skill"
+      "skill",
+      "flying"
     ],
     "design_notes": "天鹅：优雅护盾辅助。"
   },
@@ -972,7 +978,8 @@
       "rare",
       "ranged",
       "mark",
-      "skill"
+      "skill",
+      "flying"
     ],
     "design_notes": "猎鹰：长射程点杀。"
   },
@@ -1025,7 +1032,8 @@
       "rare",
       "support",
       "heal",
-      "skill"
+      "skill",
+      "flying"
     ],
     "design_notes": "鹤：高阶保护辅助。"
   },
@@ -1288,7 +1296,8 @@
       "epic",
       "ranged",
       "execute",
-      "skill"
+      "skill",
+      "flying"
     ],
     "design_notes": "老鹰：远程斩杀。"
   },
@@ -1548,7 +1557,8 @@
       "tier_6",
       "legendary",
       "ranged",
-      "skill"
+      "skill",
+      "flying"
     ],
     "design_notes": "金雕：传说远程点杀。"
   },

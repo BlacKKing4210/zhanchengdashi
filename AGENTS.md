@@ -8,6 +8,8 @@ This repository is a game project foundation for `zhanchengdashi`.
 - Use the public workflow at `C:\Users\76398\Documents\Codex\2026-07-03\codex-game-studio-default\outputs\codex-game-studio-general-game-development-process.md` as the upstream game-development process when available.
 - Use `docs/DEVELOPMENT_WORKFLOW.md` as this project's adaptation of the public workflow.
 - Follow a document-first workflow for every future gameplay, balance, UI, system, or technical change: update the relevant design/workflow document first, then implement the matching game change.
+- Deliver user-facing narrative documents as Word `.docx` by default. Markdown may remain as the source-controlled authoring format; PDF is generated only when explicitly requested for fixed-layout, print, signature, or archive use.
+- Deliver user-facing table-heavy artifacts as Excel `.xlsx` by default. Small supporting tables may stay inside Word, while runtime CSV/JSON and other machine-readable files remain governed by the project's data pipeline.
 - Keep project assets, configuration, scripts, and documents easy to move into Godot, Unity, or Unreal later.
 - Prefer data-driven gameplay: design values belong in `config/tables/`, runtime exports belong in `runtime/config/`, and validation belongs in `tools/`.
 - Follow the upstream professional art production flow from the public workflow v1.6+ for any visual-direction, concept-art, UI-art, sprite, map, VFX, or presentation-quality change.
@@ -34,6 +36,7 @@ This repository is a game project foundation for `zhanchengdashi`.
 ## Configuration Tables
 
 - CSV source tables live in `config/tables/`.
+- Excel `.xlsx` is the default human-facing review/edit format for table-heavy deliverables, but it does not silently replace the existing authoritative CSV source or runtime JSON pipeline. Any workbook-to-CSV synchronization must be explicit and validated.
 - `config/schema/config_schema.json` defines fields, types, uniqueness, and cross-table references.
 - After any user or Codex change to `config/tables/*.csv`, immediately run `python tools/validate_config.py` and `python tools/export_config.py` in the same task so the generated JSON under `runtime/config/` reflects the CSV before testing, committing, or pushing.
 - Godot runtime reads `runtime/config/*.json`, not the CSV source tables directly; never leave CSV edits without the matching runtime export.

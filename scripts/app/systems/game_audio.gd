@@ -64,13 +64,13 @@ const EVENT_COOLDOWNS = {
 	"room_join": 0.12,
 	"pause": 0.10,
 	"battle_start": 0.30,
-	"unit_spawn": 0.10,
-	"unit_attack": 0.055,
-	"ranged_attack": 0.055,
-	"tower_attack": 0.07,
-	"unit_hit": 0.05,
-	"shield_hit": 0.07,
-	"unit_death": 0.09,
+	"unit_spawn": 0.14,
+	"unit_attack": 0.09,
+	"ranged_attack": 0.09,
+	"tower_attack": 0.11,
+	"unit_hit": 0.08,
+	"shield_hit": 0.10,
+	"unit_death": 0.12,
 	"building_break": 0.16,
 	"territory_capture": 0.22,
 	"unlock": 0.18,
@@ -99,8 +99,8 @@ const PRIORITY_SFX_SLOTS = 2
 const MUSIC_SILENCE_DB = -60.0
 const MENU_FADE_SECONDS = 1.0
 const BATTLE_FADE_SECONDS = 0.8
-const MUSIC_DEFAULT_DB = -10.0
-const SFX_DEFAULT_DB = -4.0
+const MUSIC_DEFAULT_DB = -12.0
+const SFX_DEFAULT_DB = -10.0
 const UI_DEFAULT_DB = -6.0
 
 var music_enabled = true
@@ -317,6 +317,18 @@ func get_sfx_player_count() -> int:
 
 func get_priority_sfx_player_count() -> int:
 	return PRIORITY_SFX_SLOTS
+
+
+func get_default_mix_db() -> Dictionary:
+	return {
+		"music": MUSIC_DEFAULT_DB,
+		"sfx": SFX_DEFAULT_DB,
+		"ui": UI_DEFAULT_DB,
+	}
+
+
+func get_event_cooldown(event_id: String) -> float:
+	return float(EVENT_COOLDOWNS.get(event_id, 0.0))
 
 
 func get_sfx_play_count(event_id: String) -> int:

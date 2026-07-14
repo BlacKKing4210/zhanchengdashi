@@ -14,28 +14,32 @@ func _ready() -> void:
 	app.call("_layout", app.get_viewport().get_visible_rect().size)
 	app.set("screen", "lobby")
 	var button: Rect2 = app.call("_multiplayer_start_rect")
-	var badge: Rect2 = app.call("_multiplayer_reward_badge_rect")
-	_expect_true(button.encloses(badge), "reward badge stays inside the multiplayer button")
-	_expect_true(badge.get_center().x > button.get_center().x and badge.get_center().y < button.get_center().y, "reward badge anchors to the upper-right corner")
+	var title: Rect2 = app.call("_multiplayer_button_title_rect")
+	var badge: Rect2 = app.call("_multiplayer_hot_badge_rect")
+	_expect_true(button.encloses(title), "multiplayer title stays inside the button")
+	_expect_true(button.intersects(badge), "HOT badge remains attached to the multiplayer button")
+	_expect_true(badge.get_center().x > button.get_center().x, "HOT badge sits on the button's right side")
+	_expect_true(badge.get_center().y < button.get_center().y, "HOT badge sits on the button's upper edge")
 
 	var scale = float(app.get("canvas_scale"))
 	var offset: Vector2 = app.get("canvas_offset")
-	app.call("_handle_tap", offset + badge.get_center() * scale)
-	_expect_equal(String(app.get("screen")), "battle", "lobby multiplayer button starts battle directly")
-	_expect_equal(String(app.get("battle_mode")), "multiplayer", "lobby multiplayer button uses multiplayer battle mode")
-	_expect_equal(int(app.call("_multiplayer_alive_count")), MultiplayerRules.TEAM_IDS.size(), "all six players start alive")
-
-	var player_base = MultiplayerRules.base_key(BoardRules.PLAYER)
-	var tiles: Dictionary = app.get("tiles")
-	_expect_true(tiles.has(player_base), "local player base exists")
-	if tiles.has(player_base):
-		var hp_before = float(tiles[player_base].get("hp", 0.0))
-		app.call("_damage_tile", player_base, 2, 1.0)
-		var hp_after = float((app.get("tiles") as Dictionary)[player_base].get("hp", 0.0))
-		_expect_true(hp_after < hp_before, "different players are enemies in the lobby multiplayer match")
+	var badge_click = button.intersection(badge).get_center()
+	app.call("_handle_tap", offset + badge_click * scale)
+	_expect_equal(String(app.get("screen")), "battle", "lobby multiplayer button starts a battle directly")
+	_expect_equal(String(app.get("battle_mode")), "multiplayer", "lobby multiplayer button uses multiplayer battle rules")
+	_expect_true(bool(app.get("multiplayer_free_for_all")), "lobby multiplayer button enables six-player free-for-all rules")
+	_expect_equal(app.get("room_active_team_ids"), MultiplayerRules.TEAM_IDS, "lobby multiplayer battle activates all six teams")
+	for first_team in MultiplayerRules.TEAM_IDS:
+		for second_team in MultiplayerRules.TEAM_IDS:
+			if first_team == second_team:
+				continue
+			_expect_true(not bool(app.call("_are_allies", first_team, second_team)), "free-for-all teams %d and %d are enemies" % [first_team, second_team])
 
 	app.call("_return_to_lobby")
-	_expect_equal(String(app.get("screen")), "lobby", "lobby multiplayer result returns to the lobby")
+	_expect_equal(String(app.get("screen")), "lobby", "free-for-all returns to the lobby")
+	app.call("_handle_nav", (app.call("_nav_rect", 4) as Rect2).get_center())
+	_expect_equal(String(app.get("screen")), "room", "bottom room tab remains the internet room entry")
+	_expect_true(app.get("online_room_service") != null, "internet room transport remains available through the room tab")
 	if failures == 0:
 		print("Lobby multiplayer entry tests passed.")
 	app.queue_free()

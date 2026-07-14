@@ -5,7 +5,7 @@
 公共流程上游：
 
 - `C:\Users\76398\Documents\Codex\2026-07-03\codex-game-studio-default\outputs\codex-game-studio-general-game-development-process.md`
-- 当前对齐版本：公共流程 v1.9，日期 2026-07-10。除 v1.6 已同步的 2D-first 与专业美术生产线外，本次重点同步 Figma/FigJam UI/UE 正式源稿、UI 效果图工程交付、design tokens、组件状态矩阵、响应式/安全区、截图对照和 UI QA Gate。
+- 当前对齐版本：公共流程 v2.0，日期 2026-07-11。除 v1.6 已同步的 2D-first、专业美术生产线和 v1.9 UI/UE 工程交付外，本次新增 Word/Excel 默认交付规则：叙述型文档默认 `.docx`，主导型表格默认 `.xlsx`，PDF 改为按需固定版式附件。
 
 使用方式：公共流程负责角色路由、生命周期、专项流程、任务卡和 Definition of Done；本项目文档负责把这些规则落到 `zhanchengdashi` 的目录结构、Godot/GDScript、配置表、验证脚本和 GitHub 同步上。后续开发必须优先遵循公共流程，再按本项目约定执行。
 
@@ -20,6 +20,9 @@
 - 默认美术表现角色：美术方向、效果图、UI 视觉、角色/场景/道具/地图/FX 资产默认启用 `Art Director -> Visual Development Artist -> Concept Artist / Environment Artist / UI Artist -> 2D Animation Specialist -> Sprite Forge Specialist -> 2D Technical Artist -> Godot Specialist -> QA Lead`。
 - 默认 UI/UE 路由：规格设计使用 `Producer -> Game Designer -> Art Director -> UI Artist -> UI Programmer -> QA Lead`；效果图和 Figma 落地使用 `Art Director -> UI Artist -> UI Programmer -> Godot Specialist -> QA Lead`。
 - 文档先行：以后所有玩法、数值、UI、系统或技术结构修改，都必须先更新对应设计/流程文档，再实装到游戏中。
+- 文档交付默认：面向用户的需求、策划、设计、流程、评审和报告默认交付 Word `.docx`；仓库可以同时保留 Markdown 源文档，PDF 只在用户明确要求打印、签批、固定版式或归档时生成。
+- 表格交付默认：面向用户编辑和评审的数值表、排期、风险矩阵、资产清单、测试矩阵等主导型表格默认交付 Excel `.xlsx`；少量支持表可以保留在 Word 中。
+- 技术格式例外：本项目现有 `config/tables/*.csv` 与 `runtime/config/*.json` 继续作为配置源和引擎导出格式。Excel 不得静默替换现有权威 CSV；若建立工作簿同步，必须有明确导出、校验和版本规则。
 - 策划案制图门禁：玩法和系统流程图可使用 diagrams.net/draw.io、FigJam 等专业工具；正式 UI/UE 源稿统一使用 Figma/FigJam，并保留可编辑链接或 `.fig` 源文件引用。Axure、draw.io、Visio、PPT、Markdown 或 Mermaid 只能作为 UI/UE 草稿、讨论稿或辅助说明，不能作为最终 UI/UE 源稿。
 - 美术审核门禁：当前游戏视觉方向必须先产出多版效果图和评审文档，经用户确认后才进入 Sprite Forge、Godot 实装或资产替换。
 - 页面美术升级门禁：升级页面美术时必须锁定 UE；页面信息、布局、点击目标、控件位置、状态含义、点击反馈节奏完全不变，只允许升级 2D 视觉皮肤、材质感、描边、阴影、图标、色彩和插画质量。
@@ -48,10 +51,10 @@
 1. 读上游：确认公共流程中对应的角色路由、专项流程和 Definition of Done。
 2. 读项目：看 `AGENTS.md`、本文档、相关 `docs/`、当前文件和 `git status`。
 3. 定职责：按任务类型使用最小必要角色组合。UI/UE 规格走 `Producer -> Game Designer -> Art Director -> UI Artist -> UI Programmer -> QA Lead`；UI 效果图和 Figma 落地走 `Art Director -> UI Artist -> UI Programmer -> Godot Specialist -> QA Lead`；2D 美术表现走 `Art Director -> Visual Development Artist -> Concept Artist / Environment Artist / UI Artist -> 2D Animation Specialist -> Sprite Forge Specialist -> 2D Technical Artist -> Godot Specialist -> QA Lead`。
-4. 文档先行：先更新对应文档。玩法/数值/UI 进入 `design/`，工程流程/结构进入 `docs/`，必要时同步生成 PDF。
+4. 文档先行：先更新对应文档。玩法/数值/UI 进入 `design/`，工程流程/结构进入 `docs/`；叙述型交付默认同步生成 Word，主导型表格默认生成 Excel，PDF 仅按需生成。
 5. 美术预审：涉及视觉方向、资产风格、UI 视觉或宣传级表现时，先输出多版 2D 效果图到 `output/visual_concepts/`，并在评审文档中写清取舍、风险和待用户确认点。
 6. UE 锁定与品质门槛：页面美术升级必须先写清“不改 UE”的锁定范围；效果图只能表现同一页面信息架构下的皮肤差异，并通过“简单高品质 2D”检查。
-7. 专业制图：策划案必须补齐玩法流程图和 UI/UE 图。正式 UI/UE 使用 Figma/FigJam 可编辑源稿，链接或 `.fig` 引用记录在 `docs/diagrams/`；预览图放 `output/diagrams/`，PDF 必须嵌入或引用图件。
+7. 专业制图：策划案必须补齐玩法流程图和 UI/UE 图。正式 UI/UE 使用 Figma/FigJam 可编辑源稿，链接或 `.fig` 引用记录在 `docs/diagrams/`；预览图放 `output/diagrams/`，Word 策划案必须嵌入或引用图件。PDF 仅在明确要求时作为固定版式附件。
 8. 产品内审：完整页面效果图先由 Producer、Art Director、UI Artist、UI Programmer 和 QA Lead 检查信息完整性、UE 一致性、可读性、位置精度和状态覆盖；P0/P1 问题清零、关键 P2 问题处理后再交用户确认。
 9. 用户准入：涉及效果图、UI 皮肤或页面重做时，只有用户明确确认视觉效果并说“实装”，才进入工程交付与运行时修改。
 10. 工程交付：实装前完成 design tokens、组件状态矩阵、Godot UI 计划、响应式/安全区规则、截图基线和 QA 清单。
@@ -145,12 +148,12 @@
 | `assets/` | 源资产 | 美术、音频、UI、卡牌图、建筑图和后续特效资源 |
 | `tools/` | 开发工具 | 校验、导出、文档生成、批处理和 QA 辅助脚本 |
 | `tests/` | 自动化测试 | 放配置、规则、生成器和核心公式测试 |
-| `docs/` | 可读文档 | 设计说明、流程、UI/UX、平衡、结构约定 |
+| `docs/` | 可读文档 | 保留 Markdown 源文档，并默认提供面向用户的 Word `.docx` 评审版 |
 | `docs/diagrams/` | 专业制图源文件与引用 | 玩法/系统流程图保存专业可编辑源；UI/UE 只记录 Figma/FigJam 可编辑链接或 `.fig` 源文件引用 |
-| `output/diagrams/` | 图件预览 | 放流程图和 Figma/FigJam 导出的 PNG/SVG/PDF 评审预览，供策划案和 PDF 引用 |
+| `output/diagrams/` | 图件预览 | 放流程图和 Figma/FigJam 导出的 PNG/SVG/PDF 评审预览，供 Word 策划案引用 |
 | `output/visual_concepts/` | 当前视觉效果图评审 | 放多版 AI/概念效果图和风格方向候选；评审通过前不作为最终 runtime 资产 |
 | `output/ui_qa/` | UI 截图验收 | UI 获准实装后，按功能保存获批效果图、Godot 截图、叠图/差异说明和验收记录 |
-| `output/pdf/` | 审阅版文档 | 文档 PDF 输出，便于给人查看和归档 |
+| `output/pdf/` | 按需固定版式文档 | 仅在用户明确要求打印、签批、固定版式或归档时生成 PDF，不再作为默认审阅格式 |
 | `tmp/` | 临时产物 | 本地临时文件，不提交 |
 
 ## 5. 改动落点矩阵
@@ -164,7 +167,8 @@
 | UI 实装 | 用户准入后补齐 design tokens、状态矩阵、Godot UI 计划和截图基线，再改 `scripts/app/`、`scenes/`、`assets/` | Godot 启动；目标/边界分辨率截图对照；状态、输入、安全区、文本和数字稳定性通过 QA |
 | 新资源或美术方向 | 先改美术方向文档，输出多版 2D 效果图并等用户确认，再改 `assets/` | 效果图评审通过，资源能加载，路径不硬编码到错误位置 |
 | 页面美术升级 | 先改 UE 锁定美术评审文档，再输出多版 2D 皮肤效果图 | 页面信息、布局、点击目标、反馈节奏不变；只改美术皮肤，并通过简单高品质 2D 检查 |
-| 设计决策和流程 | `docs/` | 生成 PDF，检查可读性 |
+| 设计决策和流程 | `docs/` | 默认生成 Word `.docx`，检查分页、标题、图件、链接和可读性 |
+| 数值/排期/矩阵/清单等主导型表格 | `design/` 或项目指定目录 | 默认生成 Excel `.xlsx`，检查字段、冻结窗格、筛选、公式、数据验证和数字格式 |
 | 校验或导出能力 | `tools/`、`.github/workflows/` | 本地运行工具，确认 CI 入口可用 |
 
 ## 6. 验证门禁
@@ -173,8 +177,9 @@
 - 任意配置表修改后必须立即运行 `tools/validate_config.py` 和 `tools/export_config.py`；游戏读取 `runtime/config/`，不允许只改 CSV 却不更新运行时 JSON。
 - Godot 在 Windows 出现 `应用程序错误`、`内存不能为 read` 或启动即崩溃时，优先检查渲染后端；本项目默认不强制 D3D12，`project.godot` 应使用 Vulkan 作为 Windows 默认渲染驱动，只有在专门兼容性测试通过后才恢复 D3D12。
 - `config/tables/` 下的 CSV 必须保持 UTF-8 或 UTF-8 BOM 编码；不要提交 GBK/ANSI 表格。若 `tools/validate_config.py` 报 Unicode decode 错误，先转码源 CSV，再导出 `runtime/config/`。
-- 任意文档交付后生成 PDF 到 `output/pdf/`，并渲染检查页面是否可读、无重叠、无截断。
-- 任意策划案交付必须检查玩法流程图和 UI/UE 图是否存在专业源文件、预览图和 PDF 可读版本。
+- 任意叙述型文档交付默认生成 Word `.docx`，并渲染或使用等价方式检查分页、字体、表格、图件、链接是否可读且无重叠、无截断。
+- 任意主导型表格交付默认生成 Excel `.xlsx`，并检查工作表命名、字段说明、冻结窗格、筛选、公式、数据验证、数字格式和可编辑性。
+- 任意策划案交付必须检查玩法流程图和 UI/UE 图是否存在专业源文件、预览图和 Word 可读版本；PDF 仅按需检查。
 - 任意正式 UI/UE 交付必须检查 Figma/FigJam 可编辑链接或 `.fig` 引用；draw.io、Axure、XD、Markdown、Mermaid 和静态 PNG 不能单独充当最终 UI/UE 源稿。
 - 任意美术方向交付必须检查 art brief、候选效果图、评审说明、原创性避让点、移动端可读性和用户确认状态；未确认前不得推进到正式资产替换或 Godot 实装。
 - 任意页面美术升级必须检查 UE 锁定清单：页面信息不变、控件位置不变、点击目标不变、状态含义不变、点击反馈不变、只替换 2D 视觉风格。

@@ -19,6 +19,7 @@ config/icon="res://icon.svg"
 
 ConfigDB="*res://scripts/core/config_db.gd"
 GameAudio="*res://scripts/app/systems/game_audio.gd"
+OnlineRoom="*res://scripts/network/online_room.gd"
 
 [display]
 
@@ -30,7 +31,3 @@ window/stretch/aspect="expand"
 [physics]
 
 3d/physics_engine="Jolt Physics"
-
-[rendering]
-
-rendering_device/driver.windows="vulkan"

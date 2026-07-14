@@ -211,8 +211,8 @@ def compose_menu_music() -> np.ndarray:
 
 
 def compose_battle_music() -> np.ndarray:
-    rng = np.random.default_rng(1282026)
-    bpm = 128.0
+    rng = np.random.default_rng(1122026)
+    bpm = 112.0
     beat = 60.0 / bpm
     bars = 12
     total_seconds = bars * 4.0 * beat
@@ -222,34 +222,35 @@ def compose_battle_music() -> np.ndarray:
         (50, 62, 66, 69), (43, 55, 59, 62), (40, 52, 55, 59), (45, 57, 61, 64),
         (47, 59, 62, 66), (43, 55, 59, 62), (45, 57, 61, 64), (50, 62, 66, 69),
     ]
-    melody = (74, 78, 81, 78, 76, 74, 71, 74, 76, 78, 81, 83, 81, 78, 76, 74)
+    melody_patterns = [
+        (74, 76, 78, 81, 78, 76, 74, 71),
+        (73, 76, 78, 81, 78, 76, 73, 69),
+        (71, 74, 76, 78, 81, 78, 74, 71),
+    ]
     for bar, chord in enumerate(chords):
         bar_time = bar * 4.0 * beat
         root, *tones = chord
         for tone_index, tone in enumerate(tones):
-            add_note(buffer, bar_time, 4.35 * beat, tone, "pad", 0.050, -0.30 + tone_index * 0.30, rng)
-        for pulse in range(8):
-            start = bar_time + pulse * 0.5 * beat
-            bass_note = root + (12 if pulse in (3, 7) else 0)
-            add_note(buffer, start, 0.48 * beat, bass_note, "bass", 0.19 if pulse % 2 == 0 else 0.13, -0.08, rng)
+            add_note(buffer, bar_time, 4.40 * beat, tone, "pad", 0.060, -0.30 + tone_index * 0.30, rng)
+        for pulse in range(4):
+            start = bar_time + pulse * beat
+            bass_note = root + (12 if pulse == 3 and bar % 2 == 1 else 0)
+            add_note(buffer, start, 0.72 * beat, bass_note, "bass", 0.13 if pulse % 2 == 0 else 0.09, -0.08, rng)
             tone = tones[pulse % len(tones)] + 12
-            add_note(buffer, start, 0.36 * beat, tone, "pluck", 0.085, -0.42 + (pulse % 3) * 0.36, rng)
-        for step in range(16):
-            note = melody[(bar * 3 + step) % len(melody)]
-            if step % 4 == 3 and bar % 3 == 1:
+            add_note(buffer, start + 0.08 * beat, 0.58 * beat, tone, "pluck", 0.065, -0.42 + (pulse % 3) * 0.36, rng)
+        melody = melody_patterns[bar % len(melody_patterns)]
+        for step, note in enumerate(melody):
+            if (bar + step) % 6 == 4:
                 continue
-            add_note(buffer, bar_time + step * 0.25 * beat, 0.30 * beat, note, "marimba", 0.115, 0.28, rng)
-        if bar in (0, 4, 8, 11):
-            for tone_index, tone in enumerate(tones):
-                add_note(buffer, bar_time + 0.04 * tone_index, 0.70 * beat, tone + 12, "brass", 0.050, -0.25 + tone_index * 0.25, rng)
+            add_note(buffer, bar_time + step * 0.5 * beat, 0.54 * beat, note, "marimba", 0.095, 0.28, rng)
+        if bar in (3, 7, 11):
+            add_note(buffer, bar_time + 2.5 * beat, 0.95 * beat, tones[-1] + 19, "bell", 0.035, 0.56, rng)
         for pulse in range(8):
-            add_drum(buffer, bar_time + pulse * 0.5 * beat, shaker(0.07, rng), 0.030, 0.58 if pulse % 2 else -0.58)
-        add_drum(buffer, bar_time, kick(0.20, rng), 0.24)
-        add_drum(buffer, bar_time + 2.0 * beat, kick(0.18, rng), 0.19)
-        add_drum(buffer, bar_time + beat, snare(0.19, rng), 0.13, -0.10)
-        add_drum(buffer, bar_time + 3.0 * beat, snare(0.20, rng), 0.16, 0.12)
-        if bar % 2 == 1:
-            add_drum(buffer, bar_time + 3.5 * beat, snare(0.10, rng, soft=True), 0.065, 0.30)
+            add_drum(buffer, bar_time + pulse * 0.5 * beat, shaker(0.07, rng), 0.016, 0.55 if pulse % 2 else -0.55)
+        add_drum(buffer, bar_time, kick(0.20, rng), 0.12)
+        add_drum(buffer, bar_time + 2.0 * beat, kick(0.18, rng), 0.075)
+        add_drum(buffer, bar_time + beat, snare(0.16, rng, soft=True), 0.040, -0.10)
+        add_drum(buffer, bar_time + 3.0 * beat, snare(0.16, rng, soft=True), 0.048, 0.12)
     return finish_music(buffer)
 
 

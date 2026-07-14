@@ -2,14 +2,15 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from PIL import Image, ImageDraw, ImageFont
+from PIL import Image, ImageDraw, ImageFilter, ImageFont
 
 
 ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / "output" / "visual_concepts"
 SOURCE = OUT / "current_game_1930s_v7_e_ai_painted_full_ui_base_with_icons.png"
-BACKGROUND = OUT / "current_game_1930s_v14_l_uiux_pro_max_reviewed_lobby_background.png"
-MOCKUP = OUT / "current_game_1930s_v14_l_uiux_pro_max_reviewed_lobby_mockup.png"
+DECK_SOURCE = OUT / "current_game_1930s_v10_h_deck_ui_base.png"
+BACKGROUND = OUT / "current_game_1930s_v15_m_uiux_pixel_polish_lobby_background.png"
+MOCKUP = OUT / "current_game_1930s_v15_m_uiux_pixel_polish_lobby_mockup.png"
 W, H = 720, 1280
 
 INK = (48, 30, 22, 255)
@@ -18,6 +19,7 @@ LIGHT = (255, 250, 222, 255)
 BLUE = (42, 118, 145, 255)
 RED = (185, 61, 46, 255)
 GOLD = (205, 128, 30, 255)
+NAV_CENTERS = (84, 222, 360, 498, 636)
 
 
 def font(size: int, bold: bool = False) -> ImageFont.FreeTypeFont:
@@ -48,15 +50,16 @@ def center_text(
   stroke_width: int = 0,
   stroke_fill: tuple[int, int, int, int] = CREAM,
 ) -> None:
-  fnt = font(size, bold)
-  text = value
+  current_size = size
+  fnt = font(current_size, bold)
   max_width = rect[2] - rect[0] - 8
-  while text and text_size(draw, text, fnt)[0] > max_width:
-    text = text[:-1]
-  tw, th = text_size(draw, text, fnt)
+  while current_size > 12 and text_size(draw, value, fnt)[0] > max_width:
+    current_size -= 1
+    fnt = font(current_size, bold)
+  tw, th = text_size(draw, value, fnt)
   x = rect[0] + (rect[2] - rect[0] - tw) / 2
   y = rect[1] + (rect[3] - rect[1] - th) / 2 - 2
-  draw.text((x, y), text, font=fnt, fill=fill, stroke_width=stroke_width, stroke_fill=stroke_fill)
+  draw.text((x, y), value, font=fnt, fill=fill, stroke_width=stroke_width, stroke_fill=stroke_fill)
 
 
 def right_text(
@@ -119,11 +122,19 @@ def nine_slice(
 
 
 def paste_status_strip(base: Image.Image, rect: tuple[int, int, int, int]) -> None:
-  source = cover_resize(Image.open(SOURCE), (W, H))
+  source = cover_resize(Image.open(DECK_SOURCE), (W, H))
   width = rect[2] - rect[0]
   height = rect[3] - rect[1]
-  strip = nine_slice(source, (92, 868, 628, 928), (width, height), (58, 15, 58, 15))
-  base.alpha_composite(strip, (rect[0], rect[1]))
+  src_rect = (105, 469, 274, 527) if rect[0] < W // 2 else (307, 469, 452, 527)
+  strip = nine_slice(source, src_rect, (width, height), (45, 10, 25, 10))
+  mask = Image.new("L", (width, height), 0)
+  md = ImageDraw.Draw(mask)
+  md.ellipse((0, 1, height - 1, height - 1), fill=255)
+  md.polygon(
+    [(height // 2, 4), (width - 20, 4), (width - 3, height // 2), (width - 20, height - 4), (height // 2, height - 4)],
+    fill=255,
+  )
+  base.paste(strip, (rect[0], rect[1]), mask)
 
 
 def animal(name: str, max_size: tuple[int, int]) -> Image.Image:
@@ -152,6 +163,24 @@ def add_existing_animals(base: Image.Image) -> None:
   paste_animal(base, "dog", 488, 776, (128, 128))
 
 
+def clean_lobby_background(base: Image.Image) -> Image.Image:
+  clean = base.copy()
+  for center_y in (592, 717):
+    for center_x in (238, 361, 483):
+      width, height = 90, 36
+      source_rect = (
+        center_x - width // 2,
+        center_y - 62,
+        center_x + width // 2,
+        center_y - 62 + height,
+      )
+      patch = base.crop(source_rect)
+      mask = Image.new("L", (width, height), 0)
+      ImageDraw.Draw(mask).ellipse((0, 1, width - 1, height - 2), fill=255)
+      clean.paste(patch, (center_x - width // 2, center_y - height // 2), mask.filter(ImageFilter.GaussianBlur(2.0)))
+  return clean
+
+
 def add_labels(base: Image.Image) -> None:
   draw = ImageDraw.Draw(base)
   # Center values inside the usable parchment area to the right of each icon.
@@ -163,10 +192,10 @@ def add_labels(base: Image.Image) -> None:
   for rect in ((130, 384, 306, 426), (414, 384, 590, 426)):
     paste_status_strip(base, rect)
   draw = ImageDraw.Draw(base)
-  center_text(draw, "出战 6/6", (136, 388, 300, 423), INK, 20, True, 1, LIGHT)
-  center_text(draw, "战力 1280", (420, 388, 584, 423), INK, 20, True, 1, LIGHT)
+  center_text(draw, "出战 6/6", (176, 388, 290, 423), INK, 17, True, 1, LIGHT)
+  center_text(draw, "战力 1280", (460, 388, 574, 423), INK, 17, True, 1, LIGHT)
 
-  center_text(draw, "青铜一星  ·  胜 0  负 0", (170, 878, 550, 925), INK, 21, True)
+  center_text(draw, "青铜 1 星 · 胜 0 负 0", (170, 878, 550, 925), INK, 21, True)
 
   center_text(draw, "匹配", (214, 970, 506, 1050), INK, 42, False, 1, LIGHT)
 
@@ -177,17 +206,16 @@ def add_labels(base: Image.Image) -> None:
     ((456, 1200, 564, 1236), "抽卡"),
     ((592, 1200, 700, 1236), "更多"),
   ]:
-    center_text(draw, label, rect, INK, 21, True, 1, LIGHT)
-  draw.line((332, 1240, 388, 1240), fill=INK, width=5)
-  draw.line((334, 1239, 386, 1239), fill=GOLD, width=2)
-  draw.ellipse((344, 1245, 376, 1275), fill=(236, 183, 50, 255), outline=INK, width=3)
-  draw.ellipse((352, 1253, 368, 1269), fill=(255, 235, 120, 255))
+    center_text(draw, label, rect, RED if label == "战斗" else INK, 21, True, 1, LIGHT)
+  draw.ellipse((352, 1250, 368, 1266), fill=INK)
+  draw.ellipse((355, 1253, 365, 1263), fill=RED)
+  draw.ellipse((358, 1255, 362, 1259), fill=(255, 226, 112, 255))
 
 
 def build() -> None:
   OUT.mkdir(parents=True, exist_ok=True)
   base = cover_resize(Image.open(SOURCE), (W, H))
-  base.convert("RGB").save(BACKGROUND, quality=96)
+  clean_lobby_background(base).convert("RGB").save(BACKGROUND, quality=96)
   add_existing_animals(base)
   add_labels(base)
   base.convert("RGB").save(MOCKUP, quality=96)

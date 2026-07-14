@@ -10,12 +10,79 @@ var app
 func _ready() -> void:
 	app = MainApp.new()
 	add_child(app)
+	_test_animal_resolution_uses_each_team_deck()
+	_test_multiplayer_slots_keep_independent_deck_snapshots()
 	_test_defense_resolution_uses_each_team_deck()
 	_test_green_defense_replacement_guard()
 	if failures == 0:
 		print("Defense deck integration tests passed.")
 	app.queue_free()
 	get_tree().quit(failures)
+
+
+func _test_animal_resolution_uses_each_team_deck() -> void:
+	var original_deck = (app.get("deck") as Array).duplicate()
+	var original_enemy_deck = (app.get("enemy_deck") as Array).duplicate()
+	var player_deck = [
+		"gold_mine_card",
+		"defense_watch_tower",
+		"rabbit",
+		"wolf",
+	]
+	var enemy_roster = [
+		"gold_mine_card",
+		"defense_watch_tower",
+		"mouse",
+		"kangaroo",
+	]
+	app.set("deck", player_deck)
+	app.set("enemy_deck", enemy_roster)
+	_expect_equal(String(app.call("_deck_card_for_target_rarity", player_deck, "legendary", 7, "animal")), "wolf", "legendary animal target falls to the player's highest lower rarity")
+	_expect_equal(String(app.call("_deck_card_for_target_rarity", player_deck, "rare", 11, "animal")), "rabbit", "rare animal target skips the higher epic card and falls to common")
+	_expect_equal(String(app.call("_deck_card_for_target_rarity", ["wolf"], "common", 13, "animal")), "", "common animal target never advances to epic")
+	_expect_false(bool(app.call("_can_use_config_card", "unit_beast_swift_fox", player_deck, "animal")), "configured animal outside the player's deck is rejected")
+	for roll_seed in range(1, 41):
+		var player_pick: Dictionary = app.call("_roll_card_from_config_pool", "unit_cards_price_250", BoardRules.PLAYER, "animal", roll_seed)
+		var enemy_pick: Dictionary = app.call("_roll_card_from_config_pool", "unit_cards_price_250", BoardRules.ENEMY, "animal", roll_seed)
+		_expect_true(String(player_pick.get("card_id", "")) in ["rabbit", "wolf"], "player pool roll stays inside the player's animal deck")
+		_expect_true(String(enemy_pick.get("card_id", "")) in ["mouse", "kangaroo"], "enemy pool roll stays inside the enemy animal deck")
+	app.set("deck", original_deck)
+	app.set("enemy_deck", original_enemy_deck)
+
+
+func _test_multiplayer_slots_keep_independent_deck_snapshots() -> void:
+	var original_mode = String(app.get("battle_mode"))
+	var original_active_teams = (app.get("room_active_team_ids") as Array).duplicate()
+	var original_team_decks = (app.get("multiplayer_team_decks") as Dictionary).duplicate(true)
+	var original_deck = (app.get("deck") as Array).duplicate()
+	var original_enemy_deck = (app.get("enemy_deck") as Array).duplicate()
+	app.set("battle_mode", "multiplayer")
+	app.set("room_active_team_ids", [1, 2, 4, 5])
+	app.set("deck", ["gold_mine_card", "defense_watch_tower", "rabbit", "wolf"])
+	app.set("enemy_deck", ["gold_mine_card", "defense_watch_tower", "mouse", "ant"])
+	app.call("_init_multiplayer_state")
+	var snapshots: Dictionary = app.get("multiplayer_team_decks")
+	_expect_equal(snapshots.size(), 4, "2v2 creates one deck snapshot per active slot")
+	var team_two: Array = snapshots[2]
+	team_two.append("kangaroo")
+	snapshots[2] = team_two
+	app.set("multiplayer_team_decks", snapshots)
+	_expect_false((snapshots[4] as Array).has("kangaroo"), "mutating team two's snapshot cannot alter team four")
+	snapshots[2] = ["gold_mine_card", "defense_watch_tower", "defense_cannon_tower", "mouse", "kangaroo"]
+	snapshots[4] = ["gold_mine_card", "defense_watch_tower", "ant"]
+	app.set("multiplayer_team_decks", snapshots)
+	_expect_equal(String(app.call("_defense_card_for_target_rarity", "legendary", 31, 2)), "defense_cannon_tower", "team two defense falls only to its own blue tower")
+	_expect_equal(String(app.call("_defense_card_for_target_rarity", "legendary", 31, 4)), "defense_watch_tower", "team four defense falls only to its own green tower")
+	for roll_seed in range(1, 21):
+		var team_two_pick: Dictionary = app.call("_roll_card_from_config_pool", "unit_cards_price_250", 2, "animal", roll_seed)
+		var team_four_pick: Dictionary = app.call("_roll_card_from_config_pool", "unit_cards_price_250", 4, "animal", roll_seed)
+		_expect_true(String(team_two_pick.get("card_id", "")) in ["mouse", "kangaroo"], "team two resolves only from its own snapshot")
+		_expect_equal(String(team_four_pick.get("card_id", "")), "ant", "team four resolves only from its own snapshot")
+	app.set("battle_mode", original_mode)
+	app.set("room_active_team_ids", original_active_teams)
+	app.set("multiplayer_team_decks", original_team_decks)
+	app.set("deck", original_deck)
+	app.set("enemy_deck", original_enemy_deck)
 
 
 func _test_defense_resolution_uses_each_team_deck() -> void:

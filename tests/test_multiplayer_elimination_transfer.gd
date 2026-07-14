@@ -13,7 +13,7 @@ func _ready() -> void:
 	add_child(app)
 	await get_tree().process_frame
 	_test_team_mode_elimination_transfer()
-	_test_free_for_all_elimination_transfer()
+	_test_free_for_all_elimination_gray()
 	_test_classic_transfer_before_result()
 	if failures == 0:
 		print("Multiplayer elimination transfer tests passed.")
@@ -125,7 +125,7 @@ func _test_team_mode_elimination_transfer() -> void:
 	_expect_equal(int(tiles[near_key].get("team", BoardRules.NEUTRAL)), ATTACKER, "secondary-base loss does not transfer surrounding attacker property")
 
 
-func _test_free_for_all_elimination_transfer() -> void:
+func _test_free_for_all_elimination_gray() -> void:
 	const ATTACKER = 1
 	const DEFEATED = 4
 	_start_multiplayer("3v3_crossroads", 3, true)
@@ -135,8 +135,14 @@ func _test_free_for_all_elimination_transfer() -> void:
 	var tiles: Dictionary = app.get("tiles")
 	_expect_false(bool(app.call("_is_multiplayer_team_alive", DEFEATED)), "FFA base owner is eliminated")
 	_expect_false(bool(app.get("game_over")), "FFA continues while multiple players remain")
-	_assert_captured_base(tiles[defeated_base], ATTACKER, "FFA destroyed base transfers to its attacker")
-	_expect_equal(int((app.get("multiplayer_placements") as Dictionary).get(DEFEATED, 0)), 6, "FFA elimination keeps existing placement order")
+	_assert_gray_tile(tiles[defeated_base], DEFEATED, "FFA destroyed base becomes neutral gray")
+	_expect_equal(int(app.call("_multiplayer_tile_score", DEFEATED)), 0, "FFA eliminated player has zero tile score")
+	var gray_count = 0
+	for tile in tiles.values():
+		if int(tile.get("eliminated_team", BoardRules.NEUTRAL)) == DEFEATED:
+			gray_count += 1
+			_expect_equal(BoardRules.visual_owner(tile), BoardRules.NEUTRAL, "all defeated FFA territory is neutral")
+	_expect_true(gray_count > 0, "FFA marks all remaining defeated territory for gray rendering")
 
 
 func _test_classic_transfer_before_result() -> void:
@@ -251,6 +257,14 @@ func _assert_captured_base(tile: Dictionary, attacker: int, label: String) -> vo
 	_expect_equal(float(tile.get("hp", 0.0)), BoardRules.building_hp("base"), label + " restores full HP")
 	_expect_equal(float(tile.get("max_hp", 0.0)), BoardRules.building_hp("base"), label + " restores full max HP")
 	_expect_true(float(tile.get("spawn_timer", 0.0)) > 0.0, label + " restores attack timing")
+
+
+func _assert_gray_tile(tile: Dictionary, defeated_team: int, label: String) -> void:
+	_expect_equal(int(tile.get("team", -99)), BoardRules.NEUTRAL, label + " has no owner")
+	_expect_equal(int(tile.get("occupier", -99)), BoardRules.NEUTRAL, label + " has no occupier")
+	_expect_equal(int(tile.get("territory_team", -99)), BoardRules.NEUTRAL, label + " has no territory owner")
+	_expect_equal(String(tile.get("building", "missing")), "", label + " clears its building")
+	_expect_equal(int(tile.get("eliminated_team", BoardRules.NEUTRAL)), defeated_team, label + " keeps its gray marker")
 
 
 func _unit_hp(unit_id: int) -> float:

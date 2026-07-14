@@ -255,3 +255,45 @@ v14 继续锁定现有 UE 和动物资源，只解决以下 UI 质量问题：
 ## 当前结论（v14）
 
 当前优先评审页面套件 v14。v14 是在 v13 已通过美术方向上，由 `ui-ux-pro-max` 补齐设计系统、状态层级、动态信息稳定性和 QA 证据后的新推荐版；v13 及更早版本继续保留为历史对照。
+
+## 页面套件 v15：细节重做计划
+
+用户复审后，v14 不再作为当前推荐版。v15 按最新 UI/UX 流程整套重出，仍然只输出效果图并等待用户审核。
+
+本轮保持现有页面 UE、信息、动物和战斗几何完全不变，集中重做以下美术层：
+
+1. 状态条和分区条改用保角短绶带，避免完整段位条被横向压扁。
+2. 主按钮、青绿次按钮、禁用/不可购买态和导航选中态建立统一状态语法。
+3. 编组卡牌、商品、任务和弹窗文字全部回到组件安全区，按统一字号和基线复查。
+4. 抽卡分页改用已有手绘分页组件；商店禁用态不再使用矩形覆盖。
+5. 战斗页保持与 v14 像素级一致，继续锁定 `7 x 13` 共 91 格。
+
+详细问题矩阵、采用/拒绝的 `ui-ux-pro-max` 规则和 v15 QA Gate 见 `docs/CURRENT_GAME_1930S_UI_UX_PRO_MAX_AUDIT.md`。本节只定义生成前规格，不表示 v15 已通过验收。
+
+## 页面套件 v15：最新 UI/UX 流程终验稿
+
+![页面套件 v15 总览](../output/visual_concepts/current_game_1930s_v15_m_uiux_pixel_polish_page_set_overview.png)
+
+v15 按最新 UI/UX 流程整套重出，并完成 Producer -> Art Director -> UI Artist -> UI Programmer -> QA Lead 多轮“不通过 -> 修改 -> 复验”。最终结论：**纯效果图可提交用户审核，P0=0，P1=0；不代表允许实装。**
+
+| 页面 | 文件 | v15 终验结果 |
+| --- | --- | --- |
+| 主页面 | `output/visual_concepts/current_game_1930s_v15_m_uiux_pixel_polish_lobby_mockup.png` | 资源数值居中；短绶带保角；导航选中态减为两条线索 |
+| 编组页 | `output/visual_concepts/current_game_1930s_v15_m_uiux_pixel_polish_deck_page_mockup.png` | 动物原图不变；卡内图像、名称和角色文字对回现有卡框 |
+| 战斗页 | `output/visual_concepts/current_game_1930s_v15_m_uiux_pixel_polish_battle_page_mockup.png` | 与 v14 哈希一致；`7 x 13`、91 格和战斗区域完全锁定 |
+| 抽卡页 | `output/visual_concepts/current_game_1930s_v15_m_uiux_pixel_polish_gacha_page_mockup.png` | 原按钮边界不变；手绘分页回原槽；四字状态避开尾饰 |
+| 商店页 | `output/visual_concepts/current_game_1930s_v15_m_uiux_pixel_polish_shop_page_mockup.png` | 60 金币场景状态一致；不可购买态使用褪色图像和红色价格 |
+| 任务页 | `output/visual_concepts/current_game_1930s_v15_m_uiux_pixel_polish_more_tasks_page_mockup.png` | 票券无矩形残片；奖励和进度使用深墨并避开装饰孔 |
+| 卡牌详情弹窗 | `output/visual_concepts/current_game_1930s_v15_m_uiux_pixel_polish_popup_card_detail_mockup.png` | 使用编组上下文；关闭入口清楚；碎片不足按钮禁用 |
+| 战斗胜利弹窗 | `output/visual_concepts/current_game_1930s_v15_m_uiux_pixel_polish_popup_battle_victory_mockup.png` | 使用战斗上下文；奖励、段位和返回路径清楚 |
+| 确认购买弹窗 | `output/visual_concepts/current_game_1930s_v15_m_uiux_pixel_polish_popup_purchase_mockup.png` | 使用商店上下文；20 金币刷新与余额一致；主次按钮明确 |
+| 大厅背景 | `output/visual_concepts/current_game_1930s_v15_m_uiux_pixel_polish_lobby_background.png` | 清除六个动物占位阴影，不改变场景构图 |
+| 50% 总览 | `output/visual_concepts/current_game_1930s_v15_m_uiux_pixel_polish_page_set_overview.png` | `1280 x 2260`，每页 `360 x 640`，无裁切 |
+
+本轮实际使用 `ui-ux-pro-max` 处理设计系统、状态层级、中文信息可读性、触控/间距、动态数字稳定和 QA 门禁；1930s 背景与手绘源件继续来自既有 AI 美术底稿，动物继续使用项目现有 PNG。详细证据见 `docs/CURRENT_GAME_1930S_UI_UX_PRO_MAX_AUDIT.md`。
+
+冻结规则：用户明确说“实装”前，不修改 Godot UI、场景、脚本、运行时资源绑定、输入逻辑或点击区域。
+
+## 当前结论（v15）
+
+当前只评审 v15 效果图。v14 及更早版本保留为历史对照，不再作为推荐方案；等待用户审核后再决定下一步。

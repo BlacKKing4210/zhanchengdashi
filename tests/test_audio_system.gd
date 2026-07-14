@@ -64,6 +64,12 @@ func _test_audio_buses_and_players() -> void:
 	_expect_equal(int(audio.call("get_music_player_count")), 2, "music uses two players for crossfades")
 	_expect_equal(int(audio.call("get_sfx_player_count")), 12, "SFX pool contains twelve players")
 	_expect_equal(int(audio.call("get_priority_sfx_player_count")), 2, "two SFX players are reserved for UI and results")
+	var default_mix: Dictionary = audio.call("get_default_mix_db")
+	_expect_equal(float(default_mix.get("music", 0.0)), -12.0, "music default is softened by two decibels")
+	_expect_equal(float(default_mix.get("sfx", 0.0)), -10.0, "battle SFX default is reduced by six decibels")
+	_expect_equal(float(default_mix.get("ui", 0.0)), -6.0, "UI feedback keeps its separate readable level")
+	for event_id in ["unit_attack", "ranged_attack", "tower_attack", "unit_hit"]:
+		_expect_true(float(audio.call("get_event_cooldown", event_id)) >= 0.08, "%s is density-limited for crowded battles" % event_id)
 
 	var master_index = AudioServer.get_bus_index("Master")
 	_expect_true(master_index >= 0, "Master audio bus exists")
