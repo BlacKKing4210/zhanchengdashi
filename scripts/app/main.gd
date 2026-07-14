@@ -4791,27 +4791,32 @@ func _handle_account_center_tap(pos: Vector2) -> void:
 
 func _draw_account_center() -> void:
 	draw_rect(Rect2(0, 0, DESIGN_SIZE.x, DESIGN_SIZE.y), Color(0.03, 0.04, 0.05, 0.72))
-	var panel = Rect2(62, 176, 596, 806)
+	var panel = _account_panel_rect()
 	_box(panel, Color(0.93, 0.82, 0.57), COLOR_LINE, 6)
-	_draw_text_center("玩家协议" if player_agreement_open else "基地 · 账号中心", Rect2(100, 206, 520, 58), 36, COLOR_LINE)
+	_draw_text_center("玩家协议" if player_agreement_open else "设置与账号", _account_title_rect(), 34, COLOR_LINE)
 	_cta(_account_close_rect(), "关闭", false)
+	draw_line(Vector2(92, 264), Vector2(628, 264), Color(0.36, 0.27, 0.16, 0.45), 2.0)
 	if player_agreement_open:
-		_draw_text_fit("欢迎使用《丛林法则》。请文明游戏并妥善保管账号。游戏进度由服务器保存；禁止利用漏洞、外挂或干扰其他玩家。我们仅处理提供账号与游戏服务所需的数据。注销仅退出当前会话，不会自动删除服务器账号与进度。", Rect2(108, 300, 504, 460), 24, COLOR_LINE)
+		_draw_text_fit("欢迎使用《丛林法则》。请文明游戏并妥善保管账号。游戏进度由服务器保存；禁止利用漏洞、外挂或干扰其他玩家。我们仅处理提供账号与游戏服务所需的数据。注销仅退出当前会话，不会自动删除服务器账号与进度。", Rect2(108, 294, 504, 468), 24, COLOR_LINE)
 		_cta(_agreement_back_rect(), "返回账号中心", true)
 		return
 	var user_id = OnlineRoom.current_user_id
+	_draw_text_fit("账号登录" if user_id.is_empty() else "账号信息", Rect2(104, 284, 120, 32), 22, COLOR_LINE)
+	draw_line(Vector2(230, 301), Vector2(616, 301), Color(0.36, 0.27, 0.16, 0.34), 2.0)
 	if user_id.is_empty():
-		_draw_text_fit("账号", Rect2(104, 302, 80, 32), 21, COLOR_LINE)
-		_draw_text_fit("密码", Rect2(104, 390, 80, 32), 21, COLOR_LINE)
+		_draw_text_fit("账号", Rect2(104, 334, 80, 58), 21, COLOR_LINE)
+		_draw_text_fit("密码", Rect2(104, 416, 80, 58), 21, COLOR_LINE)
 		_cta(_account_login_rect(), "登录", true)
 		_cta(_account_register_rect(), "注册", false)
-		_draw_text_fit("连接状态：" + online_connection_state, Rect2(104, 548, 512, 26), 17, COLOR_LINE)
+		_draw_text_fit("连接状态：" + online_connection_state, Rect2(104, 570, 512, 30), 17, COLOR_LINE)
 	else:
-		_box(Rect2(104, 304, 512, 154), Color(1.0, 0.95, 0.79), COLOR_LINE, 4)
-		_draw_text_fit("UserID", Rect2(128, 326, 120, 32), 22, COLOR_PURPLE)
-		_draw_text_fit(user_id, Rect2(128, 366, 464, 42), 26, COLOR_LINE)
-		_draw_text_fit("服务器已同步", Rect2(128, 414, 464, 26), 18, COLOR_GREEN.darkened(0.35))
+		_box(Rect2(104, 334, 512, 180), Color(1.0, 0.95, 0.79), COLOR_LINE, 4)
+		_draw_text_fit("UserID", Rect2(128, 352, 120, 32), 22, COLOR_PURPLE)
+		_draw_text_fit(user_id, Rect2(128, 390, 464, 42), 26, COLOR_LINE)
+		_draw_text_fit("服务器已同步", Rect2(128, 454, 464, 26), 18, COLOR_GREEN.darkened(0.35))
 	_cta(_account_agreement_rect(), "玩家协议", false)
+	_draw_text_fit("声音设置", Rect2(104, 710, 120, 32), 22, COLOR_LINE)
+	draw_line(Vector2(230, 727), Vector2(616, 727), Color(0.36, 0.27, 0.16, 0.34), 2.0)
 	_cta(_account_music_rect(), "音乐：开" if GameAudio.music_enabled else "音乐：关", false)
 	_cta(_account_sfx_rect(), "音效：开" if GameAudio.sfx_enabled else "音效：关", false)
 	if not user_id.is_empty():
@@ -6381,7 +6386,7 @@ func _multiplayer_start_rect() -> Rect2:
 
 func _multiplayer_button_title_rect() -> Rect2:
 	var button = _multiplayer_start_rect()
-	return Rect2(button.position + Vector2(18.0, 2.0), Vector2(button.size.x - 36.0, 36.0))
+	return Rect2(button.position + Vector2(18.0, 0.0), Vector2(button.size.x - 36.0, button.size.y))
 
 
 func _multiplayer_hot_badge_rect() -> Rect2:
@@ -6393,44 +6398,52 @@ func _lobby_base_rect() -> Rect2:
 	return Rect2(230, 228, 260, 286)
 
 
+func _account_panel_rect() -> Rect2:
+	return Rect2(62, 156, 596, 850)
+
+
+func _account_title_rect() -> Rect2:
+	return Rect2(96, 188, 420, 56)
+
+
 func _account_close_rect() -> Rect2:
-	return Rect2(526, 276, 98, 44)
+	return Rect2(532, 194, 96, 46)
 
 
 func _account_agreement_rect() -> Rect2:
-	return Rect2(104, 590, 512, 66)
+	return Rect2(104, 620, 512, 64)
 
 
 func _account_music_rect() -> Rect2:
-	return Rect2(104, 680, 246, 66)
+	return Rect2(104, 754, 246, 64)
 
 
 func _account_sfx_rect() -> Rect2:
-	return Rect2(370, 680, 246, 66)
+	return Rect2(370, 754, 246, 64)
 
 
 func _account_name_input_rect() -> Rect2:
-	return Rect2(190, 290, 426, 58)
+	return Rect2(190, 334, 426, 58)
 
 
 func _account_password_input_rect() -> Rect2:
-	return Rect2(190, 378, 426, 58)
+	return Rect2(190, 416, 426, 58)
 
 
 func _account_login_rect() -> Rect2:
-	return Rect2(104, 466, 246, 66)
+	return Rect2(104, 494, 246, 64)
 
 
 func _account_register_rect() -> Rect2:
-	return Rect2(370, 466, 246, 66)
+	return Rect2(370, 494, 246, 64)
 
 
 func _account_logout_rect() -> Rect2:
-	return Rect2(154, 820, 412, 72)
+	return Rect2(154, 856, 412, 68)
 
 
 func _agreement_back_rect() -> Rect2:
-	return Rect2(154, 820, 412, 72)
+	return Rect2(154, 846, 412, 68)
 
 
 func _room_mode_rect(players_per_side: int) -> Rect2:
