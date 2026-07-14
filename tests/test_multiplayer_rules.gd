@@ -18,6 +18,7 @@ func _init() -> void:
 	_test_map_catalog()
 	_test_team_helpers()
 	_test_random_selection()
+	_test_seeded_setup_variation()
 	_test_all_maps()
 	_test_free_for_all_regular_hex()
 	_test_shape_signatures()
@@ -151,6 +152,36 @@ func _test_random_selection() -> void:
 	_expect_true(MultiplayerRules.create_match(4).is_empty(), "unsupported 4v4 match is rejected")
 
 
+func _test_seeded_setup_variation() -> void:
+	for players_per_side in range(1, 4):
+		for map_id in MultiplayerRules.map_ids_for_size(players_per_side):
+			var reference = MultiplayerRules.create_match(players_per_side, map_id, [], 1101)
+			var replay = MultiplayerRules.create_match(players_per_side, map_id, [], 1101)
+			_expect_equal(int(reference.get("match_seed", 0)), 1101, "%s preserves the explicit match seed" % map_id)
+			_expect_equal(reference.get("base_keys", {}), replay.get("base_keys", {}), "%s same seed reproduces every base" % map_id)
+			_expect_equal(_site_signature(reference), _site_signature(replay), "%s same seed reproduces site types and prices" % map_id)
+			var seen_bases = {str(reference["base_keys"][1]): true}
+			var best_change_ratio = 0.0
+			for seed in range(1102, 1136):
+				var next_match = MultiplayerRules.create_match(players_per_side, map_id, [], seed)
+				seen_bases[str(next_match["base_keys"][1])] = true
+				best_change_ratio = maxf(best_change_ratio, _site_change_ratio(reference, next_match))
+			_expect_true(seen_bases.size() >= MultiplayerRules.SPAWN_TEMPLATE_COUNT, "%s exposes three seeded symmetric spawn templates" % map_id)
+			_expect_true(best_change_ratio > 0.50, "%s rerolls most ordinary site type/price pairs" % map_id)
+	var ffa_reference = MultiplayerRules.create_free_for_all_match([], 2201)
+	var ffa_replay = MultiplayerRules.create_free_for_all_match([], 2201)
+	_expect_equal(ffa_reference.get("base_keys", {}), ffa_replay.get("base_keys", {}), "FFA same seed reproduces all six bases")
+	_expect_equal(_site_signature(ffa_reference), _site_signature(ffa_replay), "FFA same seed reproduces sixfold site layout")
+	var ffa_bases = {str(ffa_reference["base_keys"][1]): true}
+	var ffa_best_change = 0.0
+	for seed in range(2202, 2236):
+		var next_ffa = MultiplayerRules.create_free_for_all_match([], seed)
+		ffa_bases[str(next_ffa["base_keys"][1])] = true
+		ffa_best_change = maxf(ffa_best_change, _site_change_ratio(ffa_reference, next_ffa))
+	_expect_true(ffa_bases.size() >= MultiplayerRules.SPAWN_TEMPLATE_COUNT, "FFA exposes three sixfold-symmetric spawn templates")
+	_expect_true(ffa_best_change > 0.50, "FFA rerolls most ordinary site type/price pairs")
+
+
 func _test_all_maps() -> void:
 	for players_per_side in range(1, 4):
 		for map_id in MultiplayerRules.map_ids_for_size(players_per_side):
@@ -216,6 +247,9 @@ func _test_match_contract(match_data: Dictionary, players_per_side: int, map_id:
 		"%s returns side B team ids" % map_id
 	)
 	_expect_equal(int(match_data.get("cells_per_player", 0)), int(MultiplayerRules.map_definition(map_id).get("cells_per_player", 0)), "%s returns the map's per-player cell count" % map_id)
+	_expect_true(int(match_data.get("match_seed", 0)) != 0, "%s publishes a nonzero match seed" % map_id)
+	_expect_true(int(match_data.get("layout_seed", 0)) != 0, "%s publishes a derived layout seed" % map_id)
+	_expect_true(int(match_data.get("spawn_template", -1)) in range(MultiplayerRules.SPAWN_TEMPLATE_COUNT), "%s publishes a valid spawn template" % map_id)
 	_expect_equal(
 		int(match_data.get("base_keys", {}).size()),
 		expected_teams.size(),
@@ -489,6 +523,41 @@ func _normalized_key_signature(keys: Array) -> String:
 		normalized.append("%d:%d" % [key.x - min_q, key.y - min_r])
 	normalized.sort()
 	return ",".join(normalized)
+
+
+func _site_signature(match_data: Dictionary) -> String:
+	var signature = []
+	var all_tiles: Dictionary = match_data.get("tiles", {})
+	for key in all_tiles:
+		var tile: Dictionary = all_tiles[key]
+		if String(tile.get("building", "")) == "base" or String(tile.get("starting_resource", "")) != "":
+			continue
+		var site = String(tile.get("site", ""))
+		if site == "":
+			continue
+		signature.append("%d:%d=%s:%d" % [key.x, key.y, site, int(tile.get("site_cost", 0))])
+	signature.sort()
+	return "|".join(signature)
+
+
+func _site_change_ratio(first_match: Dictionary, second_match: Dictionary) -> float:
+	var first_tiles: Dictionary = first_match.get("tiles", {})
+	var second_tiles: Dictionary = second_match.get("tiles", {})
+	var compared = 0
+	var changed = 0
+	for key in first_tiles:
+		if not second_tiles.has(key):
+			continue
+		var first: Dictionary = first_tiles[key]
+		var second: Dictionary = second_tiles[key]
+		if String(first.get("building", "")) == "base" or String(first.get("starting_resource", "")) != "":
+			continue
+		if String(first.get("site", "")) == "" or String(second.get("site", "")) == "":
+			continue
+		compared += 1
+		if String(first.get("site", "")) != String(second.get("site", "")) or int(first.get("site_cost", 0)) != int(second.get("site_cost", 0)):
+			changed += 1
+	return float(changed) / float(maxi(1, compared))
 
 
 func _side_a_row_profile(tiles: Dictionary, players_per_side: int) -> Array:

@@ -84,11 +84,21 @@ func _test_team_palette() -> void:
 	for team in [1, 2, 3]:
 		var color: Color = app.call("_team_color", team)
 		_expect_true(color.r > color.b, "warm-side team %d stays visually warm" % team)
-		_expect_true(_color_span(color) >= 0.65, "warm-side team %d uses high saturation" % team)
+		_expect_true(_color_span(color) <= 0.36, "warm-side team %d uses restrained saturation" % team)
+		_test_team_tile_colors(team)
 	for team in [4, 5, 6]:
 		var color: Color = app.call("_team_color", team)
 		_expect_true(color.b > color.r, "cool-side team %d stays visually cool" % team)
 		_expect_true(_color_span(color) <= 0.36, "cool-side team %d uses restrained saturation" % team)
+		_test_team_tile_colors(team)
+
+
+func _test_team_tile_colors(team: int) -> void:
+	var territory: Color = app.call("_team_territory_color", team)
+	var unlocked: Color = app.call("_team_unlocked_color", team)
+	_expect_true(_color_span(territory) <= 0.30, "team %d territory color stays low saturation" % team)
+	_expect_true(_color_span(unlocked) <= 0.36, "team %d unlocked color stays low saturation" % team)
+	_expect_true(_color_delta(territory, unlocked) >= 0.12, "team %d territory and unlocked colors stay visibly distinct" % team)
 
 
 func _test_board_input_guards() -> void:
@@ -196,6 +206,10 @@ func _territory_count(tiles: Dictionary, team: int) -> int:
 
 func _color_span(color: Color) -> float:
 	return maxf(color.r, maxf(color.g, color.b)) - minf(color.r, minf(color.g, color.b))
+
+
+func _color_delta(first: Color, second: Color) -> float:
+	return absf(first.r - second.r) + absf(first.g - second.g) + absf(first.b - second.b)
 
 
 func _expect_true(value: bool, label: String) -> void:

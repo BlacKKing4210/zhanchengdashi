@@ -700,11 +700,13 @@ func _start_network_match(room_code: String, start_result: Dictionary) -> void:
 		int(Time.get_unix_time_from_system()),
 		_server_match_serial,
 	]
+	var match_seed = posmod(hash("%s:%s" % [match_id, map_id]), 2147483646) + 1
 	var match = {
 		"room_code": room_code,
 		"match_id": match_id,
 		"map_id": map_id,
 		"players_per_side": players_per_side,
+		"match_seed": match_seed,
 		"authority_peer_id": authority_peer_id,
 	}
 	_server_room_matches[room_code] = match

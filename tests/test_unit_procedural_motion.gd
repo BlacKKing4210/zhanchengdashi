@@ -18,6 +18,7 @@ func _ready() -> void:
 	add_child(app)
 	_test_rarity_visual_scaling_keeps_logic_state_stable()
 	_test_runtime_triggers_keep_world_state_stable()
+	_test_gold_gain_feedback()
 	_test_card_upgrade_triggers_power_motion_only_on_success()
 	_test_rejected_image_fx_are_absent()
 	if failures == 0:
@@ -183,6 +184,27 @@ func _test_card_upgrade_triggers_power_motion_only_on_success() -> void:
 	app.set("detail_upgrade_motion_timer", 0.0)
 	app.call("_try_upgrade_selected_card")
 	_expect_close(float(app.get("detail_upgrade_motion_timer")), 0.0, "failed card upgrade does not start the power-up pose")
+
+
+func _test_gold_gain_feedback() -> void:
+	app.call("_start_match")
+	app.call("_spawn_unit", BoardRules.PLAYER, _base_key(BoardRules.PLAYER), "squirrel")
+	var all_units: Array = app.get("units")
+	var unit_index = all_units.size() - 1
+	var source_unit: Dictionary = all_units[unit_index]
+	var gold_before = int(app.get("gold"))
+	app.call("_apply_unit_capture_skill", unit_index, _base_key(BoardRules.PLAYER))
+	_expect_equal(int(app.get("gold")), gold_before + 1, "capture gold skill credits the owning player")
+	var feedback = _last_effect("gold_gain")
+	_expect_false(feedback.is_empty(), "animal gold gain creates a floating coin effect")
+	_expect_equal(int(feedback.get("amount", 0)), 1, "floating coin effect displays the credited amount")
+	_expect_equal(int(feedback.get("team", BoardRules.NEUTRAL)), BoardRules.PLAYER, "floating coin effect keeps the source team")
+	_expect_equal(Vector2(feedback.get("pos", Vector2.ZERO)), Vector2(source_unit["pos"]) + Vector2(0, -34), "floating coin starts above the animal's head")
+	app.call("_apply_unit_capture_skill", unit_index, _base_key(BoardRules.PLAYER))
+	feedback = _last_effect("gold_gain")
+	_expect_equal(int(feedback.get("amount", 0)), 2, "rapid gains from the same animal merge into one readable amount")
+	app.call("_update_effects", float(feedback.get("duration", 0.9)) + 0.01)
+	_expect_true(_last_effect("gold_gain").is_empty(), "floating coin effect disappears after its short duration")
 
 
 func _test_rejected_image_fx_are_absent() -> void:

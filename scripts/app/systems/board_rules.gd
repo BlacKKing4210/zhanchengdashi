@@ -26,7 +26,12 @@ const NEIGHBORS_ODD = [
 ]
 
 
-static func create_initial_tiles(_card_for_cost: Callable, _card_for_tier_range: Callable, cell_type_rows: Array = []) -> Dictionary:
+static func create_initial_tiles(
+	_card_for_cost: Callable,
+	_card_for_tier_range: Callable,
+	cell_type_rows: Array = [],
+	layout_seed: int = 0
+) -> Dictionary:
 	var result = {}
 	for y in range(GRID_ROWS):
 		for x in range(GRID_COLS):
@@ -34,12 +39,12 @@ static func create_initial_tiles(_card_for_cost: Callable, _card_for_tier_range:
 			var tile = empty_locked_tile()
 			tile["territory_team"] = starting_territory_for_key(key)
 			if key != PLAYER_BASE and key != ENEMY_BASE:
-				var site = site_for_key(key, cell_type_rows)
+				var site = site_for_key(key, cell_type_rows, layout_seed)
 				for field in site.keys():
 					tile[field] = site[field]
 			result[key] = tile
-	_apply_starting_unlock_rules(result, PLAYER_BASE, cell_type_rows)
-	_apply_starting_unlock_rules(result, ENEMY_BASE, cell_type_rows)
+	_apply_starting_unlock_rules(result, PLAYER_BASE, cell_type_rows, layout_seed)
+	_apply_starting_unlock_rules(result, ENEMY_BASE, cell_type_rows, layout_seed)
 	return result
 
 
@@ -65,8 +70,8 @@ static func starting_territory_for_key(key: Vector2i) -> int:
 	return PLAYER if key.y >= floori(float(GRID_ROWS) * 0.5) else ENEMY
 
 
-static func site_for_key(key: Vector2i, cell_type_rows: Array = []) -> Dictionary:
-	var site_seed = site_seed_for_key(key)
+static func site_for_key(key: Vector2i, cell_type_rows: Array = [], layout_seed: int = 0) -> Dictionary:
+	var site_seed = site_seed_for_key(key, layout_seed)
 	var roll = site_seed % 100
 	return site_for_roll(roll, site_seed, is_next_to_starting_base(key), cell_type_rows)
 
@@ -155,7 +160,12 @@ static func configured_fixed_price(row: Dictionary, fallback: int) -> int:
 	return value if value > 0 else fallback
 
 
-static func _apply_starting_unlock_rules(tiles: Dictionary, base_key: Vector2i, cell_type_rows: Array = []) -> void:
+static func _apply_starting_unlock_rules(
+	tiles: Dictionary,
+	base_key: Vector2i,
+	cell_type_rows: Array = [],
+	layout_seed: int = 0
+) -> void:
 	var mine_key = starting_mine_key(base_key)
 	var low_price_camp_key = starting_low_price_camp_key(base_key, mine_key)
 	for key in neighbors(base_key):
@@ -167,9 +177,9 @@ static func _apply_starting_unlock_rules(tiles: Dictionary, base_key: Vector2i, 
 		if key == low_price_camp_key:
 			tiles[key] = with_site(tiles[key], camp_site_for_cost(UNIT_LOW_PRICE))
 			continue
-		var site = site_for_key(key, cell_type_rows)
+		var site = site_for_key(key, cell_type_rows, layout_seed)
 		if String(site["site"]) == "mine":
-			site = non_mine_starting_site_for_key(key, cell_type_rows)
+			site = non_mine_starting_site_for_key(key, cell_type_rows, layout_seed)
 		tiles[key] = with_site(tiles[key], site)
 
 
@@ -202,8 +212,12 @@ static func camp_site_for_cost(cost: int) -> Dictionary:
 	}
 
 
-static func non_mine_starting_site_for_key(key: Vector2i, cell_type_rows: Array = []) -> Dictionary:
-	var site_seed = site_seed_for_key(key)
+static func non_mine_starting_site_for_key(
+	key: Vector2i,
+	cell_type_rows: Array = [],
+	layout_seed: int = 0
+) -> Dictionary:
+	var site_seed = site_seed_for_key(key, layout_seed)
 	var roll = floori(float(site_seed) / 11.0) % 95
 	var site = site_for_roll(roll, site_seed, true, cell_type_rows)
 	if String(site.get("site", "")) == "mine":
@@ -239,8 +253,10 @@ static func is_next_to_starting_base(key: Vector2i) -> bool:
 	return key in neighbors(PLAYER_BASE) or key in neighbors(ENEMY_BASE)
 
 
-static func site_seed_for_key(key: Vector2i) -> int:
-	return absi(hash("%d:%d" % [key.x, key.y]))
+static func site_seed_for_key(key: Vector2i, layout_seed: int = 0) -> int:
+	if layout_seed == 0:
+		return absi(hash("%d:%d" % [key.x, key.y]))
+	return absi(hash("%d:%d:%d" % [layout_seed, key.x, key.y]))
 
 
 static func price_for_seed(site_seed: int) -> int:

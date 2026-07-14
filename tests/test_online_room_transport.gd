@@ -107,6 +107,8 @@ func _run_loopback_test() -> void:
 	var guest_match: Dictionary = guest.get("current_match")
 	_expect_equal(String(host_match.get("match_id", "")), String(guest_match.get("match_id", "")), "all clients receive the same match id")
 	_expect_equal(String(host_match.get("map_id", "")), String(guest_match.get("map_id", "")), "all clients receive the same map id")
+	_expect_true(int(host_match.get("match_seed", 0)) != 0, "server publishes a nonzero match seed")
+	_expect_equal(int(host_match.get("match_seed", 0)), int(guest_match.get("match_seed", -1)), "all clients receive the same match seed")
 	_expect_true(bool(host_match.get("is_authority", false)), "room host is the battle authority")
 	_expect_false(bool(guest_match.get("is_authority", true)), "guest is not the battle authority")
 	_expect_equal(int(host_match.get("local_team_id", 0)), 1, "host receives its local team assignment")

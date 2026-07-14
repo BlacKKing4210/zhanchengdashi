@@ -43,6 +43,7 @@ const FREE_FOR_ALL_MAP_NAME = "6人正六边形战场"
 const FREE_FOR_ALL_HEX_RADIUS = 10
 const FREE_FOR_ALL_SECTOR_PROFILE = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
 const FREE_FOR_ALL_CELLS_PER_PLAYER = 55
+const SPAWN_TEMPLATE_COUNT = 3
 
 const MAP_IDS_BY_SIZE = {
 	1: [
@@ -212,20 +213,25 @@ static func create_match(
 	var map_ids = map_ids_for_size(players_per_side)
 	if map_ids.is_empty():
 		return {}
+	var match_seed = _resolved_match_seed(seed)
+	var layout_seed = _derived_seed(match_seed, "layout")
+	var spawn_template = _derived_seed(match_seed, "spawn") % SPAWN_TEMPLATE_COUNT
 	var selected_map_id = map_id
 	if selected_map_id.is_empty():
-		selected_map_id = _select_map_id(map_ids, seed)
+		selected_map_id = _select_map_id(map_ids, match_seed)
 	if not selected_map_id in map_ids:
 		return {}
 	var definition = map_definition(selected_map_id)
-	var tiles = _create_map_tiles(definition, cell_type_rows)
+	var tiles = _create_map_tiles(definition, cell_type_rows, layout_seed)
 	var team_ids = active_team_ids(players_per_side)
 	var side_a = team_ids.slice(0, players_per_side)
 	var side_b = team_ids.slice(players_per_side, team_ids.size())
 	var base_keys = _place_bases_and_starting_resources(
 		tiles,
 		players_per_side,
-		cell_type_rows
+		cell_type_rows,
+		layout_seed,
+		spawn_template
 	)
 	if base_keys.size() != team_ids.size():
 		return {}
@@ -243,12 +249,23 @@ static func create_match(
 		"side_b": side_b,
 		"base_keys": base_keys,
 		"cells_per_player": int(definition["cells_per_player"]),
+		"match_seed": match_seed,
+		"layout_seed": layout_seed,
+		"spawn_template": spawn_template,
 	}
 
 
-static func create_free_for_all_match(cell_type_rows: Array = []) -> Dictionary:
-	var tiles = _create_six_sector_tiles(FREE_FOR_ALL_SECTOR_PROFILE, cell_type_rows)
-	var base_keys = _place_six_sector_bases_and_resources(tiles, cell_type_rows)
+static func create_free_for_all_match(cell_type_rows: Array = [], seed: int = 0) -> Dictionary:
+	var match_seed = _resolved_match_seed(seed)
+	var layout_seed = _derived_seed(match_seed, "layout")
+	var spawn_template = _derived_seed(match_seed, "spawn") % SPAWN_TEMPLATE_COUNT
+	var tiles = _create_six_sector_tiles(FREE_FOR_ALL_SECTOR_PROFILE, cell_type_rows, layout_seed)
+	var base_keys = _place_six_sector_bases_and_resources(
+		tiles,
+		cell_type_rows,
+		layout_seed,
+		spawn_template
+	)
 	if base_keys.size() != TEAM_IDS.size():
 		return {}
 	_compat_tiles = tiles
@@ -266,6 +283,9 @@ static func create_free_for_all_match(cell_type_rows: Array = []) -> Dictionary:
 		"cells_per_player": FREE_FOR_ALL_CELLS_PER_PLAYER,
 		"hex_radius": FREE_FOR_ALL_HEX_RADIUS,
 		"shape": "regular_hex",
+		"match_seed": match_seed,
+		"layout_seed": layout_seed,
+		"spawn_template": spawn_template,
 	}
 
 
@@ -451,6 +471,18 @@ static func _select_map_id(map_ids: Array, seed: int) -> String:
 	return String(map_ids[random.randi_range(0, map_ids.size() - 1)])
 
 
+static func _resolved_match_seed(seed: int) -> int:
+	if seed != 0:
+		return seed
+	var random = RandomNumberGenerator.new()
+	random.randomize()
+	return random.randi_range(1, 2147483646)
+
+
+static func _derived_seed(match_seed: int, salt: String) -> int:
+	return posmod(hash("%d:%s" % [match_seed, salt]), 2147483646) + 1
+
+
 static func _flatten_profiles(lane_profiles: Array) -> Array:
 	var result = []
 	for profile in lane_profiles:
@@ -465,11 +497,15 @@ static func _sum_profile(profile: Array) -> int:
 	return result
 
 
-static func _create_map_tiles(definition: Dictionary, cell_type_rows: Array) -> Dictionary:
+static func _create_map_tiles(
+	definition: Dictionary,
+	cell_type_rows: Array,
+	layout_seed: int
+) -> Dictionary:
 	if definition.has("sector_profile"):
-		return _create_six_sector_tiles(definition["sector_profile"], cell_type_rows)
+		return _create_six_sector_tiles(definition["sector_profile"], cell_type_rows, layout_seed)
 	if int(definition["players_per_side"]) == 2:
-		return _create_four_sector_tiles(definition["lane_profiles"][0], cell_type_rows)
+		return _create_four_sector_tiles(definition["lane_profiles"][0], cell_type_rows, layout_seed)
 	var tiles = {}
 	var lane_profiles: Array = definition["lane_profiles"]
 	var total_rows = int(definition["row_widths"].size())
@@ -489,7 +525,7 @@ static func _create_map_tiles(definition: Dictionary, cell_type_rows: Array) -> 
 				left_tile["territory_team"] = lane_index + 1
 				left_tile = BoardRules.with_site(
 					left_tile,
-					BoardRules.site_for_key(left_key, cell_type_rows)
+					BoardRules.site_for_key(left_key, cell_type_rows, layout_seed)
 				)
 				var right_tile = left_tile.duplicate(true)
 				right_tile["territory_team"] = SIDE_B_TEAM_IDS[lane_index]
@@ -500,14 +536,18 @@ static func _create_map_tiles(definition: Dictionary, cell_type_rows: Array) -> 
 				var center_tile = BoardRules.empty_locked_tile()
 				center_tile = BoardRules.with_site(
 					center_tile,
-					BoardRules.site_for_key(center_key, cell_type_rows)
+					BoardRules.site_for_key(center_key, cell_type_rows, layout_seed)
 				)
 				tiles[center_key] = center_tile
 			row_index += 1
 	return tiles
 
 
-static func _create_four_sector_tiles(profile: Array, cell_type_rows: Array) -> Dictionary:
+static func _create_four_sector_tiles(
+	profile: Array,
+	cell_type_rows: Array,
+	layout_seed: int
+) -> Dictionary:
 	var tiles = {}
 	var canonical_cells = []
 	var first_r = -floori(float(profile.size()) * 0.5)
@@ -520,7 +560,7 @@ static func _create_four_sector_tiles(profile: Array, cell_type_rows: Array) -> 
 			var canonical_key = mirror_key(right_key)
 			canonical_cells.append({
 				"key": canonical_key,
-				"site": BoardRules.site_for_key(canonical_key, cell_type_rows),
+				"site": BoardRules.site_for_key(canonical_key, cell_type_rows, layout_seed),
 			})
 	var shift_r = maxi(4, ceili(float(profile.size()) * 0.5))
 	if shift_r % 2 != 0:
@@ -551,7 +591,7 @@ static func _create_four_sector_tiles(profile: Array, cell_type_rows: Array) -> 
 		var mirrored_center = mirror_key(center_key)
 		if mirrored_center != center_key:
 			center_keys.append(mirrored_center)
-		var center_site = BoardRules.site_for_key(center_key, cell_type_rows)
+		var center_site = BoardRules.site_for_key(center_key, cell_type_rows, layout_seed)
 		for key in center_keys:
 			if tiles.has(key):
 				continue
@@ -561,14 +601,18 @@ static func _create_four_sector_tiles(profile: Array, cell_type_rows: Array) -> 
 	return tiles
 
 
-static func _create_six_sector_tiles(sector_profile: Array, cell_type_rows: Array) -> Dictionary:
+static func _create_six_sector_tiles(
+	sector_profile: Array,
+	cell_type_rows: Array,
+	layout_seed: int
+) -> Dictionary:
 	var tiles = {}
 	for ring_index in range(sector_profile.size()):
 		var distance = ring_index + 1
 		var width = clampi(int(sector_profile[ring_index]), 1, distance)
 		for offset in range(width):
 			var canonical_key = Vector2i(distance - offset, offset)
-			var canonical_site = BoardRules.site_for_key(canonical_key, cell_type_rows)
+			var canonical_site = BoardRules.site_for_key(canonical_key, cell_type_rows, layout_seed)
 			for sector in range(6):
 				var key = rotate_key(canonical_key, sector)
 				var tile = BoardRules.empty_locked_tile()
@@ -584,14 +628,21 @@ static func _create_six_sector_tiles(sector_profile: Array, cell_type_rows: Arra
 static func _place_bases_and_starting_resources(
 	tiles: Dictionary,
 	players_per_side: int,
-	cell_type_rows: Array
+	cell_type_rows: Array,
+	layout_seed: int,
+	spawn_template: int
 ) -> Dictionary:
 	if players_per_side == MAX_PLAYERS_PER_SIDE:
-		return _place_six_sector_bases_and_resources(tiles, cell_type_rows)
+		return _place_six_sector_bases_and_resources(
+			tiles,
+			cell_type_rows,
+			layout_seed,
+			spawn_template
+		)
 	var result = {}
 	for team in range(1, players_per_side + 1):
 		var rival_team = mirror_team(team, players_per_side)
-		var left_base = _choose_base_key(tiles, team)
+		var left_base = _choose_base_key(tiles, team, spawn_template)
 		if left_base == INVALID_KEY:
 			return {}
 		var right_base = mirror_key(left_base)
@@ -619,16 +670,19 @@ static func _place_bases_and_starting_resources(
 			tiles,
 			left_base,
 			right_base,
-			cell_type_rows
+			cell_type_rows,
+			layout_seed
 		)
 	return result
 
 
 static func _place_six_sector_bases_and_resources(
 	tiles: Dictionary,
-	cell_type_rows: Array
+	cell_type_rows: Array,
+	layout_seed: int,
+	spawn_template: int
 ) -> Dictionary:
-	var canonical_base = _choose_base_key(tiles, 1)
+	var canonical_base = _choose_base_key(tiles, 1, spawn_template)
 	if canonical_base == INVALID_KEY:
 		return {}
 	var canonical_neighbors = []
@@ -654,7 +708,7 @@ static func _place_six_sector_bases_and_resources(
 			BoardRules.building_delay("base", team)
 		)
 	for neighbor_key in canonical_neighbors:
-		var site = BoardRules.site_for_key(neighbor_key, cell_type_rows)
+		var site = BoardRules.site_for_key(neighbor_key, cell_type_rows, layout_seed)
 		var starting_resource = ""
 		if neighbor_key == mine_key:
 			site = BoardRules.mine_site()
@@ -663,7 +717,11 @@ static func _place_six_sector_bases_and_resources(
 			site = BoardRules.camp_site_for_cost(BoardRules.UNIT_LOW_PRICE)
 			starting_resource = "camp"
 		elif String(site.get("site", "")) == "mine":
-			site = BoardRules.non_mine_starting_site_for_key(neighbor_key, cell_type_rows)
+			site = BoardRules.non_mine_starting_site_for_key(
+				neighbor_key,
+				cell_type_rows,
+				layout_seed
+			)
 		_set_rotated_site(tiles, neighbor_key, site, starting_resource)
 	return result
 
@@ -684,7 +742,11 @@ static func _set_rotated_site(
 		tiles[key] = tile
 
 
-static func _choose_base_key(tiles: Dictionary, team: int) -> Vector2i:
+static func _choose_base_key(
+	tiles: Dictionary,
+	team: int,
+	spawn_template: int
+) -> Vector2i:
 	var team_keys = []
 	var min_r = 999999
 	var max_r = -999999
@@ -697,8 +759,7 @@ static func _choose_base_key(tiles: Dictionary, team: int) -> Vector2i:
 	if team_keys.is_empty():
 		return INVALID_KEY
 	var lane_center = (float(min_r) + float(max_r)) * 0.5
-	var best_key = INVALID_KEY
-	var best_score = -INF
+	var candidate_scores = {}
 	for key in team_keys:
 		var own_neighbor_count = 0
 		for neighbor in neighbors(tiles, key):
@@ -712,17 +773,39 @@ static func _choose_base_key(tiles: Dictionary, team: int) -> Vector2i:
 			+ float(absi(projected_x)) * 100.0
 			- absf(float(key.y) - lane_center)
 		)
-		if score > best_score:
-			best_score = score
-			best_key = key
-	return best_key
+		candidate_scores[key] = score
+	if candidate_scores.is_empty():
+		return INVALID_KEY
+	var ranked_keys = []
+	var rank_count = mini(SPAWN_TEMPLATE_COUNT, candidate_scores.size())
+	for _rank in range(rank_count):
+		var best_key = INVALID_KEY
+		var best_score = -INF
+		for key in candidate_scores:
+			if key in ranked_keys:
+				continue
+			var score = float(candidate_scores[key])
+			if score > best_score or (is_equal_approx(score, best_score) and _key_before(key, best_key)):
+				best_score = score
+				best_key = key
+		ranked_keys.append(best_key)
+	return ranked_keys[posmod(spawn_template, ranked_keys.size())]
+
+
+static func _key_before(left: Vector2i, right: Vector2i) -> bool:
+	if right == INVALID_KEY:
+		return true
+	if left.y != right.y:
+		return left.y < right.y
+	return left.x < right.x
 
 
 static func _apply_mirrored_starting_resources(
 	tiles: Dictionary,
 	left_base: Vector2i,
 	right_base: Vector2i,
-	cell_type_rows: Array
+	cell_type_rows: Array,
+	layout_seed: int
 ) -> void:
 	var left_team = team_for_key(tiles, left_base)
 	var mine_key = _best_starting_resource_key(tiles, left_base, INVALID_KEY, 5)
@@ -743,9 +826,9 @@ static func _apply_mirrored_starting_resources(
 				"camp"
 			)
 			continue
-		var site = BoardRules.site_for_key(key, cell_type_rows)
+		var site = BoardRules.site_for_key(key, cell_type_rows, layout_seed)
 		if String(site.get("site", "")) == "mine":
-			site = BoardRules.non_mine_starting_site_for_key(key, cell_type_rows)
+			site = BoardRules.non_mine_starting_site_for_key(key, cell_type_rows, layout_seed)
 		_set_mirrored_site(tiles, key, mirrored, site, "")
 	# Both bases were selected as a mirrored pair; this also catches malformed
 	# custom definitions before their resources can silently diverge.

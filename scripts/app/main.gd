@@ -68,6 +68,11 @@ const TOWER_COST_STEP = 50
 const ONLINE_SIMULATION_STEP = 0.05
 const ONLINE_SNAPSHOT_INTERVAL = 0.20
 const ONLINE_ROOM_CODE_LENGTH = 6
+const GOLD_GAIN_FEEDBACK_DURATION = 0.90
+const GOLD_GAIN_FEEDBACK_RISE = 38.0
+const GOLD_GAIN_FEEDBACK_MERGE_WINDOW = 0.18
+const ROOM_WARM_HUES = [0.015, 0.075, 0.135]
+const ROOM_COOL_HUES = [0.50, 0.59, 0.69]
 
 const UNIT_LOW_PRICE = BoardRules.UNIT_LOW_PRICE
 const UNIT_MID_PRICE = BoardRules.UNIT_MID_PRICE
@@ -176,6 +181,7 @@ var room_map_id = ""
 var room_map_name = ""
 var room_match_data = {}
 var room_requested_map_id = ""
+var room_match_seed = 0
 var room_result = ""
 var free_for_all_room_snapshot = {}
 var online_room_service: Node
@@ -199,6 +205,9 @@ var classic_map_id = ""
 var classic_map_name = ""
 var classic_requested_map_id = ""
 var classic_base_keys = {}
+var battle_match_seed = 0
+var team_territory_colors = {}
+var team_unlocked_colors = {}
 var tower_purchase_counts = {}
 var combat_building_keys = []
 var game_over = false
@@ -961,6 +970,7 @@ func _on_online_match_started(match_data: Dictionary) -> void:
 	battle_mode = BATTLE_MODE_MULTIPLAYER
 	room_players_per_side = clampi(int(match_data.get("players_per_side", room_players_per_side)), 1, 3)
 	room_requested_map_id = map_id
+	room_match_seed = int(match_data.get("match_seed", 0))
 	var player_rank_state = _player_rank_state()
 	active_match_rank_key = String(player_rank_state["key"])
 	active_match_player_stars = int(player_rank_state["stars"])
@@ -1041,6 +1051,7 @@ func _clear_online_match_state() -> void:
 	online_command_sequence = 0
 	online_last_command_sequences.clear()
 	local_team_id = PLAYER
+	room_match_seed = 0
 
 
 func _update_online_authority_snapshot(delta: float) -> void:
@@ -1070,6 +1081,10 @@ func _online_battle_snapshot() -> Dictionary:
 		"income_timer": income_timer,
 		"tiles": tiles.duplicate(true),
 		"units": units.duplicate(true),
+		"effects": effects.duplicate(true),
+		"battle_match_seed": battle_match_seed,
+		"team_territory_colors": team_territory_colors.duplicate(true),
+		"team_unlocked_colors": team_unlocked_colors.duplicate(true),
 		"gold": gold,
 		"enemy_gold": enemy_gold,
 		"multiplayer_gold": multiplayer_gold.duplicate(true),
@@ -1096,6 +1111,13 @@ func _apply_online_battle_snapshot(snapshot: Dictionary) -> void:
 		tiles = (snapshot["tiles"] as Dictionary).duplicate(true)
 	if typeof(snapshot.get("units", null)) == TYPE_ARRAY:
 		units = (snapshot["units"] as Array).duplicate(true)
+	if typeof(snapshot.get("effects", null)) == TYPE_ARRAY:
+		effects = (snapshot["effects"] as Array).duplicate(true)
+	battle_match_seed = int(snapshot.get("battle_match_seed", battle_match_seed))
+	if typeof(snapshot.get("team_territory_colors", null)) == TYPE_DICTIONARY:
+		team_territory_colors = (snapshot["team_territory_colors"] as Dictionary).duplicate(true)
+	if typeof(snapshot.get("team_unlocked_colors", null)) == TYPE_DICTIONARY:
+		team_unlocked_colors = (snapshot["team_unlocked_colors"] as Dictionary).duplicate(true)
 	battle_timer = maxf(0.0, float(snapshot.get("battle_timer", battle_timer)))
 	income_timer = float(snapshot.get("income_timer", income_timer))
 	gold = int(snapshot.get("gold", gold))
@@ -1213,6 +1235,7 @@ func _reset_room() -> void:
 	room_map_name = ""
 	room_match_data.clear()
 	room_requested_map_id = ""
+	room_match_seed = 0
 	free_for_all_room_snapshot.clear()
 
 
@@ -1229,6 +1252,7 @@ func _capture_room_state_for_free_for_all() -> Dictionary:
 		"map_name": room_map_name,
 		"match_data": room_match_data.duplicate(true),
 		"requested_map_id": room_requested_map_id,
+		"match_seed": room_match_seed,
 	}
 
 
@@ -1247,6 +1271,7 @@ func _restore_room_state_after_free_for_all() -> void:
 	room_map_name = String(free_for_all_room_snapshot.get("map_name", ""))
 	room_match_data = (free_for_all_room_snapshot.get("match_data", {}) as Dictionary).duplicate(true)
 	room_requested_map_id = String(free_for_all_room_snapshot.get("requested_map_id", ""))
+	room_match_seed = int(free_for_all_room_snapshot.get("match_seed", 0))
 	free_for_all_room_snapshot.clear()
 
 
@@ -1777,28 +1802,43 @@ func _reset_battle() -> void:
 	last_multiplayer_star_delta = 0
 	room_result = ""
 	tower_purchase_counts.clear()
+	team_territory_colors.clear()
+	team_unlocked_colors.clear()
 
 	if battle_mode == BATTLE_MODE_MULTIPLAYER:
+		var requested_seed = room_match_seed if _is_online_match_active() else 0
 		if multiplayer_free_for_all:
-			room_match_data = MultiplayerRules.create_free_for_all_match(_board_cell_type_rows())
+			room_match_data = MultiplayerRules.create_free_for_all_match(
+				_board_cell_type_rows(),
+				requested_seed
+			)
 		else:
 			room_match_data = MultiplayerRules.create_match(
 				room_players_per_side,
 				room_requested_map_id,
-				_board_cell_type_rows()
+				_board_cell_type_rows(),
+				requested_seed
 			)
 		if room_match_data.is_empty():
 			if multiplayer_free_for_all:
-				room_match_data = MultiplayerRules.create_free_for_all_match()
+				room_match_data = MultiplayerRules.create_free_for_all_match([], requested_seed)
 			else:
 				room_players_per_side = 1
-				room_match_data = MultiplayerRules.create_match(1, "", _board_cell_type_rows())
+				room_match_data = MultiplayerRules.create_match(
+					1,
+					"",
+					_board_cell_type_rows(),
+					requested_seed
+				)
 		tiles = room_match_data.get("tiles", {})
 		room_active_team_ids = room_match_data.get("team_ids", _room_active_teams()).duplicate()
 		room_base_keys = room_match_data.get("base_keys", {}).duplicate(true)
 		room_map_id = String(room_match_data.get("map_id", ""))
 		room_map_name = String(room_match_data.get("map_name", room_map_id))
 		room_requested_map_id = room_map_id
+		room_match_seed = int(room_match_data.get("match_seed", requested_seed))
+		battle_match_seed = room_match_seed
+		_initialize_battle_team_colors(battle_match_seed)
 		_init_multiplayer_state()
 		multiplayer_board_bounds = MultiplayerRules.board_bounds(tiles, Vector2.ZERO, HEX_SIZE)
 		_rebuild_ground_navigation()
@@ -1818,6 +1858,7 @@ func _reset_classic_map() -> void:
 		match_data = MultiplayerRules.create_match(1, "", _board_cell_type_rows())
 	classic_map_id = String(match_data.get("map_id", ""))
 	classic_map_name = String(match_data.get("map_name", classic_map_id))
+	battle_match_seed = int(match_data.get("match_seed", 0))
 	var generated_base_keys: Dictionary = match_data.get("base_keys", {})
 	classic_base_keys = {
 		PLAYER: generated_base_keys.get(1, MultiplayerRules.INVALID_KEY),
@@ -1830,6 +1871,7 @@ func _reset_classic_map() -> void:
 			if int(tile.get(field, NEUTRAL)) == 4:
 				tile[field] = ENEMY
 		tiles[key] = tile
+	_initialize_battle_team_colors(battle_match_seed)
 	multiplayer_board_bounds = MultiplayerRules.board_bounds(tiles, Vector2.ZERO, HEX_SIZE)
 	_rebuild_ground_navigation()
 	_reset_multiplayer_board_pan()
@@ -1903,7 +1945,7 @@ func _apply_unlock(key: Vector2i, team: int, fallback_card_id: String) -> String
 			return "空地"
 		"gold":
 			var amount = int(unlock_roll.get("amount", 30))
-			_add_gold(team, amount)
+			_add_gold(team, amount, _hex_center(key) + Vector2(0, -30))
 			_set_empty_tile(key, team)
 			return "金币 +%d" % amount
 		_:
@@ -3076,6 +3118,12 @@ func _apply_unit_spawn_skill(index: int) -> void:
 		_trigger_unit_motion(index, UnitMotionFeedback.KIND_STAT_GAIN)
 	if _unit_uses_structured_skill(unit) and String(unit.get("skill_trigger", "")) == "on_spawn":
 		match String(unit.get("skill_effect", "")):
+			"gold":
+				_add_gold(
+					int(unit["team"]),
+					maxi(1, roundi(float(unit.get("skill_power", 1.0)))),
+					_unit_gold_feedback_position(unit)
+				)
 			"shield":
 				_add_shield_to_unit(index, _unit_shield_amount(unit))
 			"buff_attack":
@@ -3095,7 +3143,7 @@ func _apply_unit_attack_skill(index: int, target: Dictionary) -> void:
 	var unit = units[index]
 	var text = _unit_skill_text(unit)
 	if text.contains("35%概率金币+1") and randf() < 0.35:
-		_add_gold(int(unit["team"]), 1)
+		_add_gold(int(unit["team"]), 1, _unit_gold_feedback_position(unit))
 	if text.contains("攻击后，攻击+1"):
 		_add_attack_bonus(index, 1.0)
 	if text.contains("攻击后提高2攻击") and _target_unit_has_less_hp(index, target):
@@ -3112,6 +3160,12 @@ func _apply_unit_attack_skill(index: int, target: Dictionary) -> void:
 		return
 	if _unit_uses_structured_skill(unit) and String(unit.get("skill_trigger", "")) == "on_attack":
 		match String(unit.get("skill_effect", "")):
+			"gold":
+				_add_gold(
+					int(unit["team"]),
+					maxi(1, roundi(float(unit.get("skill_power", 1.0)))),
+					_unit_gold_feedback_position(unit)
+				)
 			"slow":
 				_slow_target(target, SKILL_SLOW_SECONDS)
 			"stun":
@@ -3137,6 +3191,12 @@ func _apply_unit_damage_skill(index: int, source_index: int, source_team: int) -
 		return
 	if _unit_uses_structured_skill(unit) and String(unit.get("skill_trigger", "")) == "on_damage":
 		match String(unit.get("skill_effect", "")):
+			"gold":
+				_add_gold(
+					int(unit["team"]),
+					maxi(1, roundi(float(unit.get("skill_power", 1.0)))),
+					_unit_gold_feedback_position(unit)
+				)
 			"heal":
 				_heal_unit(index, _unit_heal_amount(unit))
 			"shield":
@@ -3155,12 +3215,21 @@ func _handle_unit_death(index: int, source_index: int, source_team: int) -> void
 	var team = int(dead.get("team", NEUTRAL))
 	var text = _unit_skill_text(dead)
 	if text.contains("阵亡时，金币+1"):
-		_add_gold(team, 1)
+		_add_gold(team, 1, _unit_gold_feedback_position(dead))
+	elif _unit_uses_structured_skill(dead) and String(dead.get("skill_trigger", "")) == "on_death" and String(dead.get("skill_effect", "")) == "gold":
+		_add_gold(
+			team,
+			maxi(1, roundi(float(dead.get("skill_power", 1.0)))),
+			_unit_gold_feedback_position(dead)
+		)
 	if text.contains("对方获得5金币"):
+		var reward_pos = _unit_gold_feedback_position(dead)
+		if source_index >= 0 and source_index < units.size():
+			reward_pos = _unit_gold_feedback_position(units[source_index])
 		if source_team != NEUTRAL and not _are_allies(source_team, team):
-			_add_gold(source_team, 5)
+			_add_gold(source_team, 5, reward_pos)
 		elif battle_mode != BATTLE_MODE_MULTIPLAYER:
-			_add_gold(ENEMY if team == PLAYER else PLAYER, 5)
+			_add_gold(ENEMY if team == PLAYER else PLAYER, 5, reward_pos)
 	if text.contains("阵亡时，我方2只随机动物攻击+1"):
 		_buff_random_allies(team, index, 2, "attack", 1.0)
 	if text.contains("阵亡时召唤") or (_unit_uses_structured_skill(dead) and String(dead.get("skill_trigger", "")) == "on_death" and String(dead.get("skill_effect", "")) == "summon"):
@@ -3178,7 +3247,11 @@ func _notify_unit_death(dead: Dictionary, dead_index: int) -> void:
 		if text.contains("每当有动物死亡时") and text.contains("生命值+1"):
 			_add_max_hp_bonus(i, 1.0, true)
 		if _are_allies(int(units[i].get("team", NEUTRAL)), dead_team) and text.contains("友军阵亡时") and text.contains("金币"):
-			_add_gold(int(units[i].get("team", dead_team)), 2)
+			_add_gold(
+				int(units[i].get("team", dead_team)),
+				2,
+				_unit_gold_feedback_position(units[i])
+			)
 
 
 func _apply_unit_kill_skill(index: int, target: Dictionary) -> void:
@@ -3187,6 +3260,18 @@ func _apply_unit_kill_skill(index: int, target: Dictionary) -> void:
 	var attack_before = float(units[index].get("attack", 0.0))
 	var max_hp_before = float(units[index].get("max_hp", 0.0))
 	var text = _unit_skill_text(units[index])
+	if text.contains("击杀") and text.contains("金币"):
+		_add_gold(
+			int(units[index]["team"]),
+			maxi(1, roundi(float(units[index].get("skill_power", 1.0)))),
+			_unit_gold_feedback_position(units[index])
+		)
+	elif _unit_uses_structured_skill(units[index]) and String(units[index].get("skill_trigger", "")) == "on_kill" and String(units[index].get("skill_effect", "")) == "gold":
+		_add_gold(
+			int(units[index]["team"]),
+			maxi(1, roundi(float(units[index].get("skill_power", 1.0)))),
+			_unit_gold_feedback_position(units[index])
+		)
 	if text.contains("击杀后，50%概率攻击+1") and randf() < 0.5:
 		_add_attack_bonus(index, 1.0, false)
 	if text.contains("击杀后，攻击+1/生命+1"):
@@ -3212,9 +3297,13 @@ func _apply_unit_capture_skill(index: int, key: Vector2i) -> void:
 	var unit = units[index]
 	var text = _unit_skill_text(unit)
 	if text.contains("参与占领") and text.contains("金币"):
-		_add_gold(int(unit["team"]), 1)
+		_add_gold(int(unit["team"]), 1, _unit_gold_feedback_position(unit))
 	elif _unit_uses_structured_skill(unit) and String(unit.get("skill_trigger", "")) == "on_capture" and String(unit.get("skill_effect", "")) == "gold":
-		_add_gold(int(unit["team"]), max(1, roundi(float(unit.get("skill_power", 1.0)) / 10.0)))
+		_add_gold(
+			int(unit["team"]),
+			maxi(1, roundi(float(unit.get("skill_power", 1.0)) / 10.0)),
+			_unit_gold_feedback_position(unit)
+		)
 
 
 func _apply_unit_interval_skill(index: int) -> void:
@@ -3225,7 +3314,11 @@ func _apply_unit_interval_skill(index: int) -> void:
 		return
 	match String(unit.get("skill_effect", "")):
 		"gold":
-			_add_gold(int(unit["team"]), max(1, roundi(float(unit.get("skill_power", 1.0)))))
+			_add_gold(
+				int(unit["team"]),
+				maxi(1, roundi(float(unit.get("skill_power", 1.0)))),
+				_unit_gold_feedback_position(unit)
+			)
 		"heal":
 			_heal_lowest_ally(int(unit["team"]), _unit_heal_amount(unit))
 		"shield":
@@ -3281,7 +3374,7 @@ func _unit_index_by_id(unit_id: int) -> int:
 	return -1
 
 
-func _add_gold(team: int, amount: int) -> void:
+func _add_gold(team: int, amount: int, feedback_pos: Variant = null) -> void:
 	if amount <= 0:
 		return
 	if team == PLAYER:
@@ -3290,6 +3383,37 @@ func _add_gold(team: int, amount: int) -> void:
 		multiplayer_gold[team] = int(multiplayer_gold.get(team, STARTING_GOLD)) + amount
 	else:
 		enemy_gold += amount
+	if typeof(feedback_pos) == TYPE_VECTOR2:
+		_show_gold_gain_feedback(Vector2(feedback_pos), amount, team)
+
+
+func _unit_gold_feedback_position(unit: Dictionary) -> Vector2:
+	return Vector2(unit.get("pos", Vector2.ZERO)) + Vector2(0, -34)
+
+
+func _show_gold_gain_feedback(pos: Vector2, amount: int, team: int) -> void:
+	if amount <= 0:
+		return
+	for index in range(effects.size() - 1, -1, -1):
+		var effect: Dictionary = effects[index]
+		if String(effect.get("kind", "")) != "gold_gain" or int(effect.get("team", NEUTRAL)) != team:
+			continue
+		var duration = maxf(0.01, float(effect.get("duration", GOLD_GAIN_FEEDBACK_DURATION)))
+		var elapsed = duration - float(effect.get("time", 0.0))
+		if elapsed > GOLD_GAIN_FEEDBACK_MERGE_WINDOW or Vector2(effect.get("pos", pos)).distance_to(pos) > 18.0:
+			continue
+		effect["amount"] = int(effect.get("amount", 0)) + amount
+		effect["time"] = duration
+		effects[index] = effect
+		return
+	effects.append({
+		"kind": "gold_gain",
+		"pos": pos,
+		"team": team,
+		"amount": amount,
+		"time": GOLD_GAIN_FEEDBACK_DURATION,
+		"duration": GOLD_GAIN_FEEDBACK_DURATION,
+	})
 
 
 func _gold_for_team(team: int) -> int:
@@ -4576,6 +4700,7 @@ func _submit_account_login(register_new: bool) -> void:
 
 func _server_profile_snapshot() -> Dictionary:
 	var profile = RankingRules.normalize_profile(_player_profile())
+	_ensure_rank_database_shape()
 	return {
 		"card_counts": card_counts.duplicate(true),
 		"card_levels": card_levels.duplicate(true),
@@ -4584,6 +4709,7 @@ func _server_profile_snapshot() -> Dictionary:
 		"rank_stars": int(profile.get("stars", RankingRules.INITIAL_STARS)),
 		"rank_key": String(profile.get("rank_key", RankingRules.INITIAL_RANK_KEY)),
 		"elo": int(profile.get("elo", RankingRules.INITIAL_ELO)),
+		"rank_mirrors": (rank_db.get("mirrors", {}) as Dictionary).duplicate(true),
 	}
 
 
@@ -4604,6 +4730,8 @@ func _apply_server_profile(value: Variant) -> void:
 	rank_profile["stars"] = int(profile.get("rank_stars", rank_profile["stars"]))
 	rank_profile["elo"] = int(profile.get("elo", rank_profile["elo"]))
 	rank_db["player"] = RankingRules.normalize_profile(rank_profile)
+	if typeof(profile.get("rank_mirrors", {})) == TYPE_DICTIONARY and not (profile["rank_mirrors"] as Dictionary).is_empty():
+		rank_db["mirrors"] = (profile["rank_mirrors"] as Dictionary).duplicate(true)
 	_ensure_deck_valid()
 	_save_rank_database()
 
@@ -5213,16 +5341,9 @@ func _draw_tile(key: Vector2i, tile: Dictionary) -> void:
 		fill = Color(0.48, 0.50, 0.52, 0.82)
 		line = Color(0.28, 0.30, 0.32, 0.80)
 		line_width = 3.0
-	elif battle_mode == BATTLE_MODE_MULTIPLAYER and visual_team != NEUTRAL:
-		fill = _team_color(visual_team)
-		line = fill.darkened(0.34)
-		line_width = 3.0
-	elif visual_team == PLAYER:
-		fill = Color(0.49, 0.80, 0.39)
-		line = fill.darkened(0.34)
-		line_width = 3.0
-	elif visual_team == ENEMY:
-		fill = Color(0.95, 0.43, 0.39)
+	elif visual_team != NEUTRAL:
+		var is_really_unlocked = int(tile.get("team", NEUTRAL)) == visual_team
+		fill = _team_unlocked_color(visual_team) if is_really_unlocked else _team_territory_color(visual_team)
 		line = fill.darkened(0.34)
 		line_width = 3.0
 	if can_unlock:
@@ -5482,7 +5603,47 @@ func _team_health_color(team: int) -> Color:
 	return _team_color(team)
 
 
+func _initialize_battle_team_colors(match_seed: int) -> void:
+	team_territory_colors.clear()
+	team_unlocked_colors.clear()
+	var random = RandomNumberGenerator.new()
+	random.seed = posmod(hash("%d:team_palette" % match_seed), 2147483646) + 1
+	if battle_mode == BATTLE_MODE_MULTIPLAYER and not multiplayer_free_for_all:
+		var warm_rotation = random.randi_range(0, ROOM_WARM_HUES.size() - 1)
+		var cool_rotation = random.randi_range(0, ROOM_COOL_HUES.size() - 1)
+		for index in range(3):
+			var warm_hue = float(ROOM_WARM_HUES[(index + warm_rotation) % ROOM_WARM_HUES.size()])
+			var cool_hue = float(ROOM_COOL_HUES[(index + cool_rotation) % ROOM_COOL_HUES.size()])
+			_set_team_palette(index + 1, warm_hue + random.randf_range(-0.012, 0.012), random)
+			_set_team_palette(index + 4, cool_hue + random.randf_range(-0.012, 0.012), random)
+		return
+	var teams = MultiplayerRules.TEAM_IDS.duplicate() if battle_mode == BATTLE_MODE_MULTIPLAYER else [PLAYER, ENEMY]
+	var hue_offset = random.randf()
+	var hue_step = 1.0 / float(teams.size())
+	for index in range(teams.size()):
+		var hue = hue_offset + float(index) * hue_step + random.randf_range(-0.015, 0.015)
+		_set_team_palette(int(teams[index]), hue, random)
+
+
+func _set_team_palette(team: int, hue: float, random: RandomNumberGenerator) -> void:
+	var normalized_hue = fposmod(hue, 1.0)
+	var territory_saturation = random.randf_range(0.24, 0.30)
+	var unlocked_saturation = random.randf_range(0.36, 0.43)
+	team_territory_colors[team] = Color.from_hsv(
+		normalized_hue,
+		territory_saturation,
+		random.randf_range(0.84, 0.89)
+	)
+	team_unlocked_colors[team] = Color.from_hsv(
+		normalized_hue,
+		unlocked_saturation,
+		random.randf_range(0.72, 0.78)
+	)
+
+
 func _team_color(team: int) -> Color:
+	if team_unlocked_colors.has(team):
+		return team_unlocked_colors[team]
 	if battle_mode != BATTLE_MODE_MULTIPLAYER:
 		if team == PLAYER:
 			return COLOR_GREEN
@@ -5504,6 +5665,18 @@ func _team_color(team: int) -> Color:
 			return Color(0.51, 0.47, 0.65)
 		_:
 			return Color(0.70, 0.70, 0.64)
+
+
+func _team_territory_color(team: int) -> Color:
+	if team_territory_colors.has(team):
+		return team_territory_colors[team]
+	return _team_color(team).lerp(Color(0.82, 0.82, 0.78), 0.28)
+
+
+func _team_unlocked_color(team: int) -> Color:
+	if team_unlocked_colors.has(team):
+		return team_unlocked_colors[team]
+	return _team_color(team)
 
 
 func _draw_team_marker(center: Vector2, team: int) -> void:
@@ -5558,6 +5731,32 @@ func _draw_effect(effect: Dictionary) -> void:
 		var size = Vector2(88, 108) * popup_scale
 		var pos = _world_to_canvas(Vector2(effect["pos"])) + Vector2(0, -18.0 * progress)
 		_draw_card(Rect2(pos - size * 0.5, size), card, true)
+		return
+	if kind == "gold_gain":
+		var duration = maxf(0.01, float(effect.get("duration", GOLD_GAIN_FEEDBACK_DURATION)))
+		var progress = clampf(1.0 - float(effect.get("time", 0.0)) / duration, 0.0, 1.0)
+		var alpha = clampf(float(effect.get("time", 0.0)) / (duration * 0.34), 0.0, 1.0)
+		var rise = GOLD_GAIN_FEEDBACK_RISE * (1.0 - pow(1.0 - progress, 2.0))
+		var pos = _world_to_canvas(Vector2(effect.get("pos", Vector2.ZERO))) + Vector2(0, -rise)
+		var pop = 1.0 + 0.18 * sin(minf(progress / 0.24, 1.0) * PI)
+		var coin_center = pos + Vector2(-19, 0)
+		var coin_radius = 7.0 * pop
+		var shadow = Color(0.04, 0.05, 0.07, 0.34 * alpha)
+		var coin = Color(COLOR_GOLD, alpha)
+		var highlight = Color(1.0, 0.90, 0.42, alpha)
+		var ink = Color(COLOR_LINE, alpha)
+		draw_circle(coin_center + Vector2(0, 2), coin_radius + 1.5, shadow)
+		draw_circle(coin_center, coin_radius, coin)
+		draw_circle(coin_center + Vector2(-2, -2), coin_radius * 0.32, highlight)
+		draw_arc(coin_center, coin_radius + 0.8, 0.0, TAU, 18, ink, 1.5, true)
+		var amount_rect = Rect2(pos + Vector2(-8, -13), Vector2(58, 25))
+		_draw_text_center(
+			"+%d" % int(effect.get("amount", 0)),
+			Rect2(amount_rect.position + Vector2(1.5, 2.0), amount_rect.size),
+			17,
+			shadow
+		)
+		_draw_text_center("+%d" % int(effect.get("amount", 0)), amount_rect, 17, Color(1.0, 0.88, 0.30, alpha))
 		return
 	if kind == "projectile":
 		var duration = maxf(0.01, float(effect.get("duration", PROJECTILE_TIME)))
