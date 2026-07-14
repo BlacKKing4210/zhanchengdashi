@@ -33,6 +33,18 @@ func _ready() -> void:
 		"rank_stars": 8,
 		"rank_key": "gold",
 		"elo": 1234,
+		"rank_mirrors": {
+			"gold": [{
+				"mirror_id": "winner-1",
+				"player_id": "winner-user",
+				"rank_display": "黄金 3星",
+				"stars": 3,
+				"elo": 1300,
+				"deck": ["rabbit", "wolf"],
+				"card_levels": {"rabbit": 3, "wolf": 2, "unused": 99},
+				"created_at_unix": 123456,
+			}],
+		},
 	})
 	_expect(bool(saved.get("ok", false)), "saves the authenticated player's profile")
 	_expect(not bool(store.save_profile("invalid", {}).get("ok", true)), "rejects unauthenticated profile writes")
@@ -48,6 +60,11 @@ func _ready() -> void:
 	_expect(int((profile.get("card_levels", {}) as Dictionary).get("rabbit", 0)) == 3, "card stars survive server restart")
 	_expect((profile.get("deck", []) as Array) == ["rabbit", "wolf"], "deck survives server restart")
 	_expect(String(profile.get("rank_key", "")) == "gold", "rank tier survives server restart")
+	var rank_mirrors: Dictionary = profile.get("rank_mirrors", {})
+	_expect((rank_mirrors.get("gold", []) as Array).size() == 1, "rank winner lineup survives server restart")
+	var winner: Dictionary = (rank_mirrors["gold"] as Array)[0]
+	_expect((winner.get("deck", []) as Array) == ["rabbit", "wolf"], "winner lineup preserves its deck")
+	_expect(not (winner.get("card_levels", {}) as Dictionary).has("unused"), "winner lineup stores levels only for deck cards")
 	_expect(bool(reloaded.logout(String(relogin.get("session_token", ""))).get("ok", false)), "logout invalidates the session")
 
 	_cleanup()

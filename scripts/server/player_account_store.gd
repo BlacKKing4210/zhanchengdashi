@@ -187,7 +187,47 @@ func _normalize_profile(source: Dictionary) -> Dictionary:
 		"rank_stars": maxi(0, int(source.get("rank_stars", 1))),
 		"rank_key": String(source.get("rank_key", "bronze")).strip_edges(),
 		"elo": maxi(0, int(source.get("elo", 1000))),
+		"rank_mirrors": _normalize_rank_mirrors(source.get("rank_mirrors", {})),
 	}
+
+
+func _normalize_rank_mirrors(value: Variant) -> Dictionary:
+	var result = {}
+	if typeof(value) != TYPE_DICTIONARY:
+		return result
+	for raw_rank_key in value:
+		var rank_key = String(raw_rank_key).strip_edges().to_lower()
+		if rank_key.is_empty() or rank_key.length() > 24 or typeof(value[raw_rank_key]) != TYPE_ARRAY:
+			continue
+		var records = []
+		for raw_record in value[raw_rank_key]:
+			if typeof(raw_record) != TYPE_DICTIONARY:
+				continue
+			var record: Dictionary = raw_record
+			var record_deck = _string_array(record.get("deck", []), 8)
+			if record_deck.is_empty():
+				continue
+			var levels = _positive_int_dictionary(record.get("card_levels", {}), 1)
+			var deck_levels = {}
+			for card_id in record_deck:
+				deck_levels[card_id] = maxi(1, int(levels.get(card_id, 1)))
+			records.append({
+				"mirror_id": String(record.get("mirror_id", "")).strip_edges().left(80),
+				"player_id": String(record.get("player_id", "")).strip_edges().left(80),
+				"name": String(record.get("name", "")).strip_edges().left(40),
+				"rank_key": rank_key,
+				"rank_display": String(record.get("rank_display", "")).strip_edges().left(40),
+				"stars": maxi(0, int(record.get("stars", 0))),
+				"elo": maxi(0, int(record.get("elo", 0))),
+				"deck": record_deck,
+				"card_levels": deck_levels,
+				"created_at_unix": maxi(0, int(record.get("created_at_unix", 0))),
+			})
+			if records.size() >= 15:
+				break
+		if not records.is_empty():
+			result[rank_key] = records
+	return result
 
 
 func _positive_int_dictionary(value: Variant, minimum: int) -> Dictionary:
