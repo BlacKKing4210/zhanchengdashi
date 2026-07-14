@@ -4717,12 +4717,15 @@ func _apply_server_profile(value: Variant) -> void:
 	if typeof(value) != TYPE_DICTIONARY:
 		return
 	var profile: Dictionary = value
-	if typeof(profile.get("card_counts", {})) == TYPE_DICTIONARY and not (profile["card_counts"] as Dictionary).is_empty():
-		card_counts = (profile["card_counts"] as Dictionary).duplicate(true)
-	if typeof(profile.get("card_levels", {})) == TYPE_DICTIONARY and not (profile["card_levels"] as Dictionary).is_empty():
-		card_levels = (profile["card_levels"] as Dictionary).duplicate(true)
-	if typeof(profile.get("deck", [])) == TYPE_ARRAY and not (profile["deck"] as Array).is_empty():
-		deck = (profile["deck"] as Array).duplicate()
+	var remote_card_counts = profile.get("card_counts", {})
+	if typeof(remote_card_counts) == TYPE_DICTIONARY and not (remote_card_counts as Dictionary).is_empty():
+		card_counts = (remote_card_counts as Dictionary).duplicate(true)
+	var remote_card_levels = profile.get("card_levels", {})
+	if typeof(remote_card_levels) == TYPE_DICTIONARY and not (remote_card_levels as Dictionary).is_empty():
+		card_levels = (remote_card_levels as Dictionary).duplicate(true)
+	var remote_deck = profile.get("deck", [])
+	if typeof(remote_deck) == TYPE_ARRAY and not (remote_deck as Array).is_empty():
+		deck = (remote_deck as Array).duplicate()
 	gacha_tickets = maxi(0, int(profile.get("gacha_tickets", gacha_tickets)))
 	var rank_profile = RankingRules.normalize_profile(_player_profile())
 	rank_profile["player_id"] = OnlineRoom.current_user_id
@@ -4730,8 +4733,9 @@ func _apply_server_profile(value: Variant) -> void:
 	rank_profile["stars"] = int(profile.get("rank_stars", rank_profile["stars"]))
 	rank_profile["elo"] = int(profile.get("elo", rank_profile["elo"]))
 	rank_db["player"] = RankingRules.normalize_profile(rank_profile)
-	if typeof(profile.get("rank_mirrors", {})) == TYPE_DICTIONARY and not (profile["rank_mirrors"] as Dictionary).is_empty():
-		rank_db["mirrors"] = (profile["rank_mirrors"] as Dictionary).duplicate(true)
+	var remote_rank_mirrors = profile.get("rank_mirrors", {})
+	if typeof(remote_rank_mirrors) == TYPE_DICTIONARY and not (remote_rank_mirrors as Dictionary).is_empty():
+		rank_db["mirrors"] = (remote_rank_mirrors as Dictionary).duplicate(true)
 	_ensure_deck_valid()
 	_save_rank_database()
 
