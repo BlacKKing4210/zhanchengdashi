@@ -5342,8 +5342,7 @@ func _draw_tile(key: Vector2i, tile: Dictionary) -> void:
 		line = Color(0.28, 0.30, 0.32, 0.80)
 		line_width = 3.0
 	elif visual_team != NEUTRAL:
-		var is_really_unlocked = int(tile.get("team", NEUTRAL)) == visual_team
-		fill = _team_unlocked_color(visual_team) if is_really_unlocked else _team_territory_color(visual_team)
+		fill = _team_color(visual_team)
 		line = fill.darkened(0.34)
 		line_width = 3.0
 	if can_unlock:
@@ -5627,18 +5626,13 @@ func _initialize_battle_team_colors(match_seed: int) -> void:
 
 func _set_team_palette(team: int, hue: float, random: RandomNumberGenerator) -> void:
 	var normalized_hue = fposmod(hue, 1.0)
-	var territory_saturation = random.randf_range(0.24, 0.30)
-	var unlocked_saturation = random.randf_range(0.36, 0.43)
-	team_territory_colors[team] = Color.from_hsv(
+	var team_color = Color.from_hsv(
 		normalized_hue,
-		territory_saturation,
-		random.randf_range(0.84, 0.89)
+		random.randf_range(0.30, 0.36),
+		random.randf_range(0.78, 0.84)
 	)
-	team_unlocked_colors[team] = Color.from_hsv(
-		normalized_hue,
-		unlocked_saturation,
-		random.randf_range(0.72, 0.78)
-	)
+	team_territory_colors[team] = team_color
+	team_unlocked_colors[team] = team_color
 
 
 func _team_color(team: int) -> Color:
@@ -5668,9 +5662,7 @@ func _team_color(team: int) -> Color:
 
 
 func _team_territory_color(team: int) -> Color:
-	if team_territory_colors.has(team):
-		return team_territory_colors[team]
-	return _team_color(team).lerp(Color(0.82, 0.82, 0.78), 0.28)
+	return _team_color(team)
 
 
 func _team_unlocked_color(team: int) -> Color:

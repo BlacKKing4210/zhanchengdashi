@@ -96,9 +96,9 @@ func _test_team_palette() -> void:
 func _test_team_tile_colors(team: int) -> void:
 	var territory: Color = app.call("_team_territory_color", team)
 	var unlocked: Color = app.call("_team_unlocked_color", team)
-	_expect_true(_color_span(territory) <= 0.30, "team %d territory color stays low saturation" % team)
+	_expect_true(_color_span(territory) <= 0.36, "team %d territory color stays low saturation" % team)
 	_expect_true(_color_span(unlocked) <= 0.36, "team %d unlocked color stays low saturation" % team)
-	_expect_true(_color_delta(territory, unlocked) >= 0.12, "team %d territory and unlocked colors stay visibly distinct" % team)
+	_expect_true(_color_delta(territory, unlocked) <= 0.001, "team %d territory and unlocked tiles share one color" % team)
 
 
 func _test_board_input_guards() -> void:
