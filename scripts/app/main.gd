@@ -6402,11 +6402,14 @@ func _draw_card_detail(rect: Rect2) -> void:
 		_draw_detail_stat_icon_value(rect.position + Vector2(142, 18), "attack", str(int(stats["attack"])), COLOR_RED)
 		_draw_detail_stat_icon_value(rect.position + Vector2(232, 18), "hp", str(int(stats["max_hp"])), COLOR_RED)
 		_draw_text_center(_attack_range_label(float(stats["attack_range"])), Rect2(rect.position + Vector2(330, 20), Vector2(72, 28)), 18, COLOR_LINE)
+	var has_guaranteed_hp_growth = CardRules.is_ranged_or_summon_animal(card)
 	var skill_text = _card_detail_skill_text(card)
 	if skill_text != "":
-		_draw_text_center(skill_text, Rect2(rect.position + Vector2(138, 56), Vector2(370, 28)), 16, COLOR_PURPLE)
+		_draw_text_center(skill_text, Rect2(rect.position + Vector2(138, 54), Vector2(370, 22 if has_guaranteed_hp_growth else 28)), 16, COLOR_PURPLE)
+	if has_guaranteed_hp_growth:
+		_draw_text_center("远程/召唤：每2级+1生命", Rect2(rect.position + Vector2(138, 76), Vector2(370, 16)), 13, COLOR_GREEN)
 	var cost = _next_upgrade_cost(card_id)
-	_draw_upgrade_progress(Rect2(rect.position + Vector2(138, 92), Vector2(352, 18)), card_id, true)
+	_draw_upgrade_progress(Rect2(rect.position + Vector2(138, 94 if has_guaranteed_hp_growth else 92), Vector2(352, 18)), card_id, true)
 	if _can_show_equip_button(card_id):
 		_cta(_equip_button_rect(), "选择中" if pending_equip_card_id == card_id else "上阵", true)
 	_cta(_upgrade_button_rect(), "升级", cost >= 0 and _card_spare_count(card_id) >= cost)
