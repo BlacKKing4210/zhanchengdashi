@@ -127,6 +127,16 @@ const BUILDING_ART = {
 	"hall": preload("res://assets/art/buildings/hall.png"),
 }
 
+const RANK_CASTLE_ART = {
+	"bronze": preload("res://assets/art/buildings/rank_castles/castle_bronze.png"),
+	"silver": preload("res://assets/art/buildings/rank_castles/castle_silver.png"),
+	"gold": preload("res://assets/art/buildings/rank_castles/castle_gold.png"),
+	"platinum": preload("res://assets/art/buildings/rank_castles/castle_platinum.png"),
+	"diamond": preload("res://assets/art/buildings/rank_castles/castle_diamond.png"),
+	"star": preload("res://assets/art/buildings/rank_castles/castle_star.png"),
+	"king": preload("res://assets/art/buildings/rank_castles/castle_king.png"),
+}
+
 const NAV_ITEMS = [
 	{"id": "shop", "label": "商店", "locked": true},
 	{"id": SCREEN_DECK, "label": "编组", "locked": false},
@@ -270,6 +280,7 @@ func _ready() -> void:
 	_reset_battle()
 	_setup_online_room()
 	_setup_account_fields()
+	call_deferred("_auto_login_saved_account_on_startup")
 
 
 func _process(delta: float) -> void:
@@ -800,6 +811,19 @@ func _setup_online_room() -> void:
 	_connect_online_signal("account_state_changed", "_on_account_state_changed")
 	if bool(online_room_service.call("is_connected_to_server")):
 		online_connection_state = "connected"
+
+
+func _auto_login_saved_account_on_startup() -> void:
+	if get_tree().current_scene != self:
+		return
+	_auto_login_saved_account()
+
+
+func _auto_login_saved_account() -> void:
+	if online_room_service == null or not online_room_service.has_method("has_saved_login"):
+		return
+	if bool(online_room_service.call("has_saved_login")):
+		_ensure_online_room_connection()
 
 
 func _connect_online_signal(signal_name: String, method_name: String) -> void:
@@ -4904,7 +4928,7 @@ func _draw_lobby_screen() -> void:
 	var scene_rect = Rect2(58, 144, 604, 680)
 	_box(scene_rect, Color(0.39, 0.63, 0.87), COLOR_LINE, 5)
 	draw_rect(scene_rect.grow(-14), Color(0.48, 0.78, 0.39))
-	draw_texture_rect(BUILDING_ART["base"], Rect2(260, 260, 200, 200), false)
+	_draw_rank_castle(Rect2(224, 218, 272, 280))
 	_draw_lobby_deck_animals(scene_rect.grow(-34))
 	_draw_rank_panel(Rect2(58, 842, 604, 92))
 	_cta(_start_rect(), "单人对战", true)
@@ -5285,24 +5309,50 @@ func _draw_lobby_animal(area: Rect2, card: Dictionary, anchor: Vector2, index: i
 
 func _draw_rank_panel(rect: Rect2) -> void:
 	var state = _player_rank_state()
-	_box(rect, Color(0.16, 0.13, 0.38, 0.94), COLOR_LINE, 4)
-	_draw_text_fit(String(state["display"]), Rect2(rect.position + Vector2(22, 10), Vector2(260, 34)), 28, Color.WHITE)
-	_draw_text_right("段位赛", Rect2(rect.position + Vector2(350, 12), Vector2(228, 28)), 20, Color(0.88, 0.92, 1.0))
-	_draw_star_track(Rect2(rect.position + Vector2(22, 52), Vector2(176, 20)), int(state["stars"]), int(state["max_stars"]))
+	var visual = RankingRules.visual_for_key(String(state["key"]))
+	var panel_color = Color.from_string(String(visual.get("panel_color", "")), Color(0.16, 0.13, 0.38, 0.94))
+	var accent_color = Color.from_string(String(visual.get("accent_color", "")), COLOR_YELLOW)
+	var text_color = Color.from_string(String(visual.get("text_color", "")), Color.WHITE)
+	_box(rect, panel_color, COLOR_LINE, 4)
+	draw_rect(Rect2(rect.position + Vector2(5, 5), Vector2(7, rect.size.y - 10)), accent_color)
+	_draw_text_fit(String(state["display"]), Rect2(rect.position + Vector2(22, 10), Vector2(260, 34)), 28, text_color)
+	_draw_text_right("段位赛", Rect2(rect.position + Vector2(350, 12), Vector2(228, 28)), 20, text_color)
+	_draw_star_track(Rect2(rect.position + Vector2(22, 52), Vector2(176, 20)), int(state["stars"]), int(state["max_stars"]), accent_color, panel_color.lightened(0.18))
 	var profile = _player_profile()
-	_draw_text_fit("胜 %d  负 %d" % [int(profile.get("wins", 0)), int(profile.get("losses", 0))], Rect2(rect.position + Vector2(224, 52), Vector2(160, 24)), 18, Color(0.88, 0.92, 1.0))
+	_draw_text_fit("胜 %d  负 %d" % [int(profile.get("wins", 0)), int(profile.get("losses", 0))], Rect2(rect.position + Vector2(224, 52), Vector2(160, 24)), 18, text_color)
 
 
-func _draw_star_track(rect: Rect2, stars: int, max_stars: int) -> void:
-	if max_stars <= 0:
-		_draw_text_fit("王者星数 " + str(stars), rect, 18, COLOR_YELLOW)
+func _draw_rank_castle(rect: Rect2) -> void:
+	var state = _player_rank_state()
+	var visual = RankingRules.visual_for_key(String(state["key"]))
+	var castle_key = String(visual.get("castle_key", RankingRules.INITIAL_RANK_KEY))
+	var texture = RANK_CASTLE_ART.get(castle_key, RANK_CASTLE_ART[RankingRules.INITIAL_RANK_KEY]) as Texture2D
+	_draw_texture_contained(texture, rect)
+
+
+func _draw_texture_contained(texture: Texture2D, rect: Rect2) -> void:
+	if texture == null:
 		return
-	var gap = 10.0
-	var radius = 7.5
+	var texture_size = texture.get_size()
+	if texture_size.x <= 0.0 or texture_size.y <= 0.0:
+		return
+	var scale_factor = minf(rect.size.x / texture_size.x, rect.size.y / texture_size.y)
+	var draw_size = texture_size * scale_factor
+	var draw_rect = Rect2(rect.position + (rect.size - draw_size) * 0.5, draw_size)
+	draw_texture_rect(texture, draw_rect, false)
+
+
+func _draw_star_track(rect: Rect2, stars: int, max_stars: int, filled_color: Color = COLOR_YELLOW, empty_color: Color = Color(0.35, 0.34, 0.48)) -> void:
+	if max_stars <= 0:
+		_draw_text_fit("王者星数 " + str(stars), rect, 18, filled_color)
+		return
+	var gap = clampf(rect.size.x / float(max_stars * 3), 2.0, 10.0)
+	var radius = minf(7.5, (rect.size.x - gap * float(max_stars - 1)) / float(max_stars * 2))
+	radius = maxf(2.0, radius)
 	for i in range(max_stars):
 		var center = rect.position + Vector2(radius + float(i) * (radius * 2.0 + gap), rect.size.y * 0.5)
 		draw_circle(center + Vector2(0, 2), radius, Color(0, 0, 0, 0.22))
-		draw_circle(center, radius, COLOR_YELLOW if i < stars else Color(0.35, 0.34, 0.48))
+		draw_circle(center, radius, filled_color if i < stars else empty_color)
 		draw_arc(center, radius + 0.8, 0.0, TAU, 18, COLOR_LINE, 1.2, true)
 
 

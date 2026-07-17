@@ -16,6 +16,16 @@ const RANKS = [
 	{"key": "king", "name": "王者", "min_elo": 5000, "max_elo": -1, "max_stars": -1},
 ]
 
+const RANK_VISUALS = {
+	"bronze": {"castle_key": "bronze", "panel_color": "#513b33", "accent_color": "#c98733", "text_color": "#fff1d0"},
+	"silver": {"castle_key": "silver", "panel_color": "#384a5f", "accent_color": "#79a9e3", "text_color": "#eef5ff"},
+	"gold": {"castle_key": "gold", "panel_color": "#6b3a22", "accent_color": "#e6b83c", "text_color": "#fff0b0"},
+	"platinum": {"castle_key": "platinum", "panel_color": "#244d55", "accent_color": "#50b7b0", "text_color": "#dff8ef"},
+	"diamond": {"castle_key": "diamond", "panel_color": "#164b70", "accent_color": "#52c7f2", "text_color": "#e9fbff"},
+	"star": {"castle_key": "star", "panel_color": "#2d265d", "accent_color": "#a477f2", "text_color": "#ffd56b"},
+	"king": {"castle_key": "king", "panel_color": "#671f24", "accent_color": "#e3a52e", "text_color": "#fff1c2"},
+}
+
 
 static func default_profile() -> Dictionary:
 	return {
@@ -65,6 +75,11 @@ static func rank_for_key(rank_key: String) -> Dictionary:
 	if index >= 0:
 		return RANKS[index].duplicate(true)
 	return RANKS[0].duplicate(true)
+
+
+static func visual_for_key(rank_key: String) -> Dictionary:
+	var resolved_key = rank_key if RANK_VISUALS.has(rank_key) else INITIAL_RANK_KEY
+	return (RANK_VISUALS[resolved_key] as Dictionary).duplicate(true)
 
 
 static func rank_index_for_key(rank_key: String) -> int:
