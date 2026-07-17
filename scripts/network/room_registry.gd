@@ -28,7 +28,8 @@ func create_room(
 	peer_id_value: Variant,
 	player_name_value: Variant,
 	players_per_side_value: Variant = 1,
-	fill_with_ai_value: Variant = false
+	fill_with_ai_value: Variant = false,
+	player_rank_value: Variant = {}
 ) -> Dictionary:
 	var error = RoomProtocol.peer_id_error(peer_id_value)
 	if not error.is_empty():
@@ -63,7 +64,8 @@ func create_room(
 	room["slots"][1] = _human_participant(
 		peer_id,
 		RoomProtocol.normalized_player_name(String(player_name_value)),
-		1
+		1,
+		player_rank_value
 	)
 	_rooms[room_code] = room
 	_peer_rooms[peer_id] = room_code
@@ -81,7 +83,8 @@ func create_room(
 func join_room(
 	peer_id_value: Variant,
 	room_code_value: Variant,
-	player_name_value: Variant
+	player_name_value: Variant,
+	player_rank_value: Variant = {}
 ) -> Dictionary:
 	var error = RoomProtocol.peer_id_error(peer_id_value)
 	if not error.is_empty():
@@ -112,7 +115,8 @@ func join_room(
 	slots[team_id] = _human_participant(
 		peer_id,
 		RoomProtocol.normalized_player_name(String(player_name_value)),
-		join_order
+		join_order,
+		player_rank_value
 	)
 	_peer_rooms[peer_id] = room_code
 	_peer_teams[peer_id] = team_id
@@ -410,6 +414,8 @@ func snapshot_for_peer(peer_id_value: Variant) -> Dictionary:
 			"ready": false,
 			"is_local": false,
 			"is_host": false,
+			"rank_key": "bronze",
+			"rank_stars": 1,
 		}
 		if slots.has(team_id):
 			var participant: Dictionary = slots[team_id]
@@ -417,6 +423,8 @@ func snapshot_for_peer(peer_id_value: Variant) -> Dictionary:
 			slot["kind"] = kind
 			slot["display_name"] = String(participant["display_name"])
 			slot["ready"] = bool(participant["ready"])
+			slot["rank_key"] = String(participant.get("rank_key", "bronze"))
+			slot["rank_stars"] = maxi(1, int(participant.get("rank_stars", 1)))
 			if kind == "human":
 				var participant_peer_id = int(participant["peer_id"])
 				slot["peer_id"] = participant_peer_id
@@ -503,13 +511,16 @@ func _allocate_room_code() -> String:
 	return ""
 
 
-func _human_participant(peer_id: int, display_name: String, join_order: int) -> Dictionary:
+func _human_participant(peer_id: int, display_name: String, join_order: int, player_rank_value: Variant = {}) -> Dictionary:
+	var player_rank = player_rank_value if typeof(player_rank_value) == TYPE_DICTIONARY else {}
 	return {
 		"kind": "human",
 		"peer_id": peer_id,
 		"display_name": display_name,
 		"ready": false,
 		"join_order": join_order,
+		"rank_key": String(player_rank.get("rank_key", "bronze")),
+		"rank_stars": maxi(1, int(player_rank.get("rank_stars", player_rank.get("stars", 1)))),
 	}
 
 
@@ -521,6 +532,8 @@ func _ai_participant() -> Dictionary:
 		"ai_id": ai_id,
 		"display_name": "AI %d" % ai_id,
 		"ready": true,
+		"rank_key": "bronze",
+		"rank_stars": 1,
 	}
 
 

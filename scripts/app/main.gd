@@ -74,6 +74,8 @@ const GOLD_GAIN_FEEDBACK_MERGE_WINDOW = 0.18
 const UNIT_VALUE_FEEDBACK_DURATION = 0.90
 const UNIT_VALUE_FEEDBACK_RISE = 38.0
 const UNIT_VALUE_FEEDBACK_MERGE_WINDOW = 0.18
+const RESULT_PLAYER_ROW_HEIGHT = 72.0
+const RESULT_PLAYER_ROW_GAP = 10.0
 const ROOM_WARM_HUES = [0.015, 0.075, 0.135]
 const ROOM_COOL_HUES = [0.50, 0.59, 0.69]
 
@@ -225,6 +227,8 @@ var account_profile_signature = ""
 var battle_reward_given = false
 var last_battle_reward_tickets = 0
 var result_text = ""
+var result_player_entries = []
+var result_players_scroll = 0.0
 var toast_text = ""
 var toast_timer = 0.0
 var detail_pulse_timer = 0.0
@@ -294,6 +298,8 @@ func _process(delta: float) -> void:
 func _unhandled_input(event: InputEvent) -> void:
 	if screen == SCREEN_ROOM and _handle_online_room_keyboard(event):
 		return
+	if _handle_result_scroll_input(event):
+		return
 	if _handle_multiplayer_pointer_input(event):
 		return
 	if event is InputEventMouseButton:
@@ -338,6 +344,28 @@ func _restart_battle() -> void:
 		return
 	_reset_battle()
 	GameAudio.play_battle_music()
+
+
+func _handle_result_scroll_input(event: InputEvent) -> bool:
+	if screen != SCREEN_BATTLE or not game_over:
+		return false
+	_layout(get_viewport_rect().size)
+	if event is InputEventMouseButton and event.pressed and event.button_index in [MOUSE_BUTTON_WHEEL_UP, MOUSE_BUTTON_WHEEL_DOWN]:
+		var canvas_pos = _screen_to_canvas(event.position)
+		if _result_other_players_rect().has_point(canvas_pos):
+			_scroll_result_players(-82.0 if event.button_index == MOUSE_BUTTON_WHEEL_UP else 82.0)
+			return true
+	if event is InputEventScreenDrag:
+		var touch_pos = _screen_to_canvas(event.position)
+		if _result_other_players_rect().has_point(touch_pos):
+			_scroll_result_players(-event.relative.y / maxf(canvas_scale, 0.001))
+			return true
+	if event is InputEventMouseMotion and Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT):
+		var mouse_pos = _screen_to_canvas(event.position)
+		if _result_other_players_rect().has_point(mouse_pos):
+			_scroll_result_players(-event.relative.y / maxf(canvas_scale, 0.001))
+			return true
+	return false
 
 
 func _handle_multiplayer_pointer_input(event: InputEvent) -> bool:
@@ -440,8 +468,9 @@ func _handle_tap(screen_pos: Vector2) -> void:
 			return
 
 	if game_over:
-		GameAudio.play_sfx("ui_confirm")
-		_return_to_lobby()
+		if _result_return_rect().has_point(pos):
+			GameAudio.play_sfx("ui_confirm")
+			_return_to_lobby()
 		return
 
 	if pause_open:
@@ -1173,6 +1202,7 @@ func _apply_online_local_result(authority_outcome: String) -> void:
 	battle_reward_given = true
 	gacha_tickets += last_battle_reward_tickets
 	_apply_multiplayer_rank_result(local_outcome, last_multiplayer_star_delta)
+	_rebuild_result_player_entries()
 
 
 func _handle_online_room_keyboard(event: InputEvent) -> bool:
@@ -1795,6 +1825,8 @@ func _reset_battle() -> void:
 	pause_open = false
 	battle_reward_given = false
 	last_battle_reward_tickets = 0
+	result_player_entries.clear()
+	result_players_scroll = 0.0
 	result_text = ""
 	next_unit_id = 1
 	board_pointer_down = false
@@ -3978,6 +4010,7 @@ func _finish_battle(text: String, play_audio: bool = true) -> void:
 	if play_audio:
 		GameAudio.play_result("victory" if text == "胜利" else "defeat")
 	_apply_rank_result(text == "胜利")
+	_rebuild_result_player_entries()
 	if not battle_reward_given:
 		battle_reward_given = true
 		last_battle_reward_tickets = _battle_reward_tickets(text)
@@ -4148,6 +4181,7 @@ func _finish_multiplayer_battle(outcome: String, play_audio: bool = true) -> voi
 		battle_reward_given = true
 		gacha_tickets += last_battle_reward_tickets
 		_apply_multiplayer_rank_result(outcome, last_multiplayer_star_delta)
+		_rebuild_result_player_entries()
 		var star_text = ("+" if last_multiplayer_star_delta > 0 else "") + str(last_multiplayer_star_delta)
 		_toast("%s：%s星，%d张抽卡券" % [result_text, star_text, last_battle_reward_tickets])
 
@@ -4170,6 +4204,7 @@ func _finish_multiplayer_free_for_all(placement: int, play_audio: bool = true) -
 		battle_reward_given = true
 		gacha_tickets += last_battle_reward_tickets
 		_apply_multiplayer_rank_result("win" if multiplayer_placement == 1 else "loss", last_multiplayer_star_delta)
+		_rebuild_result_player_entries()
 		var star_text = ("+" if last_multiplayer_star_delta > 0 else "") + str(last_multiplayer_star_delta)
 		_toast("第%d名：%s星，%d张抽卡券" % [multiplayer_placement, star_text, last_battle_reward_tickets])
 
@@ -4197,6 +4232,134 @@ func _apply_multiplayer_rank_result(outcome: String, star_delta: int) -> void:
 	_save_rank_database()
 
 
+func _rebuild_result_player_entries() -> void:
+	result_player_entries.clear()
+	result_players_scroll = 0.0
+	if battle_mode == BATTLE_MODE_CLASSIC:
+		_build_classic_result_entries()
+		return
+	var local_team = _local_control_team()
+	var fallback_rank = RankingRules.rank_state_for_key_and_stars(
+		active_match_rank_key if active_match_rank_key != "" else String(_player_rank_state()["key"]),
+		active_match_player_stars if active_match_rank_key != "" else int(_player_rank_state()["stars"])
+	)
+	var live_ranking = _multiplayer_live_ranking()
+	for live_entry in live_ranking:
+		var team = int(live_entry.get("team", NEUTRAL))
+		if not multiplayer_placements.has(team):
+			multiplayer_placements[team] = int(live_entry.get("rank", result_player_entries.size() + 1))
+	if multiplayer_free_for_all:
+		multiplayer_placements[local_team] = multiplayer_placement
+	for team_value in _active_multiplayer_teams():
+		var team = int(team_value)
+		var placement = int(multiplayer_placements.get(team, _multiplayer_team_rank(team)))
+		var team_outcome = _result_outcome_for_team(team, local_team)
+		var star_delta = int(MultiplayerRules.placement_rewards(placement).get("star_delta", -1)) if multiplayer_free_for_all else int(_room_result_rewards(team_outcome).get("star_delta", -1))
+		var old_rank = _result_rank_state_for_team(team, fallback_rank)
+		var new_rank = RankingRules.star_result_for_delta(String(old_rank["key"]), int(old_rank["stars"]), star_delta)["new_rank"]
+		if team == local_team and not last_rank_result.is_empty():
+			old_rank = last_rank_result.get("old_rank", old_rank)
+			new_rank = last_rank_result.get("new_rank", new_rank)
+		result_player_entries.append(_result_player_entry(
+			team,
+			placement,
+			_result_player_name_for_team(team),
+			team == local_team,
+			old_rank,
+			new_rank,
+			star_delta
+		))
+	result_player_entries.sort_custom(func(a: Dictionary, b: Dictionary): return int(a.get("placement", 99)) < int(b.get("placement", 99)))
+
+
+func _build_classic_result_entries() -> void:
+	var local_won = result_text == "胜利"
+	var local_old = last_rank_result.get("old_rank", RankingRules.rank_state_for_key_and_stars(active_match_rank_key, active_match_player_stars))
+	var local_new = last_rank_result.get("new_rank", local_old)
+	result_player_entries.append(_result_player_entry(PLAYER, 1 if local_won else 2, _online_player_name(), true, local_old, local_new, 1 if local_won else -1))
+	var opponent_old = RankingRules.rank_state_for_key_and_stars(
+		String(active_match_mirror.get("rank_key", active_match_rank_key)),
+		int(active_match_mirror.get("stars", active_match_player_stars))
+	)
+	var opponent_delta = -1 if local_won else 1
+	var opponent_new = RankingRules.star_result_for_delta(String(opponent_old["key"]), int(opponent_old["stars"]), opponent_delta)["new_rank"]
+	result_player_entries.append(_result_player_entry(ENEMY, 2 if local_won else 1, String(active_match_mirror.get("name", "对手")), false, opponent_old, opponent_new, opponent_delta))
+	result_player_entries.sort_custom(func(a: Dictionary, b: Dictionary): return int(a.get("placement", 99)) < int(b.get("placement", 99)))
+
+
+func _result_outcome_for_team(team: int, local_team: int) -> String:
+	if multiplayer_free_for_all:
+		return "win" if int(multiplayer_placements.get(team, 99)) == 1 else "loss"
+	var same_side = _multiplayer_side_for_team(team) == _multiplayer_side_for_team(local_team)
+	if room_result == "draw":
+		return "draw"
+	if same_side:
+		return room_result
+	return "loss" if room_result == "win" else "win"
+
+
+func _result_player_name_for_team(team: int) -> String:
+	for slot_value in online_room_slots:
+		if typeof(slot_value) == TYPE_DICTIONARY and int((slot_value as Dictionary).get("team_id", NEUTRAL)) == team:
+			var slot_name = String((slot_value as Dictionary).get("display_name", "")).strip_edges()
+			if slot_name != "":
+				return slot_name
+	if room_human_teams.has(team):
+		return String(room_human_teams[team])
+	return "AI玩家%d" % team
+
+
+func _result_rank_state_for_team(team: int, fallback_rank: Dictionary) -> Dictionary:
+	for slot_value in online_room_slots:
+		if typeof(slot_value) != TYPE_DICTIONARY:
+			continue
+		var slot: Dictionary = slot_value
+		if int(slot.get("team_id", NEUTRAL)) != team:
+			continue
+		return RankingRules.rank_state_for_key_and_stars(
+			String(slot.get("rank_key", fallback_rank.get("key", "bronze"))),
+			int(slot.get("rank_stars", fallback_rank.get("stars", 1)))
+		)
+	return fallback_rank
+
+
+func _result_player_entry(team: int, placement: int, player_name: String, is_local: bool, old_rank: Dictionary, new_rank: Dictionary, star_delta: int) -> Dictionary:
+	return {
+		"team": team,
+		"placement": maxi(1, placement),
+		"name": player_name if player_name.strip_edges() != "" else "玩家%d" % team,
+		"is_local": is_local,
+		"old_rank_display": String(old_rank.get("display", RankingRules.display_for_key_and_stars(String(old_rank.get("key", "bronze")), int(old_rank.get("stars", 1))))),
+		"new_rank_display": String(new_rank.get("display", RankingRules.display_for_key_and_stars(String(new_rank.get("key", "bronze")), int(new_rank.get("stars", 1))))),
+		"star_delta": star_delta,
+	}
+
+
+func _result_other_entries() -> Array:
+	var others = []
+	for entry in result_player_entries:
+		if not bool(entry.get("is_local", false)):
+			others.append(entry)
+	return others
+
+
+func _result_other_players_rect() -> Rect2:
+	return Rect2(92, 530, 536, 328)
+
+
+func _result_return_rect() -> Rect2:
+	return Rect2(190, 900, 340, 64)
+
+
+func _result_players_max_scroll() -> float:
+	var content_height = float(_result_other_entries().size()) * (RESULT_PLAYER_ROW_HEIGHT + RESULT_PLAYER_ROW_GAP) - RESULT_PLAYER_ROW_GAP
+	return maxf(0.0, content_height - _result_other_players_rect().size.y)
+
+
+func _scroll_result_players(delta: float) -> void:
+	result_players_scroll = clampf(result_players_scroll + delta, 0.0, _result_players_max_scroll())
+
+
 func _multiplayer_timeout_result() -> String:
 	var comparison = _compare_multiplayer_side_scores(
 		_multiplayer_side_score(0),
@@ -4212,12 +4375,13 @@ func _multiplayer_timeout_result() -> String:
 func _multiplayer_timeout_placement() -> int:
 	var scores = _multiplayer_live_ranking()
 	multiplayer_placements.clear()
+	var local_placement = maxi(1, _active_multiplayer_teams().size())
 	for index in range(scores.size()):
 		var team = int(scores[index].get("team", NEUTRAL))
 		multiplayer_placements[team] = index + 1
 		if team == PLAYER:
-			return index + 1
-	return maxi(1, _active_multiplayer_teams().size())
+			local_placement = index + 1
+	return local_placement
 
 
 func _multiplayer_live_ranking() -> Array:
@@ -4649,7 +4813,6 @@ func _scroll_deck(amount: float) -> void:
 func _collection_view_rect() -> Rect2:
 	var frame = _collection_frame_rect()
 	return Rect2(frame.position + Vector2(20, 14), frame.size - Vector2(40, 28))
-
 
 func _collection_frame_rect() -> Rect2:
 	return Rect2(34, 714, 652, 414)
@@ -6029,23 +6192,59 @@ func _draw_pause_overlay() -> void:
 
 func _draw_result_overlay() -> void:
 	draw_rect(Rect2(Vector2.ZERO, DESIGN_SIZE), Color(0, 0, 0, 0.42))
-	var panel = Rect2(110, 420, 500, 340)
+	var panel = Rect2(60, 176, 600, 824)
 	_box(panel, Color(1.0, 0.96, 0.78), COLOR_LINE, 5)
 	var result_color = COLOR_YELLOW if result_text == "胜利" else (COLOR_BLUE if result_text == "平局" else COLOR_RED)
 	if battle_mode == BATTLE_MODE_MULTIPLAYER and multiplayer_free_for_all:
 		result_color = COLOR_YELLOW if multiplayer_placement == 1 else (COLOR_BLUE if multiplayer_placement <= 3 else COLOR_RED)
-	_draw_text_center(result_text, Rect2(panel.position + Vector2(0, 48), Vector2(panel.size.x, 68)), 52, result_color)
+	_draw_text_center(result_text, Rect2(panel.position + Vector2(0, 24), Vector2(panel.size.x, 56)), 42, result_color)
 	var reward_tickets = last_battle_reward_tickets if last_battle_reward_tickets > 0 else _battle_reward_tickets(result_text)
 	if battle_mode == BATTLE_MODE_MULTIPLAYER:
 		var star_text = ("+" if last_multiplayer_star_delta > 0 else "") + str(last_multiplayer_star_delta)
-		_draw_text_center("奖励：%s星  %d抽卡券" % [star_text, reward_tickets], Rect2(panel.position + Vector2(0, 128), Vector2(panel.size.x, 36)), 24, COLOR_LINE)
+		_draw_text_center("奖励：%s星  %d抽卡券" % [star_text, reward_tickets], Rect2(panel.position + Vector2(0, 82), Vector2(panel.size.x, 32)), 21, COLOR_LINE)
 	else:
-		_draw_text_center("奖励：+%d 抽卡券" % reward_tickets, Rect2(panel.position + Vector2(0, 128), Vector2(panel.size.x, 36)), 24, COLOR_LINE)
-	_draw_text_center(_rank_result_text(), Rect2(panel.position + Vector2(0, 170), Vector2(panel.size.x, 36)), 24, COLOR_PURPLE)
-	var return_text = "点击任意位置返回主界面"
-	if battle_mode == BATTLE_MODE_MULTIPLAYER and not multiplayer_free_for_all:
-		return_text = "点击任意位置返回房间"
-	_draw_text_center(return_text, Rect2(panel.position + Vector2(0, 220), Vector2(panel.size.x, 40)), 24, COLOR_LINE)
+		_draw_text_center("奖励：+%d 抽卡券" % reward_tickets, Rect2(panel.position + Vector2(0, 82), Vector2(panel.size.x, 32)), 21, COLOR_LINE)
+	_draw_text_center("我的结算", Rect2(92, 302, 536, 28), 20, COLOR_PURPLE)
+	var local_entry = {}
+	for entry in result_player_entries:
+		if bool(entry.get("is_local", false)):
+			local_entry = entry
+			break
+	if not local_entry.is_empty():
+		_draw_result_player_row(Rect2(92, 336, 536, 112), local_entry, true)
+	_draw_text_fit("其他玩家（上下滑动查看）", Rect2(92, 486, 536, 30), 20, COLOR_LINE)
+	var other_rect = _result_other_players_rect()
+	draw_rect(other_rect, Color(0.20, 0.17, 0.28, 0.08))
+	var others = _result_other_entries()
+	result_players_scroll = clampf(result_players_scroll, 0.0, _result_players_max_scroll())
+	for index in range(others.size()):
+		var row = Rect2(other_rect.position + Vector2(0, float(index) * (RESULT_PLAYER_ROW_HEIGHT + RESULT_PLAYER_ROW_GAP) - result_players_scroll), Vector2(other_rect.size.x - (12.0 if _result_players_max_scroll() > 0.0 else 0.0), RESULT_PLAYER_ROW_HEIGHT))
+		if row.position.y < other_rect.position.y or row.end.y > other_rect.end.y:
+			continue
+		_draw_result_player_row(row, others[index], false)
+	if _result_players_max_scroll() > 0.0:
+		var track = Rect2(other_rect.end.x - 7, other_rect.position.y + 4, 4, other_rect.size.y - 8)
+		draw_rect(track, Color(0.18, 0.16, 0.25, 0.20))
+		var thumb_height = maxf(42.0, track.size.y * other_rect.size.y / (other_rect.size.y + _result_players_max_scroll()))
+		var thumb_y = track.position.y + (track.size.y - thumb_height) * result_players_scroll / _result_players_max_scroll()
+		draw_rect(Rect2(track.position.x, thumb_y, track.size.x, thumb_height), COLOR_PURPLE)
+	_cta(_result_return_rect(), "返回房间" if battle_mode == BATTLE_MODE_MULTIPLAYER and not multiplayer_free_for_all else "返回主界面", true)
+
+
+func _draw_result_player_row(rect: Rect2, entry: Dictionary, is_local: bool) -> void:
+	var fill = Color(1.0, 0.84, 0.30, 0.24) if is_local else Color(1.0, 1.0, 1.0, 0.72)
+	var line = COLOR_GOLD if is_local else Color(0.20, 0.18, 0.28, 0.46)
+	_box(rect, fill, line, 4 if is_local else 2)
+	var placement = int(entry.get("placement", 0))
+	draw_circle(rect.position + Vector2(32, rect.size.y * 0.5), 20.0, COLOR_GOLD if placement == 1 else COLOR_PURPLE)
+	_draw_text_center(str(placement), Rect2(rect.position + Vector2(12, rect.size.y * 0.5 - 20), Vector2(40, 40)), 22, Color.WHITE)
+	var badge = "  自己" if is_local else ""
+	_draw_text_fit("第%d名  %s%s" % [placement, String(entry.get("name", "玩家")), badge], Rect2(rect.position + Vector2(66, 8), Vector2(rect.size.x - 82, 28)), 20, COLOR_LINE)
+	var delta = int(entry.get("star_delta", 0))
+	var delta_text = ("+" if delta > 0 else "") + str(delta)
+	var delta_color = COLOR_GREEN if delta > 0 else (COLOR_RED if delta < 0 else COLOR_BLUE)
+	_draw_text_fit("%s  →  %s" % [String(entry.get("old_rank_display", "")), String(entry.get("new_rank_display", ""))], Rect2(rect.position + Vector2(66, rect.size.y - 34), Vector2(rect.size.x - 150, 26)), 17, COLOR_PURPLE)
+	_draw_text_right("%s星" % delta_text, Rect2(rect.end.x - 82, rect.position.y + rect.size.y * 0.5 - 13, 68, 26), 19, delta_color)
 
 
 func _draw_card(rect: Rect2, card: Dictionary, selected: bool) -> void:

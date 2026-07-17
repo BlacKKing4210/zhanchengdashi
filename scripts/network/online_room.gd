@@ -452,6 +452,7 @@ func _rpc_request_create_room(
 		_sanitize_player_name(player_name, sender),
 		int(safe_options["players_per_side"]),
 		bool(safe_options["fill_with_ai"]),
+		_server_rank_profile(sender),
 	])
 	if not bool(result.get("ok", false)):
 		_send_operation_result(sender, "create_room", result)
@@ -475,6 +476,7 @@ func _rpc_request_join_room(room_code: String, player_name: String) -> void:
 		sender,
 		_sanitize_room_code(room_code),
 		_sanitize_player_name(player_name, sender),
+		_server_rank_profile(sender),
 	])
 	if not bool(result.get("ok", false)):
 		_send_operation_result(sender, "join_room", result)
@@ -785,6 +787,24 @@ func _registry_snapshot(peer_id: int) -> Dictionary:
 	if bool(result.get("ok", false)):
 		return result.duplicate(true)
 	return {}
+
+
+func _server_rank_profile(peer_id: int) -> Dictionary:
+	if _account_store == null:
+		return {}
+	var session_token = String(_server_peer_sessions.get(peer_id, ""))
+	if session_token.is_empty():
+		return {}
+	var result = _account_store.call("profile_for_session", session_token)
+	if typeof(result) != TYPE_DICTIONARY or not bool((result as Dictionary).get("ok", false)):
+		return {}
+	var profile = (result as Dictionary).get("profile", {})
+	if typeof(profile) != TYPE_DICTIONARY:
+		return {}
+	return {
+		"rank_key": String((profile as Dictionary).get("rank_key", "bronze")),
+		"rank_stars": maxi(1, int((profile as Dictionary).get("rank_stars", 1))),
+	}
 
 
 func _registry_call(method: String, arguments: Array) -> Dictionary:

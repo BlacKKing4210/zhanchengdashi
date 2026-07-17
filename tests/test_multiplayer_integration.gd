@@ -25,6 +25,7 @@ func _ready() -> void:
 	_test_team_survival_and_loss_rewards()
 	_test_win_rewards()
 	_test_draw_rewards()
+	_test_result_player_list()
 	if failures == 0:
 		print("Room-mode integration tests passed.")
 	app.queue_free()
@@ -194,6 +195,23 @@ func _test_draw_rewards() -> void:
 	_expect_equal(String(app.get("room_result")), "draw", "tied room result is recorded")
 	_expect_equal(int(app.get("last_multiplayer_star_delta")), 0, "draw keeps star count unchanged")
 	_expect_equal(int(app.get("last_battle_reward_tickets")), 2, "draw receives two tickets")
+
+
+func _test_result_player_list() -> void:
+	app.call("_start_multiplayer_match", "3v3_crossroads", 3)
+	app.call("_finish_multiplayer_battle", "win", false)
+	var entries: Array = app.get("result_player_entries")
+	_expect_equal(entries.size(), 6, "3v3 settlement lists every player")
+	var local_count = 0
+	for entry in entries:
+		if bool(entry.get("is_local", false)):
+			local_count += 1
+			_expect_equal(int(entry.get("star_delta", 0)), 3, "local settlement row shows the awarded stars")
+	_expect_equal(local_count, 1, "settlement has one fixed local-player row")
+	_expect_equal((app.call("_result_other_entries") as Array).size(), 5, "all other players remain in the scrollable list")
+	_expect_true(float(app.call("_result_players_max_scroll")) > 0.0, "six-player settlement has scrollable overflow")
+	app.call("_scroll_result_players", 9999.0)
+	_expect_equal(float(app.get("result_players_scroll")), float(app.call("_result_players_max_scroll")), "settlement scrolling clamps at the final player")
 
 
 func _territory_count(tiles: Dictionary, team: int) -> int:

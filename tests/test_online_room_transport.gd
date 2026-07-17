@@ -81,6 +81,10 @@ func _run_loopback_test() -> void:
 		int((host.get("current_room_snapshot") as Dictionary).get("local_team_id", 0)) != int((guest.get("current_room_snapshot") as Dictionary).get("local_team_id", 0)),
 		"server assigns distinct player slots"
 	)
+	for slot_value in (host.get("current_room_snapshot") as Dictionary).get("slots", []):
+		if typeof(slot_value) == TYPE_DICTIONARY and String((slot_value as Dictionary).get("kind", "")) == "human":
+			_expect_true(String((slot_value as Dictionary).get("rank_key", "")).length() > 0, "room snapshot includes each human player's rank tier")
+			_expect_true(int((slot_value as Dictionary).get("rank_stars", 0)) > 0, "room snapshot includes each human player's rank stars")
 
 	guest.operation_failed.connect(func(operation: String, _error: String):
 		if operation == "update_room_options":

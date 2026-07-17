@@ -93,6 +93,8 @@ func _test_classic_base_results() -> void:
 	_expect_true(bool(app.get("game_over")), "destroying enemy base ends classic battle")
 	_expect_equal(String(app.get("result_text")), "胜利", "destroying enemy base remains a win")
 	_expect_equal(int(app.get("last_battle_reward_tickets")), 3, "classic win keeps three-ticket reward")
+	_expect_equal((app.get("result_player_entries") as Array).size(), 2, "classic settlement lists both players")
+	_expect_equal((app.call("_result_other_entries") as Array).size(), 1, "classic opponent appears below the fixed local row")
 
 	app.call("_start_match", "1v1_diamond")
 	base_keys = app.get("classic_base_keys")
