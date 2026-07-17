@@ -16,8 +16,8 @@ signal operation_completed(operation: String, result: Dictionary)
 signal operation_failed(operation: String, error: String)
 signal room_snapshot_changed(snapshot: Dictionary)
 signal room_left
-signal match_started(match: Dictionary)
-signal authority_changed(match: Dictionary)
+signal match_started(match_data: Dictionary)
+signal authority_changed(match_data: Dictionary)
 signal battle_command_received(envelope: Dictionary)
 signal authority_snapshot_received(envelope: Dictionary)
 signal account_state_changed(state: Dictionary)
@@ -29,6 +29,7 @@ const DEFAULT_MAX_CLIENTS = 64
 const CHANNEL_COUNT = 3
 const REGISTRY_PATH = "res://scripts/network/room_registry.gd"
 const ACCOUNT_STORE_PATH = "res://scripts/server/player_account_store.gd"
+const MATCH_ANALYTICS_STORE_PATH = "res://scripts/server/match_analytics_store.gd"
 const DEVICE_CREDENTIAL_PATH = "user://client/device_account.json"
 const MAX_PLAYER_NAME_LENGTH = 24
 const MAX_COMMAND_BYTES = 64 * 1024
@@ -52,6 +53,7 @@ var current_match: Dictionary = {}
 var last_operation_error = ""
 var current_user_id = ""
 var current_profile: Dictionary = {}
+var current_account_summaries: Array = []
 
 var _enet_peer: ENetMultiplayerPeer
 var _client_connected = false
@@ -62,7 +64,9 @@ var _server_room_options: Dictionary = {}
 var _server_room_matches: Dictionary = {}
 var _server_authority_sequences: Dictionary = {}
 var _server_match_serial = 0
+var _server_boot_nonce = ""
 var _account_store: Variant
+var _match_analytics_store: Variant
 var _server_peer_sessions: Dictionary = {}
 var _client_session_token = ""
 var _device_credential_path = DEVICE_CREDENTIAL_PATH
@@ -94,11 +98,18 @@ func start_server(
 	server_port = requested_port if requested_port > 0 else default_server_port()
 	_registry = registry_override if registry_override != null else _create_registry()
 	_account_store = _create_account_store()
+	_match_analytics_store = _create_match_analytics_store()
+	_server_boot_nonce = Crypto.new().generate_random_bytes(6).hex_encode()
 	if _registry == null:
 		return _server_start_failed(ERR_CANT_CREATE, "RoomRegistry 无法加载")
 
 	if _account_store == null:
 		return _server_start_failed(ERR_CANT_CREATE, "PlayerAccountStore could not load")
+	if _match_analytics_store == null:
+		return _server_start_failed(ERR_CANT_CREATE, "MatchAnalyticsStore could not load")
+	var catalog_result = _match_analytics_store.call("register_animal_catalog", _server_animal_catalog())
+	if typeof(catalog_result) != TYPE_DICTIONARY or not bool((catalog_result as Dictionary).get("ok", false)):
+		return _server_start_failed(ERR_CANT_CREATE, "MatchAnalyticsStore could not write the animal catalog")
 
 	_enet_peer = ENetMultiplayerPeer.new()
 	_enet_peer.set_bind_ip(bind_host)
@@ -158,8 +169,10 @@ func stop_transport() -> void:
 	_server_room_options.clear()
 	_server_room_matches.clear()
 	_server_authority_sequences.clear()
+	_server_boot_nonce = ""
 	_server_peer_sessions.clear()
 	_account_store = null
+	_match_analytics_store = null
 	_clear_account_state()
 	_clear_client_room_state(false)
 	_stopping = false
@@ -291,7 +304,9 @@ func register_account(account: String, password: String) -> bool:
 func login_account(account: String, password: String) -> bool:
 	if not _require_client_connection("login_account"):
 		return false
-	rpc_id(SERVER_PEER_ID, "_rpc_request_login_account", account, password)
+	if _installation_id.is_empty():
+		_load_or_create_device_credentials()
+	rpc_id(SERVER_PEER_ID, "_rpc_request_login_account", account, password, _installation_id, _refresh_token)
 	return true
 
 
@@ -304,11 +319,41 @@ func authenticate_default_account() -> bool:
 	return true
 
 
+func has_saved_login() -> bool:
+	return (
+		_installation_id.length() == 64
+		and _installation_id.is_valid_hex_number(false)
+		and _refresh_token.length() == 64
+		and _refresh_token.is_valid_hex_number(false)
+	)
+
+
 func logout_account() -> bool:
 	if not _require_client_connection("logout_account"):
 		_clear_account_state()
 		return false
 	rpc_id(SERVER_PEER_ID, "_rpc_request_logout_account", _client_session_token)
+	return true
+
+
+func request_account_summaries() -> bool:
+	if not _require_client_connection("list_accounts"):
+		return false
+	rpc_id(SERVER_PEER_ID, "_rpc_request_account_summaries", _client_session_token)
+	return true
+
+
+func switch_account(user_id: String) -> bool:
+	if not _require_client_connection("switch_account"):
+		return false
+	rpc_id(SERVER_PEER_ID, "_rpc_request_switch_account", _client_session_token, user_id)
+	return true
+
+
+func create_new_account() -> bool:
+	if not _require_client_connection("create_new_account"):
+		return false
+	rpc_id(SERVER_PEER_ID, "_rpc_request_create_new_account", _client_session_token)
 	return true
 
 
@@ -381,12 +426,25 @@ func _rpc_request_register_account(account: String, password: String) -> void:
 
 
 @rpc("any_peer", "call_remote", "reliable", 0)
-func _rpc_request_login_account(account: String, password: String) -> void:
+func _rpc_request_login_account(
+	account: String,
+	password: String,
+	installation_id: String = "",
+	refresh_token: String = ""
+) -> void:
 	if not _accept_server_request():
 		return
 	var sender = multiplayer.get_remote_sender_id()
-	var result: Dictionary = _account_store.call("login", account, password)
+	var result: Dictionary = _account_store.call(
+		"login",
+		account,
+		password,
+		installation_id,
+		refresh_token,
+		_server_animal_card_ids()
+	)
 	if bool(result.get("ok", false)):
+		_invalidate_server_peer_session(sender)
 		_server_peer_sessions[sender] = String(result.get("session_token", ""))
 	_send_operation_result(sender, "login_account", result)
 
@@ -396,8 +454,15 @@ func _rpc_request_authenticate_installation(installation_id: String, refresh_tok
 	if not _accept_server_request():
 		return
 	var sender = multiplayer.get_remote_sender_id()
-	var result: Dictionary = _account_store.call("authenticate_installation", installation_id, refresh_token)
+	var result: Dictionary = _account_store.call(
+		"authenticate_installation",
+		installation_id,
+		refresh_token,
+		_server_starter_profile(),
+		_server_animal_card_ids()
+	)
 	if bool(result.get("ok", false)):
+		_invalidate_server_peer_session(sender)
 		_server_peer_sessions[sender] = String(result.get("session_token", ""))
 	_send_operation_result(sender, "authenticate_installation", result)
 
@@ -413,6 +478,54 @@ func _rpc_request_logout_account(session_token: String) -> void:
 	var result: Dictionary = _account_store.call("logout", session_token)
 	_server_peer_sessions.erase(sender)
 	_send_operation_result(sender, "logout_account", result)
+
+
+@rpc("any_peer", "call_remote", "reliable", 0)
+func _rpc_request_account_summaries(session_token: String) -> void:
+	if not _accept_server_request():
+		return
+	var sender = multiplayer.get_remote_sender_id()
+	if session_token != String(_server_peer_sessions.get(sender, "")):
+		_send_operation_result(sender, "list_accounts", _failure("invalid_session"))
+		return
+	_send_operation_result(sender, "list_accounts", _account_store.call(
+		"account_summaries_for_session",
+		session_token,
+		_server_animal_card_ids()
+	))
+
+
+@rpc("any_peer", "call_remote", "reliable", 0)
+func _rpc_request_switch_account(session_token: String, user_id: String) -> void:
+	if not _accept_server_request():
+		return
+	var sender = multiplayer.get_remote_sender_id()
+	if session_token != String(_server_peer_sessions.get(sender, "")):
+		_send_operation_result(sender, "switch_account", _failure("invalid_session"))
+		return
+	var result: Dictionary = _account_store.call("switch_account", session_token, user_id, _server_animal_card_ids())
+	if bool(result.get("ok", false)) and result.has("session_token"):
+		_server_peer_sessions[sender] = String(result.get("session_token", ""))
+	_send_operation_result(sender, "switch_account", result)
+
+
+@rpc("any_peer", "call_remote", "reliable", 0)
+func _rpc_request_create_new_account(session_token: String) -> void:
+	if not _accept_server_request():
+		return
+	var sender = multiplayer.get_remote_sender_id()
+	if session_token != String(_server_peer_sessions.get(sender, "")):
+		_send_operation_result(sender, "create_new_account", _failure("invalid_session"))
+		return
+	var result: Dictionary = _account_store.call(
+		"create_account_for_session",
+		session_token,
+		_server_starter_profile(),
+		_server_animal_card_ids()
+	)
+	if bool(result.get("ok", false)) and result.has("session_token"):
+		_server_peer_sessions[sender] = String(result.get("session_token", ""))
+	_send_operation_result(sender, "create_new_account", result)
 
 
 @rpc("any_peer", "call_remote", "reliable", 0)
@@ -574,17 +687,17 @@ func _rpc_submit_battle_command(command: Dictionary) -> void:
 		_send_operation_result(sender, "battle_command", _failure("战斗命令过大"))
 		return
 	var room_code = _server_room_code(sender)
-	var match = _server_room_matches.get(room_code, {})
-	if room_code.is_empty() or match.is_empty():
+	var server_match = _server_room_matches.get(room_code, {})
+	if room_code.is_empty() or server_match.is_empty():
 		_send_operation_result(sender, "battle_command", _failure("比赛尚未开始"))
 		return
-	var authority_peer_id = int(match.get("authority_peer_id", 0))
+	var authority_peer_id = int(server_match.get("authority_peer_id", 0))
 	if authority_peer_id <= SERVER_PEER_ID or not _server_peer_rooms.has(authority_peer_id):
 		_send_operation_result(sender, "battle_command", _failure("房主权威端已离线"))
 		return
 	var assignment = _registry_call("assignment_for_peer", [sender])
 	var envelope = {
-		"match_id": String(match.get("match_id", "")),
+		"match_id": String(server_match.get("match_id", "")),
 		"sender_peer_id": sender,
 		"sender_team_id": int(assignment.get("team_id", 0)),
 		"command": command.duplicate(true),
@@ -600,18 +713,19 @@ func _rpc_submit_authority_snapshot(snapshot: Dictionary) -> void:
 	if not _payload_fits(snapshot, MAX_SNAPSHOT_BYTES):
 		return
 	var room_code = _server_room_code(sender)
-	var match = _server_room_matches.get(room_code, {})
-	if room_code.is_empty() or match.is_empty():
+	var server_match = _server_room_matches.get(room_code, {})
+	if room_code.is_empty() or server_match.is_empty():
 		return
-	if sender != int(match.get("authority_peer_id", 0)):
+	if sender != int(server_match.get("authority_peer_id", 0)):
 		return
 	var previous_sequence = int(_server_authority_sequences.get(room_code, -1))
 	var sequence = int(snapshot.get("sequence", previous_sequence + 1))
 	if sequence <= previous_sequence:
 		return
 	_server_authority_sequences[room_code] = sequence
+	_try_finalize_server_match_analytics(room_code, server_match, snapshot)
 	var envelope = {
-		"match_id": String(match.get("match_id", "")),
+		"match_id": String(server_match.get("match_id", "")),
 		"authority_peer_id": sender,
 		"sequence": sequence,
 		"snapshot": snapshot.duplicate(true),
@@ -643,8 +757,8 @@ func _rpc_receive_room_left() -> void:
 
 
 @rpc("authority", "call_remote", "reliable", 0)
-func _rpc_receive_match_started(match: Dictionary) -> void:
-	current_match = match.duplicate(true)
+func _rpc_receive_match_started(match_data: Dictionary) -> void:
+	current_match = match_data.duplicate(true)
 	match_started.emit(current_match.duplicate(true))
 
 
@@ -697,13 +811,14 @@ func _start_network_match(room_code: String, start_result: Dictionary) -> void:
 		"authority_peer_id",
 		host_snapshot.get("authority_peer_id", host_snapshot.get("host_peer_id", 0))
 	))
-	var match_id = "%s-%d-%d" % [
+	var match_id = "%s-%d-%s-%d" % [
 		room_code,
 		int(Time.get_unix_time_from_system()),
+		_server_boot_nonce,
 		_server_match_serial,
 	]
 	var match_seed = posmod(hash("%s:%s" % [match_id, map_id]), 2147483646) + 1
-	var match = {
+	var match_data = {
 		"room_code": room_code,
 		"match_id": match_id,
 		"map_id": map_id,
@@ -711,16 +826,228 @@ func _start_network_match(room_code: String, start_result: Dictionary) -> void:
 		"match_seed": match_seed,
 		"authority_peer_id": authority_peer_id,
 	}
-	_server_room_matches[room_code] = match
+	var analytics_roster = _server_match_roster(room_code)
+	var expected_human_count = players_per_side * 2
+	var analytics_result = _failure("incomplete_human_roster")
+	if _server_roster_is_valid_for_analytics(analytics_roster, expected_human_count):
+		analytics_result = _start_server_match_analytics(match_data, analytics_roster)
+	match_data["analytics_tracked"] = bool(analytics_result.get("ok", false))
+	match_data["analytics_catalog_available"] = bool(analytics_result.get("animal_catalog_available", false))
+	_server_room_matches[room_code] = match_data
 	_server_authority_sequences[room_code] = -1
 	for peer_id_value in peer_ids:
 		var peer_id = int(peer_id_value)
 		var snapshot = _snapshot_with_transport_fields(peer_id)
-		var payload = match.duplicate(true)
+		var payload = match_data.duplicate(true)
 		payload["local_team_id"] = int(snapshot.get("local_team_id", 0))
 		payload["is_authority"] = peer_id == authority_peer_id
 		payload["room_snapshot"] = snapshot
 		rpc_id(peer_id, "_rpc_receive_match_started", payload)
+
+
+func _start_server_match_analytics(match_data: Dictionary, roster: Array) -> Dictionary:
+	if _match_analytics_store == null:
+		return _failure("analytics_unavailable")
+	if roster.is_empty():
+		return _failure("no_authenticated_players")
+	var result = _match_analytics_store.call("begin_match", {
+		"match_id": String(match_data.get("match_id", "")),
+		"room_code": String(match_data.get("room_code", "")),
+		"map_id": String(match_data.get("map_id", "")),
+		"started_at_unix": int(Time.get_unix_time_from_system()),
+	}, roster, _server_animal_catalog())
+	return (result as Dictionary).duplicate(true) if typeof(result) == TYPE_DICTIONARY else _failure("analytics_invalid_result")
+
+
+func _try_finalize_server_match_analytics(room_code: String, match_data: Dictionary, snapshot: Dictionary) -> void:
+	if _match_analytics_store == null or not bool(match_data.get("analytics_tracked", false)):
+		return
+	if not bool(snapshot.get("game_over", false)):
+		return
+	var match_id = String(match_data.get("match_id", ""))
+	if match_id.is_empty():
+		return
+	var snapshot_match_id = String(snapshot.get("match_id", ""))
+	if snapshot_match_id != match_id:
+		return
+	var terminal_result = _server_terminal_result_from_snapshot(snapshot)
+	var team_outcomes = terminal_result.get("team_outcomes", {})
+	if typeof(team_outcomes) != TYPE_DICTIONARY or (team_outcomes as Dictionary).is_empty():
+		return
+	_match_analytics_store.call(
+		"finalize_match",
+		match_id,
+		terminal_result
+	)
+
+
+func _server_terminal_result_from_snapshot(snapshot: Dictionary) -> Dictionary:
+	var team_outcomes: Dictionary = {}
+	var placements_by_team: Dictionary = {}
+	var side_a_outcome = String(snapshot.get("side_a_outcome", snapshot.get("authority_room_result", snapshot.get("room_result", "")))).strip_edges().to_lower()
+	if side_a_outcome in ["win", "loss", "draw"]:
+		for team_id in range(1, 7):
+			if side_a_outcome == "draw":
+				team_outcomes[team_id] = "draw"
+			else:
+				var is_side_a = _server_team_side(team_id) == "a"
+				team_outcomes[team_id] = side_a_outcome if is_side_a else ("loss" if side_a_outcome == "win" else "win")
+
+	var raw_placements = snapshot.get("multiplayer_placements", {})
+	if typeof(raw_placements) == TYPE_DICTIONARY:
+		for raw_team_id in raw_placements:
+			var team_id = int(raw_team_id)
+			var placement = int(raw_placements[raw_team_id])
+			if team_id >= 1 and team_id <= 6 and placement > 0:
+				placements_by_team[team_id] = placement
+	if team_outcomes.is_empty() and not placements_by_team.is_empty():
+		var best_placement = 999
+		for placement_value in placements_by_team.values():
+			best_placement = mini(best_placement, int(placement_value))
+		for team_id_value in placements_by_team:
+			var team_id = int(team_id_value)
+			team_outcomes[team_id] = "win" if int(placements_by_team[team_id]) == best_placement else "loss"
+
+	return {
+		"team_outcomes": team_outcomes,
+		"placements_by_team": placements_by_team,
+	}
+
+
+func _server_team_side(team_id: int) -> String:
+	if team_id >= 1 and team_id <= 3:
+		return "a"
+	if team_id >= 4 and team_id <= 6:
+		return "b"
+	return ""
+
+
+func _server_match_roster(room_code: String) -> Array:
+	if _registry == null or not _registry.has_method("match_roster"):
+		return []
+	var value = _registry.call("match_roster", room_code)
+	return (value as Array).duplicate(true) if typeof(value) == TYPE_ARRAY else []
+
+
+func _server_roster_is_valid_for_analytics(roster: Array, expected_human_count: int) -> bool:
+	if roster.size() != expected_human_count:
+		return false
+	var seen_user_ids = {}
+	for raw_player in roster:
+		if typeof(raw_player) != TYPE_DICTIONARY:
+			return false
+		var user_id = String((raw_player as Dictionary).get("user_id", "")).strip_edges()
+		if user_id.is_empty() or seen_user_ids.has(user_id):
+			return false
+		seen_user_ids[user_id] = true
+	return true
+
+
+func _server_animal_card_ids() -> Array:
+	var catalog = _server_animal_catalog()
+	var result = []
+	for card_id_value in catalog:
+		result.append(String(card_id_value))
+	return result
+
+
+func _server_animal_catalog() -> Dictionary:
+	var config_db = get_node_or_null("/root/ConfigDB")
+	if config_db == null or not config_db.has_method("get_table"):
+		return {}
+	var card_rows = config_db.call("get_table", "cards")
+	if typeof(card_rows) != TYPE_ARRAY:
+		return {}
+	var result = {}
+	for raw_card in card_rows:
+		if typeof(raw_card) != TYPE_DICTIONARY:
+			continue
+		var card: Dictionary = raw_card
+		var card_id = String(card.get("id", "")).strip_edges()
+		if card_id.is_empty() or not _server_card_is_animal(card):
+			continue
+		var card_name = String(card.get("name", card_id)).strip_edges()
+		result[card_id] = card_name if not card_name.is_empty() else card_id
+	return result
+
+
+func _server_starter_profile() -> Dictionary:
+	var profile = {
+		"card_counts": {},
+		"card_levels": {},
+		"deck": [],
+		"gacha_tickets": 10,
+		"rank_stars": 1,
+		"rank_key": "bronze",
+		"elo": 1000,
+		"rank_mirrors": {},
+	}
+	var config_db = get_node_or_null("/root/ConfigDB")
+	if config_db == null or not config_db.has_method("get_table"):
+		return profile
+	var card_rows = config_db.call("get_table", "cards")
+	if typeof(card_rows) != TYPE_ARRAY:
+		return profile
+	var starter_animals = []
+	var available_cards = {}
+	for raw_card in card_rows:
+		if typeof(raw_card) != TYPE_DICTIONARY:
+			continue
+		var card: Dictionary = raw_card
+		var card_id = String(card.get("id", "")).strip_edges()
+		if card_id.is_empty():
+			continue
+		available_cards[card_id] = true
+		if not _server_card_is_animal(card):
+			continue
+		if String(card.get("rarity", "")).strip_edges().to_lower() == "common" and starter_animals.size() < 8:
+			starter_animals.append(card_id)
+	for card_id in starter_animals:
+		profile["card_counts"][card_id] = 1
+		profile["card_levels"][card_id] = 1
+	for required_id in ["gold_mine_card", "defense_watch_tower"]:
+		if available_cards.has(required_id):
+			profile["card_counts"][required_id] = 1
+			profile["card_levels"][required_id] = 1
+			profile["deck"].append(required_id)
+	for card_id in starter_animals:
+		if profile["deck"].size() >= 8:
+			break
+		profile["deck"].append(card_id)
+	var index = 0
+	while profile["deck"].size() < 8 and not starter_animals.is_empty():
+		profile["deck"].append(starter_animals[index % starter_animals.size()])
+		index += 1
+	return profile
+
+
+func _server_card_has_building_tag(card: Dictionary) -> bool:
+	var tags = card.get("tags", "")
+	if typeof(tags) == TYPE_ARRAY:
+		for raw_tag in tags:
+			if String(raw_tag).strip_edges().to_lower() == "building":
+				return true
+		return false
+	for raw_tag in String(tags).split("|", false):
+		if raw_tag.strip_edges().to_lower() == "building":
+			return true
+	return false
+
+
+func _server_card_is_animal(card: Dictionary) -> bool:
+	var art_path = String(card.get("art_path", "")).strip_edges().to_lower()
+	if art_path.contains("/animals/"):
+		return true
+	if art_path.contains("/buildings/"):
+		return false
+	return not _server_card_has_building_tag(card)
+
+
+func _invalidate_server_peer_session(peer_id: int) -> void:
+	var existing_token = String(_server_peer_sessions.get(peer_id, ""))
+	if not existing_token.is_empty() and _account_store != null:
+		_account_store.call("logout", existing_token)
+	_server_peer_sessions.erase(peer_id)
 
 
 func _broadcast_room_snapshots(room_code: String, mutation_result: Dictionary = {}) -> void:
@@ -802,8 +1129,10 @@ func _server_rank_profile(peer_id: int) -> Dictionary:
 	if typeof(profile) != TYPE_DICTIONARY:
 		return {}
 	return {
+		"user_id": String((result as Dictionary).get("user_id", "")),
 		"rank_key": String((profile as Dictionary).get("rank_key", "bronze")),
 		"rank_stars": maxi(1, int((profile as Dictionary).get("rank_stars", 1))),
+		"elo": maxi(0, int((profile as Dictionary).get("elo", 1000))),
 		"deck": ((profile as Dictionary).get("deck", []) as Array).duplicate() if typeof((profile as Dictionary).get("deck", [])) == TYPE_ARRAY else [],
 		"card_levels": ((profile as Dictionary).get("card_levels", {}) as Dictionary).duplicate(true) if typeof((profile as Dictionary).get("card_levels", {})) == TYPE_DICTIONARY else {},
 	}
@@ -830,13 +1159,18 @@ func _create_account_store() -> Variant:
 	return script.new() if script != null else null
 
 
+func _create_match_analytics_store() -> Variant:
+	var script = load(MATCH_ANALYTICS_STORE_PATH)
+	return script.new() if script != null else null
+
+
 func _apply_account_operation(operation: String, result: Dictionary) -> void:
-	if operation in ["login_account", "authenticate_installation"]:
+	if operation in ["login_account", "authenticate_installation", "switch_account", "create_new_account"]:
 		_client_session_token = String(result.get("session_token", ""))
 		current_user_id = String(result.get("user_id", ""))
 		current_profile = (result.get("profile", {}) as Dictionary).duplicate(true)
 		var issued_refresh_token = String(result.get("refresh_token", ""))
-		if operation == "authenticate_installation" and not issued_refresh_token.is_empty():
+		if not issued_refresh_token.is_empty():
 			_refresh_token = issued_refresh_token
 			_save_device_credentials()
 	elif operation in ["load_player_profile", "save_player_profile"]:
@@ -844,9 +1178,12 @@ func _apply_account_operation(operation: String, result: Dictionary) -> void:
 		current_profile = (result.get("profile", {}) as Dictionary).duplicate(true)
 	elif operation == "logout_account":
 		_clear_account_state()
+	if result.has("accounts") and typeof(result.get("accounts")) == TYPE_ARRAY:
+		current_account_summaries = (result.get("accounts") as Array).duplicate(true)
 	account_state_changed.emit({
 		"user_id": current_user_id,
 		"profile": current_profile.duplicate(true),
+		"accounts": current_account_summaries.duplicate(true),
 		"logged_in": not current_user_id.is_empty(),
 	})
 
@@ -855,6 +1192,7 @@ func _clear_account_state() -> void:
 	_client_session_token = ""
 	current_user_id = ""
 	current_profile.clear()
+	current_account_summaries.clear()
 
 
 func _accept_server_request() -> bool:

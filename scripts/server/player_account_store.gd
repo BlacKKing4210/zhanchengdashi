@@ -6,10 +6,22 @@ const ACCOUNT_MIN_LENGTH = 3
 const ACCOUNT_MAX_LENGTH = 32
 const PASSWORD_MIN_LENGTH = 8
 const PASSWORD_MAX_LENGTH = 72
+const MAX_INSTALLATION_ACCOUNTS = 8
+
+const RANK_NAMES = {
+	"bronze": "青铜",
+	"silver": "白银",
+	"gold": "黄金",
+	"platinum": "铂金",
+	"diamond": "钻石",
+	"star": "星耀",
+	"king": "王者",
+}
 
 var storage_path = DEFAULT_PATH
 var accounts: Dictionary = {}
 var sessions: Dictionary = {}
+var session_installations: Dictionary = {}
 var installations: Dictionary = {}
 
 
@@ -44,7 +56,13 @@ func register_account(account: String, password: String) -> Dictionary:
 	return _success({"user_id": record["user_id"]})
 
 
-func login(account: String, password: String) -> Dictionary:
+func login(
+	account: String,
+	password: String,
+	installation_id: String = "",
+	refresh_token: String = "",
+	animal_card_ids: Array = []
+) -> Dictionary:
 	var key = _account_key(account)
 	if not accounts.has(key):
 		return _failure("invalid_credentials")
@@ -53,31 +71,125 @@ func login(account: String, password: String) -> Dictionary:
 	var actual = _password_hash(password, String(record.get("salt", "")))
 	if expected.is_empty() or actual != expected:
 		return _failure("invalid_credentials")
-	var token = _random_hex(32)
-	sessions[token] = String(record["user_id"])
-	return _success({
-		"user_id": record["user_id"],
-		"session_token": token,
-		"profile": (record["profile"] as Dictionary).duplicate(true),
-	})
+	var user_id = String(record["user_id"])
+	var installation_hash = _installation_hash(installation_id)
+	if not installation_id.is_empty():
+		if installation_hash.is_empty():
+			return _failure("invalid_installation_id")
+		var binding_result = _bind_installation_to_user(installation_hash, user_id, refresh_token)
+		if not bool(binding_result.get("ok", false)):
+			return binding_result
+	var result = _create_session(user_id, installation_hash)
+	if not installation_hash.is_empty():
+		result["accounts"] = _account_summaries(installation_hash, animal_card_ids)
+	return result
 
 
-func authenticate_installation(installation_id: String, refresh_token: String) -> Dictionary:
+func authenticate_installation(
+	installation_id: String,
+	refresh_token: String,
+	starter_profile: Dictionary = {},
+	animal_card_ids: Array = []
+) -> Dictionary:
 	var installation_hash = _installation_hash(installation_id)
 	if installation_hash.is_empty():
 		return _failure("invalid_installation_id")
 	if installations.has(installation_hash):
-		return _login_installation(installation_hash, refresh_token)
+		return _login_installation(installation_hash, refresh_token, animal_card_ids)
 	if not refresh_token.is_empty():
 		return _failure("invalid_device_credentials")
-	return _register_installation(installation_hash)
+	return _register_installation(installation_hash, starter_profile, animal_card_ids)
 
 
 func logout(session_token: String) -> Dictionary:
 	if session_token.is_empty() or not sessions.has(session_token):
 		return _failure("invalid_session")
 	sessions.erase(session_token)
+	session_installations.erase(session_token)
 	return _success()
+
+
+func account_summaries_for_session(session_token: String, animal_card_ids: Array = []) -> Dictionary:
+	if not sessions.has(session_token):
+		return _failure("invalid_session")
+	var installation_hash = String(session_installations.get(session_token, ""))
+	if installation_hash.is_empty() or not installations.has(installation_hash):
+		return _failure("invalid_session")
+	return _success({
+		"user_id": String(sessions[session_token]),
+		"accounts": _account_summaries(installation_hash, animal_card_ids),
+	})
+
+
+func create_account_for_session(
+	session_token: String,
+	starter_profile: Dictionary,
+	animal_card_ids: Array = []
+) -> Dictionary:
+	if not sessions.has(session_token):
+		return _failure("invalid_session")
+	var installation_hash = String(session_installations.get(session_token, ""))
+	if installation_hash.is_empty() or not installations.has(installation_hash):
+		return _failure("invalid_session")
+	var previous_binding: Dictionary = (installations[installation_hash] as Dictionary).duplicate(true)
+	var user_ids = _installation_user_ids(previous_binding)
+	if user_ids.size() >= MAX_INSTALLATION_ACCOUNTS:
+		return _failure("account_limit")
+	var now = int(Time.get_unix_time_from_system())
+	var user_id = _new_user_id()
+	var account_key = "device:%s" % user_id.to_lower()
+	accounts[account_key] = _device_account_record(user_id, now, starter_profile)
+	user_ids.append(user_id)
+	var binding = previous_binding.duplicate(true)
+	binding["user_ids"] = user_ids
+	binding["user_id"] = user_id
+	binding["updated_at_unix"] = now
+	installations[installation_hash] = binding
+	if not _save():
+		accounts.erase(account_key)
+		installations[installation_hash] = previous_binding
+		return _failure("storage_error")
+	logout(session_token)
+	var result = _create_session(user_id, installation_hash)
+	result["new_account"] = true
+	result["accounts"] = _account_summaries(installation_hash, animal_card_ids)
+	return result
+
+
+func switch_account(
+	session_token: String,
+	target_user_id: String,
+	animal_card_ids: Array = []
+) -> Dictionary:
+	if not sessions.has(session_token):
+		return _failure("invalid_session")
+	var installation_hash = String(session_installations.get(session_token, ""))
+	if installation_hash.is_empty() or not installations.has(installation_hash):
+		return _failure("invalid_session")
+	var previous_binding: Dictionary = (installations[installation_hash] as Dictionary).duplicate(true)
+	var user_ids = _installation_user_ids(previous_binding)
+	if not user_ids.has(target_user_id) or _key_for_user_id(target_user_id).is_empty():
+		return _failure("account_not_owned")
+	if String(sessions[session_token]) == target_user_id:
+		var current_record = _record_for_session(session_token)
+		return _success({
+			"user_id": target_user_id,
+			"session_token": session_token,
+			"profile": (current_record.get("profile", {}) as Dictionary).duplicate(true),
+			"accounts": _account_summaries(installation_hash, animal_card_ids),
+		})
+	var binding = previous_binding.duplicate(true)
+	binding["user_ids"] = user_ids
+	binding["user_id"] = target_user_id
+	binding["updated_at_unix"] = int(Time.get_unix_time_from_system())
+	installations[installation_hash] = binding
+	if not _save():
+		installations[installation_hash] = previous_binding
+		return _failure("storage_error")
+	logout(session_token)
+	var result = _create_session(target_user_id, installation_hash)
+	result["accounts"] = _account_summaries(installation_hash, animal_card_ids)
+	return result
 
 
 func profile_for_session(session_token: String) -> Dictionary:
@@ -109,23 +221,20 @@ func _record_for_session(session_token: String) -> Dictionary:
 	return (accounts[key] as Dictionary) if not key.is_empty() else {}
 
 
-func _register_installation(installation_hash: String) -> Dictionary:
+func _register_installation(
+	installation_hash: String,
+	starter_profile: Dictionary,
+	animal_card_ids: Array
+) -> Dictionary:
 	var refresh_token = _random_hex(32)
 	var token_salt = _random_hex(16)
 	var now = int(Time.get_unix_time_from_system())
 	var user_id = _new_user_id()
 	var account_key = "device:%s" % user_id.to_lower()
-	accounts[account_key] = {
-		"user_id": user_id,
-		"account": "",
-		"salt": "",
-		"password_hash": "",
-		"created_at_unix": now,
-		"updated_at_unix": now,
-		"profile": _normalize_profile({}),
-	}
+	accounts[account_key] = _device_account_record(user_id, now, starter_profile)
 	installations[installation_hash] = {
 		"user_id": user_id,
+		"user_ids": [user_id],
 		"token_salt": token_salt,
 		"refresh_token_hash": _refresh_token_hash(refresh_token, token_salt),
 		"created_at_unix": now,
@@ -135,38 +244,143 @@ func _register_installation(installation_hash: String) -> Dictionary:
 		accounts.erase(account_key)
 		installations.erase(installation_hash)
 		return _failure("storage_error")
-	var result = _create_session(user_id)
+	var result = _create_session(user_id, installation_hash)
 	result["refresh_token"] = refresh_token
 	result["new_account"] = true
+	result["accounts"] = _account_summaries(installation_hash, animal_card_ids)
 	return result
 
 
-func _login_installation(installation_hash: String, refresh_token: String) -> Dictionary:
-	if refresh_token.length() != 64 or not refresh_token.is_valid_hex_number(false):
+func _bind_installation_to_user(installation_hash: String, user_id: String, refresh_token: String) -> Dictionary:
+	if _key_for_user_id(user_id).is_empty() or not installations.has(installation_hash):
+		return _failure("invalid_credentials")
+	if not _installation_token_is_valid(installation_hash, refresh_token):
+		return _failure("invalid_device_credentials")
+	var now = int(Time.get_unix_time_from_system())
+	var previous_binding: Dictionary = (installations[installation_hash] as Dictionary).duplicate(true)
+	var user_ids = _installation_user_ids(previous_binding)
+	if not user_ids.has(user_id):
+		if user_ids.size() >= MAX_INSTALLATION_ACCOUNTS:
+			return _failure("account_limit")
+		user_ids.append(user_id)
+	var binding = previous_binding.duplicate(true)
+	binding["user_id"] = user_id
+	binding["user_ids"] = user_ids
+	binding["updated_at_unix"] = now
+	installations[installation_hash] = binding
+	if not _save():
+		installations[installation_hash] = previous_binding
+		return _failure("storage_error")
+	return _success()
+
+
+func _login_installation(installation_hash: String, refresh_token: String, animal_card_ids: Array) -> Dictionary:
+	if not _installation_token_is_valid(installation_hash, refresh_token):
 		return _failure("invalid_device_credentials")
 	var binding: Dictionary = installations[installation_hash]
-	var expected = String(binding.get("refresh_token_hash", ""))
-	var actual = _refresh_token_hash(refresh_token, String(binding.get("token_salt", "")))
-	if expected.is_empty() or actual != expected:
-		return _failure("invalid_device_credentials")
 	var user_id = String(binding.get("user_id", ""))
-	if _key_for_user_id(user_id).is_empty():
+	if _key_for_user_id(user_id).is_empty() or not _installation_user_ids(binding).has(user_id):
 		return _failure("invalid_device_credentials")
-	return _create_session(user_id)
+	var result = _create_session(user_id, installation_hash)
+	result["accounts"] = _account_summaries(installation_hash, animal_card_ids)
+	return result
 
 
-func _create_session(user_id: String) -> Dictionary:
+func _create_session(user_id: String, installation_hash: String = "") -> Dictionary:
 	var key = _key_for_user_id(user_id)
 	if key.is_empty():
 		return _failure("invalid_device_credentials")
 	var token = _random_hex(32)
 	sessions[token] = user_id
+	if not installation_hash.is_empty():
+		session_installations[token] = installation_hash
 	var record: Dictionary = accounts[key]
 	return _success({
 		"user_id": user_id,
 		"session_token": token,
 		"profile": (record["profile"] as Dictionary).duplicate(true),
 	})
+
+
+func _device_account_record(user_id: String, now: int, starter_profile: Dictionary) -> Dictionary:
+	return {
+		"user_id": user_id,
+		"account": "",
+		"salt": "",
+		"password_hash": "",
+		"created_at_unix": now,
+		"updated_at_unix": now,
+		"profile": _normalize_profile(starter_profile),
+	}
+
+
+func _installation_token_is_valid(installation_hash: String, refresh_token: String) -> bool:
+	if installation_hash.is_empty() or not installations.has(installation_hash):
+		return false
+	if refresh_token.length() != 64 or not refresh_token.is_valid_hex_number(false):
+		return false
+	var binding: Dictionary = installations[installation_hash]
+	var expected = String(binding.get("refresh_token_hash", ""))
+	var actual = _refresh_token_hash(refresh_token, String(binding.get("token_salt", "")))
+	return not expected.is_empty() and actual == expected
+
+
+func _installation_user_ids(binding: Dictionary) -> Array:
+	var result = []
+	var raw_user_ids = binding.get("user_ids", [])
+	if typeof(raw_user_ids) == TYPE_ARRAY:
+		for raw_user_id in raw_user_ids:
+			var user_id = String(raw_user_id).strip_edges()
+			if not user_id.is_empty() and not result.has(user_id) and not _key_for_user_id(user_id).is_empty():
+				result.append(user_id)
+			if result.size() >= MAX_INSTALLATION_ACCOUNTS:
+				break
+	var active_user_id = String(binding.get("user_id", "")).strip_edges()
+	if not active_user_id.is_empty() and not result.has(active_user_id) and not _key_for_user_id(active_user_id).is_empty():
+		result.push_front(active_user_id)
+	return result
+
+
+func _account_summaries(installation_hash: String, animal_card_ids: Array) -> Array:
+	if installation_hash.is_empty() or not installations.has(installation_hash):
+		return []
+	var binding: Dictionary = installations[installation_hash]
+	var active_user_id = String(binding.get("user_id", ""))
+	var result = []
+	for user_id in _installation_user_ids(binding):
+		var key = _key_for_user_id(user_id)
+		if key.is_empty():
+			continue
+		var record: Dictionary = accounts[key]
+		var profile: Dictionary = record.get("profile", {})
+		var rank_key = String(profile.get("rank_key", "bronze")).strip_edges().to_lower()
+		var rank_stars = maxi(1, int(profile.get("rank_stars", 1)))
+		result.append({
+			"user_id": user_id,
+			"rank_key": rank_key,
+			"rank_stars": rank_stars,
+			"rank_display": "%s %d星" % [String(RANK_NAMES.get(rank_key, RANK_NAMES["bronze"])), rank_stars],
+			"animal_count": _animal_count(profile, animal_card_ids),
+			"is_active": user_id == active_user_id,
+		})
+	return result
+
+
+func _animal_count(profile: Dictionary, animal_card_ids: Array) -> int:
+	var allowed_ids = {}
+	for raw_card_id in animal_card_ids:
+		var card_id = String(raw_card_id).strip_edges()
+		if not card_id.is_empty():
+			allowed_ids[card_id] = true
+	var count = 0
+	var card_counts = profile.get("card_counts", {})
+	if typeof(card_counts) != TYPE_DICTIONARY:
+		return 0
+	for raw_card_id in card_counts:
+		var card_id = String(raw_card_id)
+		if allowed_ids.is_empty() or allowed_ids.has(card_id):
+			count += maxi(0, int(card_counts[raw_card_id]))
+	return count
 
 
 func _key_for_user_id(user_id: String) -> String:
@@ -295,6 +509,8 @@ func _random_hex(byte_count: int) -> String:
 
 func _load() -> void:
 	accounts.clear()
+	sessions.clear()
+	session_installations.clear()
 	installations.clear()
 	if not FileAccess.file_exists(storage_path):
 		return

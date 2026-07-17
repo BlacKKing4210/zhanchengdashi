@@ -57,7 +57,28 @@ func _run_loopback_test() -> void:
 		FileAccess.file_exists(DEVICE_TEST_DIR + "/host.json") and FileAccess.file_exists(DEVICE_TEST_DIR + "/guest.json"),
 		"clients persist installation ids and refresh tokens"
 	)
+	_expect_true(bool(host.call("has_saved_login")) and bool(guest.call("has_saved_login")), "persisted client credentials are eligible for startup auto-login")
 	_expect_true(String(host.get("current_user_id")) != String(guest.get("current_user_id")), "different installations receive different user ids")
+	var host_original_user_id = String(host.get("current_user_id"))
+	host.call("request_account_summaries")
+	_expect_true(
+		await _wait_until(func(): return (host.get("current_account_summaries") as Array).size() == 1),
+		"host receives the full account list for its installation"
+	)
+	host.call("create_new_account")
+	_expect_true(
+		await _wait_until(func(): return String(host.get("current_user_id")) != host_original_user_id),
+		"host switches to the newly created account"
+	)
+	_expect_true(
+		(host.get("current_account_summaries") as Array).size() == 2,
+		"new account remains available in the transport account list"
+	)
+	host.call("switch_account", host_original_user_id)
+	_expect_true(
+		await _wait_until(func(): return String(host.get("current_user_id")) == host_original_user_id),
+		"host can switch back to the original account through ENet"
+	)
 
 	_expect_true(bool(host.call("create_room", "房主", 1, {"fill_with_ai": false})), "host sends create request")
 	_expect_true(

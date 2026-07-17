@@ -464,6 +464,38 @@ func snapshot_for_peer(peer_id_value: Variant) -> Dictionary:
 	})
 
 
+## Server-only roster snapshot used to freeze match analytics at match start.
+## User IDs intentionally do not appear in ordinary client room snapshots.
+func match_roster(room_code_value: Variant) -> Array:
+	var room_code = String(room_code_value)
+	if room_code.is_empty() or not _rooms.has(room_code):
+		return []
+	var room: Dictionary = _rooms[room_code]
+	var slots: Dictionary = room["slots"]
+	var roster = []
+	for team_id_value in RoomProtocol.active_team_ids(int(room.get("players_per_side", 1))):
+		var team_id = int(team_id_value)
+		if not slots.has(team_id) or typeof(slots[team_id]) != TYPE_DICTIONARY:
+			continue
+		var participant: Dictionary = slots[team_id]
+		if String(participant.get("kind", "")) != "human":
+			continue
+		var user_id = String(participant.get("user_id", "")).strip_edges()
+		if user_id.is_empty():
+			continue
+		roster.append({
+			"user_id": user_id,
+			"team_id": team_id,
+			"display_name": String(participant.get("display_name", "")),
+			"rank_key": String(participant.get("rank_key", "bronze")),
+			"rank_stars": maxi(1, int(participant.get("rank_stars", 1))),
+			"elo": maxi(0, int(participant.get("elo", 1000))),
+			"deck": (participant.get("deck", []) as Array).duplicate() if typeof(participant.get("deck", [])) == TYPE_ARRAY else [],
+			"card_levels": (participant.get("card_levels", {}) as Dictionary).duplicate(true) if typeof(participant.get("card_levels", {})) == TYPE_DICTIONARY else {},
+		})
+	return roster
+
+
 func room_count() -> int:
 	return _rooms.size()
 
@@ -520,11 +552,13 @@ func _human_participant(peer_id: int, display_name: String, join_order: int, pla
 	return {
 		"kind": "human",
 		"peer_id": peer_id,
+		"user_id": String(player_rank.get("user_id", "")).strip_edges().left(80),
 		"display_name": display_name,
 		"ready": false,
 		"join_order": join_order,
 		"rank_key": String(player_rank.get("rank_key", "bronze")),
 		"rank_stars": maxi(1, int(player_rank.get("rank_stars", player_rank.get("stars", 1)))),
+		"elo": maxi(0, int(player_rank.get("elo", 1000))),
 		"deck": (player_rank.get("deck", []) as Array).duplicate() if typeof(player_rank.get("deck", [])) == TYPE_ARRAY else [],
 		"card_levels": (player_rank.get("card_levels", {}) as Dictionary).duplicate(true) if typeof(player_rank.get("card_levels", {})) == TYPE_DICTIONARY else {},
 	}
