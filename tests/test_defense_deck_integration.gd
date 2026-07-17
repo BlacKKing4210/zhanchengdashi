@@ -1,6 +1,7 @@
 extends Node
 
 const BoardRules = preload("res://scripts/app/systems/board_rules.gd")
+const CardRules = preload("res://scripts/app/systems/card_rules.gd")
 const MainApp = preload("res://scripts/app/main.gd")
 
 var failures = 0
@@ -13,6 +14,7 @@ func _ready() -> void:
 	_test_animal_resolution_uses_each_team_deck()
 	_test_multiplayer_slots_keep_independent_deck_snapshots()
 	_test_defense_resolution_uses_each_team_deck()
+	_test_defense_tower_combat_stats()
 	_test_green_defense_replacement_guard()
 	if failures == 0:
 		print("Defense deck integration tests passed.")
@@ -203,6 +205,49 @@ func _test_green_defense_replacement_guard() -> void:
 	app.set("pending_equip_card_id", "")
 
 
+func _test_defense_tower_combat_stats() -> void:
+	var defense_ids = [
+		"defense_watch_tower",
+		"defense_cannon_tower",
+		"defense_repair_beacon",
+		"defense_storm_obelisk",
+	]
+	for card_id in defense_ids:
+		var card: Dictionary = app.call("_card_by_id", card_id)
+		_expect_false(card.is_empty(), "%s is available for combat stat checks" % card_id)
+		if card.is_empty():
+			continue
+		var level_one_stats = CardRules.card_stats(card, {card_id: 1})
+		var adjusted_level_one: Dictionary = app.call("_card_stats_with_levels", card, {card_id: 1})
+		_expect_close(
+			float(adjusted_level_one.get("attack_range", 0.0)),
+			float(level_one_stats.get("attack_range", 0.0)) + MainApp.DEFENSE_TOWER_RANGE_BONUS,
+			"%s gains exactly half a tile of range at level one" % card_id
+		)
+		_expect_close(
+			float(adjusted_level_one.get("summon_interval_sec", 0.0)),
+			MainApp.DEFENSE_TOWER_ATTACK_INTERVAL,
+			"%s attacks every one second at level one" % card_id
+		)
+		var upgraded_stats = CardRules.card_stats(card, {card_id: 8})
+		var adjusted_upgraded: Dictionary = app.call("_card_stats_with_levels", card, {card_id: 8})
+		_expect_close(
+			float(adjusted_upgraded.get("attack_range", 0.0)),
+			float(upgraded_stats.get("attack_range", 0.0)) + MainApp.DEFENSE_TOWER_RANGE_BONUS,
+			"%s keeps a fixed half-tile bonus after upgrades" % card_id
+		)
+		_expect_close(
+			float(adjusted_upgraded.get("summon_interval_sec", 0.0)),
+			MainApp.DEFENSE_TOWER_ATTACK_INTERVAL,
+			"%s keeps a one-second interval after upgrades" % card_id
+		)
+		_expect_close(
+			float(app.call("_building_delay", "tower", BoardRules.PLAYER, card_id)),
+			MainApp.DEFENSE_TOWER_ATTACK_INTERVAL,
+			"%s building timer uses the fixed tower interval" % card_id
+		)
+
+
 func _expect_true(value: bool, label: String) -> void:
 	if value:
 		return
@@ -222,3 +267,10 @@ func _expect_equal(actual: Variant, expected: Variant, label: String) -> void:
 		return
 	failures += 1
 	push_error("%s: expected %s, got %s" % [label, str(expected), str(actual)])
+
+
+func _expect_close(actual: float, expected: float, label: String) -> void:
+	if is_equal_approx(actual, expected):
+		return
+	failures += 1
+	push_error("%s: expected %.3f, got %.3f" % [label, expected, actual])

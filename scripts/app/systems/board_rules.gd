@@ -370,6 +370,25 @@ static func as_conquered_locked(tile: Dictionary, attacker: int, site: Dictionar
 	return next
 
 
+static func as_transferred_territory(tile: Dictionary, attacker: int) -> Dictionary:
+	var next = tile.duplicate()
+	next["team"] = attacker
+	next["occupier"] = attacker
+	next["territory_team"] = attacker
+	next["eliminated_team"] = NEUTRAL
+	next["site"] = ""
+	next["site_cost"] = 0
+	next["site_reward"] = ""
+	next["site_target_rarity"] = ""
+	next["site_roll_seed"] = 0
+	next["building"] = ""
+	next["hp"] = 0.0
+	next["max_hp"] = 0.0
+	next["spawn_timer"] = 0.0
+	next["site_card"] = ""
+	return next
+
+
 static func as_captured_base(tile: Dictionary, attacker: int) -> Dictionary:
 	var next = with_building(
 		tile,

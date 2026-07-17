@@ -13,7 +13,7 @@ func _ready() -> void:
 	add_child(app)
 	await get_tree().process_frame
 	_test_team_mode_elimination_transfer()
-	_test_free_for_all_elimination_gray()
+	_test_free_for_all_elimination_transfer()
 	_test_classic_transfer_before_result()
 	if failures == 0:
 		print("Multiplayer elimination transfer tests passed.")
@@ -63,31 +63,27 @@ func _test_team_mode_elimination_transfer() -> void:
 	_expect_false(bool(app.call("_is_multiplayer_team_alive", DEFEATED)), "original base destruction eliminates its slot owner")
 	_expect_false(bool(app.get("game_over")), "one defeated rival does not end a 2v2 match")
 	_expect_equal(int(app.call("_building_count", ATTACKER, "base")), attacker_bases_before + 1, "captured base counts as an attacker base")
-	_expect_equal(int(app.call("_tile_count", ATTACKER)), attacker_tiles_before + 1, "ordinary transferred territory stays locked and only the base becomes owned")
+	_expect_equal(int(app.call("_tile_count", ATTACKER)), attacker_tiles_before + expected_transfer_keys.size() + 1, "all defeated territory becomes attacker-owned immediately")
 	_expect_equal(int(app.call("_original_base_hp", DEFEATED)), 0, "captured base HP is not scored for the eliminated origin team")
 	_assert_captured_base(tiles[defeated_base], ATTACKER, "destroyed original base transfers to attacker")
-	_assert_relocked_tile(tiles[near_key], ATTACKER, "adjacent locked territory transfers")
-	_assert_relocked_tile(tiles[building_key], ATTACKER, "defeated building tile is cleared and relocked")
-	_assert_relocked_tile(tiles[empty_key], ATTACKER, "previously unlocked empty tile restores a site and relocks")
-	_expect_true(MultiplayerRules.can_unlock(tiles, near_key, ATTACKER), "captured base anchors re-unlocking of an adjacent transferred tile")
+	_assert_transferred_tile(tiles[near_key], ATTACKER, "adjacent locked territory becomes owned")
+	_assert_transferred_tile(tiles[building_key], ATTACKER, "defeated building territory becomes owned")
+	_assert_transferred_tile(tiles[empty_key], ATTACKER, "previously unlocked empty territory remains owned")
+	_expect_equal(String(tiles[building_key].get("building", "missing")), "", "defeated tower is cleared while its territory transfers")
+	_expect_equal(String(tiles[building_key].get("site_card", "missing")), "", "cleared tower cannot retain an out-of-deck card")
+	_expect_false(MultiplayerRules.can_unlock(tiles, near_key, ATTACKER), "transferred territory is already unlocked")
 	_expect_equal(int(tiles[third_party_key].get("team", BoardRules.NEUTRAL)), SURVIVOR, "third-party owned tile is not confiscated with stale territory")
 	_expect_equal(String(tiles[third_party_key].get("building", "")), "tower", "third-party building survives another team's elimination")
 	for key in expected_transfer_keys:
-		_assert_relocked_tile(tiles[key], ATTACKER, "every defeated controlled tile relocks")
-	_assert_all_transferred_tiles_can_reunlock(tiles, expected_transfer_keys, ATTACKER)
+		_assert_transferred_tile(tiles[key], ATTACKER, "every defeated controlled tile transfers")
 
 	for unit in app.get("units"):
 		if int(unit.get("team", BoardRules.NEUTRAL)) == DEFEATED:
 			_expect_true(float(unit.get("hp", 0.0)) <= 0.0, "all defeated-team units are cleared")
 
-	var unlock_cost = int(tiles[near_key].get("site_cost", 0))
-	if int(app.call("_gold_for_team", ATTACKER)) < unlock_cost:
-		app.set("gold", unlock_cost + 50)
-	var gold_before_unlock = int(app.call("_gold_for_team", ATTACKER))
-	_expect_true(bool(app.call("_try_unlock", near_key)), "player can execute a real unlock on transferred territory")
-	tiles = app.get("tiles")
-	_expect_equal(int(tiles[near_key].get("team", BoardRules.NEUTRAL)), ATTACKER, "real unlock makes the transferred tile owned")
-	_expect_equal(gold_before_unlock - int(app.call("_gold_for_team", ATTACKER)), unlock_cost, "real unlock charges the restored site cost")
+	var gold_before_unlock_attempt = int(app.call("_gold_for_team", ATTACKER))
+	_expect_false(bool(app.call("_try_unlock", near_key)), "already transferred territory cannot be purchased again")
+	_expect_equal(int(app.call("_gold_for_team", ATTACKER)), gold_before_unlock_attempt, "transferred territory charges no second unlock cost")
 
 	var base_count = int(app.call("_building_count", ATTACKER, "base"))
 	var mine_count = int(app.call("_building_count", ATTACKER, "mine"))
@@ -125,24 +121,25 @@ func _test_team_mode_elimination_transfer() -> void:
 	_expect_equal(int(tiles[near_key].get("team", BoardRules.NEUTRAL)), ATTACKER, "secondary-base loss does not transfer surrounding attacker property")
 
 
-func _test_free_for_all_elimination_gray() -> void:
+func _test_free_for_all_elimination_transfer() -> void:
 	const ATTACKER = 1
 	const DEFEATED = 4
 	_start_multiplayer("3v3_crossroads", 3, true)
 	var base_keys = _multiplayer_base_keys()
 	var defeated_base: Vector2i = base_keys.get(DEFEATED, MultiplayerRules.INVALID_KEY)
+	var tiles_before: Dictionary = app.get("tiles")
+	var expected_transfer_keys = _transfer_keys(tiles_before, DEFEATED, defeated_base)
+	var attacker_score_before = int(app.call("_multiplayer_tile_score", ATTACKER))
 	_expect_true(bool(app.call("_damage_tile", defeated_base, ATTACKER, 99999.0)), "FFA original base can be destroyed")
 	var tiles: Dictionary = app.get("tiles")
 	_expect_false(bool(app.call("_is_multiplayer_team_alive", DEFEATED)), "FFA base owner is eliminated")
 	_expect_false(bool(app.get("game_over")), "FFA continues while multiple players remain")
-	_assert_gray_tile(tiles[defeated_base], DEFEATED, "FFA destroyed base becomes neutral gray")
+	_assert_captured_base(tiles[defeated_base], ATTACKER, "FFA destroyed base transfers to the attacker")
 	_expect_equal(int(app.call("_multiplayer_tile_score", DEFEATED)), 0, "FFA eliminated player has zero tile score")
-	var gray_count = 0
-	for tile in tiles.values():
-		if int(tile.get("eliminated_team", BoardRules.NEUTRAL)) == DEFEATED:
-			gray_count += 1
-			_expect_equal(BoardRules.visual_owner(tile), BoardRules.NEUTRAL, "all defeated FFA territory is neutral")
-	_expect_true(gray_count > 0, "FFA marks all remaining defeated territory for gray rendering")
+	_expect_equal(int(app.call("_multiplayer_tile_score", ATTACKER)), attacker_score_before + expected_transfer_keys.size() + 1, "FFA attacker gains the defeated player's full territory score")
+	for key in expected_transfer_keys:
+		_assert_transferred_tile(tiles[key], ATTACKER, "FFA defeated territory transfers instead of turning gray")
+		_expect_equal(int(tiles[key].get("eliminated_team", BoardRules.NEUTRAL)), BoardRules.NEUTRAL, "FFA transfer clears any gray marker")
 
 
 func _test_classic_transfer_before_result() -> void:
@@ -159,7 +156,7 @@ func _test_classic_transfer_before_result() -> void:
 	_expect_true(bool(app.get("game_over")), "classic battle still ends immediately")
 	_expect_equal(String(app.get("result_text")), "胜利", "classic transfer preserves the victory result")
 	_assert_captured_base(tiles[enemy_base], BoardRules.PLAYER, "classic destroyed base transfers before settlement")
-	_assert_relocked_tile(tiles[enemy_tile], BoardRules.PLAYER, "classic enemy territory relocks before settlement")
+	_assert_transferred_tile(tiles[enemy_tile], BoardRules.PLAYER, "classic enemy territory transfers before settlement")
 	for unit in app.get("units"):
 		if int(unit.get("team", BoardRules.NEUTRAL)) == BoardRules.ENEMY:
 			_expect_true(float(unit.get("hp", 0.0)) <= 0.0, "classic defeated computer units are cleared")
@@ -215,22 +212,6 @@ func _transfer_keys(tiles: Dictionary, defeated_team: int, excluded_base: Vector
 	return result
 
 
-func _assert_all_transferred_tiles_can_reunlock(tiles: Dictionary, transferred_keys: Array, attacker: int) -> void:
-	var probe = tiles.duplicate(true)
-	var pending = transferred_keys.duplicate()
-	var made_progress = true
-	while made_progress and not pending.is_empty():
-		made_progress = false
-		for index in range(pending.size() - 1, -1, -1):
-			var key: Vector2i = pending[index]
-			if not MultiplayerRules.can_unlock(probe, key, attacker):
-				continue
-			probe[key] = BoardRules.as_unlocked_empty(probe[key], attacker)
-			pending.remove_at(index)
-			made_progress = true
-	_expect_true(pending.is_empty(), "every transferred tile is reachable through repeated re-unlocking")
-
-
 func _first_territory_key(tiles: Dictionary, team: int, excluded: Array) -> Vector2i:
 	for key in tiles.keys():
 		if excluded.has(key):
@@ -240,13 +221,17 @@ func _first_territory_key(tiles: Dictionary, team: int, excluded: Array) -> Vect
 	return MultiplayerRules.INVALID_KEY
 
 
-func _assert_relocked_tile(tile: Dictionary, attacker: int, label: String) -> void:
-	_expect_equal(int(tile.get("team", -99)), BoardRules.NEUTRAL, label + " is not already unlocked")
-	_expect_equal(int(tile.get("occupier", -99)), attacker, label + " uses attacker occupier")
-	_expect_equal(int(tile.get("territory_team", -99)), attacker, label + " uses attacker territory")
-	_expect_equal(String(tile.get("building", "missing")), "", label + " has no surviving building")
-	_expect_true(String(tile.get("site", "")) != "", label + " restores an unlock site")
-	_expect_true(int(tile.get("site_cost", 0)) > 0, label + " restores a positive unlock cost")
+func _assert_transferred_tile(tile: Dictionary, attacker: int, label: String) -> void:
+	_expect_equal(int(tile.get("team", -99)), attacker, label + " has attacker team")
+	_expect_equal(int(tile.get("occupier", -99)), attacker, label + " has attacker occupier")
+	_expect_equal(int(tile.get("territory_team", -99)), attacker, label + " has attacker territory")
+	_expect_equal(String(tile.get("site", "missing")), "", label + " has no locked site")
+	_expect_equal(int(tile.get("site_cost", -1)), 0, label + " has no unlock cost")
+	_expect_equal(String(tile.get("building", "missing")), "", label + " clears the defeated building")
+	_expect_equal(String(tile.get("site_card", "missing")), "", label + " clears the defeated card binding")
+	_expect_equal(float(tile.get("hp", -1.0)), 0.0, label + " clears building HP")
+	_expect_equal(float(tile.get("max_hp", -1.0)), 0.0, label + " clears building max HP")
+	_expect_equal(float(tile.get("spawn_timer", -1.0)), 0.0, label + " clears building timing")
 
 
 func _assert_captured_base(tile: Dictionary, attacker: int, label: String) -> void:
@@ -257,14 +242,6 @@ func _assert_captured_base(tile: Dictionary, attacker: int, label: String) -> vo
 	_expect_equal(float(tile.get("hp", 0.0)), BoardRules.building_hp("base"), label + " restores full HP")
 	_expect_equal(float(tile.get("max_hp", 0.0)), BoardRules.building_hp("base"), label + " restores full max HP")
 	_expect_true(float(tile.get("spawn_timer", 0.0)) > 0.0, label + " restores attack timing")
-
-
-func _assert_gray_tile(tile: Dictionary, defeated_team: int, label: String) -> void:
-	_expect_equal(int(tile.get("team", -99)), BoardRules.NEUTRAL, label + " has no owner")
-	_expect_equal(int(tile.get("occupier", -99)), BoardRules.NEUTRAL, label + " has no occupier")
-	_expect_equal(int(tile.get("territory_team", -99)), BoardRules.NEUTRAL, label + " has no territory owner")
-	_expect_equal(String(tile.get("building", "missing")), "", label + " clears its building")
-	_expect_equal(int(tile.get("eliminated_team", BoardRules.NEUTRAL)), defeated_team, label + " keeps its gray marker")
 
 
 func _unit_hp(unit_id: int) -> float:

@@ -8,6 +8,8 @@ const UnitMotionFeedback = preload("res://scripts/app/systems/unit_motion_feedba
 
 const DESIGN_SIZE = Vector2(720.0, 1280.0)
 const HEX_SIZE = 43.0
+const DEFENSE_TOWER_RANGE_BONUS = HEX_SIZE * 0.5
+const DEFENSE_TOWER_ATTACK_INTERVAL = 1.0
 const GRID_COLS = BoardRules.GRID_COLS
 const GRID_ROWS = BoardRules.GRID_ROWS
 const PLAYER = BoardRules.PLAYER
@@ -1701,17 +1703,26 @@ func _card_multiplier(card_id: String) -> float:
 
 
 func _card_stats(card: Dictionary) -> Dictionary:
-	return CardRules.card_stats(card, card_levels)
+	return _card_stats_with_levels(card, card_levels)
 
 
 func _card_stats_for_team(card: Dictionary, team: int) -> Dictionary:
 	if battle_mode == BATTLE_MODE_MULTIPLAYER and multiplayer_team_card_levels.has(team):
 		var levels = multiplayer_team_card_levels[team]
 		if typeof(levels) == TYPE_DICTIONARY:
-			return CardRules.card_stats(card, levels)
+			return _card_stats_with_levels(card, levels)
 	if _uses_enemy_roster(team):
-		return CardRules.card_stats(card, enemy_card_levels)
+		return _card_stats_with_levels(card, enemy_card_levels)
 	return _card_stats(card)
+
+
+func _card_stats_with_levels(card: Dictionary, levels: Dictionary) -> Dictionary:
+	var stats = CardRules.card_stats(card, levels)
+	if _card_kind(card) != CARD_KIND_DEFENSE:
+		return stats
+	stats["attack_range"] = float(stats.get("attack_range", 0.0)) + DEFENSE_TOWER_RANGE_BONUS
+	stats["summon_interval_sec"] = DEFENSE_TOWER_ATTACK_INTERVAL
+	return stats
 
 
 func _card_skill_text(card: Dictionary) -> String:
@@ -2590,7 +2601,7 @@ func _tower_attack(key: Vector2i, team: int) -> void:
 	var tile = tiles.get(key, {})
 	var building = String(tile.get("building", "")) if typeof(tile) == TYPE_DICTIONARY else ""
 	var damage = BASE_ATTACK_DAMAGE if building == "base" else TOWER_DAMAGE
-	var attack_range = TOWER_RANGE
+	var attack_range = TOWER_RANGE + DEFENSE_TOWER_RANGE_BONUS if building == "tower" else TOWER_RANGE
 	var tower_card = _card_by_id(String(tile.get("site_card", ""))) if building == "tower" else {}
 	if not tower_card.is_empty() and _card_kind(tower_card) == CARD_KIND_DEFENSE:
 		var stats = _card_stats_for_team(tower_card, team)
@@ -4108,10 +4119,7 @@ func _eliminate_multiplayer_team(defeated_team: int, attacker: int, captured_bas
 		captured_base_key = _multiplayer_base_key(defeated_team)
 	multiplayer_alive[defeated_team] = false
 	_clear_eliminated_team_units(defeated_team, attacker)
-	if multiplayer_free_for_all:
-		_gray_out_eliminated_territory(defeated_team, captured_base_key)
-	else:
-		_transfer_eliminated_territory(defeated_team, attacker, captured_base_key)
+	_transfer_eliminated_territory(defeated_team, attacker, captured_base_key)
 	if multiplayer_free_for_all:
 		if defeated_team == PLAYER:
 			_toast("你已淘汰，等待结算")
@@ -4151,34 +4159,7 @@ func _transfer_eliminated_territory(defeated_team: int, attacker: int, captured_
 		var is_defeated_locked_territory = tile_team == NEUTRAL and BoardRules.visual_owner(tile) == defeated_team
 		if tile_team != defeated_team and not is_defeated_locked_territory:
 			continue
-		var restored_site = _conquered_site_for_tile(key, tile)
-		tiles[key] = BoardRules.as_conquered_locked(tile, attacker, restored_site)
-
-
-func _gray_out_eliminated_territory(defeated_team: int, captured_base_key: Vector2i) -> void:
-	for key in tiles.keys():
-		var tile: Dictionary = tiles[key]
-		var belongs_to_defeated = int(tile.get("team", NEUTRAL)) == defeated_team
-		belongs_to_defeated = belongs_to_defeated or BoardRules.visual_owner(tile) == defeated_team
-		if key != captured_base_key and not belongs_to_defeated:
-			continue
-		var gray_tile = BoardRules.empty_locked_tile()
-		gray_tile = BoardRules.with_site(gray_tile, _conquered_site_for_tile(key, tile))
-		gray_tile["eliminated_team"] = defeated_team
-		tiles[key] = gray_tile
-
-
-func _conquered_site_for_tile(key: Vector2i, tile: Dictionary) -> Dictionary:
-	var generated = BoardRules.site_for_key(key, _board_cell_type_rows())
-	var site = String(tile.get("site", ""))
-	var cost = int(tile.get("site_cost", 0))
-	if site == "":
-		site = String(generated.get("site", ""))
-	if cost <= 0:
-		cost = int(generated.get("site_cost", 0))
-	if site == "" or cost <= 0:
-		return BoardRules.site_payload("mystery", BoardRules.QUESTION_PRICE)
-	return BoardRules.site_payload(site, cost)
+		tiles[key] = BoardRules.as_transferred_territory(tile, attacker)
 
 
 func _multiplayer_side_alive(side: int) -> bool:
