@@ -16,6 +16,7 @@ func _ready() -> void:
 	_test_room_layout_targets()
 	_test_legacy_server_profile_without_rank_mirrors()
 	_test_room_snapshot_and_match_bridge()
+	_test_side_b_authority_receives_victory()
 	_test_three_vs_three_snapshot_budget()
 	if failures == 0:
 		print("Online main adapter tests passed.")
@@ -126,9 +127,30 @@ func _test_room_snapshot_and_match_bridge() -> void:
 
 	snapshot["game_over"] = true
 	snapshot["room_result"] = "win"
+	snapshot["authority_room_result"] = "win"
 	app.call("_apply_online_battle_snapshot", snapshot)
 	_expect_equal(String(app.get("result_text")), "失败", "side-B client inverts the authority side-A result")
 	_expect_true(bool(app.get("battle_reward_given")), "remote result is awarded once on the local client")
+
+
+func _test_side_b_authority_receives_victory() -> void:
+	app.call("_reset_online_room_state")
+	app.call("_clear_online_match_state")
+	app.call("_on_online_match_started", {
+		"match_id": "side-b-authority",
+		"map_id": "1v1_crossroads",
+		"players_per_side": 1,
+		"match_seed": 1234,
+		"local_team_id": 4,
+		"is_authority": true,
+		"authority_peer_id": 4,
+		"room_snapshot": _room_snapshot_for_guest(),
+	})
+	app.call("_eliminate_multiplayer_team", 1, 4)
+	_expect_true(bool(app.get("game_over")), "side-B authority ends the match after defeating its final opponent")
+	_expect_equal(String(app.get("authority_room_result")), "loss", "snapshot preserves the global side-A result")
+	_expect_equal(String(app.get("room_result")), "win", "side-B authority receives its own victory result")
+	_expect_equal(String(app.get("result_text")), "胜利", "side-B authority sees victory")
 
 
 func _test_three_vs_three_snapshot_budget() -> void:

@@ -4,6 +4,7 @@ const CardRules = preload("res://scripts/app/systems/card_rules.gd")
 const BoardRules = preload("res://scripts/app/systems/board_rules.gd")
 const MultiplayerRules = preload("res://scripts/app/systems/multiplayer_rules.gd")
 const RankingRules = preload("res://scripts/app/systems/ranking_rules.gd")
+const RankAIDecks = preload("res://scripts/app/systems/rank_ai_decks.gd")
 const UnitMotionFeedback = preload("res://scripts/app/systems/unit_motion_feedback.gd")
 
 const DESIGN_SIZE = Vector2(720.0, 1280.0)
@@ -60,8 +61,8 @@ const ENEMY_FIRST_UNLOCK_DELAY = 4.0
 const ENEMY_UNLOCK_INTERVAL = 2.2
 const PROJECTILE_TIME = 0.30
 const RANGED_PROJECTILE_MIN_DISTANCE = HEX_SIZE * 1.35
-const MULTIPLAYER_BATTLE_TIME = 300.0
-const MULTIPLAYER_FREE_FOR_ALL_TIME = 180.0
+const MULTIPLAYER_BATTLE_TIME = 360.0
+const MULTIPLAYER_FREE_FOR_ALL_TIME = MULTIPLAYER_BATTLE_TIME
 const MULTIPLAYER_AI_UNLOCK_INTERVAL = 4.5
 const MULTIPLAYER_MAX_UNITS_PER_TEAM = 12
 const BOARD_DRAG_THRESHOLD = 12.0
@@ -191,6 +192,7 @@ var room_match_data = {}
 var room_requested_map_id = ""
 var room_match_seed = 0
 var room_result = ""
+var authority_room_result = ""
 var free_for_all_room_snapshot = {}
 var online_room_service: Node
 var online_connection_state = "offline"
@@ -1135,6 +1137,7 @@ func _online_battle_snapshot() -> Dictionary:
 		"next_unit_id": next_unit_id,
 		"game_over": game_over,
 		"room_result": room_result,
+		"authority_room_result": authority_room_result,
 		"result_text": result_text,
 	}
 
@@ -1182,21 +1185,16 @@ func _apply_online_battle_snapshot(snapshot: Dictionary) -> void:
 	_refresh_combat_building_keys()
 	multiplayer_board_bounds = MultiplayerRules.board_bounds(tiles, Vector2.ZERO, HEX_SIZE)
 	if game_over and not was_game_over:
-		_apply_online_local_result(String(snapshot.get("room_result", "draw")))
+		_apply_online_local_result(String(snapshot.get("authority_room_result", snapshot.get("room_result", "draw"))))
 	elif not game_over:
 		room_result = ""
+		authority_room_result = ""
 		result_text = ""
 
 
 func _apply_online_local_result(authority_outcome: String) -> void:
-	var local_outcome = authority_outcome
-	if _multiplayer_side_for_team(local_team_id) == 1:
-		if authority_outcome == "win":
-			local_outcome = "loss"
-		elif authority_outcome == "loss":
-			local_outcome = "win"
-	if not local_outcome in ["win", "draw", "loss"]:
-		local_outcome = "draw"
+	authority_room_result = authority_outcome
+	var local_outcome = _local_outcome_for_authority_result(authority_outcome)
 	room_result = local_outcome
 	result_text = "胜利" if local_outcome == "win" else ("平局" if local_outcome == "draw" else "失败")
 	GameAudio.play_result("victory" if local_outcome == "win" else ("draw" if local_outcome == "draw" else "defeat"))
@@ -1209,6 +1207,16 @@ func _apply_online_local_result(authority_outcome: String) -> void:
 	gacha_tickets += last_battle_reward_tickets
 	_apply_multiplayer_rank_result(local_outcome, last_multiplayer_star_delta)
 	_rebuild_result_player_entries()
+
+
+func _local_outcome_for_authority_result(authority_outcome: String) -> String:
+	var local_outcome = authority_outcome
+	if _multiplayer_side_for_team(local_team_id) == 1:
+		if authority_outcome == "win":
+			local_outcome = "loss"
+		elif authority_outcome == "loss":
+			local_outcome = "win"
+	return local_outcome if local_outcome in ["win", "draw", "loss"] else "draw"
 
 
 func _handle_online_room_keyboard(event: InputEvent) -> bool:
@@ -1464,17 +1472,29 @@ func _select_match_mirror(rank_key: String) -> Dictionary:
 	var mirrors = rank_db["mirrors"]
 	var pool = []
 	var other_player_pool = []
+	var signatures = {}
 	var current_player_id = String(_player_profile().get("player_id", "local_player"))
 	if mirrors.has(rank_key) and typeof(mirrors[rank_key]) == TYPE_ARRAY:
 		for mirror in mirrors[rank_key]:
 			if typeof(mirror) == TYPE_DICTIONARY:
+				var signature = RankAIDecks.deck_signature(mirror.get("deck", []))
+				if signature.is_empty() or signatures.has(signature):
+					continue
+				signatures[signature] = true
 				pool.append(mirror)
 				if String(mirror.get("player_id", "")) != current_player_id:
 					other_player_pool.append(mirror)
+	var baseline_pool = RankAIDecks.mirrors_for_rank(rank_key)
+	for mirror in baseline_pool:
+		mirror["rank_display"] = RankingRules.display_for_key_and_stars(rank_key, 1)
+	if rank_key not in ["bronze", "silver"] and not baseline_pool.is_empty() and (other_player_pool.is_empty() or randf() < 0.75):
+		return baseline_pool[randi() % baseline_pool.size()].duplicate(true)
 	if not other_player_pool.is_empty():
 		return other_player_pool[randi() % other_player_pool.size()].duplicate(true)
 	if not pool.is_empty():
 		return pool[randi() % pool.size()].duplicate(true)
+	if not baseline_pool.is_empty():
+		return baseline_pool[randi() % baseline_pool.size()].duplicate(true)
 	return _generated_match_mirror(rank_key)
 
 
@@ -1732,6 +1752,10 @@ func _card_skill_text(card: Dictionary) -> String:
 
 func _card_display_skill_text(card: Dictionary, include_no_skill: bool) -> String:
 	var base_skill_text = String(card.get("skill_text", ""))
+	if String(card.get("skill_effect", "")) == "summon":
+		var summon_text = _card_extra_summon_skill_text(card)
+		if summon_text != "":
+			return summon_text
 	var is_no_skill = base_skill_text == "" or base_skill_text.begins_with("无技能")
 	if not is_no_skill:
 		return base_skill_text
@@ -1800,7 +1824,10 @@ func _card_speed_skill_text(card: Dictionary) -> String:
 func _card_extra_summon_skill_text(card: Dictionary) -> String:
 	if _card_kind(card) != CARD_KIND_ANIMAL or String(card.get("skill_effect", "")) != "summon":
 		return ""
-	return "召唤时，额外召唤一个%s动物" % String(card.get("name", ""))
+	var animal_name = String(card.get("name", ""))
+	if String(card.get("skill_trigger", "")) == "on_death":
+		return "阵亡时，在原位置召唤1只%s" % animal_name
+	return "召唤时，额外召唤1只%s" % animal_name
 
 
 func _attack_range_label(value: float) -> String:
@@ -1859,6 +1886,7 @@ func _reset_battle() -> void:
 	multiplayer_placement = 0
 	last_multiplayer_star_delta = 0
 	room_result = ""
+	authority_room_result = ""
 	tower_purchase_counts.clear()
 	team_territory_colors.clear()
 	team_unlocked_colors.clear()
@@ -3316,7 +3344,10 @@ func _handle_unit_death(index: int, source_index: int, source_team: int) -> void
 		_buff_random_allies(team, index, 2, "attack", 1.0)
 	if text.contains("阵亡时召唤") or (_unit_uses_structured_skill(dead) and String(dead.get("skill_trigger", "")) == "on_death" and String(dead.get("skill_effect", "")) == "summon"):
 		var spawn_card_id = _death_summon_card_id(dead)
+		var spawn_index = units.size()
 		_spawn_unit(team, dead.get("tile", _tile_at_world(Vector2(dead.get("pos", Vector2.ZERO)))), spawn_card_id, true, 1)
+		if spawn_index < units.size():
+			_show_unit_value_feedback(spawn_index, "summon", 1.0)
 	_notify_unit_death(dead, index)
 
 
@@ -4182,20 +4213,22 @@ func _finish_multiplayer_battle(outcome: String, play_audio: bool = true) -> voi
 		return
 	if not outcome in ["win", "draw", "loss"]:
 		outcome = "draw"
-	room_result = outcome
-	multiplayer_placement = 1 if outcome == "win" else (2 if outcome == "draw" else 3)
-	result_text = "胜利" if outcome == "win" else ("平局" if outcome == "draw" else "失败")
+	authority_room_result = outcome
+	var local_outcome = _local_outcome_for_authority_result(outcome)
+	room_result = local_outcome
+	multiplayer_placement = 1 if local_outcome == "win" else (2 if local_outcome == "draw" else 3)
+	result_text = "胜利" if local_outcome == "win" else ("平局" if local_outcome == "draw" else "失败")
 	game_over = true
 	pause_open = false
 	if play_audio:
-		GameAudio.play_result("victory" if outcome == "win" else ("draw" if outcome == "draw" else "defeat"))
-	var reward = _room_result_rewards(outcome)
+		GameAudio.play_result("victory" if local_outcome == "win" else ("draw" if local_outcome == "draw" else "defeat"))
+	var reward = _room_result_rewards(local_outcome)
 	last_multiplayer_star_delta = int(reward.get("star_delta", -1))
 	last_battle_reward_tickets = int(reward.get("gacha_tickets", 1))
 	if not battle_reward_given:
 		battle_reward_given = true
 		gacha_tickets += last_battle_reward_tickets
-		_apply_multiplayer_rank_result(outcome, last_multiplayer_star_delta)
+		_apply_multiplayer_rank_result(local_outcome, last_multiplayer_star_delta)
 		_rebuild_result_player_entries()
 		var star_text = ("+" if last_multiplayer_star_delta > 0 else "") + str(last_multiplayer_star_delta)
 		_toast("%s：%s星，%d张抽卡券" % [result_text, star_text, last_battle_reward_tickets])
@@ -6063,6 +6096,8 @@ func _unit_value_feedback_color(stat: String) -> Color:
 			return Color(0.40, 0.76, 1.0)
 		"stun":
 			return Color(0.74, 0.50, 1.0)
+		"summon":
+			return Color(0.96, 0.78, 0.30)
 	return Color.WHITE
 
 
@@ -6089,6 +6124,10 @@ func _draw_unit_value_icon(center: Vector2, stat: String, color: Color, shadow: 
 				var direction = Vector2.RIGHT.rotated(deg_to_rad(float(angle)))
 				draw_line(center + direction * 3.0, center + direction * 8.0, color, 2.5, true)
 			draw_circle(center, 3.5, color)
+		"summon":
+			draw_circle(center, 7.0, color, false, 2.5, true)
+			draw_line(center + Vector2(-4, 0), center + Vector2(4, 0), color, 2.5, true)
+			draw_line(center + Vector2(0, -4), center + Vector2(0, 4), color, 2.5, true)
 
 
 func _draw_selection_panel() -> void:

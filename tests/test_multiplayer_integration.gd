@@ -66,7 +66,7 @@ func _test_initial_state() -> void:
 	_expect_equal(String(app.get("room_map_id")), "2v2_crossroads", "explicit room map is selected")
 	_expect_equal(app.get("room_active_team_ids"), [1, 2, 4, 5], "2v2 uses fixed side slot ids")
 	_expect_true(tiles.size() > 144, "2v2 map keeps all four territories plus a connected neutral frontline")
-	_expect_true(float(app.get("battle_timer")) <= 300.0 and float(app.get("battle_timer")) > 299.0, "room battle starts with a five-minute timer")
+	_expect_true(float(app.get("battle_timer")) <= 360.0 and float(app.get("battle_timer")) > 359.0, "room battle starts with a six-minute timer")
 	_expect_equal(int(app.call("_multiplayer_alive_count")), 4, "all four active slots start alive")
 	var local_base: Vector2i = base_keys.get(BoardRules.PLAYER, MultiplayerRules.INVALID_KEY)
 	var local_base_center: Vector2 = app.call("_world_to_canvas", app.call("_hex_center", local_base))
@@ -158,7 +158,7 @@ func _test_unit_cap() -> void:
 func _test_runtime_smoke() -> void:
 	for _step in range(120):
 		app.call("_update_battle", 0.1)
-	_expect_true(float(app.get("battle_timer")) <= 288.1, "room battle advances for twelve seconds")
+	_expect_true(float(app.get("battle_timer")) <= 348.1, "room battle advances for twelve seconds")
 	for team in app.get("room_active_team_ids"):
 		var alive_units = 0
 		for unit in app.get("units"):

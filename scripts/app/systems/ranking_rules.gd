@@ -1,17 +1,19 @@
 extends RefCounted
 
-const DB_VERSION = 2
+const DB_VERSION = 3
 const INITIAL_ELO = 1000
 const INITIAL_RANK_KEY = "bronze"
 const INITIAL_STARS = 1
 const KING_STAR_ELO = 40
 
 const RANKS = [
-	{"key": "bronze", "name": "青铜", "min_elo": 1000, "max_elo": 1199, "max_stars": 3},
-	{"key": "silver", "name": "白银", "min_elo": 1200, "max_elo": 1399, "max_stars": 3},
-	{"key": "gold", "name": "黄金", "min_elo": 1400, "max_elo": 1599, "max_stars": 4},
-	{"key": "diamond", "name": "钻石", "min_elo": 1600, "max_elo": 1799, "max_stars": 5},
-	{"key": "king", "name": "王者", "min_elo": 1800, "max_elo": -1, "max_stars": -1},
+	{"key": "bronze", "name": "青铜", "min_elo": 1000, "max_elo": 1359, "max_stars": 9},
+	{"key": "silver", "name": "白银", "min_elo": 1360, "max_elo": 1719, "max_stars": 9},
+	{"key": "gold", "name": "黄金", "min_elo": 1720, "max_elo": 2359, "max_stars": 16},
+	{"key": "platinum", "name": "铂金", "min_elo": 2360, "max_elo": 2999, "max_stars": 16},
+	{"key": "diamond", "name": "钻石", "min_elo": 3000, "max_elo": 3999, "max_stars": 25},
+	{"key": "star", "name": "星耀", "min_elo": 4000, "max_elo": 4999, "max_stars": 25},
+	{"key": "king", "name": "王者", "min_elo": 5000, "max_elo": -1, "max_stars": -1},
 ]
 
 
