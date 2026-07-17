@@ -54,15 +54,26 @@ func _test_multiplayer_slots_keep_independent_deck_snapshots() -> void:
 	var original_mode = String(app.get("battle_mode"))
 	var original_active_teams = (app.get("room_active_team_ids") as Array).duplicate()
 	var original_team_decks = (app.get("multiplayer_team_decks") as Dictionary).duplicate(true)
+	var original_team_levels = (app.get("multiplayer_team_card_levels") as Dictionary).duplicate(true)
+	var original_slots = (app.get("online_room_slots") as Array).duplicate(true)
+	var original_humans = (app.get("room_human_teams") as Dictionary).duplicate(true)
 	var original_deck = (app.get("deck") as Array).duplicate()
 	var original_enemy_deck = (app.get("enemy_deck") as Array).duplicate()
 	app.set("battle_mode", "multiplayer")
 	app.set("room_active_team_ids", [1, 2, 4, 5])
 	app.set("deck", ["gold_mine_card", "defense_watch_tower", "rabbit", "wolf"])
 	app.set("enemy_deck", ["gold_mine_card", "defense_watch_tower", "mouse", "ant"])
+	app.set("room_human_teams", {1: "自己", 2: "队友", 4: "对手"})
+	app.set("online_room_slots", [
+		{"team_id": 2, "kind": "human", "deck": ["gold_mine_card", "defense_watch_tower", "kangaroo"], "card_levels": {"kangaroo": 4}},
+		{"team_id": 4, "kind": "human", "deck": ["gold_mine_card", "defense_watch_tower", "ant"], "card_levels": {"ant": 3}},
+	])
 	app.call("_init_multiplayer_state")
 	var snapshots: Dictionary = app.get("multiplayer_team_decks")
 	_expect_equal(snapshots.size(), 4, "2v2 creates one deck snapshot per active slot")
+	_expect_equal(snapshots[2], ["gold_mine_card", "defense_watch_tower", "kangaroo"], "human teammate uses their server-synchronized deck")
+	_expect_equal(snapshots[4], ["gold_mine_card", "defense_watch_tower", "ant"], "human opponent uses their server-synchronized deck")
+	_expect_equal(int((app.get("multiplayer_team_card_levels") as Dictionary)[2].get("kangaroo", 0)), 4, "human teammate uses their own card level")
 	var team_two: Array = snapshots[2]
 	team_two.append("kangaroo")
 	snapshots[2] = team_two
@@ -81,6 +92,9 @@ func _test_multiplayer_slots_keep_independent_deck_snapshots() -> void:
 	app.set("battle_mode", original_mode)
 	app.set("room_active_team_ids", original_active_teams)
 	app.set("multiplayer_team_decks", original_team_decks)
+	app.set("multiplayer_team_card_levels", original_team_levels)
+	app.set("online_room_slots", original_slots)
+	app.set("room_human_teams", original_humans)
 	app.set("deck", original_deck)
 	app.set("enemy_deck", original_enemy_deck)
 

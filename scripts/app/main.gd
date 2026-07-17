@@ -172,6 +172,7 @@ var multiplayer_ai_timers = {}
 var multiplayer_alive = {}
 var multiplayer_placements = {}
 var multiplayer_team_decks = {}
+var multiplayer_team_card_levels = {}
 var multiplayer_placement = 0
 var multiplayer_free_for_all = false
 var last_multiplayer_star_delta = 0
@@ -1124,6 +1125,7 @@ func _online_battle_snapshot() -> Dictionary:
 		"multiplayer_alive": multiplayer_alive.duplicate(true),
 		"multiplayer_placements": multiplayer_placements.duplicate(true),
 		"multiplayer_team_decks": multiplayer_team_decks.duplicate(true),
+		"multiplayer_team_card_levels": multiplayer_team_card_levels.duplicate(true),
 		"enemy_deck": enemy_deck.duplicate(),
 		"enemy_card_levels": enemy_card_levels.duplicate(true),
 		"multiplayer_placement": multiplayer_placement,
@@ -1164,6 +1166,8 @@ func _apply_online_battle_snapshot(snapshot: Dictionary) -> void:
 		multiplayer_placements = (snapshot["multiplayer_placements"] as Dictionary).duplicate(true)
 	if typeof(snapshot.get("multiplayer_team_decks", null)) == TYPE_DICTIONARY:
 		multiplayer_team_decks = (snapshot["multiplayer_team_decks"] as Dictionary).duplicate(true)
+	if typeof(snapshot.get("multiplayer_team_card_levels", null)) == TYPE_DICTIONARY:
+		multiplayer_team_card_levels = (snapshot["multiplayer_team_card_levels"] as Dictionary).duplicate(true)
 	if typeof(snapshot.get("enemy_deck", null)) == TYPE_ARRAY:
 		enemy_deck = (snapshot["enemy_deck"] as Array).duplicate()
 	if typeof(snapshot.get("enemy_card_levels", null)) == TYPE_DICTIONARY:
@@ -1671,6 +1675,10 @@ func _team_deck_card(team: int, index: int) -> String:
 
 
 func _card_level_for_team(card_id: String, team: int) -> int:
+	if battle_mode == BATTLE_MODE_MULTIPLAYER and multiplayer_team_card_levels.has(team):
+		var levels = multiplayer_team_card_levels[team]
+		if typeof(levels) == TYPE_DICTIONARY:
+			return CardRules.card_level(levels, card_id)
 	if _uses_enemy_roster(team):
 		return CardRules.card_level(enemy_card_levels, card_id)
 	return _card_level(card_id)
@@ -1697,6 +1705,10 @@ func _card_stats(card: Dictionary) -> Dictionary:
 
 
 func _card_stats_for_team(card: Dictionary, team: int) -> Dictionary:
+	if battle_mode == BATTLE_MODE_MULTIPLAYER and multiplayer_team_card_levels.has(team):
+		var levels = multiplayer_team_card_levels[team]
+		if typeof(levels) == TYPE_DICTIONARY:
+			return CardRules.card_stats(card, levels)
 	if _uses_enemy_roster(team):
 		return CardRules.card_stats(card, enemy_card_levels)
 	return _card_stats(card)
@@ -1918,12 +1930,34 @@ func _init_multiplayer_state() -> void:
 	multiplayer_alive.clear()
 	multiplayer_placements.clear()
 	multiplayer_team_decks.clear()
+	multiplayer_team_card_levels.clear()
 	for team in _active_multiplayer_teams():
 		multiplayer_gold[team] = STARTING_GOLD
 		multiplayer_alive[team] = true
-		multiplayer_team_decks[team] = deck.duplicate() if team == PLAYER else enemy_deck.duplicate()
+		var roster = _multiplayer_roster_for_team(int(team))
+		multiplayer_team_decks[team] = (roster.get("deck", []) as Array).duplicate()
+		multiplayer_team_card_levels[team] = (roster.get("card_levels", {}) as Dictionary).duplicate(true)
 		if not room_human_teams.has(team):
 			multiplayer_ai_timers[team] = ENEMY_FIRST_UNLOCK_DELAY + float(team - 2) * 0.35
+
+
+func _multiplayer_roster_for_team(team: int) -> Dictionary:
+	if team == _local_control_team():
+		return {"deck": deck.duplicate(), "card_levels": card_levels.duplicate(true)}
+	for slot_value in online_room_slots:
+		if typeof(slot_value) != TYPE_DICTIONARY:
+			continue
+		var slot: Dictionary = slot_value
+		if int(slot.get("team_id", NEUTRAL)) != team or String(slot.get("kind", "")) != "human":
+			continue
+		var slot_deck = slot.get("deck", [])
+		var slot_levels = slot.get("card_levels", {})
+		if typeof(slot_deck) == TYPE_ARRAY and not (slot_deck as Array).is_empty():
+			return {
+				"deck": (slot_deck as Array).duplicate(),
+				"card_levels": (slot_levels as Dictionary).duplicate(true) if typeof(slot_levels) == TYPE_DICTIONARY else {},
+			}
+	return {"deck": enemy_deck.duplicate(), "card_levels": enemy_card_levels.duplicate(true)}
 
 
 func _board_cell_type_rows() -> Array:
@@ -5750,13 +5784,19 @@ func _draw_building_summon_progress(center: Vector2, tile: Dictionary) -> void:
 
 func _draw_building_health_bar(center: Vector2, tile: Dictionary) -> void:
 	var max_hp = float(tile.get("max_hp", 0.0))
-	if max_hp <= 0.0:
-		return
-	var pct = clampf(float(tile["hp"]) / max_hp, 0.0, 1.0)
 	var team = int(tile["team"])
-	_draw_compact_bar(Rect2(center + Vector2(-23, 27), Vector2(46, 5)), pct, _team_health_color(team))
 	if battle_mode == BATTLE_MODE_MULTIPLAYER:
 		_draw_team_marker(center + Vector2(29, 29), team)
+	if not _should_draw_building_health_bar(tile):
+		return
+	var hp = float(tile.get("hp", 0.0))
+	var pct = clampf(hp / max_hp, 0.0, 1.0)
+	_draw_compact_bar(Rect2(center + Vector2(-23, 27), Vector2(46, 5)), pct, _team_health_color(team))
+
+
+func _should_draw_building_health_bar(tile: Dictionary) -> bool:
+	var max_hp = float(tile.get("max_hp", 0.0))
+	return max_hp > 0.0 and float(tile.get("hp", 0.0)) < max_hp - 0.001
 
 
 func _draw_compact_bar(rect: Rect2, pct: float, fill: Color) -> void:

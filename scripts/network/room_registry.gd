@@ -416,6 +416,8 @@ func snapshot_for_peer(peer_id_value: Variant) -> Dictionary:
 			"is_host": false,
 			"rank_key": "bronze",
 			"rank_stars": 1,
+			"deck": [],
+			"card_levels": {},
 		}
 		if slots.has(team_id):
 			var participant: Dictionary = slots[team_id]
@@ -425,6 +427,8 @@ func snapshot_for_peer(peer_id_value: Variant) -> Dictionary:
 			slot["ready"] = bool(participant["ready"])
 			slot["rank_key"] = String(participant.get("rank_key", "bronze"))
 			slot["rank_stars"] = maxi(1, int(participant.get("rank_stars", 1)))
+			slot["deck"] = (participant.get("deck", []) as Array).duplicate() if typeof(participant.get("deck", [])) == TYPE_ARRAY else []
+			slot["card_levels"] = (participant.get("card_levels", {}) as Dictionary).duplicate(true) if typeof(participant.get("card_levels", {})) == TYPE_DICTIONARY else {}
 			if kind == "human":
 				var participant_peer_id = int(participant["peer_id"])
 				slot["peer_id"] = participant_peer_id
@@ -521,6 +525,8 @@ func _human_participant(peer_id: int, display_name: String, join_order: int, pla
 		"join_order": join_order,
 		"rank_key": String(player_rank.get("rank_key", "bronze")),
 		"rank_stars": maxi(1, int(player_rank.get("rank_stars", player_rank.get("stars", 1)))),
+		"deck": (player_rank.get("deck", []) as Array).duplicate() if typeof(player_rank.get("deck", [])) == TYPE_ARRAY else [],
+		"card_levels": (player_rank.get("card_levels", {}) as Dictionary).duplicate(true) if typeof(player_rank.get("card_levels", {})) == TYPE_DICTIONARY else {},
 	}
 
 
@@ -534,6 +540,8 @@ func _ai_participant() -> Dictionary:
 		"ready": true,
 		"rank_key": "bronze",
 		"rank_stars": 1,
+		"deck": [],
+		"card_levels": {},
 	}
 
 

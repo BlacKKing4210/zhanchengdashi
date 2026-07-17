@@ -15,6 +15,7 @@ func _ready() -> void:
 	_test_random_classic_selection()
 	_test_classic_camera_drag()
 	_test_tower_price_progression()
+	_test_full_building_health_bar_visibility()
 	_test_classic_base_results()
 	if failures == 0:
 		print("Classic battle regression tests passed for five random-map variants.")
@@ -84,6 +85,11 @@ func _test_tower_price_progression() -> void:
 	app.set("tiles", tiles)
 	_expect_equal(int(app.call("_unlock_cost", third, BoardRules.PLAYER)), 150, "third player tower is priced at 150")
 	_expect_equal(int(app.call("_unlock_cost", third, BoardRules.ENEMY)), 50, "enemy tower progression remains independent")
+
+
+func _test_full_building_health_bar_visibility() -> void:
+	_expect_equal(bool(app.call("_should_draw_building_health_bar", {"hp": 100.0, "max_hp": 100.0})), false, "full-health building hides its health bar")
+	_expect_true(bool(app.call("_should_draw_building_health_bar", {"hp": 99.0, "max_hp": 100.0})), "damaged building shows its health bar")
 
 
 func _test_classic_base_results() -> void:

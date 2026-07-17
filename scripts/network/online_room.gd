@@ -804,6 +804,8 @@ func _server_rank_profile(peer_id: int) -> Dictionary:
 	return {
 		"rank_key": String((profile as Dictionary).get("rank_key", "bronze")),
 		"rank_stars": maxi(1, int((profile as Dictionary).get("rank_stars", 1))),
+		"deck": ((profile as Dictionary).get("deck", []) as Array).duplicate() if typeof((profile as Dictionary).get("deck", [])) == TYPE_ARRAY else [],
+		"card_levels": ((profile as Dictionary).get("card_levels", {}) as Dictionary).duplicate(true) if typeof((profile as Dictionary).get("card_levels", {})) == TYPE_DICTIONARY else {},
 	}
 
 
