@@ -51,7 +51,7 @@
         "skill_trigger": {
           "type": "enum",
           "required": false,
-          "values": ["on_spawn", "on_attack", "on_death", "aura", "on_interval", "on_damage", "on_capture"]
+          "values": ["on_spawn", "on_attack", "on_death", "on_ally_death", "aura", "on_interval", "on_damage", "on_capture"]
         },
         "skill_effect": {
           "type": "enum",
@@ -60,6 +60,7 @@
         },
         "skill_power": { "type": "float", "required": false },
         "skill_cooldown_sec": { "type": "float", "required": false },
+        "skill_chance": { "type": "float", "required": false },
         "skill_text": { "type": "string", "required": false },
         "tags": { "type": "list", "required": false },
         "design_notes": { "type": "string", "required": false }

@@ -15,6 +15,7 @@
     "skill_effect": null,
     "skill_power": null,
     "skill_cooldown_sec": null,
+    "skill_chance": null,
     "skill_text": "优先攻击敌方建筑",
     "tags": [
       "tier_1",
@@ -40,6 +41,7 @@
     "skill_effect": "buff_attack",
     "skill_power": 1.0,
     "skill_cooldown_sec": 6.0,
+    "skill_chance": null,
     "skill_text": "数量+1",
     "tags": [
       "tier_1",
@@ -67,6 +69,7 @@
     "skill_effect": null,
     "skill_power": null,
     "skill_cooldown_sec": null,
+    "skill_chance": null,
     "skill_text": null,
     "tags": [
       "tier_1",
@@ -93,6 +96,7 @@
     "skill_effect": "slow",
     "skill_power": 25.0,
     "skill_cooldown_sec": 4.0,
+    "skill_chance": null,
     "skill_text": null,
     "tags": [
       "tier_1",
@@ -120,6 +124,7 @@
     "skill_effect": "shield",
     "skill_power": 18.0,
     "skill_cooldown_sec": 0.0,
+    "skill_chance": null,
     "skill_text": "高速度",
     "tags": [
       "tier_1",
@@ -142,20 +147,22 @@
     "move_speed": 40.0,
     "attack_range": 40.0,
     "summon_interval_sec": 5.0,
-    "skill_id": "chicken_cheer",
-    "skill_trigger": "on_spawn",
-    "skill_effect": "buff_attack",
-    "skill_power": 1.0,
+    "skill_id": "chicken_salvage",
+    "skill_trigger": "on_death",
+    "skill_effect": "gold",
+    "skill_power": 8.0,
     "skill_cooldown_sec": 0.0,
-    "skill_text": "阵亡时，金币+1",
+    "skill_chance": null,
+    "skill_text": null,
     "tags": [
       "tier_1",
       "common",
       "support",
-      "buff",
+      "gold",
+      "economy",
       "skill"
     ],
-    "design_notes": "鸡：低费辅助，单兵能力弱。"
+    "design_notes": "鸡：低费经济辅助，阵亡时返还金币。"
   },
   {
     "id": "pigeon",
@@ -171,9 +178,10 @@
     "skill_id": "pigeon_salvage",
     "skill_trigger": "on_death",
     "skill_effect": "gold",
-    "skill_power": 3.0,
+    "skill_power": 24.0,
     "skill_cooldown_sec": 0.0,
-    "skill_text": "高速度",
+    "skill_chance": null,
+    "skill_text": null,
     "tags": [
       "tier_1",
       "common",
@@ -183,7 +191,7 @@
       "skill",
       "flying"
     ],
-    "design_notes": "鸽子：低血高速，失败损失小。"
+    "design_notes": "鸽子：低血高速，阵亡时返还金币。"
   },
   {
     "id": "hamster",
@@ -199,9 +207,10 @@
     "skill_id": "hamster_store",
     "skill_trigger": "on_interval",
     "skill_effect": "gold",
-    "skill_power": 2.0,
+    "skill_power": 10.0,
     "skill_cooldown_sec": 8.0,
-    "skill_text": "高速度",
+    "skill_chance": null,
+    "skill_text": null,
     "tags": [
       "tier_1",
       "common",
@@ -210,7 +219,7 @@
       "economy",
       "skill"
     ],
-    "design_notes": "仓鼠：经济倾向的基础卡。"
+    "design_notes": "仓鼠：经济倾向的基础卡，每8秒产出金币。"
   },
   {
     "id": "snail",
@@ -228,6 +237,7 @@
     "skill_effect": null,
     "skill_power": null,
     "skill_cooldown_sec": null,
+    "skill_chance": null,
     "skill_text": "慢速",
     "tags": [
       "tier_1",
@@ -253,6 +263,7 @@
     "skill_effect": null,
     "skill_power": null,
     "skill_cooldown_sec": null,
+    "skill_chance": null,
     "skill_text": "召唤时，随机友军获得+1攻击",
     "tags": [
       "tier_1",
@@ -278,6 +289,7 @@
     "skill_effect": null,
     "skill_power": null,
     "skill_cooldown_sec": null,
+    "skill_chance": null,
     "skill_text": "击杀后，50%概率攻击+1",
     "tags": [
       "tier_2",
@@ -298,21 +310,22 @@
     "move_speed": 80.0,
     "attack_range": 40.0,
     "summon_interval_sec": 7.0,
-    "skill_id": "dog_protect",
-    "skill_trigger": "aura",
-    "skill_effect": "shield",
-    "skill_power": 10.0,
-    "skill_cooldown_sec": 7.0,
-    "skill_text": "攻击后，35%概率金币+1",
+    "skill_id": "dog_coin_bite",
+    "skill_trigger": "on_attack",
+    "skill_effect": "gold",
+    "skill_power": 5.0,
+    "skill_cooldown_sec": 0.0,
+    "skill_chance": 0.35,
+    "skill_text": null,
     "tags": [
       "tier_2",
       "common",
       "guard",
-      "shield",
-      "protect",
+      "gold",
+      "economy",
       "skill"
     ],
-    "design_notes": "狗：守线前排。"
+    "design_notes": "狗：守线前排，攻击后有概率产金。"
   },
   {
     "id": "duck",
@@ -330,6 +343,7 @@
     "skill_effect": "summon",
     "skill_power": 1.0,
     "skill_cooldown_sec": 0.0,
+    "skill_chance": null,
     "skill_text": null,
     "tags": [
       "tier_2",
@@ -357,7 +371,8 @@
     "skill_effect": "gold",
     "skill_power": 8.0,
     "skill_cooldown_sec": 0.0,
-    "skill_text": "参与占领地块时获得1金币。",
+    "skill_chance": null,
+    "skill_text": null,
     "tags": [
       "tier_2",
       "common",
@@ -366,7 +381,7 @@
       "capture",
       "skill"
     ],
-    "design_notes": "松鼠：抢格与游走兼具。"
+    "design_notes": "松鼠：抢格与游走兼具，参与占领时获得金币。"
   },
   {
     "id": "hedgehog",
@@ -384,6 +399,7 @@
     "skill_effect": "thorns",
     "skill_power": 20.0,
     "skill_cooldown_sec": 0.0,
+    "skill_chance": null,
     "skill_text": "受到近战伤害时，对伤害来源造成1伤害。",
     "tags": [
       "tier_2",
@@ -411,6 +427,7 @@
     "skill_effect": "shield",
     "skill_power": 26.0,
     "skill_cooldown_sec": 8.0,
+    "skill_chance": null,
     "skill_text": "受到伤害-1",
     "tags": [
       "tier_2",
@@ -438,6 +455,7 @@
     "skill_effect": "buff_hp",
     "skill_power": 18.0,
     "skill_cooldown_sec": 8.0,
+    "skill_chance": null,
     "skill_text": "登场时，随机友军生命+2",
     "tags": [
       "tier_2",
@@ -465,6 +483,7 @@
     "skill_effect": "shield",
     "skill_power": 14.0,
     "skill_cooldown_sec": 0.0,
+    "skill_chance": null,
     "skill_text": "所有友军生命+1",
     "tags": [
       "tier_2",
@@ -491,6 +510,7 @@
     "skill_effect": "copy",
     "skill_power": 1.0,
     "skill_cooldown_sec": 12.0,
+    "skill_chance": null,
     "skill_text": "每次攻击额外攻击1个敌人",
     "tags": [
       "tier_2",
@@ -518,6 +538,7 @@
     "skill_effect": null,
     "skill_power": null,
     "skill_cooldown_sec": null,
+    "skill_chance": null,
     "skill_text": "我方动物攻击+1",
     "tags": [
       "tier_2",
@@ -543,6 +564,7 @@
     "skill_effect": "copy",
     "skill_power": 1.0,
     "skill_cooldown_sec": 10.0,
+    "skill_chance": null,
     "skill_text": "生命低于敌人时，攻击翻倍",
     "tags": [
       "tier_3",
@@ -568,9 +590,10 @@
     "skill_id": "piggy_bank",
     "skill_trigger": "on_death",
     "skill_effect": "gold",
-    "skill_power": 18.0,
+    "skill_power": 40.0,
     "skill_cooldown_sec": 0.0,
-    "skill_text": "阵亡时，对方获得5金币",
+    "skill_chance": null,
+    "skill_text": null,
     "tags": [
       "tier_3",
       "rare",
@@ -579,7 +602,7 @@
       "tank",
       "skill"
     ],
-    "design_notes": "猪：经济型前排。"
+    "design_notes": "猪：经济型前排，阵亡时返还金币。"
   },
   {
     "id": "deer",
@@ -597,6 +620,7 @@
     "skill_effect": "buff_speed",
     "skill_power": 22.0,
     "skill_cooldown_sec": 6.0,
+    "skill_chance": null,
     "skill_text": "阵亡时，我方2只随机动物攻击+1",
     "tags": [
       "tier_3",
@@ -624,6 +648,7 @@
     "skill_effect": "repair",
     "skill_power": 22.0,
     "skill_cooldown_sec": 7.0,
+    "skill_chance": null,
     "skill_text": "优先攻击敌方建筑",
     "tags": [
       "tier_3",
@@ -646,20 +671,22 @@
     "move_speed": 40.0,
     "attack_range": 40.0,
     "summon_interval_sec": 10.0,
-    "skill_id": "otter_bubble",
-    "skill_trigger": "on_spawn",
-    "skill_effect": "shield",
-    "skill_power": 28.0,
+    "skill_id": "otter_memorial",
+    "skill_trigger": "on_ally_death",
+    "skill_effect": "gold",
+    "skill_power": 10.0,
     "skill_cooldown_sec": 0.0,
-    "skill_text": "友军阵亡时，获得2金币",
+    "skill_chance": null,
+    "skill_text": null,
     "tags": [
       "tier_3",
       "rare",
       "support",
-      "shield",
+      "gold",
+      "economy",
       "skill"
     ],
-    "design_notes": "水獭：防守型辅助。"
+    "design_notes": "水獭：友军阵亡时提供经济支援。"
   },
   {
     "id": "penguin",
@@ -677,6 +704,7 @@
     "skill_effect": "buff_attack",
     "skill_power": 2.0,
     "skill_cooldown_sec": 8.0,
+    "skill_chance": null,
     "skill_text": "数量+1",
     "tags": [
       "tier_3",
@@ -704,6 +732,7 @@
     "skill_effect": "buff_attack",
     "skill_power": 7.0,
     "skill_cooldown_sec": 0.0,
+    "skill_chance": null,
     "skill_text": "优先攻击远程单位",
     "tags": [
       "tier_3",
@@ -731,6 +760,7 @@
     "skill_effect": "damage",
     "skill_power": 8.0,
     "skill_cooldown_sec": 5.0,
+    "skill_chance": null,
     "skill_text": "优先攻击后排单位",
     "tags": [
       "tier_3",
@@ -758,6 +788,7 @@
     "skill_effect": null,
     "skill_power": null,
     "skill_cooldown_sec": null,
+    "skill_chance": null,
     "skill_text": "每当有动物死亡时，生命值+1",
     "tags": [
       "tier_3",
@@ -783,6 +814,7 @@
     "skill_effect": "shield",
     "skill_power": 18.0,
     "skill_cooldown_sec": 8.0,
+    "skill_chance": null,
     "skill_text": "所有动物攻击+1",
     "tags": [
       "tier_3",
@@ -811,6 +843,7 @@
     "skill_effect": "buff_attack",
     "skill_power": 3.0,
     "skill_cooldown_sec": 7.0,
+    "skill_chance": null,
     "skill_text": "击杀后，攻击+1/生命+1",
     "tags": [
       "tier_4",
@@ -838,6 +871,7 @@
     "skill_effect": "buff_speed",
     "skill_power": 18.0,
     "skill_cooldown_sec": 7.0,
+    "skill_chance": null,
     "skill_text": "我方所有动物速度+20%",
     "tags": [
       "tier_4",
@@ -863,9 +897,10 @@
     "skill_id": "cow_supply",
     "skill_trigger": "on_capture",
     "skill_effect": "gold",
-    "skill_power": 20.0,
+    "skill_power": 10.0,
     "skill_cooldown_sec": 0.0,
-    "skill_text": "参与占领后提供1金币。",
+    "skill_chance": null,
+    "skill_text": null,
     "tags": [
       "tier_4",
       "rare",
@@ -874,7 +909,7 @@
       "capture",
       "skill"
     ],
-    "design_notes": "牛：占点经济。"
+    "design_notes": "牛：占点经济，参与占领后提供金币。"
   },
   {
     "id": "zebra",
@@ -892,6 +927,7 @@
     "skill_effect": "buff_attack",
     "skill_power": 3.0,
     "skill_cooldown_sec": 8.0,
+    "skill_chance": null,
     "skill_text": "每20点速度，提供1攻击力",
     "tags": [
       "tier_4",
@@ -919,6 +955,7 @@
     "skill_effect": "heal",
     "skill_power": 24.0,
     "skill_cooldown_sec": 8.0,
+    "skill_chance": null,
     "skill_text": null,
     "tags": [
       "tier_4",
@@ -946,6 +983,7 @@
     "skill_effect": "shield",
     "skill_power": 16.0,
     "skill_cooldown_sec": 6.0,
+    "skill_chance": null,
     "skill_text": "攻击后，攻击+1",
     "tags": [
       "tier_4",
@@ -972,6 +1010,7 @@
     "skill_effect": "damage",
     "skill_power": 10.0,
     "skill_cooldown_sec": 5.0,
+    "skill_chance": null,
     "skill_text": "优先攻击远程单位",
     "tags": [
       "tier_4",
@@ -999,6 +1038,7 @@
     "skill_effect": "stun",
     "skill_power": 0.8,
     "skill_cooldown_sec": 7.0,
+    "skill_chance": null,
     "skill_text": "会比敌人优先攻击",
     "tags": [
       "tier_4",
@@ -1026,6 +1066,7 @@
     "skill_effect": "heal",
     "skill_power": 20.0,
     "skill_cooldown_sec": 7.0,
+    "skill_chance": null,
     "skill_text": null,
     "tags": [
       "tier_4",
@@ -1053,6 +1094,7 @@
     "skill_effect": null,
     "skill_power": null,
     "skill_cooldown_sec": null,
+    "skill_chance": null,
     "skill_text": null,
     "tags": [
       "tier_4",
@@ -1078,6 +1120,7 @@
     "skill_effect": "stun",
     "skill_power": 1.0,
     "skill_cooldown_sec": 9.0,
+    "skill_chance": null,
     "skill_text": "每次攻击降低自身1生命值",
     "tags": [
       "tier_5",
@@ -1105,6 +1148,7 @@
     "skill_effect": "damage",
     "skill_power": 16.0,
     "skill_cooldown_sec": 5.5,
+    "skill_chance": null,
     "skill_text": "每次攻击造成360°AOE伤害",
     "tags": [
       "tier_5",
@@ -1132,6 +1176,7 @@
     "skill_effect": "summon",
     "skill_power": 1.0,
     "skill_cooldown_sec": 0.0,
+    "skill_chance": null,
     "skill_text": "每次攻击造成360°AOE伤害",
     "tags": [
       "tier_5",
@@ -1159,6 +1204,7 @@
     "skill_effect": "stun",
     "skill_power": 1.2,
     "skill_cooldown_sec": 9.0,
+    "skill_chance": null,
     "skill_text": "生命高于对方时，攻击造成额外50%伤害",
     "tags": [
       "tier_5",
@@ -1186,6 +1232,7 @@
     "skill_effect": null,
     "skill_power": null,
     "skill_cooldown_sec": null,
+    "skill_chance": null,
     "skill_text": "生命高于对方时，攻击后提高2攻击",
     "tags": [
       "tier_5",
@@ -1211,6 +1258,7 @@
     "skill_effect": "buff_hp",
     "skill_power": 28.0,
     "skill_cooldown_sec": 8.0,
+    "skill_chance": null,
     "skill_text": "提高所有友军生命值1点",
     "tags": [
       "tier_5",
@@ -1238,6 +1286,7 @@
     "skill_effect": "damage",
     "skill_power": 18.0,
     "skill_cooldown_sec": 6.0,
+    "skill_chance": null,
     "skill_text": "每次受到伤害后，攻击力+1",
     "tags": [
       "tier_5",
@@ -1265,6 +1314,7 @@
     "skill_effect": null,
     "skill_power": null,
     "skill_cooldown_sec": null,
+    "skill_chance": null,
     "skill_text": "优先攻击敌方后排",
     "tags": [
       "tier_5",
@@ -1290,6 +1340,7 @@
     "skill_effect": "execute",
     "skill_power": 18.0,
     "skill_cooldown_sec": 7.0,
+    "skill_chance": null,
     "skill_text": "生命值低于对方时，攻击翻倍",
     "tags": [
       "tier_5",
@@ -1317,6 +1368,7 @@
     "skill_effect": "slow",
     "skill_power": 18.0,
     "skill_cooldown_sec": 5.5,
+    "skill_chance": null,
     "skill_text": "击杀时，提高3生命",
     "tags": [
       "tier_5",
@@ -1344,6 +1396,7 @@
     "skill_effect": "buff_hp",
     "skill_power": 45.0,
     "skill_cooldown_sec": 9.0,
+    "skill_chance": null,
     "skill_text": "受到攻击后，降低1生命值同时提高1攻击力",
     "tags": [
       "tier_6",
@@ -1371,6 +1424,7 @@
     "skill_effect": "shield",
     "skill_power": 46.0,
     "skill_cooldown_sec": 8.0,
+    "skill_chance": null,
     "skill_text": null,
     "tags": [
       "tier_6",
@@ -1397,6 +1451,7 @@
     "skill_effect": "execute",
     "skill_power": 24.0,
     "skill_cooldown_sec": 6.0,
+    "skill_chance": null,
     "skill_text": "击杀后，提高最大生命值，提高数量为对方最大生命值",
     "tags": [
       "tier_6",
@@ -1423,6 +1478,7 @@
     "skill_effect": null,
     "skill_power": null,
     "skill_cooldown_sec": null,
+    "skill_chance": null,
     "skill_text": "优先攻击前排单位",
     "tags": [
       "tier_6",
@@ -1448,6 +1504,7 @@
     "skill_effect": "stun",
     "skill_power": 1.4,
     "skill_cooldown_sec": 7.0,
+    "skill_chance": null,
     "skill_text": "生命值低于对方时，攻击力翻倍",
     "tags": [
       "tier_6",
@@ -1474,6 +1531,7 @@
     "skill_effect": "slow",
     "skill_power": 30.0,
     "skill_cooldown_sec": 5.5,
+    "skill_chance": null,
     "skill_text": "攻击施加剧毒减速",
     "tags": [
       "tier_6",
@@ -1500,6 +1558,7 @@
     "skill_effect": "shield",
     "skill_power": 52.0,
     "skill_cooldown_sec": 8.0,
+    "skill_chance": null,
     "skill_text": "受到伤害-1",
     "tags": [
       "tier_6",
@@ -1526,6 +1585,7 @@
     "skill_effect": "summon",
     "skill_power": 1.0,
     "skill_cooldown_sec": 0.0,
+    "skill_chance": null,
     "skill_text": "阵亡时召唤1个大猩猩。",
     "tags": [
       "tier_6",
@@ -1552,6 +1612,7 @@
     "skill_effect": "damage",
     "skill_power": 28.0,
     "skill_cooldown_sec": 6.5,
+    "skill_chance": null,
     "skill_text": "额外攻击2个目标",
     "tags": [
       "tier_6",
@@ -1578,6 +1639,7 @@
     "skill_effect": "shield",
     "skill_power": 70.0,
     "skill_cooldown_sec": 0.0,
+    "skill_chance": null,
     "skill_text": "为周围友军承受伤害",
     "tags": [
       "tier_6",
@@ -1605,6 +1667,7 @@
     "skill_effect": "gold",
     "skill_power": 10.0,
     "skill_cooldown_sec": 3.0,
+    "skill_chance": null,
     "skill_text": "每3秒提供10金币。",
     "tags": [
       "building",
@@ -1631,6 +1694,7 @@
     "skill_effect": "damage",
     "skill_power": 16.0,
     "skill_cooldown_sec": 2.0,
+    "skill_chance": null,
     "skill_text": "稳定攻击最近敌方单位。",
     "tags": [
       "building",
@@ -1657,6 +1721,7 @@
     "skill_effect": "damage",
     "skill_power": 34.0,
     "skill_cooldown_sec": 2.0,
+    "skill_chance": null,
     "skill_text": "较慢但伤害更高的远程防御塔。",
     "tags": [
       "building",
@@ -1683,6 +1748,7 @@
     "skill_effect": "damage",
     "skill_power": 24.0,
     "skill_cooldown_sec": 2.0,
+    "skill_chance": null,
     "skill_text": "原型中先作为中速防御塔攻击最近敌人。",
     "tags": [
       "building",
@@ -1709,6 +1775,7 @@
     "skill_effect": "damage",
     "skill_power": 42.0,
     "skill_cooldown_sec": 2.0,
+    "skill_chance": null,
     "skill_text": "长射程高伤害防御塔。",
     "tags": [
       "building",

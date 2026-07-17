@@ -1819,7 +1819,7 @@ func _card_structured_skill_text(card: Dictionary) -> String:
 		"buff_speed":
 			return "提高移动速度"
 		"gold":
-			return "获得金币"
+			return _card_gold_skill_text(card, trigger)
 		"heal", "repair":
 			return "治疗友军"
 		"thorns":
@@ -1832,6 +1832,29 @@ func _card_structured_skill_text(card: Dictionary) -> String:
 			return "阵亡后返回战场"
 		_:
 			return _card_speed_skill_text(card)
+
+
+func _card_gold_skill_text(card: Dictionary, trigger: String) -> String:
+	var amount = maxi(1, roundi(float(card.get("skill_power", 1.0))))
+	var chance = clampf(float(card.get("skill_chance", 1.0)), 0.0, 1.0)
+	match trigger:
+		"on_death":
+			return "阵亡时，获得%d金币" % amount
+		"on_ally_death":
+			return "友军阵亡时，获得%d金币" % amount
+		"on_capture":
+			return "参与占领后，获得%d金币" % amount
+		"on_interval":
+			return "每%d秒，获得%d金币" % [maxi(1, roundi(float(card.get("skill_cooldown_sec", 1.0)))), amount]
+		"on_attack":
+			if chance < 1.0:
+				return "攻击后，%d%%概率获得%d金币" % [roundi(chance * 100.0), amount]
+			return "攻击后，获得%d金币" % amount
+		"on_damage":
+			return "受伤后，获得%d金币" % amount
+		"on_spawn":
+			return "登场时，获得%d金币" % amount
+	return "获得%d金币" % amount
 
 
 func _card_speed_skill_text(card: Dictionary) -> String:
@@ -2772,7 +2795,7 @@ func _damage_tile(key: Vector2i, attacker: int, damage: float) -> bool:
 	return false
 
 
-func _spawn_unit(team: int, key: Vector2i, card_id: String, is_extra: bool = false, extra_index: int = 0) -> void:
+func _spawn_unit(team: int, key: Vector2i, card_id: String, is_extra: bool = false, extra_index: int = 0, spawn_context: Dictionary = {}) -> void:
 	if not _can_spawn_multiplayer_unit(team):
 		return
 	if card_id == "":
@@ -2789,6 +2812,11 @@ func _spawn_unit(team: int, key: Vector2i, card_id: String, is_extra: bool = fal
 	var skill_cooldown = _card_skill_cooldown(card)
 	var skill_timer = randf_range(0.35, maxf(0.45, skill_cooldown)) if _card_uses_interval_skill(card) else 0.0
 	var navigation_target = _nearest_enemy_building_target(spawn_pos, team)
+	var skill_triggers_enabled = bool(spawn_context.get("skill_triggers_enabled", true))
+	var death_summon_lineage: Array = []
+	var raw_lineage = spawn_context.get("death_summon_lineage", [])
+	if typeof(raw_lineage) == TYPE_ARRAY:
+		death_summon_lineage = (raw_lineage as Array).duplicate()
 	units.append({
 		"id": next_unit_id,
 		"team": team,
@@ -2797,6 +2825,9 @@ func _spawn_unit(team: int, key: Vector2i, card_id: String, is_extra: bool = fal
 		"skill_effect": String(card.get("skill_effect", "")),
 		"skill_power": float(card.get("skill_power", 0.0)),
 		"skill_cooldown_sec": float(card.get("skill_cooldown_sec", 0.0)),
+		"skill_chance": float(card.get("skill_chance", 1.0)),
+		"skill_triggers_enabled": skill_triggers_enabled,
+		"death_summon_lineage": death_summon_lineage,
 		"pos": spawn_pos,
 		"hp": float(stats["max_hp"]),
 		"max_hp": float(stats["max_hp"]),
@@ -2826,7 +2857,8 @@ func _spawn_unit(team: int, key: Vector2i, card_id: String, is_extra: bool = fal
 	})
 	var spawned_index = units.size() - 1
 	next_unit_id += 1
-	_apply_unit_spawn_skill(spawned_index)
+	if skill_triggers_enabled:
+		_apply_unit_spawn_skill(spawned_index)
 	_pulse(base_pos, Color(0.75, 0.95, 1.0))
 	_play_world_sfx("unit_spawn", spawn_pos, team, -7.0 if is_extra else 0.0)
 	if not is_extra:
@@ -3099,7 +3131,7 @@ func _refresh_unit_aura_bonuses() -> void:
 		unit["hp"] = minf(float(unit.get("hp", 0.0)), float(unit["max_hp"]))
 		units[i] = unit
 	for source_index in range(units.size()):
-		if float(units[source_index].get("hp", 0.0)) <= 0.0:
+		if float(units[source_index].get("hp", 0.0)) <= 0.0 or not _unit_skill_triggers_enabled(units[source_index]):
 			continue
 		var text = _unit_skill_text(units[source_index])
 		var team = int(units[source_index].get("team", NEUTRAL))
@@ -3236,6 +3268,8 @@ func _apply_unit_spawn_skill(index: int) -> void:
 	if index < 0 or index >= units.size():
 		return
 	var unit = units[index]
+	if not _unit_skill_triggers_enabled(unit):
+		return
 	var text = _unit_skill_text(unit)
 	if text.contains("随机友军") and text.contains("攻击"):
 		_buff_random_allies(int(unit["team"]), index, 1, "attack", 1.0)
@@ -3252,11 +3286,9 @@ func _apply_unit_spawn_skill(index: int) -> void:
 	if _unit_uses_structured_skill(unit) and String(unit.get("skill_trigger", "")) == "on_spawn":
 		match String(unit.get("skill_effect", "")):
 			"gold":
-				_add_gold(
-					int(unit["team"]),
-					maxi(1, roundi(float(unit.get("skill_power", 1.0)))),
-					_unit_gold_feedback_position(unit)
-				)
+				var gold_amount = _unit_gold_skill_amount(unit)
+				if gold_amount > 0:
+					_add_gold(int(unit["team"]), gold_amount, _unit_gold_feedback_position(unit))
 			"shield":
 				_add_shield_to_unit(index, _unit_shield_amount(unit))
 			"buff_attack":
@@ -3275,9 +3307,9 @@ func _apply_unit_attack_skill(index: int, target: Dictionary) -> void:
 	if index < 0 or index >= units.size() or float(units[index].get("hp", 0.0)) <= 0.0:
 		return
 	var unit = units[index]
+	if not _unit_skill_triggers_enabled(unit):
+		return
 	var text = _unit_skill_text(unit)
-	if text.contains("35%概率金币+1") and randf() < 0.35:
-		_add_gold(int(unit["team"]), 1, _unit_gold_feedback_position(unit))
 	if text.contains("攻击后，攻击+1"):
 		_add_attack_bonus(index, 1.0)
 	if text.contains("攻击后提高2攻击") and _target_unit_has_less_hp(index, target):
@@ -3295,11 +3327,9 @@ func _apply_unit_attack_skill(index: int, target: Dictionary) -> void:
 	if _unit_uses_structured_skill(unit) and String(unit.get("skill_trigger", "")) == "on_attack":
 		match String(unit.get("skill_effect", "")):
 			"gold":
-				_add_gold(
-					int(unit["team"]),
-					maxi(1, roundi(float(unit.get("skill_power", 1.0)))),
-					_unit_gold_feedback_position(unit)
-				)
+				var gold_amount = _unit_gold_skill_amount(unit)
+				if gold_amount > 0:
+					_add_gold(int(unit["team"]), gold_amount, _unit_gold_feedback_position(unit))
 			"slow":
 				_slow_target(target, SKILL_SLOW_SECONDS)
 			"stun":
@@ -3316,6 +3346,8 @@ func _apply_unit_damage_skill(index: int, source_index: int, source_team: int) -
 	if index < 0 or index >= units.size() or float(units[index].get("hp", 0.0)) <= 0.0:
 		return
 	var unit = units[index]
+	if not _unit_skill_triggers_enabled(unit):
+		return
 	var text = _unit_skill_text(unit)
 	if text.contains("受到近战伤害") and source_index >= 0 and source_index < units.size():
 		_damage_unit(source_index, 1.0, index, int(unit["team"]), false)
@@ -3326,11 +3358,9 @@ func _apply_unit_damage_skill(index: int, source_index: int, source_team: int) -
 	if _unit_uses_structured_skill(unit) and String(unit.get("skill_trigger", "")) == "on_damage":
 		match String(unit.get("skill_effect", "")):
 			"gold":
-				_add_gold(
-					int(unit["team"]),
-					maxi(1, roundi(float(unit.get("skill_power", 1.0)))),
-					_unit_gold_feedback_position(unit)
-				)
+				var gold_amount = _unit_gold_skill_amount(unit)
+				if gold_amount > 0:
+					_add_gold(int(unit["team"]), gold_amount, _unit_gold_feedback_position(unit))
 			"heal":
 				_heal_unit(index, _unit_heal_amount(unit))
 			"shield":
@@ -3348,30 +3378,35 @@ func _handle_unit_death(index: int, source_index: int, source_team: int) -> void
 	_play_world_sfx("unit_death", Vector2(dead.get("pos", Vector2.ZERO)), int(dead.get("team", NEUTRAL)), -3.0)
 	var team = int(dead.get("team", NEUTRAL))
 	var text = _unit_skill_text(dead)
-	if text.contains("阵亡时，金币+1"):
-		_add_gold(team, 1, _unit_gold_feedback_position(dead))
-	elif _unit_uses_structured_skill(dead) and String(dead.get("skill_trigger", "")) == "on_death" and String(dead.get("skill_effect", "")) == "gold":
-		_add_gold(
-			team,
-			maxi(1, roundi(float(dead.get("skill_power", 1.0)))),
-			_unit_gold_feedback_position(dead)
-		)
-	if text.contains("对方获得5金币"):
-		var reward_pos = _unit_gold_feedback_position(dead)
-		if source_index >= 0 and source_index < units.size():
-			reward_pos = _unit_gold_feedback_position(units[source_index])
-		if source_team != NEUTRAL and not _are_allies(source_team, team):
-			_add_gold(source_team, 5, reward_pos)
-		elif battle_mode != BATTLE_MODE_MULTIPLAYER:
-			_add_gold(ENEMY if team == PLAYER else PLAYER, 5, reward_pos)
-	if text.contains("阵亡时，我方2只随机动物攻击+1"):
-		_buff_random_allies(team, index, 2, "attack", 1.0)
-	if text.contains("阵亡时召唤") or (_unit_uses_structured_skill(dead) and String(dead.get("skill_trigger", "")) == "on_death" and String(dead.get("skill_effect", "")) == "summon"):
-		var spawn_card_id = _death_summon_card_id(dead)
-		var spawn_index = units.size()
-		_spawn_unit(team, dead.get("tile", _tile_at_world(Vector2(dead.get("pos", Vector2.ZERO)))), spawn_card_id, true, 1)
-		if spawn_index < units.size():
-			_show_unit_value_feedback(spawn_index, "summon", 1.0)
+	if _unit_skill_triggers_enabled(dead):
+		if _unit_uses_structured_skill(dead) and String(dead.get("skill_trigger", "")) == "on_death" and String(dead.get("skill_effect", "")) == "gold":
+			var gold_amount = _unit_gold_skill_amount(dead)
+			if gold_amount > 0:
+				_add_gold(team, gold_amount, _unit_gold_feedback_position(dead))
+		if text.contains("阵亡时，我方2只随机动物攻击+1"):
+			_buff_random_allies(team, index, 2, "attack", 1.0)
+		if text.contains("阵亡时召唤") or (_unit_uses_structured_skill(dead) and String(dead.get("skill_trigger", "")) == "on_death" and String(dead.get("skill_effect", "")) == "summon"):
+			var spawn_card_id = _death_summon_card_id(dead)
+			var death_summon_lineage: Array = []
+			var raw_lineage = dead.get("death_summon_lineage", [])
+			if typeof(raw_lineage) == TYPE_ARRAY:
+				death_summon_lineage = (raw_lineage as Array).duplicate()
+			death_summon_lineage.append(String(dead.get("card", "")))
+			var is_cycle = death_summon_lineage.has(spawn_card_id)
+			var spawn_index = units.size()
+			_spawn_unit(
+				team,
+				dead.get("tile", _tile_at_world(Vector2(dead.get("pos", Vector2.ZERO)))),
+				spawn_card_id,
+				true,
+				1,
+				{
+					"skill_triggers_enabled": not is_cycle,
+					"death_summon_lineage": death_summon_lineage,
+				}
+			)
+			if spawn_index < units.size():
+				_show_unit_value_feedback(spawn_index, "summon", 1.0)
 	_notify_unit_death(dead, index)
 
 
@@ -3380,19 +3415,22 @@ func _notify_unit_death(dead: Dictionary, dead_index: int) -> void:
 	for i in range(units.size()):
 		if i == dead_index or float(units[i].get("hp", 0.0)) <= 0.0:
 			continue
-		var text = _unit_skill_text(units[i])
+		var observer = units[i]
+		if not _unit_skill_triggers_enabled(observer):
+			continue
+		var text = _unit_skill_text(observer)
 		if text.contains("每当有动物死亡时") and text.contains("生命值+1"):
 			_add_max_hp_bonus(i, 1.0, true)
-		if _are_allies(int(units[i].get("team", NEUTRAL)), dead_team) and text.contains("友军阵亡时") and text.contains("金币"):
-			_add_gold(
-				int(units[i].get("team", dead_team)),
-				2,
-				_unit_gold_feedback_position(units[i])
-			)
+		if _are_allies(int(observer.get("team", NEUTRAL)), dead_team) and _unit_uses_structured_skill(observer) and String(observer.get("skill_trigger", "")) == "on_ally_death" and String(observer.get("skill_effect", "")) == "gold":
+			var gold_amount = _unit_gold_skill_amount(observer)
+			if gold_amount > 0:
+				_add_gold(int(observer.get("team", dead_team)), gold_amount, _unit_gold_feedback_position(observer))
 
 
 func _apply_unit_kill_skill(index: int, target: Dictionary) -> void:
 	if index < 0 or index >= units.size() or float(units[index].get("hp", 0.0)) <= 0.0:
+		return
+	if not _unit_skill_triggers_enabled(units[index]):
 		return
 	var attack_before = float(units[index].get("attack", 0.0))
 	var max_hp_before = float(units[index].get("max_hp", 0.0))
@@ -3432,30 +3470,27 @@ func _apply_unit_capture_skill(index: int, key: Vector2i) -> void:
 	if index < 0 or index >= units.size():
 		return
 	var unit = units[index]
-	var text = _unit_skill_text(unit)
-	if text.contains("参与占领") and text.contains("金币"):
-		_add_gold(int(unit["team"]), 1, _unit_gold_feedback_position(unit))
-	elif _unit_uses_structured_skill(unit) and String(unit.get("skill_trigger", "")) == "on_capture" and String(unit.get("skill_effect", "")) == "gold":
-		_add_gold(
-			int(unit["team"]),
-			maxi(1, roundi(float(unit.get("skill_power", 1.0)) / 10.0)),
-			_unit_gold_feedback_position(unit)
-		)
+	if not _unit_skill_triggers_enabled(unit):
+		return
+	if _unit_uses_structured_skill(unit) and String(unit.get("skill_trigger", "")) == "on_capture" and String(unit.get("skill_effect", "")) == "gold":
+		var gold_amount = _unit_gold_skill_amount(unit)
+		if gold_amount > 0:
+			_add_gold(int(unit["team"]), gold_amount, _unit_gold_feedback_position(unit))
 
 
 func _apply_unit_interval_skill(index: int) -> void:
 	if index < 0 or index >= units.size() or float(units[index].get("hp", 0.0)) <= 0.0:
 		return
 	var unit = units[index]
+	if not _unit_skill_triggers_enabled(unit):
+		return
 	if not _unit_uses_structured_skill(unit):
 		return
 	match String(unit.get("skill_effect", "")):
 		"gold":
-			_add_gold(
-				int(unit["team"]),
-				maxi(1, roundi(float(unit.get("skill_power", 1.0)))),
-				_unit_gold_feedback_position(unit)
-			)
+			var gold_amount = _unit_gold_skill_amount(unit)
+			if gold_amount > 0:
+				_add_gold(int(unit["team"]), gold_amount, _unit_gold_feedback_position(unit))
 		"heal":
 			_heal_lowest_ally(int(unit["team"]), _unit_heal_amount(unit))
 		"shield":
@@ -3476,8 +3511,26 @@ func _unit_uses_interval_skill(unit: Dictionary) -> bool:
 	return String(unit.get("skill_trigger", "")) == "on_interval"
 
 
+func _unit_skill_triggers_enabled(unit: Dictionary) -> bool:
+	return bool(unit.get("skill_triggers_enabled", true))
+
+
 func _unit_uses_structured_skill(unit: Dictionary) -> bool:
-	return _unit_skill_text(unit) == ""
+	return (
+		_unit_skill_triggers_enabled(unit)
+		and String(unit.get("skill_trigger", "")) != ""
+		and String(unit.get("skill_effect", "")) != ""
+		and _unit_skill_text(unit) == ""
+	)
+
+
+func _unit_gold_skill_amount(unit: Dictionary) -> int:
+	if String(unit.get("skill_effect", "")) != "gold":
+		return 0
+	var chance = clampf(float(unit.get("skill_chance", 1.0)), 0.0, 1.0)
+	if chance <= 0.0 or randf() > chance:
+		return 0
+	return maxi(1, roundi(float(unit.get("skill_power", 1.0))))
 
 
 func _unit_skill_cooldown(unit: Dictionary) -> float:

@@ -20,6 +20,10 @@ static func card_from_row(row: Dictionary) -> Dictionary:
 	var skill_effect = row.get("skill_effect", "")
 	var skill_power = row.get("skill_power", 0.0)
 	var skill_cooldown_sec = row.get("skill_cooldown_sec", 0.0)
+	var skill_chance = 1.0
+	var raw_skill_chance = row.get("skill_chance", null)
+	if raw_skill_chance != null and str(raw_skill_chance).strip_edges() != "":
+		skill_chance = clampf(float_from_value(raw_skill_chance), 0.0, 1.0)
 	var skill_text = row.get("skill_text", "")
 	return {
 		"id": string_from_value(row.get("id", "")),
@@ -37,6 +41,7 @@ static func card_from_row(row: Dictionary) -> Dictionary:
 		"skill_effect": string_from_value(skill_effect),
 		"skill_power": float_from_value(skill_power),
 		"skill_cooldown_sec": float_from_value(skill_cooldown_sec),
+		"skill_chance": skill_chance,
 		"skill_text": string_from_value(skill_text),
 		"tags": tags_from_value(row.get("tags", [])),
 	}
