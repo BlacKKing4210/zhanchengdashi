@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://tests/test_3v3_team_scoreboard.gd" id="1_test"]
+
+[node name="ThreeVsThreeTeamScoreboardTest" type="Node"]
+script = ExtResource("1_test")

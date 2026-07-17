@@ -4533,6 +4533,58 @@ func _multiplayer_tile_score(team: int) -> int:
 	return score
 
 
+func _multiplayer_side_visual_tile_count(side: int) -> int:
+	if side not in [0, 1]:
+		return 0
+	var count = 0
+	for tile_value in tiles.values():
+		if typeof(tile_value) != TYPE_DICTIONARY:
+			continue
+		var tile: Dictionary = tile_value
+		if _multiplayer_side_for_team(BoardRules.visual_owner(tile)) == side:
+			count += 1
+	return count
+
+
+func _multiplayer_side_team_ids(side: int) -> Array:
+	var team_ids = []
+	for team in _active_multiplayer_teams():
+		if _multiplayer_side_for_team(int(team)) == side:
+			team_ids.append(int(team))
+	return team_ids
+
+
+func _multiplayer_team_scoreboard_entries() -> Array:
+	var local_side = _multiplayer_side_for_team(_local_control_team())
+	var entries = []
+	for side in [0, 1]:
+		var team_ids = _multiplayer_side_team_ids(side)
+		var team_colors = []
+		for team in team_ids:
+			team_colors.append(_team_color(int(team)))
+		entries.append({
+			"side": side,
+			"team_ids": team_ids,
+			"team_colors": team_colors,
+			"tiles": _multiplayer_side_visual_tile_count(side),
+			"is_local": side == local_side,
+		})
+	return entries
+
+
+func _multiplayer_side_scoreboard_accent(side: int) -> Color:
+	var team_ids = _multiplayer_side_team_ids(side)
+	if team_ids.is_empty():
+		return COLOR_RED if side == 0 else COLOR_BLUE
+	var total = Color(0.0, 0.0, 0.0)
+	for team in team_ids:
+		var color = _team_color(int(team))
+		total.r += color.r
+		total.g += color.g
+		total.b += color.b
+	return Color(total.r / team_ids.size(), total.g / team_ids.size(), total.b / team_ids.size())
+
+
 func _multiplayer_team_rank(team: int) -> int:
 	for entry in _multiplayer_live_ranking():
 		if int(entry.get("team", NEUTRAL)) == team:
@@ -5568,6 +5620,8 @@ func _draw_battle_screen() -> void:
 		_draw_board_view_mask()
 	_draw_top_bar()
 	_draw_match_status()
+	if _should_draw_3v3_team_scoreboard():
+		_draw_3v3_team_scoreboard()
 	if battle_mode == BATTLE_MODE_MULTIPLAYER and multiplayer_free_for_all:
 		_draw_multiplayer_leaderboard()
 	_draw_selection_panel()
@@ -5595,6 +5649,47 @@ func _draw_match_status() -> void:
 	var rect = Rect2(250, 18, 220, 44)
 	_box(rect, Color(0.15, 0.12, 0.34, 0.92), COLOR_LINE, 3)
 	_draw_text_center(_match_status_text(), rect, 17, Color.WHITE)
+
+
+func _should_draw_3v3_team_scoreboard() -> bool:
+	return (
+		battle_mode == BATTLE_MODE_MULTIPLAYER
+		and not multiplayer_free_for_all
+		and room_players_per_side == MultiplayerRules.MAX_PLAYERS_PER_SIDE
+	)
+
+
+func _multiplayer_team_scoreboard_rect(side: int) -> Rect2:
+	return Rect2(46.0 if side == 0 else 374.0, 70.0, 300.0, 34.0)
+
+
+func _draw_3v3_team_scoreboard() -> void:
+	for entry_value in _multiplayer_team_scoreboard_entries():
+		if typeof(entry_value) != TYPE_DICTIONARY:
+			continue
+		var entry: Dictionary = entry_value
+		var side = int(entry.get("side", -1))
+		var rect = _multiplayer_team_scoreboard_rect(side)
+		var accent = _multiplayer_side_scoreboard_accent(side)
+		var fill = accent.darkened(0.55)
+		fill.a = 0.94
+		_box(rect, fill, COLOR_LINE, 2.0)
+		var is_local = bool(entry.get("is_local", false))
+		if is_local:
+			draw_rect(rect.grow(2.0), COLOR_YELLOW, false, 2.5)
+		var raw_colors = entry.get("team_colors", [])
+		if typeof(raw_colors) == TYPE_ARRAY:
+			for index in range(mini((raw_colors as Array).size(), 3)):
+				var color_value = (raw_colors as Array)[index]
+				if typeof(color_value) != TYPE_COLOR:
+					continue
+				var team_color: Color = color_value
+				var center = rect.position + Vector2(16.0 + float(index) * 15.0, rect.size.y * 0.5)
+				draw_circle(center, 5.0, team_color)
+				draw_circle(center, 5.0, COLOR_LINE, false, 1.0)
+		var label = "%s方 · %s" % ["A" if side == 0 else "B", "我方" if is_local else "敌方"]
+		_draw_text_fit(label, Rect2(rect.position + Vector2(64, 7), Vector2(126, 20)), 14, Color.WHITE)
+		_draw_text_right("%d 格" % int(entry.get("tiles", 0)), Rect2(rect.position + Vector2(194, 4), Vector2(94, 26)), 20, Color.WHITE)
 
 
 func _draw_multiplayer_leaderboard() -> void:
