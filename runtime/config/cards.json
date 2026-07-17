@@ -323,7 +323,7 @@
     "attack": 1,
     "max_hp": 5,
     "move_speed": 40.0,
-    "attack_range": 80.0,
+    "attack_range": 40.0,
     "summon_interval_sec": 7.0,
     "skill_id": "duck_brood",
     "skill_trigger": "on_death",
