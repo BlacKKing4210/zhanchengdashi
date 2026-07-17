@@ -19,7 +19,7 @@ func _ready() -> void:
 
 
 func _test_color_eligibility() -> void:
-	var rarities = RankMirrorRules.animal_rarities_from_cards(_card_catalog())
+	var rarities = RankMirrorRules.animal_rarities_from_cards(_card_catalog_array())
 	_expect_true(
 		RankMirrorRules.deck_has_only_common_animals(["rabbit", "gold_mine_card", "rabbit"], rarities),
 		"building cards do not prevent an all-green animal deck from being rejected"
@@ -27,6 +27,10 @@ func _test_color_eligibility() -> void:
 	_expect_false(
 		RankMirrorRules.deck_has_only_common_animals(["rabbit", "wolf", "gold_mine_card"], rarities),
 		"one blue animal makes the deck eligible"
+	)
+	_expect_false(
+		RankMirrorRules.deck_has_only_common_animals(["rabbit", "beaver", "gold_mine_card"], rarities),
+		"an animal with a building-role tag is still counted as a high-rarity animal"
 	)
 	_expect_true(
 		RankMirrorRules.should_record_deck(["rabbit", "wolf", "gold_mine_card"], rarities),
@@ -42,15 +46,16 @@ func _test_one_time_legacy_migration() -> void:
 		"diamond": [{"deck": ["wolf"]}],
 	}
 	var migrated = RankMirrorRules.migrate_legacy_mirrors(history, 0)
-	_expect_true(migrated.has("bronze") and migrated.has("silver"), "migration retains bronze and silver history")
-	_expect_false(migrated.has("gold") or migrated.has("diamond"), "migration removes legacy gold-and-above history")
+	_expect_equal(migrated.size(), 0, "v2 migration clears every historical mirror rank")
+	var migrated_from_v1 = RankMirrorRules.migrate_legacy_mirrors(history, 1)
+	_expect_equal(migrated_from_v1.size(), 0, "v2 migration also clears mirrors already processed by v1")
 	var current = RankMirrorRules.migrate_legacy_mirrors(history, RankMirrorRules.POLICY_VERSION)
 	_expect_true(current.has("gold") and current.has("diamond"), "current-policy high-rank mirrors remain eligible")
 
 
 func _test_main_recording_gate() -> void:
 	var app = MainApp.new()
-	app.set("cards", _card_catalog())
+	app.set("cards", _card_catalog_array())
 	app.set("card_levels", {"rabbit": 1, "wolf": 1, "gold_mine_card": 1})
 	app.set("rank_db", {
 		"version": RankingRules.DB_VERSION,
@@ -58,9 +63,12 @@ func _test_main_recording_gate() -> void:
 		"player": RankingRules.default_profile(),
 		"mirrors": {},
 	})
-	app.set("deck", ["gold_mine_card", "rabbit", "rabbit", "rabbit", "rabbit", "rabbit", "rabbit", "rabbit"])
+	var green_deck = ["gold_mine_card", "rabbit", "rabbit", "rabbit", "rabbit", "rabbit", "rabbit", "rabbit"]
+	app.set("deck", green_deck.duplicate())
 	app.call("_record_victory_mirror", "bronze", 1)
 	_expect_equal(_mirror_count(app, "bronze"), 0, "all-green animal victory is not recorded")
+	_expect_equal(app.get("deck"), green_deck, "record rejection does not rewrite the player's equipped deck")
+	_expect_equal(app.call("_team_deck", 1), green_deck, "green animals remain available to the player in battle")
 	app.set("deck", ["gold_mine_card", "wolf", "rabbit", "rabbit", "rabbit", "rabbit", "rabbit", "rabbit"])
 	app.call("_record_victory_mirror", "gold", 1)
 	_expect_equal(_mirror_count(app, "gold"), 1, "qualified high-rank victory is recorded after migration")
@@ -76,8 +84,7 @@ func _test_server_profile_migration() -> void:
 		},
 	})
 	var mirrors: Dictionary = normalized.get("rank_mirrors", {})
-	_expect_true(mirrors.has("silver"), "server migration keeps historical silver mirrors")
-	_expect_false(mirrors.has("platinum"), "server migration removes historical platinum mirrors")
+	_expect_equal(mirrors.size(), 0, "server migration clears all historical mirrors")
 	_expect_equal(
 		int(normalized.get("rank_mirror_policy_version", 0)),
 		RankMirrorRules.POLICY_VERSION,
@@ -99,8 +106,13 @@ func _card_catalog() -> Dictionary:
 	return {
 		"rabbit": {"id": "rabbit", "rarity": "common", "tags": []},
 		"wolf": {"id": "wolf", "rarity": "rare", "tags": []},
+		"beaver": {"id": "beaver", "rarity": "epic", "tags": ["building"]},
 		"gold_mine_card": {"id": "gold_mine_card", "rarity": "common", "tags": ["building"]},
 	}
+
+
+func _card_catalog_array() -> Array:
+	return _card_catalog().values()
 
 
 func _mirror_count(app: Node, rank_key: String) -> int:

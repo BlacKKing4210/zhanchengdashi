@@ -88,9 +88,9 @@ func _ready() -> void:
 	_expect((profile.get("deck", []) as Array) == ["rabbit", "wolf"], "deck survives server restart")
 	_expect(String(profile.get("rank_key", "")) == "gold", "rank tier survives server restart")
 	var rank_mirrors: Dictionary = profile.get("rank_mirrors", {})
-	_expect(not rank_mirrors.has("gold"), "legacy gold mirrors are removed during the one-time policy migration")
+	_expect(rank_mirrors.is_empty(), "all legacy mirrors are cleared during the v2 policy migration")
 	_expect(
-		int(profile.get("rank_mirror_policy_version", 0)) == 1,
+		int(profile.get("rank_mirror_policy_version", 0)) == 2,
 		"server profile records the migrated mirror policy version"
 	)
 	var named_installation_id = "cd".repeat(32)
