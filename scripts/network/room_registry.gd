@@ -144,6 +144,7 @@ func leave_room(peer_id_value: Variant) -> Dictionary:
 	var room: Dictionary = _rooms[room_code]
 	var team_id = int(_peer_teams[peer_id])
 	var slots: Dictionary = room["slots"]
+	var departing_participant = (slots.get(team_id, {}) as Dictionary).duplicate(true)
 	slots.erase(team_id)
 	_peer_rooms.erase(peer_id)
 	_peer_teams.erase(peer_id)
@@ -159,6 +160,11 @@ func leave_room(peer_id_value: Variant) -> Dictionary:
 			"affected_peer_ids": [],
 		})
 
+	var running_takeover = String(room["status"]) == RoomProtocol.RUNNING_STATUS
+	var takeover_participant = {}
+	if running_takeover:
+		takeover_participant = _takeover_ai_participant(departing_participant)
+		slots[team_id] = takeover_participant
 	if int(room["host_peer_id"]) == peer_id:
 		room["host_peer_id"] = _oldest_human_peer_id(room)
 	if String(room["status"]) == RoomProtocol.LOBBY_STATUS:
@@ -167,9 +173,10 @@ func leave_room(peer_id_value: Variant) -> Dictionary:
 	_touch_room(room)
 	room_changed.emit(room_code)
 	return RoomProtocol.success({
-		"action": "left",
+		"action": "ai_takeover" if running_takeover else "left",
 		"room_code": room_code,
 		"team_id": team_id,
+		"ai_id": int(takeover_participant.get("ai_id", 0)),
 		"new_host_peer_id": int(room["host_peer_id"]),
 		"affected_peer_ids": _human_peer_ids(room),
 	})
@@ -418,6 +425,7 @@ func snapshot_for_peer(peer_id_value: Variant) -> Dictionary:
 			"rank_stars": 1,
 			"deck": [],
 			"card_levels": {},
+			"takeover": false,
 		}
 		if slots.has(team_id):
 			var participant: Dictionary = slots[team_id]
@@ -437,6 +445,7 @@ func snapshot_for_peer(peer_id_value: Variant) -> Dictionary:
 				human_count += 1
 			else:
 				slot["ai_id"] = int(participant["ai_id"])
+				slot["takeover"] = bool(participant.get("takeover", false))
 				ai_count += 1
 		slot_snapshots.append(slot)
 
@@ -576,7 +585,21 @@ func _ai_participant() -> Dictionary:
 		"rank_stars": 1,
 		"deck": [],
 		"card_levels": {},
+		"takeover": false,
 	}
+
+
+func _takeover_ai_participant(human: Dictionary) -> Dictionary:
+	var participant = _ai_participant()
+	var original_name = String(human.get("display_name", "玩家")).strip_edges()
+	participant["display_name"] = "%s（AI）" % (original_name if not original_name.is_empty() else "玩家")
+	participant["rank_key"] = String(human.get("rank_key", "bronze"))
+	participant["rank_stars"] = maxi(1, int(human.get("rank_stars", 1)))
+	participant["elo"] = maxi(0, int(human.get("elo", 1000)))
+	participant["deck"] = (human.get("deck", []) as Array).duplicate() if typeof(human.get("deck", [])) == TYPE_ARRAY else []
+	participant["card_levels"] = (human.get("card_levels", {}) as Dictionary).duplicate(true) if typeof(human.get("card_levels", {})) == TYPE_DICTIONARY else {}
+	participant["takeover"] = true
+	return participant
 
 
 func _available_join_team(room: Dictionary) -> int:

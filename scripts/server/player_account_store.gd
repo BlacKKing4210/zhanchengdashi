@@ -1,5 +1,7 @@
 extends RefCounted
 
+const RankMirrorRules = preload("res://scripts/app/systems/rank_mirror_rules.gd")
+
 const DEFAULT_PATH = "user://server/player_accounts.json"
 const PASSWORD_ROUNDS = 12000
 const ACCOUNT_MIN_LENGTH = 3
@@ -193,12 +195,23 @@ func switch_account(
 
 
 func profile_for_session(session_token: String) -> Dictionary:
-	var record = _record_for_session(session_token)
-	if record.is_empty():
+	var user_id = String(sessions.get(session_token, ""))
+	var key = _key_for_user_id(user_id)
+	if key.is_empty():
 		return _failure("invalid_session")
+	var record: Dictionary = accounts[key]
+	var profile_value = record.get("profile", {})
+	var existing_profile = (profile_value as Dictionary).duplicate(true) if typeof(profile_value) == TYPE_DICTIONARY else {}
+	var normalized_profile = _normalize_profile(existing_profile)
+	if JSON.stringify(existing_profile) != JSON.stringify(normalized_profile):
+		record["profile"] = normalized_profile
+		record["updated_at_unix"] = int(Time.get_unix_time_from_system())
+		accounts[key] = record
+		if not _save():
+			return _failure("storage_error")
 	return _success({
 		"user_id": record["user_id"],
-		"profile": (record["profile"] as Dictionary).duplicate(true),
+		"profile": normalized_profile.duplicate(true),
 	})
 
 
@@ -393,6 +406,9 @@ func _key_for_user_id(user_id: String) -> String:
 
 
 func _normalize_profile(source: Dictionary) -> Dictionary:
+	var mirror_policy_version = maxi(0, int(source.get("rank_mirror_policy_version", 0)))
+	var rank_mirrors = _normalize_rank_mirrors(source.get("rank_mirrors", {}))
+	rank_mirrors = RankMirrorRules.migrate_legacy_mirrors(rank_mirrors, mirror_policy_version)
 	return {
 		"card_counts": _positive_int_dictionary(source.get("card_counts", {}), 0),
 		"card_levels": _positive_int_dictionary(source.get("card_levels", {}), 1),
@@ -401,7 +417,8 @@ func _normalize_profile(source: Dictionary) -> Dictionary:
 		"rank_stars": maxi(0, int(source.get("rank_stars", 1))),
 		"rank_key": String(source.get("rank_key", "bronze")).strip_edges(),
 		"elo": maxi(0, int(source.get("elo", 1000))),
-		"rank_mirrors": _normalize_rank_mirrors(source.get("rank_mirrors", {})),
+		"rank_mirrors": rank_mirrors,
+		"rank_mirror_policy_version": RankMirrorRules.POLICY_VERSION,
 	}
 
 

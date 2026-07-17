@@ -5,6 +5,7 @@ const BoardRules = preload("res://scripts/app/systems/board_rules.gd")
 const MultiplayerRules = preload("res://scripts/app/systems/multiplayer_rules.gd")
 const RankingRules = preload("res://scripts/app/systems/ranking_rules.gd")
 const RankAIDecks = preload("res://scripts/app/systems/rank_ai_decks.gd")
+const RankMirrorRules = preload("res://scripts/app/systems/rank_mirror_rules.gd")
 const UnitMotionFeedback = preload("res://scripts/app/systems/unit_motion_feedback.gd")
 
 const DESIGN_SIZE = Vector2(720.0, 1280.0)
@@ -740,12 +741,15 @@ func _load_rank_database() -> void:
 func _ensure_rank_database_shape() -> void:
 	if typeof(rank_db) != TYPE_DICTIONARY:
 		rank_db = {}
+	var stored_mirror_policy_version = maxi(0, int(rank_db.get("mirror_policy_version", 0)))
 	rank_db["version"] = RankingRules.DB_VERSION
 	if not rank_db.has("player") or typeof(rank_db["player"]) != TYPE_DICTIONARY:
 		rank_db["player"] = RankingRules.default_profile()
 	rank_db["player"] = RankingRules.normalize_profile(rank_db["player"])
 	if not rank_db.has("mirrors") or typeof(rank_db["mirrors"]) != TYPE_DICTIONARY:
 		rank_db["mirrors"] = {}
+	rank_db["mirrors"] = RankMirrorRules.migrate_legacy_mirrors(rank_db["mirrors"], stored_mirror_policy_version)
+	rank_db["mirror_policy_version"] = RankMirrorRules.POLICY_VERSION
 
 
 func _save_rank_database() -> void:
@@ -4656,6 +4660,10 @@ func _apply_rank_result(won: bool) -> void:
 
 func _record_victory_mirror(rank_key: String, match_stars: int) -> void:
 	_ensure_rank_database_shape()
+	var deck_snapshot = _snapshot_deck()
+	var animal_rarities = RankMirrorRules.animal_rarities_from_cards(cards)
+	if not RankMirrorRules.should_record_deck(deck_snapshot, animal_rarities):
+		return
 	var mirrors = rank_db["mirrors"]
 	if not mirrors.has(rank_key) or typeof(mirrors[rank_key]) != TYPE_ARRAY:
 		mirrors[rank_key] = []
@@ -4670,7 +4678,7 @@ func _record_victory_mirror(rank_key: String, match_stars: int) -> void:
 		"rank_display": String(rank_state["display"]),
 		"stars": int(rank_state["stars"]),
 		"elo": int(rank_state["elo"]),
-		"deck": _snapshot_deck(),
+		"deck": deck_snapshot,
 		"card_levels": _snapshot_card_levels(),
 		"created_at_unix": now,
 	}
@@ -5113,6 +5121,7 @@ func _server_profile_snapshot() -> Dictionary:
 		"rank_key": String(profile.get("rank_key", RankingRules.INITIAL_RANK_KEY)),
 		"elo": int(profile.get("elo", RankingRules.INITIAL_ELO)),
 		"rank_mirrors": (rank_db.get("mirrors", {}) as Dictionary).duplicate(true),
+		"rank_mirror_policy_version": RankMirrorRules.POLICY_VERSION,
 	}
 
 
@@ -5137,8 +5146,9 @@ func _apply_server_profile(value: Variant) -> void:
 	rank_profile["elo"] = int(profile.get("elo", rank_profile["elo"]))
 	rank_db["player"] = RankingRules.normalize_profile(rank_profile)
 	var remote_rank_mirrors = profile.get("rank_mirrors", {})
-	if typeof(remote_rank_mirrors) == TYPE_DICTIONARY and not (remote_rank_mirrors as Dictionary).is_empty():
-		rank_db["mirrors"] = (remote_rank_mirrors as Dictionary).duplicate(true)
+	var remote_mirror_policy_version = maxi(0, int(profile.get("rank_mirror_policy_version", 0)))
+	rank_db["mirrors"] = RankMirrorRules.migrate_legacy_mirrors(remote_rank_mirrors, remote_mirror_policy_version)
+	rank_db["mirror_policy_version"] = RankMirrorRules.POLICY_VERSION
 	_ensure_deck_valid()
 	_save_rank_database()
 

@@ -88,10 +88,11 @@ func _ready() -> void:
 	_expect((profile.get("deck", []) as Array) == ["rabbit", "wolf"], "deck survives server restart")
 	_expect(String(profile.get("rank_key", "")) == "gold", "rank tier survives server restart")
 	var rank_mirrors: Dictionary = profile.get("rank_mirrors", {})
-	_expect((rank_mirrors.get("gold", []) as Array).size() == 1, "rank winner lineup survives server restart")
-	var winner: Dictionary = (rank_mirrors["gold"] as Array)[0]
-	_expect((winner.get("deck", []) as Array) == ["rabbit", "wolf"], "winner lineup preserves its deck")
-	_expect(not (winner.get("card_levels", {}) as Dictionary).has("unused"), "winner lineup stores levels only for deck cards")
+	_expect(not rank_mirrors.has("gold"), "legacy gold mirrors are removed during the one-time policy migration")
+	_expect(
+		int(profile.get("rank_mirror_policy_version", 0)) == 1,
+		"server profile records the migrated mirror policy version"
+	)
 	var named_installation_id = "cd".repeat(32)
 	var named_device: Dictionary = reloaded.authenticate_installation(named_installation_id, "")
 	var named_refresh_token = String(named_device.get("refresh_token", ""))
