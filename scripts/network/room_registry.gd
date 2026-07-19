@@ -1,9 +1,11 @@
 extends RefCounted
 
 const RoomProtocol = preload("res://scripts/network/room_protocol.gd")
+const RankAIDecks = preload("res://scripts/app/systems/rank_ai_decks.gd")
 
 const ROOM_CODE_SPACE = 1000000
 const RANDOM_CODE_ATTEMPTS = 64
+const RANK_ORDER = ["bronze", "silver", "gold", "platinum", "diamond", "star", "king"]
 
 signal room_changed(room_code: String)
 signal room_closed(room_code: String)
@@ -573,31 +575,71 @@ func _human_participant(peer_id: int, display_name: String, join_order: int, pla
 	}
 
 
-func _ai_participant() -> Dictionary:
+func _ai_participant(rank_key: String = "bronze") -> Dictionary:
 	var ai_id = _next_ai_id
 	_next_ai_id += 1
+	var roster = _ai_roster_for_rank(rank_key, ai_id)
 	return {
 		"kind": "ai",
 		"ai_id": ai_id,
 		"display_name": "AI %d" % ai_id,
 		"ready": true,
-		"rank_key": "bronze",
+		"rank_key": String(roster.get("rank_key", "bronze")),
 		"rank_stars": 1,
-		"deck": [],
-		"card_levels": {},
+		"deck": (roster.get("deck", []) as Array).duplicate(),
+		"card_levels": (roster.get("card_levels", {}) as Dictionary).duplicate(true),
 		"takeover": false,
 	}
 
 
+func _ai_roster_for_rank(rank_key: String, ai_id: int) -> Dictionary:
+	var resolved_rank_key = rank_key if RANK_ORDER.has(rank_key) else "bronze"
+	var mirrors = RankAIDecks.mirrors_for_rank(resolved_rank_key)
+	if mirrors.is_empty():
+		return RankAIDecks.validated_ai_roster([], {}, resolved_rank_key, ai_id)
+	var mirror: Dictionary = mirrors[posmod(ai_id - 1, mirrors.size())]
+	return RankAIDecks.validated_ai_roster(
+		mirror.get("deck", []),
+		mirror.get("card_levels", {}),
+		resolved_rank_key,
+		ai_id
+	)
+
+
+func _ai_rank_key_for_room(room: Dictionary) -> String:
+	var best_rank_key = "bronze"
+	var best_rank_index = 0
+	var slots: Dictionary = room.get("slots", {})
+	for participant_value in slots.values():
+		if typeof(participant_value) != TYPE_DICTIONARY:
+			continue
+		var participant: Dictionary = participant_value
+		if String(participant.get("kind", "")) != "human":
+			continue
+		var candidate_rank_key = String(participant.get("rank_key", "bronze"))
+		var candidate_index = RANK_ORDER.find(candidate_rank_key)
+		if candidate_index > best_rank_index:
+			best_rank_key = candidate_rank_key
+			best_rank_index = candidate_index
+	return best_rank_key
+
+
 func _takeover_ai_participant(human: Dictionary) -> Dictionary:
-	var participant = _ai_participant()
+	var rank_key = String(human.get("rank_key", "bronze"))
+	var participant = _ai_participant(rank_key)
 	var original_name = String(human.get("display_name", "玩家")).strip_edges()
 	participant["display_name"] = "%s（AI）" % (original_name if not original_name.is_empty() else "玩家")
-	participant["rank_key"] = String(human.get("rank_key", "bronze"))
+	participant["rank_key"] = rank_key
 	participant["rank_stars"] = maxi(1, int(human.get("rank_stars", 1)))
 	participant["elo"] = maxi(0, int(human.get("elo", 1000)))
-	participant["deck"] = (human.get("deck", []) as Array).duplicate() if typeof(human.get("deck", [])) == TYPE_ARRAY else []
-	participant["card_levels"] = (human.get("card_levels", {}) as Dictionary).duplicate(true) if typeof(human.get("card_levels", {})) == TYPE_DICTIONARY else {}
+	var roster = RankAIDecks.validated_ai_roster(
+		human.get("deck", []),
+		human.get("card_levels", {}),
+		rank_key,
+		int(participant.get("ai_id", 0))
+	)
+	participant["deck"] = (roster.get("deck", []) as Array).duplicate()
+	participant["card_levels"] = (roster.get("card_levels", {}) as Dictionary).duplicate(true)
 	participant["takeover"] = true
 	return participant
 
@@ -625,9 +667,21 @@ func _reconcile_ai_slots(room: Dictionary) -> void:
 			slots.erase(team_id)
 	if not bool(room["fill_with_ai"]):
 		return
+	var ai_rank_key = _ai_rank_key_for_room(room)
+	for participant_value in slots.values():
+		if typeof(participant_value) != TYPE_DICTIONARY:
+			continue
+		var participant: Dictionary = participant_value
+		if String(participant.get("kind", "")) != "ai" or bool(participant.get("takeover", false)):
+			continue
+		var roster = _ai_roster_for_rank(ai_rank_key, int(participant.get("ai_id", 0)))
+		participant["rank_key"] = String(roster.get("rank_key", "bronze"))
+		participant["rank_stars"] = 1
+		participant["deck"] = (roster.get("deck", []) as Array).duplicate()
+		participant["card_levels"] = (roster.get("card_levels", {}) as Dictionary).duplicate(true)
 	for team_id in active:
 		if not slots.has(team_id):
-			slots[team_id] = _ai_participant()
+			slots[team_id] = _ai_participant(ai_rank_key)
 
 
 func _reset_human_ready(room: Dictionary) -> void:

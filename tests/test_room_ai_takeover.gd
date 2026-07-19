@@ -2,12 +2,14 @@ extends Node
 
 const RoomProtocol = preload("res://scripts/network/room_protocol.gd")
 const RoomRegistry = preload("res://scripts/network/room_registry.gd")
+const RankAIDecks = preload("res://scripts/app/systems/rank_ai_decks.gd")
 
 var failures = 0
 
 
 func _ready() -> void:
 	_test_running_host_disconnect_becomes_ai()
+	_test_no_common_disconnect_gets_ranked_replacement()
 	if failures == 0:
 		print("Room AI takeover tests passed.")
 	get_tree().quit(failures)
@@ -64,11 +66,68 @@ func _test_running_host_disconnect_becomes_ai() -> void:
 	_expect_equal(registry.room_count(), 0, "no AI-only room remains without an authority client")
 
 
+func _test_no_common_disconnect_gets_ranked_replacement() -> void:
+	var registry = RoomRegistry.new(87124)
+	var invalid_host_deck = [
+		"gold_mine_card",
+		"defense_storm_obelisk",
+		"wolf",
+		"beaver",
+		"fox",
+		"monkey",
+		"pig",
+		"lion",
+	]
+	var created = registry.create_room(303, "InvalidHost", 1, false, {
+		"user_id": "invalid-host-user",
+		"rank_key": "king",
+		"rank_stars": 12,
+		"elo": 3600,
+		"deck": invalid_host_deck,
+		"card_levels": _levels_for(invalid_host_deck, 6),
+	})
+	_expect_true(bool(created.get("ok", false)), "no-common takeover room is created")
+	var room_code = String(created.get("room_code", ""))
+	var joined = registry.join_room(404, room_code, "Guest", {
+		"user_id": "takeover-guest-user",
+		"rank_key": "king",
+		"rank_stars": 11,
+		"deck": ["gold_mine_card", "defense_storm_obelisk", "rabbit", "wolf", "fox", "monkey", "pig", "lion"],
+		"card_levels": {"rabbit": 6},
+	})
+	_expect_true(bool(joined.get("ok", false)), "no-common takeover guest joins")
+	registry.set_ready(303, true)
+	registry.set_ready(404, true)
+	_expect_true(bool(registry.start_room(303).get("ok", false)), "no-common takeover room starts")
+	var host_team = int(registry.assignment_for_peer(303).get("team_id", 0))
+	_expect_equal(String(registry.peer_disconnected(303).get("action", "")), "ai_takeover", "no-common disconnect becomes AI")
+	var takeover_slot = _slot_for_team(registry.snapshot_for_peer(404), host_team)
+	var replacement_deck: Array = takeover_slot.get("deck", [])
+	_expect_true(replacement_deck != invalid_host_deck, "no-common frozen deck is replaced instead of preserved")
+	_expect_true(RankAIDecks.is_valid_ai_deck(replacement_deck), "takeover replacement has the required AI deck structure")
+	_expect_true(RankAIDecks.has_common_animal(replacement_deck), "takeover replacement contains a green animal")
+	_expect_equal(String(takeover_slot.get("rank_key", "")), "king", "takeover replacement stays in the departed player's rank")
+	for raw_card_id in replacement_deck:
+		_expect_equal(
+			int((takeover_slot.get("card_levels", {}) as Dictionary).get(String(raw_card_id), 0)),
+			6,
+			"King takeover replacement keeps King card levels"
+		)
+	registry.peer_disconnected(404)
+
+
 func _slot_for_team(snapshot: Dictionary, team_id: int) -> Dictionary:
 	for raw_slot in snapshot.get("slots", []):
 		if typeof(raw_slot) == TYPE_DICTIONARY and int((raw_slot as Dictionary).get("team_id", 0)) == team_id:
 			return raw_slot
 	return {}
+
+
+func _levels_for(deck: Array, level: int) -> Dictionary:
+	var result = {}
+	for raw_card_id in deck:
+		result[String(raw_card_id)] = level
+	return result
 
 
 func _expect_true(value: bool, label: String) -> void:

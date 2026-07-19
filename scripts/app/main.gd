@@ -1501,10 +1501,13 @@ func _select_match_mirror(rank_key: String) -> Dictionary:
 	var pool = []
 	var other_player_pool = []
 	var signatures = {}
+	var card_rarities = RankMirrorRules.card_rarities_from_cards(cards)
 	var current_player_id = String(_player_profile().get("player_id", "local_player"))
 	if mirrors.has(rank_key) and typeof(mirrors[rank_key]) == TYPE_ARRAY:
 		for mirror in mirrors[rank_key]:
 			if typeof(mirror) == TYPE_DICTIONARY:
+				if not RankMirrorRules.should_record_deck(mirror.get("deck", []), card_rarities, rank_key):
+					continue
 				var signature = RankAIDecks.deck_signature(mirror.get("deck", []))
 				if signature.is_empty() or signatures.has(signature):
 					continue
@@ -1529,12 +1532,13 @@ func _select_match_mirror(rank_key: String) -> Dictionary:
 func _generated_match_mirror(rank_key: String) -> Dictionary:
 	var rank = RankingRules.rank_for_key(rank_key)
 	var stars = 1
-	var generated_deck = enemy_deck.duplicate()
-	if generated_deck.is_empty():
-		generated_deck = ["rabbit"]
-	var levels = {}
-	for card_id in generated_deck:
-		levels[String(card_id)] = 1
+	var roster = RankAIDecks.validated_ai_roster(
+		[],
+		{},
+		rank_key,
+		randi(),
+		RankMirrorRules.card_rarities_from_cards(cards)
+	)
 	return {
 		"mirror_id": "generated_%s" % rank_key,
 		"player_id": "generated",
@@ -1543,8 +1547,8 @@ func _generated_match_mirror(rank_key: String) -> Dictionary:
 		"rank_display": RankingRules.display_for_key_and_stars(rank_key, stars),
 		"stars": stars,
 		"elo": int(rank["min_elo"]),
-		"deck": generated_deck,
-		"card_levels": levels,
+		"deck": (roster.get("deck", []) as Array).duplicate(),
+		"card_levels": (roster.get("card_levels", {}) as Dictionary).duplicate(true),
 		"created_at_unix": 0,
 	}
 
@@ -1552,15 +1556,14 @@ func _generated_match_mirror(rank_key: String) -> Dictionary:
 func _apply_match_mirror(mirror: Dictionary) -> void:
 	enemy_deck.clear()
 	enemy_card_levels.clear()
+	var mirror_rank_key = String(mirror.get("rank_key", active_match_rank_key)).strip_edges().to_lower()
+	var card_rarities = RankMirrorRules.card_rarities_from_cards(cards)
 	var mirror_deck = mirror.get("deck", [])
-	if typeof(mirror_deck) != TYPE_ARRAY or mirror_deck.is_empty():
-		_init_enemy_deck()
-		return
-	for i in range(DECK_SIZE):
-		enemy_deck.append(String(mirror_deck[i % mirror_deck.size()]))
 	var levels = mirror.get("card_levels", {})
-	for card_id in enemy_deck:
-		enemy_card_levels[String(card_id)] = max(1, int(levels.get(String(card_id), 1))) if typeof(levels) == TYPE_DICTIONARY else 1
+	var eligible_deck = mirror_deck if RankMirrorRules.is_valid_ai_candidate_deck(mirror_deck, card_rarities, mirror_rank_key) else []
+	var roster = RankAIDecks.validated_ai_roster(eligible_deck, levels, mirror_rank_key, randi(), card_rarities)
+	enemy_deck = (roster.get("deck", []) as Array).duplicate()
+	enemy_card_levels = (roster.get("card_levels", {}) as Dictionary).duplicate(true)
 
 
 func _owned_card_ids() -> Array:
@@ -2038,16 +2041,50 @@ func _multiplayer_roster_for_team(team: int) -> Dictionary:
 		if typeof(slot_value) != TYPE_DICTIONARY:
 			continue
 		var slot: Dictionary = slot_value
-		if int(slot.get("team_id", NEUTRAL)) != team or String(slot.get("kind", "")) != "human":
+		if int(slot.get("team_id", NEUTRAL)) != team:
 			continue
 		var slot_deck = slot.get("deck", [])
 		var slot_levels = slot.get("card_levels", {})
+		if String(slot.get("kind", "")) == "ai":
+			var slot_rank_key = String(slot.get("rank_key", active_match_rank_key)).strip_edges().to_lower()
+			return RankAIDecks.validated_ai_roster(
+				slot_deck,
+				slot_levels,
+				slot_rank_key,
+				battle_match_seed + team,
+				RankMirrorRules.card_rarities_from_cards(cards)
+			)
 		if typeof(slot_deck) == TYPE_ARRAY and not (slot_deck as Array).is_empty():
 			return {
 				"deck": (slot_deck as Array).duplicate(),
 				"card_levels": (slot_levels as Dictionary).duplicate(true) if typeof(slot_levels) == TYPE_DICTIONARY else {},
 			}
-	return {"deck": enemy_deck.duplicate(), "card_levels": enemy_card_levels.duplicate(true)}
+	return _rank_ai_roster_for_team(team)
+
+
+func _rank_ai_roster_for_team(team: int) -> Dictionary:
+	var rank_key = active_match_rank_key if active_match_rank_key != "" else _current_rank_key()
+	for slot_value in online_room_slots:
+		if typeof(slot_value) != TYPE_DICTIONARY:
+			continue
+		var slot: Dictionary = slot_value
+		if int(slot.get("team_id", NEUTRAL)) != team:
+			continue
+		var slot_rank_key = String(slot.get("rank_key", "")).strip_edges()
+		if not slot_rank_key.is_empty():
+			rank_key = slot_rank_key
+		break
+	var mirrors = RankAIDecks.mirrors_for_rank(rank_key)
+	if mirrors.is_empty():
+		return RankAIDecks.validated_ai_roster([], {}, rank_key, battle_match_seed + team)
+	var mirror: Dictionary = mirrors[posmod(battle_match_seed + team, mirrors.size())]
+	return RankAIDecks.validated_ai_roster(
+		mirror.get("deck", []),
+		mirror.get("card_levels", {}),
+		rank_key,
+		battle_match_seed + team,
+		RankMirrorRules.card_rarities_from_cards(cards)
+	)
 
 
 func _board_cell_type_rows() -> Array:
@@ -4348,6 +4385,10 @@ func _room_result_rewards(outcome: String) -> Dictionary:
 
 func _apply_multiplayer_rank_result(outcome: String, star_delta: int) -> void:
 	var profile = RankingRules.normalize_profile(_player_profile())
+	if active_match_rank_key == "":
+		var match_rank_state = RankingRules.rank_state_for_profile(profile)
+		active_match_rank_key = String(match_rank_state["key"])
+		active_match_player_stars = int(match_rank_state["stars"])
 	var result = RankingRules.star_result_for_delta(String(profile["rank_key"]), int(profile["stars"]), star_delta)
 	profile["rank_key"] = String(result["new_rank"]["key"])
 	profile["stars"] = int(result["new_rank"]["stars"])
@@ -4358,6 +4399,8 @@ func _apply_multiplayer_rank_result(outcome: String, star_delta: int) -> void:
 		profile["losses"] = int(profile.get("losses", 0)) + 1
 	rank_db["player"] = profile
 	last_rank_result = result
+	if outcome == "win":
+		_record_victory_mirror(active_match_rank_key, active_match_player_stars)
 	_save_rank_database()
 
 
@@ -4661,12 +4704,15 @@ func _apply_rank_result(won: bool) -> void:
 func _record_victory_mirror(rank_key: String, match_stars: int) -> void:
 	_ensure_rank_database_shape()
 	var deck_snapshot = _snapshot_deck()
-	var animal_rarities = RankMirrorRules.animal_rarities_from_cards(cards)
-	if not RankMirrorRules.should_record_deck(deck_snapshot, animal_rarities):
+	var card_rarities = RankMirrorRules.card_rarities_from_cards(cards)
+	if not RankMirrorRules.should_record_deck(deck_snapshot, card_rarities, rank_key):
 		return
 	var mirrors = rank_db["mirrors"]
 	if not mirrors.has(rank_key) or typeof(mirrors[rank_key]) != TYPE_ARRAY:
 		mirrors[rank_key] = []
+	var signature = RankAIDecks.deck_signature(deck_snapshot)
+	if signature.is_empty():
+		return
 	var rank_state = RankingRules.rank_state_for_key_and_stars(rank_key, match_stars)
 	var profile = _player_profile()
 	var now = int(Time.get_unix_time_from_system())
@@ -4682,6 +4728,14 @@ func _record_victory_mirror(rank_key: String, match_stars: int) -> void:
 		"card_levels": _snapshot_card_levels(),
 		"created_at_unix": now,
 	}
+	for index in range(mirrors[rank_key].size()):
+		var candidate = mirrors[rank_key][index]
+		if typeof(candidate) != TYPE_DICTIONARY or RankAIDecks.deck_signature(candidate.get("deck", [])) != signature:
+			continue
+		mirror["mirror_id"] = String(candidate.get("mirror_id", mirror["mirror_id"]))
+		mirrors[rank_key][index] = mirror
+		rank_db["mirrors"] = mirrors
+		return
 	mirrors[rank_key].append(mirror)
 	while mirrors[rank_key].size() > MIRROR_LIMIT_PER_RANK:
 		mirrors[rank_key].remove_at(0)
