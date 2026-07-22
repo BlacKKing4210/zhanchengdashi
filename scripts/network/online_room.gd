@@ -26,6 +26,8 @@ const DEFAULT_HOST = "127.0.0.1"
 const DEFAULT_BIND_HOST = "0.0.0.0"
 const DEFAULT_PORT = 24567
 const DEFAULT_MAX_CLIENTS = 64
+const PROJECT_SERVER_HOST_SETTING = "network/server_host"
+const PROJECT_SERVER_PORT_SETTING = "network/server_port"
 const CHANNEL_COUNT = 3
 const REGISTRY_PATH = "res://scripts/network/room_registry.gd"
 const ACCOUNT_STORE_PATH = "res://scripts/server/player_account_store.gd"
@@ -376,7 +378,10 @@ func default_server_host() -> String:
 	if not cli_value.is_empty():
 		return cli_value
 	var environment_value = OS.get_environment("ZHANCHENG_SERVER_HOST").strip_edges()
-	return environment_value if not environment_value.is_empty() else DEFAULT_HOST
+	if not environment_value.is_empty():
+		return environment_value
+	var project_value = str(ProjectSettings.get_setting(PROJECT_SERVER_HOST_SETTING, "")).strip_edges()
+	return project_value if not project_value.is_empty() else DEFAULT_HOST
 
 
 func default_bind_host() -> String:
@@ -394,6 +399,9 @@ func default_server_port() -> int:
 	var environment_value = OS.get_environment("ZHANCHENG_SERVER_PORT").strip_edges()
 	if environment_value.is_valid_int():
 		return clampi(environment_value.to_int(), 1, 65535)
+	var project_value = str(ProjectSettings.get_setting(PROJECT_SERVER_PORT_SETTING, "")).strip_edges()
+	if project_value.is_valid_int():
+		return clampi(project_value.to_int(), 1, 65535)
 	return DEFAULT_PORT
 
 

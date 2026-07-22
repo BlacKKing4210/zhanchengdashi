@@ -21,6 +21,11 @@ ConfigDB="*res://scripts/core/config_db.gd"
 GameAudio="*res://scripts/app/systems/game_audio.gd"
 OnlineRoom="*res://scripts/network/online_room.gd"
 
+[network]
+
+server_host="106.15.61.103"
+server_port=24567
+
 [display]
 
 window/size/viewport_width=1080
