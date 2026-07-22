@@ -29,10 +29,9 @@ func _ready() -> void:
 	app.set("online_room_service", fake_online_room)
 	app.set("online_connection_state", "offline")
 	app.call("_auto_login_saved_account")
-	_expect_equal(fake_online_room.connect_calls, 0, "startup stays offline when no saved login exists")
-	fake_online_room.saved_login = true
+	_expect_equal(fake_online_room.connect_calls, 1, "startup connects even before a refresh token exists")
 	app.call("_auto_login_saved_account")
-	_expect_equal(fake_online_room.connect_calls, 1, "startup connects automatically when saved login exists")
+	_expect_equal(fake_online_room.connect_calls, 1, "startup does not issue a duplicate connection while connecting")
 	_expect_equal(String(app.get("online_connection_state")), "connecting", "automatic login reports the connection state")
 	app.free()
 	fake_online_room.free()

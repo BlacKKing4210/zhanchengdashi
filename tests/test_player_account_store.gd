@@ -21,6 +21,10 @@ func _ready() -> void:
 	var refresh_token = String(device_login.get("refresh_token", ""))
 	_expect(refresh_token.length() == 64, "device account receives a long-term refresh token once")
 	_expect(not bool(store.authenticate_installation(installation_id, "wrong-token").get("ok", true)), "wrong device token is rejected")
+	_expect(
+		not bool(store.authenticate_installation("bc".repeat(32), "cd".repeat(32)).get("ok", true)),
+		"unknown installations cannot use a legacy refresh token to register"
+	)
 
 	var login: Dictionary = store.login("fieldmouse", "safe-pass-1936")
 	_expect(bool(login.get("ok", false)), "correct password logs in")
@@ -109,6 +113,46 @@ func _ready() -> void:
 	var auto_login: Dictionary = restarted_after_binding.authenticate_installation(named_installation_id, named_refresh_token)
 	_expect(bool(auto_login.get("ok", false)), "bound installation credentials survive a server restart")
 	_expect(String(auto_login.get("user_id", "")) == String(registered.get("user_id", "")), "saved device credentials automatically restore the named account")
+	var password_recovery: Dictionary = restarted_after_binding.login(
+		"FieldMouse",
+		"safe-pass-1936",
+		named_installation_id,
+		"ef".repeat(32),
+		["rabbit", "wolf"]
+	)
+	_expect(bool(password_recovery.get("ok", false)), "correct password can recover a stale installation binding")
+	var rotated_refresh_token = String(password_recovery.get("refresh_token", ""))
+	_expect(rotated_refresh_token.length() == 64, "password recovery rotates the installation refresh token")
+	_expect(
+		not bool(restarted_after_binding.authenticate_installation(named_installation_id, named_refresh_token).get("ok", true)),
+		"the pre-recovery refresh token no longer works"
+	)
+	var recovered_auto_login: Dictionary = restarted_after_binding.authenticate_installation(named_installation_id, rotated_refresh_token)
+	_expect(bool(recovered_auto_login.get("ok", false)), "rotated refresh token restores the named account")
+	_expect(String(recovered_auto_login.get("user_id", "")) == String(registered.get("user_id", "")), "recovered binding keeps the named account")
+	var unbound_installation_id = "de".repeat(32)
+	var unbound_login: Dictionary = restarted_after_binding.login(
+		"FieldMouse",
+		"safe-pass-1936",
+		unbound_installation_id,
+		"f0".repeat(32),
+		["rabbit", "wolf"]
+	)
+	_expect(bool(unbound_login.get("ok", false)), "correct password binds an installation not yet known to the server")
+	var unbound_refresh_token = String(unbound_login.get("refresh_token", ""))
+	_expect(unbound_refresh_token.length() == 64, "new password-bound installation receives its own refresh token")
+	var unbound_auto_login: Dictionary = restarted_after_binding.authenticate_installation(unbound_installation_id, unbound_refresh_token)
+	_expect(bool(unbound_auto_login.get("ok", false)), "new password-bound installation resumes with its issued token")
+	_expect(String(unbound_auto_login.get("user_id", "")) == String(registered.get("user_id", "")), "new installation resumes the named account")
+	var rejected_installation_id = "f1".repeat(32)
+	_expect(
+		not bool(restarted_after_binding.login("FieldMouse", "wrong-password", rejected_installation_id, "", []).get("ok", true)),
+		"wrong password cannot create an installation binding"
+	)
+	_expect(
+		not restarted_after_binding.installations.has(restarted_after_binding.call("_installation_hash", rejected_installation_id)),
+		"failed password login leaves the installation unbound"
+	)
 	_expect(bool(reloaded.logout(String(relogin.get("session_token", ""))).get("ok", false)), "logout invalidates the session")
 
 	_cleanup()

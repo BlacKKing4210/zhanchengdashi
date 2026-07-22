@@ -824,10 +824,9 @@ func _auto_login_saved_account_on_startup() -> void:
 
 
 func _auto_login_saved_account() -> void:
-	if online_room_service == null or not online_room_service.has_method("has_saved_login"):
+	if online_room_service == null:
 		return
-	if bool(online_room_service.call("has_saved_login")):
-		_ensure_online_room_connection()
+	_ensure_online_room_connection()
 
 
 func _connect_online_signal(signal_name: String, method_name: String) -> void:
@@ -2569,6 +2568,11 @@ func _move_unit_toward_target(unit: Dictionary, target: Dictionary, target_pos: 
 	if path_target != target_tile or path.is_empty() or path_index >= path.size():
 		path = _ground_path_between(current_tile, target_tile)
 		path_index = 0
+		# AStar paths include the current hex center as their first waypoint. On a
+		# retarget the unit may already be partway across that hex, so skip that
+		# synthetic starting point rather than visibly walking backward to it.
+		if path.size() > 1 and Vector2(path[0]).distance_to(_hex_center(current_tile)) <= 0.5:
+			path_index = 1
 		path_target = target_tile
 	if path.is_empty():
 		return unit

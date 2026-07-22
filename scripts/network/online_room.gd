@@ -74,14 +74,15 @@ var _client_session_token = ""
 var _device_credential_path = DEVICE_CREDENTIAL_PATH
 var _installation_id = ""
 var _refresh_token = ""
+var _credential_server_identity = ""
 
 
 func _ready() -> void:
 	_wire_multiplayer_signals()
-	_load_or_create_device_credentials()
 	server_host = default_server_host()
 	server_port = default_server_port()
 	bind_host = default_bind_host()
+	_load_or_create_device_credentials()
 	if OS.has_feature("dedicated_server"):
 		call_deferred("_start_feature_dedicated_server")
 
@@ -140,6 +141,7 @@ func connect_to_server(
 	if server_host.is_empty():
 		server_host = default_server_host()
 	server_port = requested_port if requested_port > 0 else default_server_port()
+	_load_or_create_device_credentials()
 	local_player_name = _sanitize_player_name(player_name, 0)
 	_enet_peer = ENetMultiplayerPeer.new()
 	var error = _enet_peer.create_client(server_host, server_port, CHANNEL_COUNT)
@@ -327,6 +329,7 @@ func has_saved_login() -> bool:
 		and _installation_id.is_valid_hex_number(false)
 		and _refresh_token.length() == 64
 		and _refresh_token.is_valid_hex_number(false)
+		and _credential_server_identity == _server_identity()
 	)
 
 
@@ -1255,6 +1258,8 @@ func _on_connected_to_server() -> void:
 func _load_or_create_device_credentials() -> void:
 	_installation_id = ""
 	_refresh_token = ""
+	_credential_server_identity = ""
+	var should_save = false
 	if FileAccess.file_exists(_device_credential_path):
 		var file = FileAccess.open(_device_credential_path, FileAccess.READ)
 		if file != null:
@@ -1262,13 +1267,25 @@ func _load_or_create_device_credentials() -> void:
 			if typeof(parsed) == TYPE_DICTIONARY:
 				_installation_id = String(parsed.get("installation_id", "")).strip_edges().to_lower()
 				_refresh_token = String(parsed.get("refresh_token", "")).strip_edges().to_lower()
+				_credential_server_identity = String(parsed.get("server_identity", "")).strip_edges().to_lower()
 	if _installation_id.length() != 64 or not _installation_id.is_valid_hex_number(false):
 		_installation_id = Crypto.new().generate_random_bytes(32).hex_encode()
 		_refresh_token = ""
+		should_save = true
+	if not _refresh_token.is_empty() and (_refresh_token.length() != 64 or not _refresh_token.is_valid_hex_number(false)):
+		_refresh_token = ""
+		should_save = true
+	var current_server_identity = _server_identity()
+	if _credential_server_identity != current_server_identity:
+		_refresh_token = ""
+		_credential_server_identity = current_server_identity
+		should_save = true
+	if should_save:
 		_save_device_credentials()
 
 
 func _save_device_credentials() -> bool:
+	_credential_server_identity = _server_identity()
 	var directory = _device_credential_path.get_base_dir()
 	if not directory.is_empty():
 		DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(directory))
@@ -1276,11 +1293,16 @@ func _save_device_credentials() -> bool:
 	if file == null:
 		return false
 	file.store_string(JSON.stringify({
-		"version": 1,
+		"version": 2,
 		"installation_id": _installation_id,
 		"refresh_token": _refresh_token,
+		"server_identity": _credential_server_identity,
 	}, "\t"))
 	return true
+
+
+func _server_identity() -> String:
+	return "%s:%d" % [server_host.strip_edges().to_lower(), server_port]
 
 
 func _on_connection_failed() -> void:

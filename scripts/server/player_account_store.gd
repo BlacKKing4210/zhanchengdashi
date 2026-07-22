@@ -75,15 +75,19 @@ func login(
 		return _failure("invalid_credentials")
 	var user_id = String(record["user_id"])
 	var installation_hash = _installation_hash(installation_id)
+	var issued_refresh_token = ""
 	if not installation_id.is_empty():
 		if installation_hash.is_empty():
 			return _failure("invalid_installation_id")
 		var binding_result = _bind_installation_to_user(installation_hash, user_id, refresh_token)
 		if not bool(binding_result.get("ok", false)):
 			return binding_result
+		issued_refresh_token = String(binding_result.get("refresh_token", ""))
 	var result = _create_session(user_id, installation_hash)
 	if not installation_hash.is_empty():
 		result["accounts"] = _account_summaries(installation_hash, animal_card_ids)
+	if not issued_refresh_token.is_empty():
+		result["refresh_token"] = issued_refresh_token
 	return result
 
 
@@ -265,26 +269,51 @@ func _register_installation(
 
 
 func _bind_installation_to_user(installation_hash: String, user_id: String, refresh_token: String) -> Dictionary:
-	if _key_for_user_id(user_id).is_empty() or not installations.has(installation_hash):
+	if _key_for_user_id(user_id).is_empty():
 		return _failure("invalid_credentials")
-	if not _installation_token_is_valid(installation_hash, refresh_token):
-		return _failure("invalid_device_credentials")
 	var now = int(Time.get_unix_time_from_system())
-	var previous_binding: Dictionary = (installations[installation_hash] as Dictionary).duplicate(true)
-	var user_ids = _installation_user_ids(previous_binding)
-	if not user_ids.has(user_id):
-		if user_ids.size() >= MAX_INSTALLATION_ACCOUNTS:
-			return _failure("account_limit")
-		user_ids.append(user_id)
-	var binding = previous_binding.duplicate(true)
-	binding["user_id"] = user_id
-	binding["user_ids"] = user_ids
-	binding["updated_at_unix"] = now
+	var had_previous_binding = installations.has(installation_hash)
+	var previous_binding: Dictionary = (installations[installation_hash] as Dictionary).duplicate(true) if had_previous_binding else {}
+	var issued_refresh_token = ""
+	var token_salt = ""
+	var binding: Dictionary = {}
+	if had_previous_binding:
+		var user_ids = _installation_user_ids(previous_binding)
+		if not user_ids.has(user_id):
+			if user_ids.size() >= MAX_INSTALLATION_ACCOUNTS:
+				return _failure("account_limit")
+			user_ids.append(user_id)
+		binding = previous_binding.duplicate(true)
+		binding["user_id"] = user_id
+		binding["user_ids"] = user_ids
+		binding["updated_at_unix"] = now
+		if not _installation_token_is_valid(installation_hash, refresh_token):
+			issued_refresh_token = _random_hex(32)
+			token_salt = _random_hex(16)
+			binding["token_salt"] = token_salt
+			binding["refresh_token_hash"] = _refresh_token_hash(issued_refresh_token, token_salt)
+	else:
+		issued_refresh_token = _random_hex(32)
+		token_salt = _random_hex(16)
+		binding = {
+			"user_id": user_id,
+			"user_ids": [user_id],
+			"token_salt": token_salt,
+			"refresh_token_hash": _refresh_token_hash(issued_refresh_token, token_salt),
+			"created_at_unix": now,
+			"updated_at_unix": now,
+		}
 	installations[installation_hash] = binding
 	if not _save():
-		installations[installation_hash] = previous_binding
+		if had_previous_binding:
+			installations[installation_hash] = previous_binding
+		else:
+			installations.erase(installation_hash)
 		return _failure("storage_error")
-	return _success()
+	var result = _success()
+	if not issued_refresh_token.is_empty():
+		result["refresh_token"] = issued_refresh_token
+	return result
 
 
 func _login_installation(installation_hash: String, refresh_token: String, animal_card_ids: Array) -> Dictionary:

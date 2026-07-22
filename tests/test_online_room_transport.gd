@@ -14,6 +14,8 @@ var host_command: Dictionary = {}
 var guest_authority_snapshot: Dictionary = {}
 var guest_host_only_failure = false
 const DEVICE_TEST_DIR = "user://tests/device_auth_transport"
+const HOST_LEGACY_REFRESH_TOKEN = "cdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd"
+var host_legacy_installation_id = ""
 
 
 func _ready() -> void:
@@ -22,6 +24,8 @@ func _ready() -> void:
 
 func _run_loopback_test() -> void:
 	_cleanup_device_credentials()
+	host_legacy_installation_id = Crypto.new().generate_random_bytes(32).hex_encode()
+	_write_legacy_device_credentials("host")
 	server_scope = _create_endpoint_scope("ServerEndpoint")
 	host_scope = _create_endpoint_scope("HostEndpoint")
 	guest_scope = _create_endpoint_scope("GuestEndpoint")
@@ -52,6 +56,22 @@ func _run_loopback_test() -> void:
 	_expect_true(
 		await _wait_until(func(): return not String(host.get("current_user_id")).is_empty() and not String(guest.get("current_user_id")).is_empty()),
 		"first connection automatically creates and logs in both device accounts"
+	)
+	var host_credentials = _read_device_credentials("host")
+	_expect_equal(
+		String(host_credentials.get("installation_id", "")),
+		host_legacy_installation_id,
+		"legacy client keeps its installation id while moving to the loopback server"
+	)
+	_expect_true(
+		String(host_credentials.get("refresh_token", "")).length() == 64
+		and String(host_credentials.get("refresh_token", "")) != HOST_LEGACY_REFRESH_TOKEN,
+		"legacy refresh token is replaced after first authentication with the new server"
+	)
+	_expect_equal(
+		String(host_credentials.get("server_identity", "")),
+		"127.0.0.1:%d" % port,
+		"client persists the final connected server identity"
 	)
 	_expect_true(
 		FileAccess.file_exists(DEVICE_TEST_DIR + "/host.json") and FileAccess.file_exists(DEVICE_TEST_DIR + "/guest.json"),
@@ -248,6 +268,30 @@ func _cleanup_device_credentials() -> void:
 		var path = DEVICE_TEST_DIR + "/%s.json" % credential_name
 		if FileAccess.file_exists(path):
 			DirAccess.remove_absolute(ProjectSettings.globalize_path(path))
+
+
+func _write_legacy_device_credentials(credential_name: String) -> void:
+	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(DEVICE_TEST_DIR))
+	var file = FileAccess.open(DEVICE_TEST_DIR + "/%s.json" % credential_name, FileAccess.WRITE)
+	if file == null:
+		failures += 1
+		push_error("could not write legacy device credentials")
+		return
+	file.store_string(JSON.stringify({
+		"version": 1,
+		"installation_id": host_legacy_installation_id,
+		"refresh_token": HOST_LEGACY_REFRESH_TOKEN,
+	}))
+	file.close()
+
+
+func _read_device_credentials(credential_name: String) -> Dictionary:
+	var path = DEVICE_TEST_DIR + "/%s.json" % credential_name
+	var file = FileAccess.open(path, FileAccess.READ)
+	if file == null:
+		return {}
+	var parsed = JSON.parse_string(file.get_as_text())
+	return (parsed as Dictionary) if typeof(parsed) == TYPE_DICTIONARY else {}
 
 
 func _wait_until(condition: Callable, max_frames: int = 360) -> bool:
