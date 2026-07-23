@@ -71,6 +71,8 @@ const TOWER_BASE_COST = 50
 const TOWER_COST_STEP = 50
 const ONLINE_SIMULATION_STEP = 0.05
 const ONLINE_SNAPSHOT_INTERVAL = 0.20
+const ONLINE_AUTO_RETRY_INITIAL_DELAY = 1.5
+const ONLINE_AUTO_RETRY_MAX_DELAY = 15.0
 const ONLINE_ROOM_CODE_LENGTH = 6
 const GOLD_GAIN_FEEDBACK_DURATION = 0.90
 const GOLD_GAIN_FEEDBACK_RISE = 38.0
@@ -206,6 +208,10 @@ var room_result = ""
 var authority_room_result = ""
 var free_for_all_room_snapshot = {}
 var online_room_service: Node
+var online_auto_connect_enabled = false
+var startup_auto_connect_test_enabled = false
+var online_reconnect_timer = -1.0
+var online_reconnect_delay = ONLINE_AUTO_RETRY_INITIAL_DELAY
 var online_connection_state = "offline"
 var online_room_active = false
 var online_room_is_host = false
@@ -294,6 +300,7 @@ func _process(delta: float) -> void:
 		detail_upgrade_motion_timer = maxf(0.0, detail_upgrade_motion_timer - delta)
 	_update_gacha_animation(delta)
 	_update_account_fields_layout()
+	_update_online_auto_connection(delta)
 	_update_server_profile_sync(delta)
 
 	if screen == SCREEN_BATTLE and not pause_open:
@@ -818,8 +825,16 @@ func _setup_online_room() -> void:
 
 
 func _auto_login_saved_account_on_startup() -> void:
-	if get_tree().current_scene != self:
+	# `Main` is instantiated through Bootstrap.  During a graphical startup the
+	# deferred callback can still observe Bootstrap as current_scene, so do not
+	# use scene identity as a runtime gate.  Test scenes intentionally suppress
+	# the network bootstrap to keep isolated adapter tests offline.
+	var active_scene = get_tree().current_scene
+	if active_scene != null and active_scene.scene_file_path.begins_with("res://tests/") and not startup_auto_connect_test_enabled:
 		return
+	online_auto_connect_enabled = true
+	online_reconnect_timer = -1.0
+	online_reconnect_delay = ONLINE_AUTO_RETRY_INITIAL_DELAY
 	_auto_login_saved_account()
 
 
@@ -827,6 +842,30 @@ func _auto_login_saved_account() -> void:
 	if online_room_service == null:
 		return
 	_ensure_online_room_connection()
+
+func _update_online_auto_connection(delta: float) -> void:
+	if not online_auto_connect_enabled or online_room_service == null:
+		return
+	if bool(online_room_service.call("is_connected_to_server")):
+		online_reconnect_timer = -1.0
+		online_reconnect_delay = ONLINE_AUTO_RETRY_INITIAL_DELAY
+		return
+	if online_connection_state == "connecting":
+		return
+	if online_reconnect_timer > 0.0:
+		online_reconnect_timer = maxf(0.0, online_reconnect_timer - delta)
+		return
+	_ensure_online_room_connection()
+	if online_connection_state in ["offline", "error", "unavailable"]:
+		_schedule_online_reconnect()
+
+
+func _schedule_online_reconnect() -> void:
+	if not online_auto_connect_enabled:
+		return
+	online_reconnect_timer = online_reconnect_delay
+	online_reconnect_delay = minf(online_reconnect_delay * 2.0, ONLINE_AUTO_RETRY_MAX_DELAY)
+
 
 
 func _connect_online_signal(signal_name: String, method_name: String) -> void:
@@ -872,11 +911,14 @@ func _online_player_name() -> String:
 
 
 func _on_online_server_connected(host: String, port: int, _peer_id: int) -> void:
+	online_reconnect_timer = -1.0
+	online_reconnect_delay = ONLINE_AUTO_RETRY_INITIAL_DELAY
 	online_connection_state = "connected"
 	_toast("已连接 %s:%d" % [host, port])
 
 
 func _on_online_server_connection_failed(message: String) -> void:
+	_schedule_online_reconnect()
 	online_connection_state = "error"
 	_toast(message)
 
@@ -887,6 +929,7 @@ func _on_online_server_disconnected() -> void:
 	if _is_online_match_active():
 		_clear_online_match_state()
 		screen = SCREEN_ROOM
+	_schedule_online_reconnect()
 	_toast("互联网房间服务器已断开")
 
 

@@ -7,14 +7,17 @@ var failures = 0
 var server_scope: Node
 var host_scope: Node
 var guest_scope: Node
+var recovered_scope: Node
 var server: Node
 var host: Node
 var guest: Node
+var recovered: Node
 var host_command: Dictionary = {}
 var guest_authority_snapshot: Dictionary = {}
 var guest_host_only_failure = false
 const DEVICE_TEST_DIR = "user://tests/device_auth_transport"
 const HOST_LEGACY_REFRESH_TOKEN = "cdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd"
+const RECOVERY_STALE_REFRESH_TOKEN = "efefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefef"
 var host_legacy_installation_id = ""
 
 
@@ -39,6 +42,10 @@ func _run_loopback_test() -> void:
 		OK,
 		"loopback server starts"
 	)
+	var recovered_installation_id = Crypto.new().generate_random_bytes(32).hex_encode()
+	_write_scoped_device_credentials("recovered", recovered_installation_id, RECOVERY_STALE_REFRESH_TOKEN, "127.0.0.1:%d" % port)
+	recovered_scope = _create_endpoint_scope("RecoveredEndpoint")
+	recovered = _add_online_room(recovered_scope, "recovered", "127.0.0.1", port)
 	_expect_equal(
 		int(host.call("connect_to_server", "127.0.0.1", port, "房主")),
 		OK,
@@ -49,13 +56,34 @@ func _run_loopback_test() -> void:
 		OK,
 		"guest begins connecting"
 	)
-	_expect_true(
-		await _wait_until(func(): return bool(host.call("is_connected_to_server")) and bool(guest.call("is_connected_to_server"))),
-		"both clients connect through ENet loopback"
+	_expect_equal(
+		int(recovered.call("connect_to_server", "127.0.0.1", port, "恢复测试")),
+		OK,
+		"stale-token client begins connecting"
 	)
 	_expect_true(
-		await _wait_until(func(): return not String(host.get("current_user_id")).is_empty() and not String(guest.get("current_user_id")).is_empty()),
-		"first connection automatically creates and logs in both device accounts"
+		await _wait_until(func(): return bool(host.call("is_connected_to_server")) and bool(guest.call("is_connected_to_server")) and bool(recovered.call("is_connected_to_server"))),
+		"all clients connect through ENet loopback"
+	)
+	_expect_true(
+		await _wait_until(func(): return not String(host.get("current_user_id")).is_empty() and not String(guest.get("current_user_id")).is_empty() and not String(recovered.get("current_user_id")).is_empty()),
+		"first connection and stale-token recovery automatically create and log in device accounts"
+	)
+	var recovered_credentials = _read_device_credentials("recovered")
+	_expect_equal(
+		String(recovered_credentials.get("installation_id", "")),
+		recovered_installation_id,
+		"stale-token recovery keeps the stable installation id"
+	)
+	_expect_true(
+		String(recovered_credentials.get("refresh_token", "")).length() == 64
+		and String(recovered_credentials.get("refresh_token", "")) != RECOVERY_STALE_REFRESH_TOKEN,
+		"stale-token recovery replaces the invalid token with the default account token"
+	)
+	_expect_true(
+		int(recovered_credentials.get("version", 0)) == 3
+		and String(recovered_credentials.get("recovery_secret", "")).length() == 64,
+		"legacy scoped credentials migrate to a device recovery secret"
 	)
 	var host_credentials = _read_device_credentials("host")
 	_expect_equal(
@@ -204,9 +232,11 @@ func _run_loopback_test() -> void:
 	server.call("stop_transport")
 	host.call("stop_transport")
 	guest.call("stop_transport")
+	recovered.call("stop_transport")
 	server_scope.queue_free()
 	host_scope.queue_free()
 	guest_scope.queue_free()
+	recovered_scope.queue_free()
 	await get_tree().process_frame
 	_cleanup_device_credentials()
 	if failures == 0:
@@ -254,17 +284,21 @@ func _create_endpoint_scope(scope_name: String) -> Node:
 	return scope
 
 
-func _add_online_room(scope: Node, credential_name: String = "") -> Node:
+func _add_online_room(scope: Node, credential_name: String = "", initial_host: String = "", initial_port: int = -1) -> Node:
 	var endpoint = OnlineRoomTransport.new()
 	endpoint.name = "OnlineRoom"
 	if not credential_name.is_empty():
 		endpoint.set("_device_credential_path", DEVICE_TEST_DIR + "/%s.json" % credential_name)
+	if not initial_host.is_empty():
+		endpoint.set("server_host", initial_host)
+	if initial_port > 0:
+		endpoint.set("server_port", initial_port)
 	scope.add_child(endpoint)
 	return endpoint
 
 
 func _cleanup_device_credentials() -> void:
-	for credential_name in ["host", "guest"]:
+	for credential_name in ["host", "guest", "recovered"]:
 		var path = DEVICE_TEST_DIR + "/%s.json" % credential_name
 		if FileAccess.file_exists(path):
 			DirAccess.remove_absolute(ProjectSettings.globalize_path(path))
@@ -281,6 +315,22 @@ func _write_legacy_device_credentials(credential_name: String) -> void:
 		"version": 1,
 		"installation_id": host_legacy_installation_id,
 		"refresh_token": HOST_LEGACY_REFRESH_TOKEN,
+	}))
+	file.close()
+
+
+func _write_scoped_device_credentials(credential_name: String, installation_id: String, refresh_token: String, server_identity: String) -> void:
+	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(DEVICE_TEST_DIR))
+	var file = FileAccess.open(DEVICE_TEST_DIR + "/%s.json" % credential_name, FileAccess.WRITE)
+	if file == null:
+		failures += 1
+		push_error("could not write scoped device credentials")
+		return
+	file.store_string(JSON.stringify({
+		"version": 2,
+		"installation_id": installation_id,
+		"refresh_token": refresh_token,
+		"server_identity": server_identity,
 	}))
 	file.close()
 

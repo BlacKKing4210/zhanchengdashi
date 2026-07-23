@@ -8,6 +8,7 @@ const ACCOUNT_MIN_LENGTH = 3
 const ACCOUNT_MAX_LENGTH = 32
 const PASSWORD_MIN_LENGTH = 8
 const PASSWORD_MAX_LENGTH = 72
+const RECOVERY_SECRET_HASH_PREFIX = "zhanchengdashi-recovery-v1:"
 const MAX_INSTALLATION_ACCOUNTS = 8
 
 const RANK_NAMES = {
@@ -63,7 +64,8 @@ func login(
 	password: String,
 	installation_id: String = "",
 	refresh_token: String = "",
-	animal_card_ids: Array = []
+	animal_card_ids: Array = [],
+	recovery_secret: String = ""
 ) -> Dictionary:
 	var key = _account_key(account)
 	if not accounts.has(key):
@@ -79,7 +81,7 @@ func login(
 	if not installation_id.is_empty():
 		if installation_hash.is_empty():
 			return _failure("invalid_installation_id")
-		var binding_result = _bind_installation_to_user(installation_hash, user_id, refresh_token)
+		var binding_result = _bind_installation_to_user(installation_hash, user_id, refresh_token, recovery_secret)
 		if not bool(binding_result.get("ok", false)):
 			return binding_result
 		issued_refresh_token = String(binding_result.get("refresh_token", ""))
@@ -95,16 +97,17 @@ func authenticate_installation(
 	installation_id: String,
 	refresh_token: String,
 	starter_profile: Dictionary = {},
-	animal_card_ids: Array = []
+	animal_card_ids: Array = [],
+	recovery_secret: String = ""
 ) -> Dictionary:
 	var installation_hash = _installation_hash(installation_id)
 	if installation_hash.is_empty():
 		return _failure("invalid_installation_id")
 	if installations.has(installation_hash):
-		return _login_installation(installation_hash, refresh_token, animal_card_ids)
+		return _login_installation(installation_hash, refresh_token, animal_card_ids, recovery_secret)
 	if not refresh_token.is_empty():
 		return _failure("invalid_device_credentials")
-	return _register_installation(installation_hash, starter_profile, animal_card_ids)
+	return _register_installation(installation_hash, starter_profile, animal_card_ids, recovery_secret)
 
 
 func logout(session_token: String) -> Dictionary:
@@ -241,7 +244,8 @@ func _record_for_session(session_token: String) -> Dictionary:
 func _register_installation(
 	installation_hash: String,
 	starter_profile: Dictionary,
-	animal_card_ids: Array
+	animal_card_ids: Array,
+	recovery_secret: String = ""
 ) -> Dictionary:
 	var refresh_token = _random_hex(32)
 	var token_salt = _random_hex(16)
@@ -249,7 +253,7 @@ func _register_installation(
 	var user_id = _new_user_id()
 	var account_key = "device:%s" % user_id.to_lower()
 	accounts[account_key] = _device_account_record(user_id, now, starter_profile)
-	installations[installation_hash] = {
+	var binding = {
 		"user_id": user_id,
 		"user_ids": [user_id],
 		"token_salt": token_salt,
@@ -257,6 +261,9 @@ func _register_installation(
 		"created_at_unix": now,
 		"updated_at_unix": now,
 	}
+	if _is_valid_recovery_secret(recovery_secret):
+		binding = _binding_with_recovery_secret(binding, recovery_secret)
+	installations[installation_hash] = binding
 	if not _save():
 		accounts.erase(account_key)
 		installations.erase(installation_hash)
@@ -268,7 +275,12 @@ func _register_installation(
 	return result
 
 
-func _bind_installation_to_user(installation_hash: String, user_id: String, refresh_token: String) -> Dictionary:
+func _bind_installation_to_user(
+	installation_hash: String,
+	user_id: String,
+	refresh_token: String,
+	recovery_secret: String = ""
+) -> Dictionary:
 	if _key_for_user_id(user_id).is_empty():
 		return _failure("invalid_credentials")
 	var now = int(Time.get_unix_time_from_system())
@@ -303,6 +315,8 @@ func _bind_installation_to_user(installation_hash: String, user_id: String, refr
 			"created_at_unix": now,
 			"updated_at_unix": now,
 		}
+	if _is_valid_recovery_secret(recovery_secret):
+		binding = _binding_with_recovery_secret(binding, recovery_secret)
 	installations[installation_hash] = binding
 	if not _save():
 		if had_previous_binding:
@@ -316,14 +330,56 @@ func _bind_installation_to_user(installation_hash: String, user_id: String, refr
 	return result
 
 
-func _login_installation(installation_hash: String, refresh_token: String, animal_card_ids: Array) -> Dictionary:
+func _login_installation(
+	installation_hash: String,
+	refresh_token: String,
+	animal_card_ids: Array,
+	recovery_secret: String = ""
+) -> Dictionary:
 	if not _installation_token_is_valid(installation_hash, refresh_token):
-		return _failure("invalid_device_credentials")
-	var binding: Dictionary = installations[installation_hash]
+		if not _installation_recovery_secret_is_valid(installation_hash, recovery_secret):
+			return _failure("invalid_device_credentials")
+		return _recover_installation_with_recovery_secret(installation_hash, recovery_secret, animal_card_ids)
+	var binding: Dictionary = (installations[installation_hash] as Dictionary).duplicate(true)
 	var user_id = String(binding.get("user_id", ""))
 	if _key_for_user_id(user_id).is_empty() or not _installation_user_ids(binding).has(user_id):
 		return _failure("invalid_device_credentials")
+	if _is_valid_recovery_secret(recovery_secret) and not _installation_recovery_secret_is_valid(installation_hash, recovery_secret):
+		var previous_binding = binding.duplicate(true)
+		binding = _binding_with_recovery_secret(binding, recovery_secret)
+		binding["updated_at_unix"] = int(Time.get_unix_time_from_system())
+		installations[installation_hash] = binding
+		if not _save():
+			installations[installation_hash] = previous_binding
+			return _failure("storage_error")
 	var result = _create_session(user_id, installation_hash)
+	result["accounts"] = _account_summaries(installation_hash, animal_card_ids)
+	return result
+
+
+func _recover_installation_with_recovery_secret(
+	installation_hash: String,
+	recovery_secret: String,
+	animal_card_ids: Array
+) -> Dictionary:
+	if not _installation_recovery_secret_is_valid(installation_hash, recovery_secret):
+		return _failure("invalid_device_credentials")
+	var previous_binding: Dictionary = (installations[installation_hash] as Dictionary).duplicate(true)
+	var binding = previous_binding.duplicate(true)
+	var user_id = String(binding.get("user_id", ""))
+	if _key_for_user_id(user_id).is_empty() or not _installation_user_ids(binding).has(user_id):
+		return _failure("invalid_device_credentials")
+	var issued_refresh_token = _random_hex(32)
+	var token_salt = _random_hex(16)
+	binding["token_salt"] = token_salt
+	binding["refresh_token_hash"] = _refresh_token_hash(issued_refresh_token, token_salt)
+	binding["updated_at_unix"] = int(Time.get_unix_time_from_system())
+	installations[installation_hash] = binding
+	if not _save():
+		installations[installation_hash] = previous_binding
+		return _failure("storage_error")
+	var result = _create_session(user_id, installation_hash)
+	result["refresh_token"] = issued_refresh_token
 	result["accounts"] = _account_summaries(installation_hash, animal_card_ids)
 	return result
 
@@ -365,6 +421,29 @@ func _installation_token_is_valid(installation_hash: String, refresh_token: Stri
 	var expected = String(binding.get("refresh_token_hash", ""))
 	var actual = _refresh_token_hash(refresh_token, String(binding.get("token_salt", "")))
 	return not expected.is_empty() and actual == expected
+
+func _is_valid_recovery_secret(recovery_secret: String) -> bool:
+	return recovery_secret.length() == 64 and recovery_secret.is_valid_hex_number(false)
+
+
+func _installation_recovery_secret_is_valid(installation_hash: String, recovery_secret: String) -> bool:
+	if installation_hash.is_empty() or not installations.has(installation_hash) or not _is_valid_recovery_secret(recovery_secret):
+		return false
+	var binding: Dictionary = installations[installation_hash]
+	var salt = String(binding.get("recovery_secret_salt", ""))
+	var expected = String(binding.get("recovery_secret_hash", ""))
+	if salt.is_empty() or expected.is_empty():
+		return false
+	return _recovery_secret_hash(recovery_secret, salt) == expected
+
+
+func _binding_with_recovery_secret(binding: Dictionary, recovery_secret: String) -> Dictionary:
+	var result = binding.duplicate(true)
+	var salt = _random_hex(16)
+	result["recovery_secret_salt"] = salt
+	result["recovery_secret_hash"] = _recovery_secret_hash(recovery_secret, salt)
+	return result
+
 
 
 func _installation_user_ids(binding: Dictionary) -> Array:
@@ -542,6 +621,10 @@ func _installation_hash(installation_id: String) -> String:
 
 func _refresh_token_hash(refresh_token: String, salt: String) -> String:
 	return ("zhanchengdashi-refresh-v1:" + salt + ":" + refresh_token).sha256_text()
+
+func _recovery_secret_hash(recovery_secret: String, salt: String) -> String:
+	return (RECOVERY_SECRET_HASH_PREFIX + salt + ":" + recovery_secret).sha256_text()
+
 
 
 func _new_user_id() -> String:

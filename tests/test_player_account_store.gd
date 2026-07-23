@@ -15,7 +15,8 @@ func _ready() -> void:
 	_expect(not bool(store.register_account("fieldmouse", "safe-pass-1936").get("ok", true)), "account names are unique case-insensitively")
 	_expect(not bool(store.login("FieldMouse", "wrong-password").get("ok", true)), "wrong password is rejected")
 	var installation_id = "ab".repeat(32)
-	var device_login: Dictionary = store.authenticate_installation(installation_id, "")
+	var recovery_secret = "cd".repeat(32)
+	var device_login: Dictionary = store.authenticate_installation(installation_id, "", {}, [], recovery_secret)
 	_expect(bool(device_login.get("ok", false)), "first installation authentication creates an account")
 	_expect(String(device_login.get("user_id", "")).begins_with("U-"), "device account receives a server user id")
 	var refresh_token = String(device_login.get("refresh_token", ""))
@@ -24,6 +25,10 @@ func _ready() -> void:
 	_expect(
 		not bool(store.authenticate_installation("bc".repeat(32), "cd".repeat(32)).get("ok", true)),
 		"unknown installations cannot use a legacy refresh token to register"
+	)
+	_expect(
+		not bool(store.authenticate_installation(installation_id, "", {}, [], "de".repeat(32)).get("ok", true)),
+		"a mismatched recovery secret cannot restore an existing installation"
 	)
 
 	var login: Dictionary = store.login("fieldmouse", "safe-pass-1936")
@@ -54,7 +59,7 @@ func _ready() -> void:
 	_expect(not bool(store.save_profile("invalid", {}).get("ok", true)), "rejects unauthenticated profile writes")
 
 	var reloaded = PlayerAccountStore.new(TEST_PATH)
-	var resumed_device: Dictionary = reloaded.authenticate_installation(installation_id, refresh_token)
+	var resumed_device: Dictionary = reloaded.authenticate_installation(installation_id, refresh_token, {}, [], recovery_secret)
 	_expect(bool(resumed_device.get("ok", false)), "saved device credentials log in after server restart")
 	_expect(String(resumed_device.get("user_id", "")) == String(device_login.get("user_id", "")), "device login keeps the same user id")
 	_expect(String(resumed_device.get("refresh_token", "")).is_empty(), "existing device login does not re-expose the refresh token")
@@ -62,6 +67,15 @@ func _ready() -> void:
 	var first_accounts: Dictionary = reloaded.account_summaries_for_session(device_session, ["rabbit", "wolf"])
 	_expect(bool(first_accounts.get("ok", false)), "device session lists its owned accounts")
 	_expect((first_accounts.get("accounts", []) as Array).size() == 1, "new installation starts with one owned account")
+	var recovered_device: Dictionary = reloaded.authenticate_installation(installation_id, "", {}, [], recovery_secret)
+	_expect(bool(recovered_device.get("ok", false)), "device recovery secret restores a missing refresh token")
+	_expect(String(recovered_device.get("user_id", "")) == String(device_login.get("user_id", "")), "device recovery keeps the original user id")
+	var recovered_refresh_token = String(recovered_device.get("refresh_token", ""))
+	_expect(recovered_refresh_token.length() == 64 and recovered_refresh_token != refresh_token, "device recovery rotates the refresh token")
+	_expect(
+		not bool(reloaded.authenticate_installation(installation_id, refresh_token, {}, [], "ef".repeat(32)).get("ok", true)),
+		"a pre-recovery refresh token cannot bypass the matching recovery secret"
+	)
 	var created_account: Dictionary = reloaded.create_account_for_session(device_session, {
 		"card_counts": {"rabbit": 4, "wolf": 2},
 		"card_levels": {"rabbit": 1, "wolf": 1},

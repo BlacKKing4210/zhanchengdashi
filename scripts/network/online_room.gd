@@ -74,7 +74,9 @@ var _client_session_token = ""
 var _device_credential_path = DEVICE_CREDENTIAL_PATH
 var _installation_id = ""
 var _refresh_token = ""
+var _device_recovery_secret = ""
 var _credential_server_identity = ""
+var _automatic_auth_retry_used = false
 
 
 func _ready() -> void:
@@ -141,6 +143,7 @@ func connect_to_server(
 	if server_host.is_empty():
 		server_host = default_server_host()
 	server_port = requested_port if requested_port > 0 else default_server_port()
+	_automatic_auth_retry_used = false
 	_load_or_create_device_credentials()
 	local_player_name = _sanitize_player_name(player_name, 0)
 	_enet_peer = ENetMultiplayerPeer.new()
@@ -310,7 +313,15 @@ func login_account(account: String, password: String) -> bool:
 		return false
 	if _installation_id.is_empty():
 		_load_or_create_device_credentials()
-	rpc_id(SERVER_PEER_ID, "_rpc_request_login_account", account, password, _installation_id, _refresh_token)
+	rpc_id(
+		SERVER_PEER_ID,
+		"_rpc_request_login_account",
+		account,
+		password,
+		_installation_id,
+		_refresh_token,
+		_device_recovery_secret
+	)
 	return true
 
 
@@ -319,7 +330,13 @@ func authenticate_default_account() -> bool:
 		return false
 	if _installation_id.is_empty():
 		_load_or_create_device_credentials()
-	rpc_id(SERVER_PEER_ID, "_rpc_request_authenticate_installation", _installation_id, _refresh_token)
+	rpc_id(
+		SERVER_PEER_ID,
+		"_rpc_request_authenticate_installation",
+		_installation_id,
+		_refresh_token,
+		_device_recovery_secret
+	)
 	return true
 
 
@@ -441,7 +458,8 @@ func _rpc_request_login_account(
 	account: String,
 	password: String,
 	installation_id: String = "",
-	refresh_token: String = ""
+	refresh_token: String = "",
+	recovery_secret: String = ""
 ) -> void:
 	if not _accept_server_request():
 		return
@@ -452,7 +470,8 @@ func _rpc_request_login_account(
 		password,
 		installation_id,
 		refresh_token,
-		_server_animal_card_ids()
+		_server_animal_card_ids(),
+		recovery_secret
 	)
 	if bool(result.get("ok", false)):
 		_invalidate_server_peer_session(sender)
@@ -461,7 +480,11 @@ func _rpc_request_login_account(
 
 
 @rpc("any_peer", "call_remote", "reliable", 0)
-func _rpc_request_authenticate_installation(installation_id: String, refresh_token: String) -> void:
+func _rpc_request_authenticate_installation(
+	installation_id: String,
+	refresh_token: String,
+	recovery_secret: String = ""
+) -> void:
 	if not _accept_server_request():
 		return
 	var sender = multiplayer.get_remote_sender_id()
@@ -470,7 +493,8 @@ func _rpc_request_authenticate_installation(installation_id: String, refresh_tok
 		installation_id,
 		refresh_token,
 		_server_starter_profile(),
-		_server_animal_card_ids()
+		_server_animal_card_ids(),
+		recovery_secret
 	)
 	if bool(result.get("ok", false)):
 		_invalidate_server_peer_session(sender)
@@ -753,6 +777,8 @@ func _rpc_receive_operation_result(operation: String, result: Dictionary) -> voi
 		_apply_account_operation(operation, result)
 		operation_completed.emit(operation, result.duplicate(true))
 	else:
+		if operation == "authenticate_installation" and _retry_default_authentication_without_refresh_token(last_operation_error):
+			return
 		operation_failed.emit(operation, last_operation_error)
 
 
@@ -1255,9 +1281,28 @@ func _on_connected_to_server() -> void:
 	authenticate_default_account()
 
 
+func _retry_default_authentication_without_refresh_token(error: String) -> bool:
+	if (
+		mode != TransportMode.CLIENT
+		or not _client_connected
+		or error != "invalid_device_credentials"
+		or _automatic_auth_retry_used
+	):
+		return false
+	# A server can be rebuilt while this device still holds a scoped token. Retry
+	# exactly once with the same installation id and no token: an unknown
+	# installation receives its default account, while a known one stays protected.
+	_automatic_auth_retry_used = true
+	_refresh_token = ""
+	_save_device_credentials()
+	call_deferred("authenticate_default_account")
+	return true
+
+
 func _load_or_create_device_credentials() -> void:
 	_installation_id = ""
 	_refresh_token = ""
+	_device_recovery_secret = ""
 	_credential_server_identity = ""
 	var should_save = false
 	if FileAccess.file_exists(_device_credential_path):
@@ -1267,6 +1312,7 @@ func _load_or_create_device_credentials() -> void:
 			if typeof(parsed) == TYPE_DICTIONARY:
 				_installation_id = String(parsed.get("installation_id", "")).strip_edges().to_lower()
 				_refresh_token = String(parsed.get("refresh_token", "")).strip_edges().to_lower()
+				_device_recovery_secret = String(parsed.get("recovery_secret", "")).strip_edges().to_lower()
 				_credential_server_identity = String(parsed.get("server_identity", "")).strip_edges().to_lower()
 	if _installation_id.length() != 64 or not _installation_id.is_valid_hex_number(false):
 		_installation_id = Crypto.new().generate_random_bytes(32).hex_encode()
@@ -1274,6 +1320,9 @@ func _load_or_create_device_credentials() -> void:
 		should_save = true
 	if not _refresh_token.is_empty() and (_refresh_token.length() != 64 or not _refresh_token.is_valid_hex_number(false)):
 		_refresh_token = ""
+		should_save = true
+	if _device_recovery_secret.length() != 64 or not _device_recovery_secret.is_valid_hex_number(false):
+		_device_recovery_secret = Crypto.new().generate_random_bytes(32).hex_encode()
 		should_save = true
 	var current_server_identity = _server_identity()
 	if _credential_server_identity != current_server_identity:
@@ -1293,9 +1342,10 @@ func _save_device_credentials() -> bool:
 	if file == null:
 		return false
 	file.store_string(JSON.stringify({
-		"version": 2,
+		"version": 3,
 		"installation_id": _installation_id,
 		"refresh_token": _refresh_token,
+		"recovery_secret": _device_recovery_secret,
 		"server_identity": _credential_server_identity,
 	}, "\t"))
 	return true
