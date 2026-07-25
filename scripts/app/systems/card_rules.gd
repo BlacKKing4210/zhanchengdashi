@@ -20,6 +20,9 @@ static func card_from_row(row: Dictionary) -> Dictionary:
 	var skill_effect = row.get("skill_effect", "")
 	var skill_power = row.get("skill_power", 0.0)
 	var skill_cooldown_sec = row.get("skill_cooldown_sec", 0.0)
+	var skill_target = string_from_value(row.get("skill_target", "self"))
+	if skill_target == "":
+		skill_target = "self"
 	var skill_chance = 1.0
 	var raw_skill_chance = row.get("skill_chance", null)
 	if raw_skill_chance != null and str(raw_skill_chance).strip_edges() != "":
@@ -42,6 +45,7 @@ static func card_from_row(row: Dictionary) -> Dictionary:
 		"skill_power": float_from_value(skill_power),
 		"skill_cooldown_sec": float_from_value(skill_cooldown_sec),
 		"skill_chance": skill_chance,
+		"skill_target": skill_target,
 		"skill_text": string_from_value(skill_text),
 		"tags": tags_from_value(row.get("tags", [])),
 	}
@@ -108,35 +112,42 @@ static func card_multiplier(card_levels: Dictionary, card_id: String) -> float:
 	return 1.0 + float(card_level(card_levels, card_id) - 1) * LEVEL_STAT_STEP
 
 
-static func is_ranged_or_summon_animal(card: Dictionary) -> bool:
+static func is_animal_card(card: Dictionary) -> bool:
 	var tags = card.get("tags", [])
 	if typeof(tags) == TYPE_ARRAY:
 		for tag in tags:
 			if String(tag) in ["building", "mine", "gold_mine", "defense", "tower"]:
 				return false
+	return true
+
+
+static func is_ranged_or_summon_animal(card: Dictionary) -> bool:
+	if not is_animal_card(card):
+		return false
 	var is_ranged = float(card.get("base_attack_range", 0.0)) > MELEE_ATTACK_RANGE
 	var is_summon_type = String(card.get("skill_effect", "")) == "summon"
 	return is_ranged or is_summon_type
 
 
-static func guaranteed_upgrade_hp_bonus(card: Dictionary, card_levels: Dictionary) -> int:
-	if not is_ranged_or_summon_animal(card):
+static func upgrade_hp_bonus(card: Dictionary, card_levels: Dictionary) -> int:
+	if not is_animal_card(card):
 		return 0
 	var level = max(1, card_level(card_levels, String(card.get("id", ""))))
-	return floori(float(level) / 2.0)
-
+	if is_ranged_or_summon_animal(card):
+		return floori(float(level) / 2.0)
+	return level - 1
 
 static func card_stats(card: Dictionary, card_levels: Dictionary) -> Dictionary:
 	var id = String(card.get("id", ""))
 	var mult = card_multiplier(card_levels, id)
-	var guaranteed_hp_bonus = guaranteed_upgrade_hp_bonus(card, card_levels)
+	var hp_bonus = upgrade_hp_bonus(card, card_levels)
 	return {
 		"attack": maxi(0, roundi(float(card.get("base_attack", 1)) * mult)),
-		"max_hp": maxi(1, roundi(float(card.get("base_max_hp", 1)) * mult)) + guaranteed_hp_bonus,
+		"max_hp": maxi(1, roundi(float(card.get("base_max_hp", 1)) * mult)) + hp_bonus,
 		"move_speed": float(card.get("base_move_speed", 60.0)) * mult,
 		"attack_range": float(card.get("base_attack_range", 42.0)) * mult,
 		"summon_interval_sec": maxf(1.0, float(card.get("base_summon_interval_sec", 3.5)) / mult),
-		"upgrade_hp_bonus": guaranteed_hp_bonus,
+		"upgrade_hp_bonus": hp_bonus,
 	}
 
 

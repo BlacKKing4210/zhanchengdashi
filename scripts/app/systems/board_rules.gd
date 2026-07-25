@@ -357,6 +357,7 @@ static func as_conquered_locked(tile: Dictionary, attacker: int, site: Dictionar
 	next["team"] = NEUTRAL
 	next["occupier"] = attacker
 	next["territory_team"] = attacker
+	next["eliminated_team"] = NEUTRAL
 	next["building"] = ""
 	next["hp"] = 0.0
 	next["max_hp"] = 0.0

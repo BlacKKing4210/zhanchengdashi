@@ -11,7 +11,7 @@ config_version=5
 [application]
 
 config/name="丛林法则"
-run/main_scene="res://scenes/main.tscn"
+run/main_scene="res://scenes/bootstrap.tscn"
 config/features=PackedStringArray("4.6", "Forward Plus")
 config/icon="res://icon.svg"
 
@@ -21,11 +21,6 @@ ConfigDB="*res://scripts/core/config_db.gd"
 GameAudio="*res://scripts/app/systems/game_audio.gd"
 OnlineRoom="*res://scripts/network/online_room.gd"
 
-[network]
-
-server_host="106.15.61.103"
-server_port=24567
-
 [display]
 
 window/size/viewport_width=1080
@@ -33,10 +28,15 @@ window/size/viewport_height=1920
 window/stretch/mode="canvas_items"
 window/stretch/aspect="expand"
 
+[network]
+
+server_host="106.15.61.103"
+server_port=24567
+
 [physics]
 
 3d/physics_engine="Jolt Physics"
 
 [rendering]
 
-rendering_device/driver.windows="vulkan"
+textures/vram_compression/import_etc2_astc=true

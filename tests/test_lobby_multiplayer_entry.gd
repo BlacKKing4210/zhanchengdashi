@@ -59,9 +59,9 @@ func _test_settings_layout() -> void:
 	var agreement: Rect2 = app.call("_account_agreement_rect")
 	var music: Rect2 = app.call("_account_music_rect")
 	var sfx: Rect2 = app.call("_account_sfx_rect")
-	var logout: Rect2 = app.call("_account_logout_rect")
+	var switch_account: Rect2 = app.call("_account_switch_rect")
 	var back: Rect2 = app.call("_agreement_back_rect")
-	for rect in [title, close, account_name, account_password, login, register, agreement, music, sfx, logout, back]:
+	for rect in [title, close, account_name, account_password, login, register, agreement, music, sfx, switch_account, back]:
 		_expect_true(panel.encloses(rect), "settings control stays inside the panel")
 	_expect_true(not title.intersects(close), "settings title does not overlap the close button")
 	_expect_true(not close.intersects(account_name), "settings close button does not overlap the account field")
@@ -71,7 +71,7 @@ func _test_settings_layout() -> void:
 	_expect_true(not login.intersects(agreement), "account actions do not overlap the agreement action")
 	_expect_true(not agreement.intersects(music), "agreement and sound settings remain separate")
 	_expect_true(not music.intersects(sfx), "music and sound-effect actions remain separate")
-	_expect_true(not music.intersects(logout), "sound settings do not overlap logout")
+	_expect_true(not music.intersects(switch_account), "sound settings do not overlap account switching")
 
 
 func _expect_true(value: bool, label: String) -> void:

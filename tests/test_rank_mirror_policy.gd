@@ -16,6 +16,7 @@ func _ready() -> void:
 	_test_main_recording_gate()
 	_test_invalid_match_mirror_is_replaced()
 	_test_server_profile_migration()
+	_test_server_startup_sweeps_legacy_mirrors()
 	if failures == 0:
 		print("Rank mirror policy tests passed.")
 	get_tree().quit(failures)
@@ -165,6 +166,29 @@ func _test_server_profile_migration() -> void:
 	_expect_equal(
 		(current.get("rank_mirrors", {}) as Dictionary).get("platinum", []).size(), 1,
 		"server retains a current-policy balanced mirror"
+	)
+
+
+func _test_server_startup_sweeps_legacy_mirrors() -> void:
+	var store = PlayerAccountStore.new("user://tests/rank_mirror_policy_startup_sweep.json")
+	store.set("accounts", {
+		"legacy": {
+			"profile": {
+				"rank_mirror_policy_version": 2,
+				"rank_mirrors": {
+					"king": [{"mirror_id": "legacy-unbalanced", "deck": _old_unbalanced_king_deck()}],
+				},
+			},
+		},
+	})
+	_expect_true(bool(store.call("_normalize_loaded_profiles")), "server startup detects a legacy mirror policy profile")
+	var record: Dictionary = (store.get("accounts") as Dictionary).get("legacy", {})
+	var profile: Dictionary = record.get("profile", {})
+	_expect_equal((profile.get("rank_mirrors", {}) as Dictionary).size(), 0, "server startup removes legacy AI mirrors before matchmaking")
+	_expect_equal(
+		int(profile.get("rank_mirror_policy_version", 0)),
+		RankMirrorRules.POLICY_VERSION,
+		"server startup stamps the current mirror policy version"
 	)
 
 

@@ -1,4 +1,63 @@
 # Project Agent Notes
+## Current Adaptive Game Workflow
+
+This is the current common game-workflow rule and takes precedence over later generic workflow wording in this file. Preserve every project-specific rule, approved design, engine constraint, and data pipeline as the project adapter.
+
+Use `game-studio-orchestrator` from the personal `game-studio-agent-workflow` plugin as the primary workflow. Load `game-project-control-plane` for intake, state synchronization, task deduplication, write-lock checks, evidence tracking, and adaptive routing. Keep exactly one accountable producer; the control plane is the producer-facing coordination surface, not a second producer.
+
+Classify requests as discussion, producer decision, execution request, status query, or reusable-method candidate. Use the smallest safe level: L0 inline discussion/status, L1 direct low-risk single-domain execution with reproducible checks, L2 bounded work with separate review, L3 only the needed design/engineering/art owner for cross-domain, shared, high-risk, milestone, or concurrent work, and L4 for unresolved material or irreversible choices. If profile, priority, active-scope, ownership, or write-lock sources are absent, return NOT READY instead of inventing state.
+
+Before any production write, confirm the formal source, owner, primary Skill, task fingerprint, non-conflicting write set, baseline, acceptance, evidence, and cleanup conditions; record a read-only receipt. Use the priority matrix when it exists: higher priority, then ascending feature ID, with skip reasons recorded. Close only with behavior or asset evidence, scoped regression, cleanup, and returned shared locks.
+
+The explicit-user-request rule for agent creation remains absolute: L2/L3 describe the required review or ownership level, but never create, spawn, fork, delegate to, or start an agent, sub-agent, Codex task/thread, worktree task, or execution task unless the user explicitly requests it. Otherwise continue with the current agent or ask for authorization when a separate actor is genuinely required.
+
+`codex-game-studio-default` is supplementary only for engine, art, UI, Sprite Forge, procedural motion, CSV data, and QA conventions; it must not replace this workflow's orchestration order.
+
+## Feature Design Document Standard Default
+
+For every formal game feature, system, activity, UI/UE, or gameplay-subsystem specification, load the globally installed personal Skill `game-feature-design-docs` and use `C:\Users\76398\Documents\Codex\standards\game-design\feature-design-document-standard.md`.
+
+Use `game-feature-design-docs/assets/general-feature-design-template.docx` for general features and `game-feature-design-docs/assets/simple-feature-design-template.docx` for simple features. The same templates are available globally as `artifact-template-game-feature-design-general` and `artifact-template-game-feature-design-simple`.
+
+Treat `B-庇护所.docx` as the general-document reference and `Z-在线奖励.docx` as the simple-document reference. Choose by system complexity, not page count; default to the general template when the feature is new, cross-system, multi-screen, multi-state, configuration-heavy, or interruption-sensitive. The simple template must still contain versioning, TOC, objectives, overview, editable UE flow, exact configuration sources, core logic, boundaries, UI behavior, art/audio/telemetry requirements, related systems, and QA acceptance. If a simple feature grows beyond those limits, migrate it to the general template before implementation continues.
+
+Create final system, UE, swimlane, state, and page-spec diagrams in editable Figma/FigJam with clear PNG/PDF exports linked from the DOCX. Mermaid, ASCII, text arrows, and Visio-only diagrams are drafts, not final planning artifacts. The producer-reviewed Word, Figma/FigJam, and configuration files are the source of truth.
+
+## AnySearch Primary Search Default
+
+For all external information retrieval and research discovery, use the installed `anysearch` Skill and `https://www.anysearch.com/home` as the primary search method. Project files, supplied documents, approved decisions, and other local formal sources still come first when they already answer the question.
+
+- Begin external discovery with AnySearch `search` or `batch_search`.
+- For a supported vertical domain, call `get_sub_domains` first and include every required parameter. When domain overlap is uncertain, use a hybrid batch with one general query and the relevant vertical queries.
+- Treat AnySearch results and snippets as discovery evidence, not final authority. Follow decision-critical results to the original source and prefer official documentation, official repositories, release notes, standards, research papers, and first-party statements.
+- Use GitHub CLI, Jina Reader, Exa, authenticated platform tools, RSS, video tools, or a supported browser as targeted follow-up sources, exact-platform evidence routes, or fallbacks. An AnySearch result that links to a platform does not count as an independent platform check.
+- If AnySearch is unavailable, retry the AnySearch route directly, then through the approved local `7890` proxy, then through the supported browser flow. After those attempts, use the existing authorized specialist fallback and record `DEGRADED: AnySearch unavailable`; never claim that AnySearch succeeded.
+- Do not send passwords, tokens, private keys, personal data, or project secrets in AnySearch queries. Keep raw search packets under `~/.agent-reach/research/<project>/` or the operating-system temp directory, not in the project.
+- Record the query families, AnySearch access state, result URLs, original sources, dates/versions, conflicts, evidence level, remaining unknowns, and the effect on the decision.
+
+## Alibaba Cloud Server Deployment Default
+
+All persistent server-side components for every game project must be deployed to the producer-owned Alibaba Cloud environment. The local workstation is never a server deployment target.
+
+- This includes dedicated/game servers, account/auth services, gateways, matchmaking/ranking services, live-ops/admin APIs, databases, caches, queues, reverse proxies, TLS endpoints, storage/backup workers, and scheduled server jobs.
+- Local work is limited to source editing, client development, versioned builds, static checks, unit tests, pure mocks/stubs, and short-lived isolated test doubles. Do not install or leave persistent server daemons, production-like databases, reverse proxies, persistent server containers, certificates, exposed service ports, scheduled jobs, or authoritative server data on the workstation.
+- Production-like integration, smoke, persistence, restart/reboot, and release acceptance must target an authorized Alibaba Cloud staging/test or production endpoint. Local mocks, probes, and passing exit codes are not server deployment evidence.
+- Release/runtime client configuration must never point to `localhost`, `127.0.0.1`, a LAN address, or a workstation path. Use the approved Alibaba Cloud DNS/domain and ports.
+- Before any remote write, load `production/deployment/aliyun-profile.yaml` or its formally declared project equivalent. It must identify the environment, SSH alias, host role/region/OS, domains/ports, runtime/service paths, dependencies, TLS/reverse proxy, health checks, backup, rollback, monitoring, and ownership.
+- Keep passwords, tokens, private keys, and secret values out of repositories, documents, logs, and chat. Use SSH agent/config or an approved secret store.
+- If the profile, target environment, authorization, backup, or rollback facts are absent, return `NOT READY: Aliyun deployment profile`; do not guess IPs, domains, ports, paths, accounts, or credentials.
+- Adding this default does not itself authorize a live deployment. Remote deployment requires an explicitly scoped target, environment, and change authorization.
+- Deploy in order: read-only remote preflight and baseline; versioned build artifact; backup and migration plan; upload to Alibaba Cloud staging/test; remote start/restart; health/TLS/port/log/version checks; real external client/package validation; persistence and restart/reboot validation; rollback proof; then production promotion after acceptance.
+- Completion evidence must name the Alibaba Cloud environment and deployed version, remote service state, endpoint, health result, relevant logs, persistent-data result, external client/package result, and rollback status.
+- Use another server location only when the producer explicitly approves the exception in the project's formal deployment source.
+
+## Mandatory Default Game Workflow
+
+For every game-design, development, UI, art, QA, balance, planning, implementation, monitoring, or release request, use `game-studio-orchestrator` from the personal `game-studio-agent-workflow` plugin as the primary workflow. This applies even when the user asks to use the default workflow, start or continue a game, or take over a project.
+
+Follow its producer-led intake, read-only receipt, explicit write-ownership, feature-priority, preview, acceptance, and completion-evidence flow. Retain this project's specialized rules and artifacts as the project adapter. `codex-game-studio-default` remains supplementary for engine, art, UI, data, motion, and QA conventions; it must not replace the primary workflow.
+
+Never create, spawn, fork, delegate to, or start an agent, sub-agent, Codex task/thread, worktree task, or execution task merely because the workflow mentions a role or a role is unavailable. Do so only when the user explicitly asks to create a new agent or task.
 
 This repository is a game project foundation for `zhanchengdashi`.
 

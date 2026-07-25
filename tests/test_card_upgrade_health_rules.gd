@@ -6,37 +6,47 @@ var failures = 0
 
 
 func _init() -> void:
-	_test_ranged_animals_gain_guaranteed_health_every_two_levels()
-	_test_summon_animals_gain_guaranteed_health_even_when_melee()
-	_test_non_qualifying_cards_keep_their_existing_formula()
+	_test_ranged_animals_gain_health_every_two_levels()
+	_test_summon_animals_gain_health_every_two_levels()
+	_test_other_animals_gain_health_every_level()
+	_test_non_animal_cards_do_not_receive_the_animal_rule()
 	if failures == 0:
 		print("Card upgrade health rule tests passed.")
 	quit(failures)
 
 
-func _test_ranged_animals_gain_guaranteed_health_every_two_levels() -> void:
+func _test_ranged_animals_gain_health_every_two_levels() -> void:
 	var card = _card("ranged", 1, 80.0, "", ["ranged"])
-	_expect_equal(CardRules.guaranteed_upgrade_hp_bonus(card, {"ranged": 1}), 0, "ranged level one has no bonus")
-	_expect_equal(CardRules.guaranteed_upgrade_hp_bonus(card, {"ranged": 2}), 1, "ranged level two gains one guaranteed health")
-	_expect_equal(CardRules.guaranteed_upgrade_hp_bonus(card, {"ranged": 3}), 1, "ranged level three keeps one guaranteed health")
-	_expect_equal(CardRules.guaranteed_upgrade_hp_bonus(card, {"ranged": 4}), 2, "ranged level four gains two guaranteed health")
+	_expect_equal(CardRules.upgrade_hp_bonus(card, {"ranged": 1}), 0, "ranged level one has no bonus")
+	_expect_equal(CardRules.upgrade_hp_bonus(card, {"ranged": 2}), 1, "ranged level two gains one health")
+	_expect_equal(CardRules.upgrade_hp_bonus(card, {"ranged": 3}), 1, "ranged level three keeps one health")
+	_expect_equal(CardRules.upgrade_hp_bonus(card, {"ranged": 4}), 2, "ranged level four gains two health")
 	_expect_equal(int(CardRules.card_stats(card, {"ranged": 2})["max_hp"]), 2, "one-health ranged animal visibly gains health at level two")
 
 
-func _test_summon_animals_gain_guaranteed_health_even_when_melee() -> void:
+func _test_summon_animals_gain_health_every_two_levels() -> void:
 	var card = _card("summoner", 4, 40.0, "summon", ["summon"])
-	_expect_true(CardRules.is_ranged_or_summon_animal(card), "melee summon animal qualifies for the health rule")
-	_expect_equal(CardRules.guaranteed_upgrade_hp_bonus(card, {"summoner": 2}), 1, "melee summon gains health at level two")
-	_expect_equal(CardRules.guaranteed_upgrade_hp_bonus(card, {"summoner": 6}), 3, "melee summon gains health at every second level")
+	_expect_true(CardRules.is_ranged_or_summon_animal(card), "melee summon animal qualifies for the half-rate rule")
+	_expect_equal(CardRules.upgrade_hp_bonus(card, {"summoner": 2}), 1, "melee summon gains health at level two")
+	_expect_equal(CardRules.upgrade_hp_bonus(card, {"summoner": 6}), 3, "melee summon gains health every second level")
 
 
-func _test_non_qualifying_cards_keep_their_existing_formula() -> void:
+func _test_other_animals_gain_health_every_level() -> void:
 	var melee_card = _card("melee", 10, 40.0, "", ["bruiser"])
+	_expect_true(CardRules.is_animal_card(melee_card), "melee card is an animal")
+	_expect_false(CardRules.is_ranged_or_summon_animal(melee_card), "melee animal does not use the half-rate rule")
+	_expect_equal(CardRules.upgrade_hp_bonus(melee_card, {"melee": 1}), 0, "melee level one has no bonus")
+	_expect_equal(CardRules.upgrade_hp_bonus(melee_card, {"melee": 2}), 1, "melee level two gains one health")
+	_expect_equal(CardRules.upgrade_hp_bonus(melee_card, {"melee": 3}), 2, "melee level three gains two health")
+	_expect_equal(CardRules.upgrade_hp_bonus(melee_card, {"melee": 8}), 7, "melee gains one health for every completed upgrade")
+	_expect_equal(int(CardRules.card_stats(melee_card, {"melee": 3})["max_hp"]), 14, "melee max health includes its per-level bonus")
+
+
+func _test_non_animal_cards_do_not_receive_the_animal_rule() -> void:
 	var building_card = _card("tower", 10, 80.0, "", ["building", "defense", "tower"])
-	_expect_false(CardRules.is_ranged_or_summon_animal(melee_card), "melee animal does not receive the special bonus")
-	_expect_equal(CardRules.guaranteed_upgrade_hp_bonus(melee_card, {"melee": 8}), 0, "melee animal has no special bonus")
-	_expect_false(CardRules.is_ranged_or_summon_animal(building_card), "ranged building does not receive the animal bonus")
-	_expect_equal(CardRules.guaranteed_upgrade_hp_bonus(building_card, {"tower": 8}), 0, "building has no special bonus")
+	_expect_false(CardRules.is_animal_card(building_card), "building is not an animal")
+	_expect_false(CardRules.is_ranged_or_summon_animal(building_card), "ranged building does not receive the animal rule")
+	_expect_equal(CardRules.upgrade_hp_bonus(building_card, {"tower": 8}), 0, "building receives no animal health bonus")
 
 
 func _card(card_id: String, hp: int, attack_range: float, effect: String, tags: Array) -> Dictionary:
@@ -63,8 +73,8 @@ func _expect_false(value: bool, label: String) -> void:
 	_expect_true(not value, label)
 
 
-func _expect_equal(actual: Variant, expected: Variant, label: String) -> void:
+func _expect_equal(actual, expected, label: String) -> void:
 	if actual == expected:
 		return
 	failures += 1
-	push_error("%s: expected %s, got %s" % [label, str(expected), str(actual)])
+	push_error("%s: expected %s, got %s" % [label, expected, actual])

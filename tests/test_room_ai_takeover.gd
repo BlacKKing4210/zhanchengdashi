@@ -56,7 +56,7 @@ func _test_running_host_disconnect_becomes_ai() -> void:
 	var takeover_slot = _slot_for_team(snapshot, host_team)
 	_expect_equal(String(takeover_slot.get("kind", "")), "ai", "departed slot is advertised as AI")
 	_expect_true(bool(takeover_slot.get("takeover", false)), "snapshot marks the AI as a takeover")
-	_expect_equal(String(takeover_slot.get("display_name", "")), "Host（AI）", "takeover keeps the original player identity visible")
+	_expect_equal(String(takeover_slot.get("display_name", "")), "Host", "takeover keeps the original player identity visible without an automation suffix")
 	_expect_equal(takeover_slot.get("deck", []), host_deck, "takeover preserves the frozen player deck")
 	_expect_equal(int((takeover_slot.get("card_levels", {}) as Dictionary).get("wolf", 0)), 4, "takeover preserves card levels")
 	_expect_equal(String(takeover_slot.get("rank_key", "")), "gold", "takeover preserves rank packaging")

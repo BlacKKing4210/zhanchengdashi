@@ -1,6 +1,7 @@
 extends RefCounted
 
 const RoomProtocol = preload("res://scripts/network/room_protocol.gd")
+const PlayerNameLibrary = preload("res://scripts/core/player_name_library.gd")
 const RankAIDecks = preload("res://scripts/app/systems/rank_ai_decks.gd")
 
 const ROOM_CODE_SPACE = 1000000
@@ -410,7 +411,7 @@ func snapshot_for_peer(peer_id_value: Variant) -> Dictionary:
 	var human_count = 0
 	var ai_count = 0
 	var active = RoomProtocol.active_team_ids(int(room["players_per_side"]))
-	for team_id in range(1, RoomProtocol.MAX_PLAYERS + 1):
+	for team_id in RoomProtocol.all_team_ids():
 		var slot = {
 			"team_id": team_id,
 			"side": RoomProtocol.side_for_team(team_id),
@@ -575,14 +576,14 @@ func _human_participant(peer_id: int, display_name: String, join_order: int, pla
 	}
 
 
-func _ai_participant(rank_key: String = "bronze") -> Dictionary:
+func _ai_participant(reserved_names: Dictionary = {}, rank_key: String = "bronze") -> Dictionary:
 	var ai_id = _next_ai_id
 	_next_ai_id += 1
 	var roster = _ai_roster_for_rank(rank_key, ai_id)
 	return {
 		"kind": "ai",
 		"ai_id": ai_id,
-		"display_name": "AI %d" % ai_id,
+		"display_name": PlayerNameLibrary.random_available_name(_rng, reserved_names),
 		"ready": true,
 		"rank_key": String(roster.get("rank_key", "bronze")),
 		"rank_stars": 1,
@@ -626,9 +627,9 @@ func _ai_rank_key_for_room(room: Dictionary) -> String:
 
 func _takeover_ai_participant(human: Dictionary) -> Dictionary:
 	var rank_key = String(human.get("rank_key", "bronze"))
-	var participant = _ai_participant(rank_key)
+	var participant = _ai_participant({}, rank_key)
 	var original_name = String(human.get("display_name", "玩家")).strip_edges()
-	participant["display_name"] = "%s（AI）" % (original_name if not original_name.is_empty() else "玩家")
+	participant["display_name"] = original_name if not original_name.is_empty() else String(participant["display_name"])
 	participant["rank_key"] = rank_key
 	participant["rank_stars"] = maxi(1, int(human.get("rank_stars", 1)))
 	participant["elo"] = maxi(0, int(human.get("elo", 1000)))
@@ -679,9 +680,18 @@ func _reconcile_ai_slots(room: Dictionary) -> void:
 		participant["rank_stars"] = 1
 		participant["deck"] = (roster.get("deck", []) as Array).duplicate()
 		participant["card_levels"] = (roster.get("card_levels", {}) as Dictionary).duplicate(true)
+	var reserved_names = {}
+	for participant_value in slots.values():
+		if typeof(participant_value) != TYPE_DICTIONARY:
+			continue
+		var display_name = String((participant_value as Dictionary).get("display_name", "")).strip_edges()
+		if display_name != "":
+			reserved_names[display_name] = true
 	for team_id in active:
 		if not slots.has(team_id):
-			slots[team_id] = _ai_participant(ai_rank_key)
+			var participant = _ai_participant(reserved_names, ai_rank_key)
+			slots[team_id] = participant
+			reserved_names[String(participant["display_name"])] = true
 
 
 func _reset_human_ready(room: Dictionary) -> void:
@@ -692,7 +702,7 @@ func _reset_human_ready(room: Dictionary) -> void:
 
 func _human_peer_ids(room: Dictionary) -> Array:
 	var result = []
-	for team_id in range(1, RoomProtocol.MAX_PLAYERS + 1):
+	for team_id in RoomProtocol.all_team_ids():
 		if not room["slots"].has(team_id):
 			continue
 		var participant: Dictionary = room["slots"][team_id]
@@ -703,7 +713,7 @@ func _human_peer_ids(room: Dictionary) -> Array:
 
 func _human_assignments(room: Dictionary) -> Array:
 	var result = []
-	for team_id in range(1, RoomProtocol.MAX_PLAYERS + 1):
+	for team_id in RoomProtocol.all_team_ids():
 		if not room["slots"].has(team_id):
 			continue
 		var participant: Dictionary = room["slots"][team_id]

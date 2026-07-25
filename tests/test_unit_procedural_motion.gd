@@ -21,6 +21,7 @@ func _ready() -> void:
 	_test_gold_gain_feedback()
 	_test_unit_value_feedback()
 	_test_card_upgrade_triggers_power_motion_only_on_success()
+	_test_server_profile_sync_keeps_the_upgraded_card_selected()
 	_test_rejected_image_fx_are_absent()
 	if failures == 0:
 		print("Unit procedural motion tests passed.")
@@ -185,6 +186,31 @@ func _test_card_upgrade_triggers_power_motion_only_on_success() -> void:
 	app.set("detail_upgrade_motion_timer", 0.0)
 	app.call("_try_upgrade_selected_card")
 	_expect_close(float(app.get("detail_upgrade_motion_timer")), 0.0, "failed card upgrade does not start the power-up pose")
+
+
+func _test_server_profile_sync_keeps_the_upgraded_card_selected() -> void:
+	app.set("selected_card_id", "rabbit")
+	app.call("_apply_server_profile", {
+		"card_counts": {"rabbit": 50, "gold_mine_card": 1, "defense_watch_tower": 1},
+		"card_levels": {"rabbit": 2, "gold_mine_card": 1, "defense_watch_tower": 1},
+		"deck": ["gold_mine_card", "defense_watch_tower", "rabbit"],
+		"gacha_tickets": 10,
+		"rank_key": "bronze",
+		"rank_stars": 1,
+		"elo": 1000,
+	})
+	_expect_equal(String(app.get("selected_card_id")), "rabbit", "server profile sync keeps the upgraded card selected")
+	app.set("selected_card_id", "unowned_card")
+	app.call("_apply_server_profile", {
+		"card_counts": {"rabbit": 50, "gold_mine_card": 1, "defense_watch_tower": 1},
+		"card_levels": {"rabbit": 2, "gold_mine_card": 1, "defense_watch_tower": 1},
+		"deck": ["gold_mine_card", "defense_watch_tower", "rabbit"],
+		"gacha_tickets": 10,
+		"rank_key": "bronze",
+		"rank_stars": 1,
+		"elo": 1000,
+	})
+	_expect_equal(String(app.get("selected_card_id")), "gold_mine_card", "missing card falls back to the first deck card")
 
 
 func _test_gold_gain_feedback() -> void:

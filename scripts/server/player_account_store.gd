@@ -1,6 +1,6 @@
 extends RefCounted
 
-const RankMirrorRules = preload("res://scripts/app/systems/rank_mirror_rules.gd")
+const ProfileAdapter = preload("res://scripts/server/player_account_profile_adapter.gd")
 
 const DEFAULT_PATH = "user://server/player_accounts.json"
 const PASSWORD_ROUNDS = 12000
@@ -8,8 +8,8 @@ const ACCOUNT_MIN_LENGTH = 3
 const ACCOUNT_MAX_LENGTH = 32
 const PASSWORD_MIN_LENGTH = 8
 const PASSWORD_MAX_LENGTH = 72
-const RECOVERY_SECRET_HASH_PREFIX = "zhanchengdashi-recovery-v1:"
 const MAX_INSTALLATION_ACCOUNTS = 8
+const RECOVERY_SECRET_HASH_PREFIX = "zhanchengdashi-recovery-v1:"
 
 const RANK_NAMES = {
 	"bronze": "青铜",
@@ -26,9 +26,11 @@ var accounts: Dictionary = {}
 var sessions: Dictionary = {}
 var session_installations: Dictionary = {}
 var installations: Dictionary = {}
+var profile_adapter: RefCounted
 
 
-func _init(path_override: String = "") -> void:
+func _init(path_override: String = "", adapter: RefCounted = null) -> void:
+	profile_adapter = adapter if adapter != null else ProfileAdapter.new()
 	if not path_override.is_empty():
 		storage_path = path_override
 	_load()
@@ -422,6 +424,7 @@ func _installation_token_is_valid(installation_hash: String, refresh_token: Stri
 	var actual = _refresh_token_hash(refresh_token, String(binding.get("token_salt", "")))
 	return not expected.is_empty() and actual == expected
 
+
 func _is_valid_recovery_secret(recovery_secret: String) -> bool:
 	return recovery_secret.length() == 64 and recovery_secret.is_valid_hex_number(false)
 
@@ -443,7 +446,6 @@ func _binding_with_recovery_secret(binding: Dictionary, recovery_secret: String)
 	result["recovery_secret_salt"] = salt
 	result["recovery_secret_hash"] = _recovery_secret_hash(recovery_secret, salt)
 	return result
-
 
 
 func _installation_user_ids(binding: Dictionary) -> Array:
@@ -474,6 +476,11 @@ func _account_summaries(installation_hash: String, animal_card_ids: Array) -> Ar
 			continue
 		var record: Dictionary = accounts[key]
 		var profile: Dictionary = record.get("profile", {})
+		var summary = profile_adapter.summary_for_profile(profile, animal_card_ids)
+		summary["user_id"] = user_id
+		summary["is_active"] = user_id == active_user_id
+		result.append(summary)
+		continue
 		var rank_key = String(profile.get("rank_key", "bronze")).strip_edges().to_lower()
 		var rank_stars = maxi(1, int(profile.get("rank_stars", 1)))
 		result.append({
@@ -514,20 +521,7 @@ func _key_for_user_id(user_id: String) -> String:
 
 
 func _normalize_profile(source: Dictionary) -> Dictionary:
-	var mirror_policy_version = maxi(0, int(source.get("rank_mirror_policy_version", 0)))
-	var rank_mirrors = _normalize_rank_mirrors(source.get("rank_mirrors", {}))
-	rank_mirrors = RankMirrorRules.migrate_legacy_mirrors(rank_mirrors, mirror_policy_version)
-	return {
-		"card_counts": _positive_int_dictionary(source.get("card_counts", {}), 0),
-		"card_levels": _positive_int_dictionary(source.get("card_levels", {}), 1),
-		"deck": _string_array(source.get("deck", []), 8),
-		"gacha_tickets": maxi(0, int(source.get("gacha_tickets", 10))),
-		"rank_stars": maxi(0, int(source.get("rank_stars", 1))),
-		"rank_key": String(source.get("rank_key", "bronze")).strip_edges(),
-		"elo": maxi(0, int(source.get("elo", 1000))),
-		"rank_mirrors": rank_mirrors,
-		"rank_mirror_policy_version": RankMirrorRules.POLICY_VERSION,
-	}
+	return profile_adapter.normalize_profile(source)
 
 
 func _normalize_rank_mirrors(value: Variant) -> Dictionary:
@@ -616,15 +610,15 @@ func _installation_hash(installation_id: String) -> String:
 	var normalized = installation_id.strip_edges().to_lower()
 	if normalized.length() != 64 or not normalized.is_valid_hex_number(false):
 		return ""
-	return ("zhanchengdashi-installation-v1:" + normalized).sha256_text()
+	return (profile_adapter.installation_token_prefix() + normalized).sha256_text()
 
 
 func _refresh_token_hash(refresh_token: String, salt: String) -> String:
-	return ("zhanchengdashi-refresh-v1:" + salt + ":" + refresh_token).sha256_text()
+	return (profile_adapter.refresh_token_prefix() + salt + ":" + refresh_token).sha256_text()
+
 
 func _recovery_secret_hash(recovery_secret: String, salt: String) -> String:
 	return (RECOVERY_SECRET_HASH_PREFIX + salt + ":" + recovery_secret).sha256_text()
-
 
 
 func _new_user_id() -> String:
@@ -651,6 +645,26 @@ func _load() -> void:
 		accounts = (parsed["accounts"] as Dictionary).duplicate(true)
 		if typeof(parsed.get("installations", {})) == TYPE_DICTIONARY:
 			installations = (parsed["installations"] as Dictionary).duplicate(true)
+		if _normalize_loaded_profiles():
+			_save()
+
+
+func _normalize_loaded_profiles() -> bool:
+	var changed = false
+	for raw_account_key in accounts:
+		if typeof(accounts[raw_account_key]) != TYPE_DICTIONARY:
+			continue
+		var record: Dictionary = accounts[raw_account_key]
+		var raw_profile = record.get("profile", {})
+		var existing_profile: Dictionary = raw_profile if typeof(raw_profile) == TYPE_DICTIONARY else {}
+		var normalized_profile = _normalize_profile(existing_profile)
+		if JSON.stringify(existing_profile) == JSON.stringify(normalized_profile):
+			continue
+		record["profile"] = normalized_profile
+		record["updated_at_unix"] = int(Time.get_unix_time_from_system())
+		accounts[raw_account_key] = record
+		changed = true
+	return changed
 
 
 func _save() -> bool:

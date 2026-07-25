@@ -39,6 +39,9 @@ func _test_room_layout_targets() -> void:
 	_expect_false(ready_rect.intersects(leave_rect), "ready and leave targets remain distinct")
 	_expect_false(ready_rect.intersects(start_rect), "ready target does not cover the start button")
 	_expect_false(leave_rect.intersects(start_rect), "leave target does not cover the start button")
+	var account_switch_rect: Rect2 = app.call("_account_switch_rect")
+	var account_bind_rect: Rect2 = app.call("_account_bind_rect")
+	_expect_false(account_switch_rect.intersects(account_bind_rect), "account switch and bind targets remain distinct")
 	_expect_true(start_rect.end.y < 1138.0, "internet room actions stay above bottom navigation")
 
 

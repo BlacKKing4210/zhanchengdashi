@@ -1,5 +1,7 @@
 extends RefCounted
 
+const PlayerNameLibrary = preload("res://scripts/core/player_name_library.gd")
+
 const MINE = "gold_mine_card"
 const TEMPLATE_COUNT = 2
 const RANK_KEYS = ["bronze", "silver", "gold", "platinum", "diamond", "star", "king"]
@@ -74,7 +76,7 @@ static func mirrors_for_rank(rank_key: String) -> Array:
 		result.append({
 			"mirror_id": "baseline_ai_%s_%d" % [resolved_rank_key, index + 1],
 			"player_id": "baseline_ai",
-			"name": "%s电脑%d" % [resolved_rank_key, index + 1],
+			"name": PlayerNameLibrary.name_for_index(RANK_KEYS.find(resolved_rank_key) * TEMPLATE_COUNT + index),
 			"rank_key": resolved_rank_key,
 			"stars": 1,
 			"deck": deck,

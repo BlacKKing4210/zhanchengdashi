@@ -289,6 +289,12 @@ static func create_free_for_all_match(cell_type_rows: Array = [], seed: int = 0)
 	}
 
 
+static func free_for_all_local_team(match_seed: int) -> int:
+	if TEAM_IDS.is_empty():
+		return NEUTRAL
+	return int(TEAM_IDS[posmod(match_seed - 1, TEAM_IDS.size())])
+
+
 static func active_team_ids(players_per_side: int) -> Array:
 	if players_per_side < MIN_PLAYERS_PER_SIDE or players_per_side > MAX_PLAYERS_PER_SIDE:
 		return []

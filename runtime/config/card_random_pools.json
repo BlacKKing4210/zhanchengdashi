@@ -455,8 +455,8 @@
     "entry_id": "unit_beast_thunder_bear",
     "entry_type": "unit",
     "rarity": "epic",
-    "weight": 10,
-    "probability_pct": 10.0,
+    "weight": 8,
+    "probability_pct": 8.0,
     "min_count": 1,
     "max_count": 1,
     "notes": "250金币单位池，史诗主概率重击"
@@ -466,8 +466,8 @@
     "entry_id": "unit_dragonkin_sky_drake",
     "entry_type": "unit",
     "rarity": "epic",
-    "weight": 10,
-    "probability_pct": 10.0,
+    "weight": 8,
+    "probability_pct": 8.0,
     "min_count": 1,
     "max_count": 1,
     "notes": "250金币单位池，史诗主概率火焰"
@@ -477,8 +477,8 @@
     "entry_id": "unit_elemental_storm",
     "entry_type": "unit",
     "rarity": "epic",
-    "weight": 10,
-    "probability_pct": 10.0,
+    "weight": 8,
+    "probability_pct": 8.0,
     "min_count": 1,
     "max_count": 1,
     "notes": "250金币单位池，史诗主概率风暴"
@@ -488,8 +488,8 @@
     "entry_id": "unit_clockwork_repair_core",
     "entry_type": "unit",
     "rarity": "epic",
-    "weight": 10,
-    "probability_pct": 10.0,
+    "weight": 8,
+    "probability_pct": 8.0,
     "min_count": 1,
     "max_count": 1,
     "notes": "250金币单位池，史诗主概率修复"
@@ -499,8 +499,8 @@
     "entry_id": "unit_serpentfolk_tide_oracle",
     "entry_type": "unit",
     "rarity": "epic",
-    "weight": 10,
-    "probability_pct": 10.0,
+    "weight": 8,
+    "probability_pct": 8.0,
     "min_count": 1,
     "max_count": 1,
     "notes": "250金币单位池，史诗主概率辅助"
@@ -510,8 +510,8 @@
     "entry_id": "unit_undead_wraith_knight",
     "entry_type": "unit",
     "rarity": "epic",
-    "weight": 10,
-    "probability_pct": 10.0,
+    "weight": 8,
+    "probability_pct": 8.0,
     "min_count": 1,
     "max_count": 1,
     "notes": "250金币单位池，史诗主概率返场"
@@ -521,8 +521,8 @@
     "entry_id": "unit_boarfolk_quill_captain",
     "entry_type": "unit",
     "rarity": "epic",
-    "weight": 10,
-    "probability_pct": 10.0,
+    "weight": 7,
+    "probability_pct": 7.0,
     "min_count": 1,
     "max_count": 1,
     "notes": "250金币单位池，史诗主概率反击光环"
@@ -532,33 +532,33 @@
     "entry_id": "unit_fiend_rift_lord",
     "entry_type": "unit",
     "rarity": "legendary",
-    "weight": 7,
-    "probability_pct": 7.0,
+    "weight": 12,
+    "probability_pct": 12.0,
     "min_count": 1,
     "max_count": 1,
-    "notes": "250金币单位池，少量传说"
+    "notes": "250金币单位池，提高传说出现率"
   },
   {
     "pool_id": "unit_cards_price_250",
     "entry_id": "unit_dragonkin_ancient_wyrm",
     "entry_type": "unit",
     "rarity": "legendary",
-    "weight": 7,
-    "probability_pct": 7.0,
+    "weight": 12,
+    "probability_pct": 12.0,
     "min_count": 1,
     "max_count": 1,
-    "notes": "250金币单位池，少量传说"
+    "notes": "250金币单位池，提高传说出现率"
   },
   {
     "pool_id": "unit_cards_price_250",
     "entry_id": "unit_pirate_admiral",
     "entry_type": "unit",
     "rarity": "legendary",
-    "weight": 6,
-    "probability_pct": 6.0,
+    "weight": 11,
+    "probability_pct": 11.0,
     "min_count": 1,
     "max_count": 1,
-    "notes": "250金币单位池，少量传说"
+    "notes": "250金币单位池，提高传说出现率"
   },
   {
     "pool_id": "defense_cards_price_50",

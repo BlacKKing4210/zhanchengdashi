@@ -14,6 +14,7 @@ func _ready() -> void:
 	_test_animal_resolution_uses_each_team_deck()
 	_test_multiplayer_slots_keep_independent_deck_snapshots()
 	_test_defense_resolution_uses_each_team_deck()
+	_test_legendary_building_is_limited_per_battle()
 	_test_defense_tower_combat_stats()
 	_test_green_defense_replacement_guard()
 	if failures == 0:
@@ -170,6 +171,39 @@ func _test_defense_resolution_uses_each_team_deck() -> void:
 	)
 	app.set("deck", original_deck)
 	app.set("enemy_deck", original_enemy_deck)
+
+
+func _test_legendary_building_is_limited_per_battle() -> void:
+	var original_deck = (app.get("deck") as Array).duplicate()
+	var original_tiles = (app.get("tiles") as Dictionary).duplicate(true)
+	var original_used = (app.get("team_spawned_legendary_buildings") as Dictionary).duplicate(true)
+	app.set("deck", [
+		"gold_mine_card",
+		"defense_watch_tower",
+		"defense_storm_obelisk",
+		"rabbit",
+	])
+	app.set("team_spawned_legendary_buildings", {})
+	var first_key = Vector2i(90, 1)
+	var second_key = Vector2i(91, 1)
+	var tower_tile = BoardRules.with_site(BoardRules.empty_locked_tile(), BoardRules.site_payload("tower", 250))
+	app.set("tiles", {first_key: tower_tile.duplicate(true), second_key: tower_tile.duplicate(true)})
+
+	_expect_true(bool(app.call("_is_legendary_building_card_id", "defense_storm_obelisk")), "storm obelisk is a legendary building")
+	_expect_true(bool(app.call("_complete_building_unlock", first_key, BoardRules.PLAYER, "tower", "defense_storm_obelisk")), "first legendary building unlock succeeds")
+	_expect_equal(String((app.get("tiles") as Dictionary)[first_key].get("site_card", "")), "defense_storm_obelisk", "first tile retains the legendary building card")
+	_expect_false(bool(app.call("_can_spawn_building_card", BoardRules.PLAYER, "defense_storm_obelisk")), "used legendary building is blocked for the rest of the battle")
+	_expect_equal(
+		String(app.call("_defense_card_for_target_rarity", "legendary", 77, BoardRules.PLAYER)),
+		"defense_watch_tower",
+		"later legendary target falls back to an available lower-rarity building"
+	)
+	_expect_false(bool(app.call("_complete_building_unlock", second_key, BoardRules.PLAYER, "tower", "defense_storm_obelisk")), "second copy of the same legendary building is rejected")
+	_expect_equal(String((app.get("tiles") as Dictionary)[second_key].get("building", "")), "", "rejected legendary building leaves the tile empty")
+
+	app.set("deck", original_deck)
+	app.set("tiles", original_tiles)
+	app.set("team_spawned_legendary_buildings", original_used)
 
 
 func _test_green_defense_replacement_guard() -> void:

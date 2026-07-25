@@ -16,6 +16,7 @@ func _ready() -> void:
 	_test_classic_camera_drag()
 	_test_tower_price_progression()
 	_test_full_building_health_bar_visibility()
+	_test_pause_exit_skips_settlement()
 	_test_classic_base_results()
 	if failures == 0:
 		print("Classic battle regression tests passed for five random-map variants.")
@@ -92,22 +93,40 @@ func _test_full_building_health_bar_visibility() -> void:
 	_expect_true(bool(app.call("_should_draw_building_health_bar", {"hp": 99.0, "max_hp": 100.0})), "damaged building shows its health bar")
 
 
+func _test_pause_exit_skips_settlement() -> void:
+	app.call("_start_match", "1v1_crossroads")
+	var tickets_before = int(app.get("gacha_tickets"))
+	app.set("pause_open", true)
+	app.call("_exit_battle_without_settlement")
+	_expect_equal(String(app.get("screen")), "lobby", "pause exit returns classic battle to lobby")
+	_expect_true(not bool(app.get("game_over")), "pause exit does not create a settlement result")
+	_expect_true(not bool(app.get("battle_reward_given")), "pause exit does not grant battle rewards")
+	_expect_equal(int(app.get("last_battle_reward_tickets")), 0, "pause exit leaves settlement-ticket count at zero")
+	_expect_equal(int(app.get("gacha_tickets")), tickets_before, "pause exit does not grant gacha tickets")
+
+
 func _test_classic_base_results() -> void:
 	app.call("_start_match", "1v1_diamond")
 	var base_keys: Dictionary = app.get("classic_base_keys")
+	GameAudio.call("clear_event_cooldowns")
+	var victory_count = int(GameAudio.call("get_sfx_play_count", "victory"))
 	app.call("_damage_tile", base_keys.get(BoardRules.ENEMY, MultiplayerRules.INVALID_KEY), BoardRules.PLAYER, 999999.0)
 	_expect_true(bool(app.get("game_over")), "destroying enemy base ends classic battle")
 	_expect_equal(String(app.get("result_text")), "胜利", "destroying enemy base remains a win")
 	_expect_equal(int(app.get("last_battle_reward_tickets")), 3, "classic win keeps three-ticket reward")
+	_expect_equal(int(GameAudio.call("get_sfx_play_count", "victory")), victory_count + 1, "destroying an enemy base plays victory audio once")
 	_expect_equal((app.get("result_player_entries") as Array).size(), 2, "classic settlement lists both players")
 	_expect_equal((app.call("_result_other_entries") as Array).size(), 1, "classic opponent appears below the fixed local row")
 
 	app.call("_start_match", "1v1_diamond")
 	base_keys = app.get("classic_base_keys")
+	GameAudio.call("clear_event_cooldowns")
+	var defeat_count = int(GameAudio.call("get_sfx_play_count", "defeat"))
 	app.call("_damage_tile", base_keys.get(BoardRules.PLAYER, MultiplayerRules.INVALID_KEY), BoardRules.ENEMY, 999999.0)
 	_expect_true(bool(app.get("game_over")), "destroying player base ends classic battle")
 	_expect_equal(String(app.get("result_text")), "失败", "destroying player base remains a loss")
 	_expect_equal(int(app.get("last_battle_reward_tickets")), 1, "classic loss keeps one-ticket reward")
+	_expect_equal(int(GameAudio.call("get_sfx_play_count", "defeat")), defeat_count + 1, "destroying the local base plays defeat audio once")
 
 
 func _force_connected_tower_site(tiles: Dictionary, connected_key: Vector2i, excluded: Array) -> Vector2i:
