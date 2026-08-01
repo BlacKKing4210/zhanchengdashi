@@ -1,3 +1,5 @@
 id,name_key,chapter,difficulty,time_limit_sec,map_key,enemy_pool_id,reward_pool_id,recommended_power,unlock_condition
+ID,名称文本键,章节,难度,时间限制（秒）,地图键,敌人池ID,奖励池ID,推荐战力,解锁条件
+,,,,,,,,,
 stage_tutorial_01,stage_tutorial_01_name,1,tutorial,120,map_gate_trial,enemy_pool_tutorial,reward_pool_tutorial,0,
 stage_field_01,stage_field_01_name,1,normal,180,map_wasteland_patrol,enemy_pool_field_01,reward_pool_field_01,120,clear:stage_tutorial_01

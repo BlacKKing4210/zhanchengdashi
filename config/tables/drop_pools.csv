@@ -1,4 +1,6 @@
 pool_id,entry_id,entry_type,weight,min_count,max_count
+池ID,条目ID,条目类型,权重,最小数量,最大数量
+,,,,,
 enemy_pool_tutorial,enemy_grunt,unit,100,3,5
 enemy_pool_field_01,enemy_grunt,unit,80,5,8
 enemy_pool_field_01,enemy_brute,unit,20,1,2

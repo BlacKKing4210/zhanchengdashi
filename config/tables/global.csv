@@ -1,4 +1,6 @@
 key,type,value,description
+键,类型,值,描述
+,,,
 game_name,string,战城大师,项目显示名
 config_version,int,1,配置表版本
 target_fps,int,60,目标帧率

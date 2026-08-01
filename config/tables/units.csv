@@ -1,4 +1,6 @@
 id,name_key,role,rarity,species,max_hp,move_speed,attack_range,base_damage,attack_cooldown_sec,skill_id,shop_cost,unlock_stage,tags,design_notes
+ID,名称文本键,定位,稀有度,物种,最大生命值,移动速度,攻击范围,基础伤害,攻击冷却（秒）,技能ID,商店费用,解锁阶段,标签,设计备注
+,,,,,,,,,,,,,,
 hero_guardian,unit_guardian_name,hero,common,human,180,3.2,1.5,18,1.4,skill_guardian_slam,0,stage_tutorial_01,frontline|melee|tank,新手前排模板，血量稳定，技能负责击退和保护后排
 hero_ranger,unit_ranger_name,hero,rare,human,110,3.8,5.0,14,1.2,skill_ranger_shot,0,stage_field_01,ranged|single_target|kite,远程英雄模板，移动略快，负责持续点杀
 enemy_grunt,enemy_grunt_name,enemy,common,human,70,2.8,1.1,8,1.6,skill_grunt_claw,0,,melee|swarm,基础近战敌人，用于校验低压群怪节奏

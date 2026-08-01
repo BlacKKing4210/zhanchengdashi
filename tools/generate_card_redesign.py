@@ -1,9 +1,9 @@
 from __future__ import annotations
 
-import csv
 from dataclasses import dataclass
 from datetime import date
 from pathlib import Path
+import sys
 from typing import Any
 
 from reportlab.lib import colors
@@ -19,6 +19,10 @@ ROOT = Path(__file__).resolve().parents[1]
 CARDS_CSV = ROOT / "config" / "tables" / "cards.csv"
 DOC_MD = ROOT / "docs" / "CARD_REDESIGN_DESIGN.md"
 DOC_PDF = ROOT / "output" / "pdf" / "card-redesign-design.pdf"
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+
+from tools.config_csv import write_config_dicts  # noqa: E402
 
 
 BASE_BY_TIER: dict[int, dict[str, float]] = {
@@ -210,10 +214,13 @@ def write_cards(rows: list[dict[str, Any]]) -> None:
         "tags",
         "design_notes",
     ]
-    with CARDS_CSV.open("w", encoding="utf-8", newline="") as handle:
-        writer = csv.DictWriter(handle, fieldnames=fieldnames)
-        writer.writeheader()
-        writer.writerows(rows)
+    write_config_dicts(
+        CARDS_CSV,
+        fieldnames,
+        rows,
+        usage_notes={"design_notes": "策划补充说明，可为空"},
+        utf8_bom=False,
+    )
 
 
 def md_table(rows: list[dict[str, Any]]) -> str:

@@ -21,7 +21,7 @@ Use `game-feature-design-docs/assets/general-feature-design-template.docx` for g
 
 Treat `B-庇护所.docx` as the general-document reference and `Z-在线奖励.docx` as the simple-document reference. Choose by system complexity, not page count; default to the general template when the feature is new, cross-system, multi-screen, multi-state, configuration-heavy, or interruption-sensitive. The simple template must still contain versioning, TOC, objectives, overview, editable UE flow, exact configuration sources, core logic, boundaries, UI behavior, art/audio/telemetry requirements, related systems, and QA acceptance. If a simple feature grows beyond those limits, migrate it to the general template before implementation continues.
 
-Create final system, UE, swimlane, state, and page-spec diagrams in editable Figma/FigJam with clear PNG/PDF exports linked from the DOCX. Mermaid, ASCII, text arrows, and Visio-only diagrams are drafts, not final planning artifacts. The producer-reviewed Word, Figma/FigJam, and configuration files are the source of truth.
+Create final system, UE, swimlane, state, and page-spec diagrams in editable Figma/FigJam with clear PNG exports linked from the DOCX. Mermaid, ASCII, text arrows, and Visio-only diagrams are drafts, not final planning artifacts. The producer-reviewed Word, Figma/FigJam, and configuration files are the source of truth.
 
 ## AnySearch Primary Search Default
 
@@ -67,7 +67,7 @@ This repository is a game project foundation for `zhanchengdashi`.
 - Use the public workflow at `C:\Users\76398\Documents\Codex\2026-07-03\codex-game-studio-default\outputs\codex-game-studio-general-game-development-process.md` as the upstream game-development process when available.
 - Use `docs/DEVELOPMENT_WORKFLOW.md` as this project's adaptation of the public workflow.
 - Follow a document-first workflow for every future gameplay, balance, UI, system, or technical change: update the relevant design/workflow document first, then implement the matching game change.
-- Deliver user-facing narrative documents as Word `.docx` by default. Markdown may remain as the source-controlled authoring format; PDF is generated only when explicitly requested for fixed-layout, print, signature, or archive use.
+- Deliver user-facing narrative documents only as editable Word `.docx`. Markdown may remain an internal source-controlled authoring format, but it does not replace the formal Word document. Do not generate PDF copies.
 - Deliver user-facing table-heavy artifacts as Excel `.xlsx` by default. Small supporting tables may stay inside Word, while runtime CSV/JSON and other machine-readable files remain governed by the project's data pipeline.
 - Keep project assets, configuration, scripts, and documents easy to move into Godot, Unity, or Unreal later.
 - Prefer data-driven gameplay: design values belong in `config/tables/`, runtime exports belong in `runtime/config/`, and validation belongs in `tools/`.
@@ -107,3 +107,11 @@ This repository is a game project foundation for `zhanchengdashi`.
 - After each completed modification task, commit the changes and push the current branch to GitHub unless the user explicitly says not to.
 - Commit generated runtime config only when it is the expected engine-facing source.
 - Do not commit local cache, build output, editor metadata, or engine-generated import caches.
+
+## Word-Only Document Delivery Default
+
+- Deliver every formal, user-facing, or reviewable project document only as an editable Microsoft Word `.docx`. This includes design documents, plans, briefs, reports, research summaries, review records, and acceptance documents.
+- Do not create, export, deliver, archive, publish, or attach new PDF documents or PDF review copies. Historical PDFs may be read as source evidence, but do not copy, regenerate, or include them in new delivery bundles.
+- Validate DOCX layout with page PNGs. If a renderer internally requires a temporary PDF, keep it outside project/output/version-control paths and remove it after PNG inspection; it is never a deliverable or acceptance artifact.
+- Export editable-design, flowchart, page-spec, and other design review images as PNG only. Do not create PDF diagram exports.
+- Markdown, CSV, JSON, YAML, source code, and databases remain valid only for engineering, configuration, machine-readable, or version-control purposes; they do not replace the formal Word document.

@@ -1,10 +1,10 @@
 from __future__ import annotations
 
-import csv
 from collections import defaultdict
 from datetime import date
 from pathlib import Path
 from statistics import mean
+import sys
 from typing import Any
 
 from reportlab.lib import colors
@@ -30,14 +30,14 @@ DOCS_DIR = ROOT / "docs"
 PDF_DIR = ROOT / "output" / "pdf"
 MD_PATH = DOCS_DIR / "UNIT_BALANCE_DESIGN.md"
 PDF_PATH = PDF_DIR / "unit-balance-design.pdf"
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+
+from tools.config_csv import read_config_dicts  # noqa: E402
 
 
 def read_csv(path: str) -> list[dict[str, str]]:
-    with (ROOT / path).open("r", encoding="utf-8-sig", newline="") as handle:
-        return [
-            {key: (value or "").strip() for key, value in row.items()}
-            for row in csv.DictReader(handle)
-        ]
+    return read_config_dicts(ROOT / path)
 
 
 def load_data() -> dict[str, Any]:

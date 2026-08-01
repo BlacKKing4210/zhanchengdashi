@@ -1,4 +1,6 @@
 pool_id,entry_id,entry_type,weight,probability_pct,min_count,max_count,notes
+池ID,条目ID,条目类型,权重,概率（%）,最小数量,最大数量,备注
+,,,,,,,
 reveal_pool_question,empty,empty,70,70.0,0,0,问号购买后70%为空，只播放翻开反馈
 reveal_pool_question,defense_cards_question,defense_pool,10,10.0,1,1,问号购买后10%抽一张基础防御塔卡
 reveal_pool_question,unit_cards_question,unit_pool,10,10.0,1,1,问号购买后10%抽一张基础单位卡

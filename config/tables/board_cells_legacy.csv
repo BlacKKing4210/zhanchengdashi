@@ -1,4 +1,6 @@
 id,name_key,terrain_type,unlock_stage,reveal_pool_id,base_reveal_cost,cost_growth,appearance_weight,appearance_probability_pct,risk_level,effect_tags,notes
+ID,名称文本键,地形类型,解锁阶段,揭示池ID,基础揭示费用,费用增长,出现权重,出现概率（%）,风险等级,效果标签,备注
+,,,,,,,,,,,
 cell_grassland,cell_grassland_name,plain,stage_tutorial_01,reveal_pool_early,3,1.10,24,24.0,1,safe|resource,基础展开格，低价高概率，常出金币或继续扩张
 cell_forest_den,cell_forest_den_name,forest,stage_tutorial_01,reveal_pool_beast,5,1.12,14,14.0,2,beast|spawn,野兽主题格，翻出快跑或同族光环单位
 cell_swamp_pool,cell_swamp_pool_name,swamp,stage_field_01,reveal_pool_marsh,6,1.14,10,10.0,2,slow|poison|regen,沼泽主题格，偏毒和回复，适合反推拖场效果

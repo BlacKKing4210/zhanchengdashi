@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import csv
 import json
 import re
 import sys
@@ -10,6 +9,10 @@ from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
 SCHEMA_PATH = ROOT / "config" / "schema" / "config_schema.json"
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+
+from tools.config_csv import read_config_dicts  # noqa: E402
 
 
 def load_schema() -> dict[str, Any]:
@@ -24,22 +27,7 @@ def load_tables(schema: dict[str, Any]) -> dict[str, list[dict[str, str]]]:
         if not table_path.exists():
             raise FileNotFoundError(f"{table_name}: missing file {table_path}")
 
-        try:
-            with table_path.open("r", encoding="utf-8-sig", newline="") as handle:
-                reader = csv.DictReader(handle)
-                if reader.fieldnames is None:
-                    tables[table_name] = []
-                    continue
-                tables[table_name] = [
-                    {key: (value or "").strip() for key, value in row.items()}
-                    for row in reader
-                ]
-        except UnicodeDecodeError as exc:
-            relative_path = table_path.relative_to(ROOT).as_posix()
-            raise ValueError(
-                f"{table_name}: {relative_path} must be UTF-8 CSV "
-                f"(decode failed at byte {exc.start}: {exc.reason})"
-            ) from exc
+        tables[table_name] = read_config_dicts(table_path)
     return tables
 
 
@@ -137,7 +125,7 @@ def validate(schema: dict[str, Any], tables: dict[str, list[dict[str, str]]]) ->
         seen_values: set[str] = set()
         seen_groups: set[tuple[str, ...]] = set()
 
-        for row_index, row in enumerate(rows, start=2):
+        for row_index, row in enumerate(rows, start=4):
             for field_name, field_schema in fields.items():
                 value = row.get(field_name, "")
                 if field_schema.get("required") and value == "":
@@ -183,7 +171,7 @@ def validate(schema: dict[str, Any], tables: dict[str, list[dict[str, str]]]) ->
             allow_empty = reference.get("allow_empty", False)
             target_values = lookup[target_table][target_column]
 
-            for row_index, row in enumerate(rows, start=2):
+            for row_index, row in enumerate(rows, start=4):
                 value = row.get(field_name, "")
                 if allow_empty and value == "":
                     continue

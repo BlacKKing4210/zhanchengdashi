@@ -1,4 +1,6 @@
 pool_id,entry_id,entry_type,rarity,weight,probability_pct,min_count,max_count,notes
+池ID,条目ID,条目类型,稀有度,权重,概率（%）,最小数量,最大数量,备注
+,,,,,,,,
 unit_cards_question,unit_beast_swift_fox,unit,common,20,20.0,1,1,问号基础单位池，低价快跑单位
 unit_cards_question,unit_fiend_imp_runner,unit,common,15,15.0,1,1,问号基础单位池，快跑灼烧
 unit_cards_question,unit_elemental_spark,unit,common,15,15.0,1,1,问号基础单位池，低伤弹射远程

@@ -1,4 +1,6 @@
 id,name_key,rarity,max_hp,attack_range,base_damage,attack_cooldown_sec,skill_id,unlock_stage,tags,design_notes
+ID,名称文本键,稀有度,最大生命值,攻击范围,基础伤害,攻击冷却（秒）,技能ID,解锁阶段,标签,设计备注
+,,,,,,,,,,
 defense_watch_tower,defense_watch_tower_name,common,180,5.7,16,1.0,skill_ranger_shot,stage_tutorial_01,tower|ranged|single_target,基础防御塔，稳定单体远程输出
 defense_cannon_tower,defense_cannon_tower_name,rare,240,6.3,34,1.0,skill_cannon_blast,stage_field_01,tower|ranged|aoe,稀有炮塔，慢速高伤范围打击
 defense_repair_beacon,defense_repair_beacon_name,epic,220,4.0,0,1.0,skill_repair_field,stage_field_01,tower|support|repair,史诗辅助塔，周期修复附近友军和防御

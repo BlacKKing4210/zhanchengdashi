@@ -1,4 +1,6 @@
 pool_id,entry_id,entry_type,weight,probability_pct,min_count,max_count,extra_reveal_cost,notes
+池ID,条目ID,条目类型,权重,概率（%）,最小数量,最大数量,额外揭示费用,备注
+,,,,,,,,
 reveal_pool_early,cell_grassland,cell,30,30.0,1,1,0,继续展开普通格
 reveal_pool_early,gold,currency,25,25.0,18,32,0,即时金币收入
 reveal_pool_early,unit_beast_swift_fox,unit,18,18.0,1,1,0,早期快跑近战单位

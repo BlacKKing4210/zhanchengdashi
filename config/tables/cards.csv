@@ -1,4 +1,6 @@
 id,name,rarity,tier,art_path,attack,max_hp,move_speed,attack_range,summon_interval_sec,skill_id,skill_trigger,skill_effect,skill_power,skill_cooldown_sec,skill_text,tags,design_notes,skill_chance,skill_target
+ID,名称,稀有度,档位,美术路径,攻击力,最大生命值,移动速度,攻击范围,召唤间隔（秒）,技能ID,技能触发条件,技能效果,技能强度,技能冷却（秒）,技能文本,标签,设计备注,技能概率,技能目标
+,,,,,,,,,,,,,,,,,,,
 mouse,老鼠,common,2,res://assets/card_art/animals/mouse.png,1,1,60,40,5,,,,,,数量+1,tier_1|common|swarm|no_skill,老鼠：低成本铺路，适合快速占小格。,,
 ant,蚂蚁,common,2,res://assets/card_art/animals/ant.png,1,1,40,40,5,ant_rally,aura,buff_attack,1,6,数量+1，优先攻击敌方建筑,tier_1|common|swarm|aura|attack|skill,蚂蚁：成群推进型低费单位。,,
 sparrow,麻雀,common,2,res://assets/card_art/animals/sparrow.png,1,1,40,80,5,,,,,,,tier_1|common|scout|no_skill|flying,麻雀：最快的基础侦察单位，用来抢中线。,,

@@ -1,4 +1,6 @@
 id,name_key,cell_type,unlock_stage,reveal_pool_id,price_mode,fixed_price,price_pool_id,income_currency,income_amount,income_interval_sec,appearance_weight,appearance_probability_pct,risk_level,effect_tags,notes
+ID,名称文本键,地块类型,解锁阶段,揭示池ID,价格模式,固定价格,价格池ID,收益货币,收益数量,收益间隔（秒）,出现权重,出现概率（%）,风险等级,效果标签,备注
+,,,,,,,,,,,,,,,
 cell_question,cell_question_name,question,stage_tutorial_01,reveal_pool_question,fixed,25,,none,0,0,50,50.0,1,question|mystery,开局随机地块类型之一，价格永远25，购买后按问号池抽空/防御/单位/金币
 cell_unit,cell_unit_name,unit,stage_tutorial_01,reveal_pool_unit_tile,random_pool,0,price_pool_unit_defense,none,0,0,30,30.0,2,unit|card,开局随机出类型和价格，价格从50/100/250中抽，价格越高进入越高品质的单位卡池
 cell_defense,cell_defense_name,defense,stage_tutorial_01,reveal_pool_defense_tile,random_pool,0,price_pool_unit_defense,none,0,0,15,15.0,2,defense|tower|card,开局随机出类型和价格，价格池同单位地块，价格越高进入越高品质的防御卡池

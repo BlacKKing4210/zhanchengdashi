@@ -1,4 +1,6 @@
 id,type,targeting,cooldown_sec,power,range,radius,duration_sec,effect_tags,vfx_key,description_key,design_notes
+ID,类型,目标选择,冷却时间（秒）,效果强度,作用范围,半径,持续时间（秒）,效果标签,视觉特效键,描述文本键,设计备注
+,,,,,,,,,,,
 skill_guardian_slam,active,forward,5.0,1.4,2.2,1.3,0.35,damage|knockback,vfx_slam,skill_guardian_slam_desc,前排保护技能，击退用 Tween 位移和短白闪即可
 skill_ranger_shot,attack,nearest_enemy,1.2,1.0,5.0,0.0,0.0,damage|projectile,vfx_arrow,skill_ranger_shot_desc,基础远程模板，弹道和命中闪光可程序化
 skill_grunt_claw,attack,nearest_enemy,1.6,0.8,1.2,0.0,0.0,damage,vfx_claw,skill_grunt_claw_desc,低威胁近战普攻，适合大量刷出
