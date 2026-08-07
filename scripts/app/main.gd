@@ -115,6 +115,7 @@ const GACHA_FX_SECONDS = 0.72
 const GACHA_CARD_REVEAL_INTERVAL = 0.18
 const GACHA_CARD_FLIP_SECONDS = 0.34
 const UNLOCK_CARD_POPUP_SECONDS = 1.08
+const BUILDING_CARD_PREVIEW_SECONDS = 3.0
 const MINE_CARD_ID = "gold_mine_card"
 const COMMON_DEFENSE_CARD_ID = "defense_watch_tower"
 const CARD_KIND_ANIMAL = "animal"
@@ -181,6 +182,10 @@ var selected_tile = Vector2i(-99, -99)
 var selected_unit_id: int = -1
 var selected_slot = 0
 var selected_card_id = ""
+var selected_building_card_id = ""
+var selected_building_card_team = NEUTRAL
+var selected_building_card_timer = 0.0
+var selected_building_card_key = MultiplayerRules.INVALID_KEY
 var pending_equip_card_id = ""
 var deck_scroll = 0.0
 
@@ -318,6 +323,7 @@ func _process(delta: float) -> void:
 		detail_pulse_timer = maxf(0.0, detail_pulse_timer - delta)
 	if detail_upgrade_motion_timer > 0.0:
 		detail_upgrade_motion_timer = maxf(0.0, detail_upgrade_motion_timer - delta)
+	_update_building_card_preview(delta)
 	_update_gacha_animation(delta)
 	_update_account_fields_layout()
 	_update_server_profile_sync(delta)
@@ -534,13 +540,21 @@ func _handle_tap(screen_pos: Vector2) -> void:
 	if _uses_axial_battle_map() and not _battle_view_rect().has_point(pos):
 		return
 	if _select_unit_at_canvas(pos):
+		_clear_building_card_preview(true)
 		return
 
 	selected_unit_id = -1
 	var key = _tile_at_canvas(pos)
 	selected_tile = key
 	if key.x == -99:
+		_clear_building_card_preview(true)
 		return
+	if tiles.has(key) and _show_building_card_preview(tiles[key], key):
+		var preview_team = int(tiles[key].get("team", NEUTRAL))
+		if preview_team == _local_control_team():
+			_pulse(_hex_center(key), _team_color(preview_team).lightened(0.22))
+		return
+	_clear_building_card_preview(true)
 
 	if _try_unlock(key):
 		return
@@ -1964,6 +1978,18 @@ func _card_display_skill_text(card: Dictionary, _include_no_skill: bool) -> Stri
 	return _card_skill_text(card)
 
 
+func _card_ui_skill_text(card: Dictionary) -> String:
+	var skill_text = _card_display_skill_text(card, false)
+	if _card_kind(card) != CARD_KIND_ANIMAL:
+		return skill_text
+	var range_label = _attack_range_label(float(card.get("base_attack_range", card.get("attack_range", 0.0))))
+	if range_label not in ["远程", "超远程"]:
+		return skill_text
+	if skill_text == "":
+		return range_label
+	return "%s · %s" % [range_label, skill_text]
+
+
 func _card_structured_skill_text(card: Dictionary) -> String:
 	if _card_kind(card) != CARD_KIND_ANIMAL:
 		return ""
@@ -2081,6 +2107,7 @@ func _reset_battle() -> void:
 	effects.clear()
 	selected_tile = Vector2i(-99, -99)
 	selected_unit_id = -1
+	_clear_building_card_preview(true)
 	combat_building_keys.clear()
 	gold = STARTING_GOLD
 	enemy_gold = STARTING_GOLD
@@ -6834,6 +6861,67 @@ func _tile_display_card(tile: Dictionary) -> Dictionary:
 	return {}
 
 
+func _tile_animal_card(tile: Dictionary) -> Dictionary:
+	var building = String(tile.get("building", ""))
+	if building != "barracks" and building != "hall":
+		return {}
+	var card = _card_by_id(String(tile.get("site_card", "")))
+	if card.is_empty() or _card_kind(card) != CARD_KIND_ANIMAL:
+		return {}
+	return card
+
+
+func _show_building_card_preview(tile: Dictionary, tile_key: Vector2i = MultiplayerRules.INVALID_KEY) -> bool:
+	var card = _tile_animal_card(tile)
+	if card.is_empty():
+		return false
+	selected_building_card_id = String(card.get("id", ""))
+	selected_building_card_team = int(tile.get("team", NEUTRAL))
+	selected_building_card_timer = BUILDING_CARD_PREVIEW_SECONDS
+	selected_building_card_key = tile_key
+	if _card_skill_text(card) != "":
+		GameAudio.play_card_skill_voice(selected_building_card_id)
+	else:
+		GameAudio.stop_card_skill_voice()
+	return true
+
+
+func _clear_building_card_preview(stop_voice: bool = true) -> void:
+	selected_building_card_id = ""
+	selected_building_card_team = NEUTRAL
+	selected_building_card_timer = 0.0
+	selected_building_card_key = MultiplayerRules.INVALID_KEY
+	if stop_voice:
+		GameAudio.stop_card_skill_voice()
+
+
+func _update_building_card_preview(delta: float) -> void:
+	if selected_building_card_timer <= 0.0:
+		return
+	if not _is_building_card_preview_current():
+		_clear_building_card_preview(true)
+		return
+	selected_building_card_timer = maxf(0.0, selected_building_card_timer - delta)
+	if selected_building_card_timer <= 0.0:
+		# The card panel has a strict three-second lifetime. Voice playback is
+		# independent and may finish naturally after the visual panel closes.
+		_clear_building_card_preview(false)
+
+
+func _is_building_card_preview_current() -> bool:
+	if selected_building_card_id == "" or selected_building_card_key == MultiplayerRules.INVALID_KEY:
+		return true
+	if not tiles.has(selected_building_card_key):
+		return false
+	var tile: Dictionary = tiles[selected_building_card_key]
+	var card = _tile_animal_card(tile)
+	return (
+		not card.is_empty()
+		and String(card.get("id", "")) == selected_building_card_id
+		and int(tile.get("team", NEUTRAL)) == selected_building_card_team
+	)
+
+
 func _draw_effect(effect: Dictionary) -> void:
 	var kind = String(effect.get("kind", "pulse"))
 	if _uses_axial_battle_map():
@@ -6958,13 +7046,9 @@ func _draw_unit_value_icon(center: Vector2, stat: String, color: Color, shadow: 
 	draw_circle(center + Vector2(0, 2), 9.0, shadow)
 	match stat:
 		"attack":
-			draw_line(center + Vector2(-5, 6), center + Vector2(5, -6), color, 4.0, true)
-			draw_line(center + Vector2(-6, 2), center + Vector2(-1, 7), color, 2.5, true)
-			draw_colored_polygon(PackedVector2Array([center + Vector2(3, -7), center + Vector2(8, -8), center + Vector2(6, -3)]), color)
+			_draw_paw_icon(center, color)
 		"hp", "heal":
-			draw_circle(center + Vector2(-3.5, -2), 4.5, color)
-			draw_circle(center + Vector2(3.5, -2), 4.5, color)
-			draw_colored_polygon(PackedVector2Array([center + Vector2(-7, 0), center + Vector2(7, 0), center + Vector2(0, 8)]), color)
+			_draw_heart_icon(center, color)
 		"shield":
 			draw_colored_polygon(PackedVector2Array([center + Vector2(-7, -7), center + Vector2(7, -7), center + Vector2(6, 2), center + Vector2(0, 8), center + Vector2(-6, 2)]), color)
 		"speed", "slow":
@@ -6988,7 +7072,7 @@ func _draw_selection_panel() -> void:
 	_box(rect, Color(0.12, 0.10, 0.31, 0.92), Color(0.30, 0.28, 0.62), 4)
 	if _draw_selected_unit_card_panel(rect):
 		return
-	if _draw_selected_tile_card_panel(rect):
+	if _draw_selected_building_card_panel(rect):
 		return
 	var title = "点击与己方地块接壤的卡牌地块解锁"
 	var detail = "可解锁地块只显示类型和价格，品质会在解锁时随机。"
@@ -6998,41 +7082,12 @@ func _draw_selection_panel() -> void:
 	elif _uses_axial_battle_map():
 		title = "%s · 拖动查看地图" % classic_map_name
 		detail = "点击己方可连接地块购买；防御塔价格随本局购买次数递增。"
-	var detail_extra = ""
 	var local_team = _local_control_team()
 	var local_gold = _gold_for_team(local_team)
 	if tiles.has(selected_tile):
 		var tile = tiles[selected_tile]
 		if String(tile["building"]) != "":
-			var building = String(tile["building"])
-			var card_id = String(tile.get("site_card", ""))
-			title = _site_name(building, card_id)
-			if building == "barracks" or building == "hall":
-				var card = _card_by_id(card_id)
-				if card.is_empty():
-					title = "动物卡牌"
-					detail = "动物信息缺失。"
-				else:
-					title = "动物卡牌：%s" % String(card.get("name", "动物"))
-					var stats = _card_stats_for_team(card, int(tile["team"]))
-					detail = "%s Lv.%d  攻%d 血%d 距%s 召%.1fs" % [
-						_rarity_label(String(card.get("rarity", "common"))),
-						_card_level_for_team(card_id, int(tile["team"])),
-						int(stats["attack"]),
-						int(stats["max_hp"]),
-						_attack_range_label(float(stats["attack_range"])),
-						float(stats["summon_interval_sec"]),
-					]
-					var skill_text = _card_skill_text(card)
-					if skill_text != "":
-						detail_extra = "技能：" + skill_text
-					if _camp_spawn_state(tile) == "population_full":
-						detail_extra = "满员等待 %d/%d：空出名额或势力淘汰后立即补位。" % [
-							_multiplayer_alive_unit_count(int(tile["team"])),
-							_animal_cap_per_living_faction(),
-						]
-			else:
-				detail = "生命 %.0f / %.0f" % [float(tile["hp"]), float(tile["max_hp"])]
+			pass
 		elif int(tile["team"]) == local_team:
 			title = "空地"
 			detail = "已解锁区域，可作为继续扩张的连接点。"
@@ -7058,8 +7113,6 @@ func _draw_selection_panel() -> void:
 			detail = "先扩张到相邻地块。"
 	_draw_text_fit(title, Rect2(rect.position + Vector2(24, 14), Vector2(620, 32)), 24, Color.WHITE)
 	_draw_text_fit(detail, Rect2(rect.position + Vector2(24, 52), Vector2(620, 26)), 19, Color(0.84, 0.88, 1.0))
-	if detail_extra != "":
-		_draw_text_fit(detail_extra, Rect2(rect.position + Vector2(24, 80), Vector2(620, 24)), 18, Color(0.78, 0.86, 1.0))
 
 
 func _draw_selected_unit_card_panel(rect: Rect2) -> bool:
@@ -7084,21 +7137,16 @@ func _draw_unit_card_summary(rect: Rect2, unit: Dictionary, card: Dictionary) ->
 		String(card.get("name", "动物")),
 		_card_level_for_team(card_id, team),
 	]
-	var detail = "生命%d/%d  攻%d  射程%s" % [
-		int(roundi(float(unit.get("hp", 0.0)))),
-		int(roundi(float(unit.get("max_hp", 0.0)))),
-		int(roundi(float(unit.get("attack", 0.0)))),
-		_attack_range_label(float(unit.get("range", 0.0))),
-	]
 	var status_text = _unit_status_text(unit)
-	if status_text != "":
-		detail += "  " + status_text
 	var team_color = _team_color(team)
 	draw_circle(rect.position + Vector2(7, 14), 6.0, team_color)
 	draw_circle(rect.position + Vector2(7, 14), 6.0, COLOR_LINE, false, 1.0)
 	_draw_text_fit(title, Rect2(rect.position + Vector2(18, 0), Vector2(rect.size.x - 18, 28)), 23, Color.WHITE)
-	_draw_text_fit(detail, Rect2(rect.position + Vector2(0, 34), Vector2(rect.size.x, 24)), 18, Color(0.84, 0.88, 1.0))
-	var skill_text = _card_skill_text(card)
+	_draw_detail_stat_icon_value(rect.position + Vector2(0, 31), "attack", str(int(roundi(float(unit.get("attack", 0.0))))), COLOR_ORANGE, Color(0.84, 0.88, 1.0), 66.0)
+	_draw_detail_stat_icon_value(rect.position + Vector2(102, 31), "hp", "%d/%d" % [int(roundi(float(unit.get("hp", 0.0)))), int(roundi(float(unit.get("max_hp", 0.0))))], COLOR_RED, Color(0.84, 0.88, 1.0), 104.0)
+	if status_text != "":
+		_draw_text_fit(status_text, Rect2(rect.position + Vector2(252, 34), Vector2(rect.size.x - 252, 24)), 17, Color(0.84, 0.88, 1.0))
+	var skill_text = _card_ui_skill_text(card)
 	if skill_text != "":
 		_draw_text_fit("技能：" + skill_text, Rect2(rect.position + Vector2(0, 62), Vector2(rect.size.x, 24)), 17, Color(0.78, 0.86, 1.0))
 
@@ -7131,41 +7179,32 @@ func _unit_status_text(unit: Dictionary) -> String:
 	return " ".join(states)
 
 
-func _draw_selected_tile_card_panel(rect: Rect2) -> bool:
-	if not tiles.has(selected_tile):
+func _draw_selected_building_card_panel(rect: Rect2) -> bool:
+	if selected_building_card_timer <= 0.0 or selected_building_card_id == "":
 		return false
-	var tile = tiles[selected_tile]
-	if int(tile.get("team", NEUTRAL)) == NEUTRAL:
-		return false
-	var card = _tile_display_card(tile)
-	if card.is_empty():
+	var card = _card_by_id(selected_building_card_id)
+	if card.is_empty() or _card_kind(card) != CARD_KIND_ANIMAL:
 		return false
 	var card_rect = Rect2(rect.position + Vector2(18, 10), Vector2(92, 98))
-	_draw_card(card_rect, card, true)
-	_draw_tile_card_summary(Rect2(rect.position + Vector2(128, 14), Vector2(512, 88)), tile, card)
+	_draw_card(card_rect, card, true, false)
+	_draw_building_animal_card_summary(Rect2(rect.position + Vector2(128, 14), Vector2(512, 88)), card, selected_building_card_team)
 	return true
 
 
-func _draw_tile_card_summary(rect: Rect2, tile: Dictionary, card: Dictionary) -> void:
+func _draw_building_animal_card_summary(rect: Rect2, card: Dictionary, team: int) -> void:
 	var card_id = String(card.get("id", ""))
-	var kind = _card_kind(card)
-	var team = int(tile.get("team", PLAYER))
 	var stats = _card_stats_for_team(card, team)
-	var title = String(card.get("name", "卡牌"))
+	var title = String(card.get("name", "动物"))
 	var level = _card_level_for_team(card_id, team)
-	var skill_text = _card_skill_text(card)
-	_draw_text_fit("%s  %s Lv.%d" % [_rarity_label(String(card.get("rarity", "common"))), title, level], Rect2(rect.position, Vector2(rect.size.x, 28)), 23, Color.WHITE)
-	if kind == CARD_KIND_MINE:
-		_draw_text_fit("金矿卡  生命%d  每%d秒 +%d金币" % [int(stats["max_hp"]), int(INCOME_INTERVAL), MINE_INCOME], Rect2(rect.position + Vector2(0, 34), Vector2(rect.size.x, 24)), 19, Color(0.84, 0.88, 1.0))
-		_draw_text_fit("金矿不产兵，只提供经济收入。", Rect2(rect.position + Vector2(0, 62), Vector2(rect.size.x, 24)), 17, Color(0.78, 0.86, 1.0))
-	elif kind == CARD_KIND_DEFENSE:
-		_draw_text_fit("防御塔卡  攻%d  生命%d  射程%s  冷却%.1fs" % [int(stats["attack"]), int(stats["max_hp"]), _attack_range_label(float(stats["attack_range"])), float(stats["summon_interval_sec"])], Rect2(rect.position + Vector2(0, 34), Vector2(rect.size.x, 24)), 18, Color(0.84, 0.88, 1.0))
-		if skill_text != "":
-			_draw_text_fit(skill_text, Rect2(rect.position + Vector2(0, 62), Vector2(rect.size.x, 24)), 17, Color(0.78, 0.86, 1.0))
-	else:
-		_draw_text_fit("动物营地  攻%d  生命%d  射程%s" % [int(stats["attack"]), int(stats["max_hp"]), _attack_range_label(float(stats["attack_range"]))], Rect2(rect.position + Vector2(0, 34), Vector2(rect.size.x, 24)), 18, Color(0.84, 0.88, 1.0))
-		if skill_text != "":
-			_draw_text_fit(skill_text, Rect2(rect.position + Vector2(0, 62), Vector2(rect.size.x, 24)), 17, Color(0.78, 0.86, 1.0))
+	var team_color = _team_color(team)
+	draw_circle(rect.position + Vector2(7, 14), 6.0, team_color)
+	draw_circle(rect.position + Vector2(7, 14), 6.0, COLOR_LINE, false, 1.0)
+	_draw_text_fit("%s  %s Lv.%d" % [_rarity_label(String(card.get("rarity", "common"))), title, level], Rect2(rect.position + Vector2(18, 0), Vector2(rect.size.x - 18, 28)), 23, Color.WHITE)
+	_draw_detail_stat_icon_value(rect.position + Vector2(0, 31), "attack", str(int(stats["attack"])), COLOR_ORANGE, Color(0.84, 0.88, 1.0), 66.0)
+	_draw_detail_stat_icon_value(rect.position + Vector2(102, 31), "hp", str(int(stats["max_hp"])), COLOR_RED, Color(0.84, 0.88, 1.0), 88.0)
+	var skill_text = _card_ui_skill_text(card)
+	if skill_text != "":
+		_draw_text_fit("技能：" + skill_text, Rect2(rect.position + Vector2(0, 62), Vector2(rect.size.x, 24)), 17, Color(0.78, 0.86, 1.0))
 
 
 func _draw_pause_button() -> void:
@@ -7330,14 +7369,13 @@ func _draw_card_detail(rect: Rect2) -> void:
 		_draw_detail_stat_icon_value(rect.position + Vector2(242, 18), "gold", "+%d" % MINE_INCOME, COLOR_GOLD)
 		_draw_text_center("%d秒" % int(INCOME_INTERVAL), Rect2(rect.position + Vector2(342, 20), Vector2(72, 28)), 18, COLOR_LINE)
 	elif kind == CARD_KIND_DEFENSE:
-		_draw_detail_stat_icon_value(rect.position + Vector2(142, 18), "attack", str(int(stats["attack"])), COLOR_RED)
+		_draw_detail_stat_icon_value(rect.position + Vector2(142, 18), "attack", str(int(stats["attack"])), COLOR_ORANGE)
 		_draw_detail_stat_icon_value(rect.position + Vector2(232, 18), "hp", str(int(stats["max_hp"])), COLOR_RED)
 		_draw_text_center(_attack_range_label(float(stats["attack_range"])), Rect2(rect.position + Vector2(330, 20), Vector2(72, 28)), 18, COLOR_LINE)
 		_draw_text_center("%.1fs" % float(stats["summon_interval_sec"]), Rect2(rect.position + Vector2(424, 20), Vector2(72, 28)), 18, COLOR_LINE)
 	else:
-		_draw_detail_stat_icon_value(rect.position + Vector2(142, 18), "attack", str(int(stats["attack"])), COLOR_RED)
+		_draw_detail_stat_icon_value(rect.position + Vector2(142, 18), "attack", str(int(stats["attack"])), COLOR_ORANGE)
 		_draw_detail_stat_icon_value(rect.position + Vector2(232, 18), "hp", str(int(stats["max_hp"])), COLOR_RED)
-		_draw_text_center(_attack_range_label(float(stats["attack_range"])), Rect2(rect.position + Vector2(330, 20), Vector2(72, 28)), 18, COLOR_LINE)
 	var skill_text = _card_detail_skill_text(card)
 	if skill_text != "":
 		_draw_text_center(skill_text, Rect2(rect.position + Vector2(138, 54), Vector2(370, 28)), 16, COLOR_PURPLE)
@@ -7349,14 +7387,14 @@ func _draw_card_detail(rect: Rect2) -> void:
 
 
 func _card_detail_skill_text(card: Dictionary) -> String:
-	return _card_display_skill_text(card, false)
+	return _card_ui_skill_text(card)
 
 
 func _can_show_equip_button(card_id: String) -> bool:
 	return card_id != "" and _card_total_count(card_id) > 0 and not _is_card_in_deck(card_id)
 
 
-func _draw_detail_stat_icon_value(pos: Vector2, icon: String, value: String, color: Color) -> void:
+func _draw_detail_stat_icon_value(pos: Vector2, icon: String, value: String, color: Color, value_color: Color = COLOR_LINE, value_width: float = 54.0) -> void:
 	var center = pos + Vector2(14, 14)
 	match icon:
 		"attack":
@@ -7367,7 +7405,7 @@ func _draw_detail_stat_icon_value(pos: Vector2, icon: String, value: String, col
 			_draw_boot_icon(center, color)
 		"gold":
 			_draw_coin_icon(center, color)
-	_draw_text_fit(value, Rect2(pos + Vector2(32, 0), Vector2(54, 28)), 18, COLOR_LINE)
+	_draw_text_fit(value, Rect2(pos + Vector2(32, 0), Vector2(value_width, 28)), 18, value_color)
 
 
 func _draw_paw_icon(center: Vector2, color: Color) -> void:

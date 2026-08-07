@@ -202,7 +202,7 @@ def add_masthead(doc: Document) -> None:
 	add_inline_runs(subtitle, "全局音频方向、资源清单、Godot 运行时契约与 QA 标准", size=12, color=MUTED)
 	meta = doc.add_paragraph()
 	meta.paragraph_format.space_after = Pt(12)
-	add_inline_runs(meta, "版本 v1.0  |  状态：已确认实装  |  2026-07-12", size=10, color=MUTED)
+	add_inline_runs(meta, "版本 v1.1  |  状态：运行时已实装，代表语音待评审  |  2026-08-08", size=10, color=MUTED)
 	rule = doc.add_paragraph()
 	rule.paragraph_format.space_after = Pt(8)
 	p_pr = rule._p.get_or_add_pPr()

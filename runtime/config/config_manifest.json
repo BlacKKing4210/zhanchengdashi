@@ -5,6 +5,7 @@
     "runtime/config/global.json",
     "runtime/config/skills.json",
     "runtime/config/cards.json",
+    "runtime/config/card_skill_voices.json",
     "runtime/config/units.json",
     "runtime/config/defenses.json",
     "runtime/config/items.json",

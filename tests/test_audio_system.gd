@@ -15,6 +15,7 @@ func _ready() -> void:
 		return
 	_test_resource_maps_and_loading()
 	_test_audio_buses_and_players()
+	_test_card_skill_voice_slice()
 	_test_music_state_and_runtime_loop()
 	_test_sfx_cooldown_and_switches()
 	_test_main_flow_integration()
@@ -59,10 +60,11 @@ func _test_resource_maps_and_loading() -> void:
 
 
 func _test_audio_buses_and_players() -> void:
-	for bus_name in ["Music", "SFX", "UI"]:
+	for bus_name in ["Music", "SFX", "UI", "Voice"]:
 		_expect_true(AudioServer.get_bus_index(bus_name) >= 0, "%s audio bus exists" % bus_name)
 	_expect_equal(int(audio.call("get_music_player_count")), 2, "music uses two players for crossfades")
 	_expect_equal(int(audio.call("get_sfx_player_count")), 12, "SFX pool contains twelve players")
+	_expect_equal(int(audio.call("get_voice_player_count")), 1, "skill voice uses one dedicated interruptible player")
 	_expect_equal(int(audio.call("get_priority_sfx_player_count")), 2, "two SFX players are reserved for UI and results")
 	var default_mix: Dictionary = audio.call("get_default_mix_db")
 	_expect_equal(float(default_mix.get("music", 0.0)), -12.0, "music default is softened by two decibels")
@@ -80,6 +82,41 @@ func _test_audio_buses_and_players() -> void:
 				has_limiter = true
 				break
 	_expect_true(has_limiter, "Master bus has a limiter for peak protection")
+
+
+func _test_card_skill_voice_slice() -> void:
+	audio.call("reload_voice_entries")
+	var entries: Dictionary = audio.call("get_voice_entries")
+	_expect_equal(entries.size(), 60, "voice plan covers every animal card")
+	var prototype_ids = ["mouse", "tadpole", "goat", "parrot", "wolf", "dolphin", "gorilla", "eagle", "elephant"]
+	for card_id in prototype_ids:
+		_expect_true(entries.has(card_id), "voice plan contains prototype %s" % card_id)
+		if not entries.has(card_id):
+			continue
+		var entry: Dictionary = entries[card_id]
+		_expect_equal(String(entry.get("status", "")), "prototype_generated", "%s is marked as an unapproved representative sample" % card_id)
+		_expect_audio_resource(String(entry.get("voice_path", "")), "skill voice %s" % card_id)
+	for silent_id in ["sparrow", "frog", "rabbit", "pigeon", "snail", "duck", "camel", "crane", "lynx"]:
+		var silent_entry: Dictionary = entries.get(silent_id, {})
+		_expect_equal(String(silent_entry.get("status", "")), "silent_no_player_skill", "%s stays silent because it has no player-visible skill or range label" % silent_id)
+		var silent_path = silent_entry.get("voice_path", "")
+		_expect_true(silent_path == null or String(silent_path) == "", "%s does not claim a voice asset" % silent_id)
+
+	audio.call("set_sfx_enabled", true)
+	audio.call("stop_card_skill_voice")
+	var mouse_play_count = int(audio.call("get_voice_play_count", "mouse"))
+	_expect_true(bool(audio.call("play_card_skill_voice", "mouse")), "approved runtime statuses can play a representative skill voice")
+	_expect_equal(int(audio.call("get_voice_play_count", "mouse")), mouse_play_count + 1, "skill voice play count increments")
+	_expect_equal(String(audio.get("active_voice_card_id")), "mouse", "active voice tracks its animal card")
+	_expect_true(audio.call("get_active_voice_stream") is AudioStream, "active voice loads as an AudioStream")
+	var interruption_count = int(audio.call("get_voice_interruption_count"))
+	_expect_true(bool(audio.call("play_card_skill_voice", "tadpole")), "a new animal voice can replace the previous voice")
+	_expect_true(int(audio.call("get_voice_interruption_count")) >= interruption_count + 1, "new card voice interrupts the voice already playing")
+	_expect_false(bool(audio.call("play_card_skill_voice", "ant")), "pending-review voice never plays without an asset approval state")
+	_expect_false(bool(audio.call("play_card_skill_voice", "rabbit")), "silent animal never invents a skill voice")
+	audio.call("set_sfx_enabled", false)
+	_expect_false(bool(audio.call("is_card_skill_voice_playing")), "turning sound effects off also stops skill voice")
+	audio.call("set_sfx_enabled", true)
 
 
 func _test_music_state_and_runtime_loop() -> void:

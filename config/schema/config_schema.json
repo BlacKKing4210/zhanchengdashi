@@ -67,6 +67,46 @@
         "design_notes": { "type": "string", "required": false }
       }
     },
+    "card_skill_voices": {
+      "file": "config/tables/card_skill_voices.csv",
+      "unique": "card_id",
+      "fields": {
+        "card_id": { "type": "id", "required": true },
+        "locale": { "type": "enum", "required": true, "values": ["zh_cn"] },
+        "voice_path": { "type": "string", "required": false },
+        "persona_id": {
+          "type": "enum",
+          "required": true,
+          "values": [
+            "tiny_swarm",
+            "bright_bird",
+            "playful_control",
+            "warm_support",
+            "clever_scout",
+            "sturdy_guard",
+            "agile_striker",
+            "fierce_predator",
+            "giant_guardian",
+            "aquatic_calm",
+            "regal_legend",
+            "primate_trickster"
+          ]
+        },
+        "voice_name": { "type": "enum", "required": true, "values": ["huihui", "yaoyao", "kangkang"] },
+        "rate_pct": { "type": "float", "required": true },
+        "pitch_pct": { "type": "float", "required": true },
+        "gain_db": { "type": "float", "required": true },
+        "status": {
+          "type": "enum",
+          "required": true,
+          "values": ["pending_review", "prototype_generated", "approved", "silent_no_player_skill"]
+        },
+        "design_notes": { "type": "string", "required": false }
+      },
+      "references": [
+        { "field": "card_id", "table": "cards", "column": "id" }
+      ]
+    },
     "units": {
       "file": "config/tables/units.csv",
       "unique": "id",

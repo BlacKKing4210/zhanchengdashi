@@ -94,6 +94,7 @@ const PITCH_VARIATION = {
 const MUSIC_BUS = "Music"
 const SFX_BUS = "SFX"
 const UI_BUS = "UI"
+const VOICE_BUS = "Voice"
 const SFX_POOL_SIZE = 12
 const PRIORITY_SFX_SLOTS = 2
 const MUSIC_SILENCE_DB = -60.0
@@ -102,20 +103,27 @@ const BATTLE_FADE_SECONDS = 0.8
 const MUSIC_DEFAULT_DB = -12.0
 const SFX_DEFAULT_DB = -10.0
 const UI_DEFAULT_DB = -6.0
+const VOICE_DEFAULT_DB = -4.0
+const VOICE_MUSIC_DUCK_DB = -4.0
 
 var music_enabled = true
 var sfx_enabled = true
 var active_music_id = ""
 var requested_music_id = "menu"
 var last_sfx_id = ""
+var active_voice_card_id = ""
+var last_voice_card_id = ""
 var music_switch_count = 0
 
 var _music_players: Array[AudioStreamPlayer] = []
 var _sfx_players: Array[AudioStreamPlayer] = []
+var _voice_player: AudioStreamPlayer
 var _stream_cache = {}
+var _voice_entries = {}
 var _event_cooldowns = {}
 var _warned_missing = {}
 var _sfx_play_counts = {}
+var _voice_play_counts = {}
 var _sfx_started_by_instance = {}
 var _active_music_slot = 0
 var _sfx_play_serial = 0
@@ -123,6 +131,8 @@ var _music_volume_db = MUSIC_DEFAULT_DB
 var _sfx_volume_db = SFX_DEFAULT_DB
 var _ui_volume_db = UI_DEFAULT_DB
 var _duck_db = 0.0
+var _voice_duck_db = 0.0
+var _voice_interruption_count = 0
 var _music_tween: Tween
 var _duck_tween: Tween
 
@@ -133,7 +143,9 @@ func _ready() -> void:
 	_ensure_bus(MUSIC_BUS, _music_volume_db)
 	_ensure_bus(SFX_BUS, _sfx_volume_db)
 	_ensure_bus(UI_BUS, _ui_volume_db)
+	_ensure_bus(VOICE_BUS, VOICE_DEFAULT_DB)
 	_build_players()
+	reload_voice_entries()
 	play_music("menu", 0.0)
 
 
@@ -147,11 +159,13 @@ func _process(delta: float) -> void:
 
 
 func play_menu_music() -> bool:
+	stop_card_skill_voice()
 	set_music_duck(0.0, 0.18)
 	return play_music("menu", MENU_FADE_SECONDS)
 
 
 func play_battle_music() -> bool:
+	stop_card_skill_voice()
 	set_music_duck(0.0, 0.18)
 	var changed = play_music("battle", BATTLE_FADE_SECONDS)
 	play_sfx("battle_start", 0.0, -1.0, true)
@@ -159,6 +173,7 @@ func play_battle_music() -> bool:
 
 
 func play_result(outcome: String) -> bool:
+	stop_card_skill_voice()
 	set_music_duck(-8.0, 0.22)
 	var event_id = outcome if outcome in ["victory", "draw", "defeat"] else "draw"
 	return play_sfx(event_id, 1.5, 1.0, true)
@@ -239,6 +254,74 @@ func play_sfx(event_id: String, volume_offset_db: float = 0.0, pitch_override: f
 	return true
 
 
+func reload_voice_entries() -> void:
+	_voice_entries.clear()
+	if not ConfigDB.has_table("card_skill_voices"):
+		return
+	var rows = ConfigDB.get_table("card_skill_voices")
+	if typeof(rows) != TYPE_ARRAY:
+		return
+	for row_value in rows:
+		if typeof(row_value) != TYPE_DICTIONARY:
+			continue
+		var row: Dictionary = row_value
+		var card_id = String(row.get("card_id", ""))
+		if card_id != "":
+			_voice_entries[card_id] = row.duplicate(true)
+
+
+func play_card_skill_voice(card_id: String) -> bool:
+	if _voice_player == null:
+		return false
+	# A new card request always owns the channel. Pending, missing, and silent
+	# entries therefore stop the previous animal instead of leaking stale speech.
+	if _voice_player.playing:
+		_voice_interruption_count += 1
+	_voice_player.stop()
+	active_voice_card_id = ""
+	_set_voice_music_duck(0.0, 0.12)
+	if not sfx_enabled:
+		return false
+	var entry_value = _voice_entries.get(card_id, {})
+	if typeof(entry_value) != TYPE_DICTIONARY:
+		return false
+	var entry: Dictionary = entry_value
+	var status = String(entry.get("status", "pending_review"))
+	if status not in ["prototype_generated", "approved"]:
+		return false
+	var path = String(entry.get("voice_path", ""))
+	if path == "":
+		return false
+	var stream = _load_stream(path)
+	if stream == null:
+		return false
+	_voice_player.stream = stream
+	_voice_player.pitch_scale = 1.0
+	_voice_player.volume_db = float(entry.get("gain_db", 0.0))
+	_voice_player.play()
+	active_voice_card_id = card_id
+	last_voice_card_id = card_id
+	_voice_play_counts[card_id] = int(_voice_play_counts.get(card_id, 0)) + 1
+	_set_voice_music_duck(VOICE_MUSIC_DUCK_DB, 0.12)
+	return true
+
+
+func stop_card_skill_voice() -> void:
+	if _voice_player != null:
+		_voice_player.stop()
+	active_voice_card_id = ""
+	_set_voice_music_duck(0.0, 0.12)
+
+
+func is_card_skill_voice_playing() -> bool:
+	return _voice_player != null and _voice_player.playing
+
+
+func _on_voice_finished() -> void:
+	active_voice_card_id = ""
+	_set_voice_music_duck(0.0, 0.18)
+
+
 func set_music_enabled(enabled: bool) -> void:
 	if music_enabled == enabled:
 		return
@@ -259,6 +342,7 @@ func set_sfx_enabled(enabled: bool) -> void:
 	if not enabled:
 		for player in _sfx_players:
 			player.stop()
+		stop_card_skill_voice()
 
 
 func set_music_volume_db(value: float) -> void:
@@ -274,6 +358,9 @@ func set_sfx_volume_db(value: float) -> void:
 	var bus_index = AudioServer.get_bus_index(SFX_BUS)
 	if bus_index >= 0:
 		AudioServer.set_bus_volume_db(bus_index, _sfx_volume_db)
+	var voice_bus_index = AudioServer.get_bus_index(VOICE_BUS)
+	if voice_bus_index >= 0:
+		AudioServer.set_bus_volume_db(voice_bus_index, clampf(_sfx_volume_db + 6.0, -40.0, 6.0))
 
 
 func set_ui_volume_db(value: float) -> void:
@@ -285,10 +372,19 @@ func set_ui_volume_db(value: float) -> void:
 
 func set_music_duck(duck_db: float, seconds: float = 0.15) -> void:
 	_duck_db = clampf(duck_db, -18.0, 0.0)
+	_tween_music_bus_to_current_mix(seconds)
+
+
+func _set_voice_music_duck(duck_db: float, seconds: float = 0.12) -> void:
+	_voice_duck_db = clampf(duck_db, -12.0, 0.0)
+	_tween_music_bus_to_current_mix(seconds)
+
+
+func _tween_music_bus_to_current_mix(seconds: float) -> void:
 	var bus_index = AudioServer.get_bus_index(MUSIC_BUS)
 	if bus_index < 0:
 		return
-	var target = _music_volume_db + _duck_db
+	var target = _music_volume_db + _duck_db + _voice_duck_db
 	if _duck_tween != null and _duck_tween.is_valid():
 		_duck_tween.kill()
 	if seconds <= 0.0:
@@ -307,12 +403,20 @@ func get_sfx_paths() -> Dictionary:
 	return SFX_PATHS.duplicate()
 
 
+func get_voice_entries() -> Dictionary:
+	return _voice_entries.duplicate(true)
+
+
 func get_music_player_count() -> int:
 	return _music_players.size()
 
 
 func get_sfx_player_count() -> int:
 	return _sfx_players.size()
+
+
+func get_voice_player_count() -> int:
+	return 1 if _voice_player != null else 0
 
 
 func get_priority_sfx_player_count() -> int:
@@ -324,6 +428,7 @@ func get_default_mix_db() -> Dictionary:
 		"music": MUSIC_DEFAULT_DB,
 		"sfx": SFX_DEFAULT_DB,
 		"ui": UI_DEFAULT_DB,
+		"voice": VOICE_DEFAULT_DB,
 	}
 
 
@@ -333,6 +438,18 @@ func get_event_cooldown(event_id: String) -> float:
 
 func get_sfx_play_count(event_id: String) -> int:
 	return int(_sfx_play_counts.get(event_id, 0))
+
+
+func get_voice_play_count(card_id: String) -> int:
+	return int(_voice_play_counts.get(card_id, 0))
+
+
+func get_voice_interruption_count() -> int:
+	return _voice_interruption_count
+
+
+func get_active_voice_stream() -> AudioStream:
+	return _voice_player.stream if _voice_player != null else null
 
 
 func get_active_music_stream() -> AudioStream:
@@ -358,6 +475,11 @@ func _build_players() -> void:
 		sfx_player.bus = SFX_BUS
 		add_child(sfx_player)
 		_sfx_players.append(sfx_player)
+	_voice_player = AudioStreamPlayer.new()
+	_voice_player.name = "CardSkillVoice"
+	_voice_player.bus = VOICE_BUS
+	_voice_player.finished.connect(_on_voice_finished)
+	add_child(_voice_player)
 
 
 func _next_sfx_player(priority: bool) -> AudioStreamPlayer:
@@ -431,7 +553,7 @@ func _ensure_master_limiter() -> void:
 func _apply_music_bus_volume() -> void:
 	var bus_index = AudioServer.get_bus_index(MUSIC_BUS)
 	if bus_index >= 0:
-		AudioServer.set_bus_volume_db(bus_index, _music_volume_db + _duck_db)
+		AudioServer.set_bus_volume_db(bus_index, _music_volume_db + _duck_db + _voice_duck_db)
 
 
 func _warn_missing_once(key: String) -> void:
