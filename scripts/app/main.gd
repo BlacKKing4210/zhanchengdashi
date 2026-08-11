@@ -149,6 +149,8 @@ const COLOR_ORANGE = Color(1.0, 0.54, 0.13)
 const COLOR_GREEN = Color(0.49, 0.82, 0.37)
 const COLOR_RED = Color(0.95, 0.34, 0.32)
 const COLOR_GOLD = Color(1.0, 0.62, 0.08)
+const BACKGROUND_BASE_COLOR = Color(0.60, 0.85, 0.50)
+const BACKGROUND_TOP_COLOR = Color(0.68, 0.90, 0.60)
 
 const COLLECTION_COLUMNS = 4
 const COLLECTION_CARD_SIZE = Vector2(132.0, 158.0)
@@ -609,7 +611,9 @@ func _handle_tap(screen_pos: Vector2) -> void:
 
 
 func _draw() -> void:
-	_layout(get_viewport_rect().size)
+	var view_size = get_viewport_rect().size
+	_layout(view_size)
+	_draw_full_bleed_background(view_size)
 	draw_set_transform(canvas_offset, 0.0, Vector2(canvas_scale, canvas_scale))
 
 	if screen == SCREEN_DECK:
@@ -630,6 +634,13 @@ func _draw() -> void:
 
 	_draw_toast()
 	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+
+
+func _draw_full_bleed_background(view_size: Vector2) -> void:
+	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+	draw_rect(Rect2(Vector2.ZERO, view_size), BACKGROUND_BASE_COLOR)
+	var top_band_height = clampf(canvas_offset.y + 220.0 * canvas_scale, 0.0, view_size.y)
+	draw_rect(Rect2(0.0, 0.0, view_size.x, top_band_height), BACKGROUND_TOP_COLOR)
 
 
 func _layout(view_size: Vector2) -> void:
@@ -6328,8 +6339,8 @@ func _draw_battle_screen() -> void:
 
 
 func _draw_background() -> void:
-	draw_rect(Rect2(Vector2.ZERO, DESIGN_SIZE), Color(0.60, 0.85, 0.50))
-	draw_rect(Rect2(0, 0, DESIGN_SIZE.x, 220), Color(0.68, 0.90, 0.60))
+	draw_rect(Rect2(Vector2.ZERO, DESIGN_SIZE), BACKGROUND_BASE_COLOR)
+	draw_rect(Rect2(0, 0, DESIGN_SIZE.x, 220), BACKGROUND_TOP_COLOR)
 	for i in range(12):
 		var x = 40.0 + fmod(float(i) * 96.0 + ui_time * 8.0, DESIGN_SIZE.x)
 		_grass(Vector2(x, 82.0 + float(i % 4) * 36.0))
@@ -6487,10 +6498,10 @@ func _draw_board_view_mask() -> void:
 	var outer = Rect2(36, 82, 648, 1038)
 	var view = _battle_view_rect()
 	var frame_fill = Color(0.95, 0.80, 0.50)
-	draw_rect(Rect2(0, 0, DESIGN_SIZE.x, outer.position.y), Color(0.68, 0.90, 0.60))
-	draw_rect(Rect2(0, outer.end.y, DESIGN_SIZE.x, DESIGN_SIZE.y - outer.end.y), Color(0.60, 0.85, 0.50))
-	draw_rect(Rect2(0, outer.position.y, outer.position.x, outer.size.y), Color(0.60, 0.85, 0.50))
-	draw_rect(Rect2(outer.end.x, outer.position.y, DESIGN_SIZE.x - outer.end.x, outer.size.y), Color(0.60, 0.85, 0.50))
+	draw_rect(Rect2(0, 0, DESIGN_SIZE.x, outer.position.y), BACKGROUND_TOP_COLOR)
+	draw_rect(Rect2(0, outer.end.y, DESIGN_SIZE.x, DESIGN_SIZE.y - outer.end.y), BACKGROUND_BASE_COLOR)
+	draw_rect(Rect2(0, outer.position.y, outer.position.x, outer.size.y), BACKGROUND_BASE_COLOR)
+	draw_rect(Rect2(outer.end.x, outer.position.y, DESIGN_SIZE.x - outer.end.x, outer.size.y), BACKGROUND_BASE_COLOR)
 	draw_rect(Rect2(outer.position, Vector2(outer.size.x, view.position.y - outer.position.y)), frame_fill)
 	draw_rect(Rect2(Vector2(outer.position.x, view.end.y), Vector2(outer.size.x, outer.end.y - view.end.y)), frame_fill)
 	draw_rect(Rect2(Vector2(outer.position.x, view.position.y), Vector2(view.position.x - outer.position.x, view.size.y)), frame_fill)
