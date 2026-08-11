@@ -51,6 +51,49 @@ const ANIMAL_RARITY_VISUAL_SCALES = {
 	"epic": 1.5,
 	"legendary": 1.8,
 }
+const INTEGRATED_ANIMAL_ART_DISPLAY_SCALE = 1.35
+const INTEGRATED_ANIMAL_ART_CARD_IDS = {
+	"mouse": true,
+	"ant": true,
+	"sparrow": true,
+	"frog": true,
+	"rabbit": true,
+	"chicken": true,
+	"pigeon": true,
+	"hamster": true,
+	"snail": true,
+	"tadpole": true,
+	"cat": true,
+	"dog": true,
+	"duck": true,
+	"squirrel": true,
+	"hedgehog": true,
+	"turtle": true,
+	"goat": true,
+	"sheep": true,
+	"parrot": true,
+	"fox": true,
+	"monkey": true,
+	"pig": true,
+	"deer": true,
+	"beaver": true,
+	"otter": true,
+	"penguin": true,
+	"peacock": true,
+	"kangaroo": true,
+	"seal": true,
+	"swan": true,
+	"wolf": true,
+	"horse": true,
+	"cow": true,
+	"zebra": true,
+	"camel": true,
+	"dolphin": true,
+	"falcon": true,
+	"boar": true,
+	"crane": true,
+	"lynx": true,
+}
 const CARD_SPEED_FAST_THRESHOLD = 65.0
 const CARD_SPEED_SUPER_FAST_THRESHOLD = 75.0
 const SKILL_AURA_RADIUS = HEX_SIZE * 3.2
@@ -6063,7 +6106,7 @@ func _draw_lobby_animal(area: Rect2, card: Dictionary, anchor: Vector2, index: i
 	var pos = base_pos + wander + Vector2(0, bob)
 	var size = Vector2(92, 92) * (0.92 + 0.06 * sin(phase + float(index)))
 	draw_circle(pos + Vector2(0, size.y * 0.35), size.x * 0.26, Color(0, 0, 0, 0.16))
-	draw_texture_rect(_card_texture(card), Rect2(pos - size * 0.5, size), false)
+	_draw_animal_art_in_rect(card, Rect2(pos - size * 0.5, size))
 
 
 func _draw_rank_panel(rect: Rect2) -> void:
@@ -6726,7 +6769,8 @@ func _draw_unit(unit: Dictionary) -> void:
 	var world_pos = Vector2(unit["pos"])
 	var card = _unit_card(unit)
 	var visual_scale = _animal_rarity_visual_scale(card)
-	if _uses_axial_battle_map() and not _is_world_pos_visible(world_pos, 54.0 * visual_scale):
+	var art_visual_scale = _animal_art_visual_scale(card)
+	if _uses_axial_battle_map() and not _is_world_pos_visible(world_pos, 54.0 * art_visual_scale):
 		return
 	var pos = _world_to_canvas(world_pos)
 	var team = int(unit["team"])
@@ -6741,7 +6785,7 @@ func _draw_unit(unit: Dictionary) -> void:
 		pos + Vector2(0, 14),
 		Vector2(44, 44),
 		UnitMotionFeedback.pose(unit),
-		visual_scale
+		art_visual_scale
 	)
 	var pct = clampf(float(unit["hp"]) / float(unit["max_hp"]), 0.0, 1.0)
 	_draw_compact_bar(Rect2(pos + Vector2(-18, 20), Vector2(36, 6)), pct, _team_health_color(team))
@@ -6754,8 +6798,27 @@ func _animal_rarity_visual_scale(card: Dictionary) -> float:
 	return float(ANIMAL_RARITY_VISUAL_SCALES.get(rarity, 1.0))
 
 
+func _animal_art_display_scale(card: Dictionary) -> float:
+	var card_id = String(card.get("id", ""))
+	return INTEGRATED_ANIMAL_ART_DISPLAY_SCALE if INTEGRATED_ANIMAL_ART_CARD_IDS.has(card_id) else 1.0
+
+
+func _animal_art_visual_scale(card: Dictionary) -> float:
+	return _animal_rarity_visual_scale(card) * _animal_art_display_scale(card)
+
+
 func _animal_texture_draw_scale(pose: Dictionary, visual_scale: float) -> Vector2:
 	return Vector2(pose.get("scale", Vector2.ONE)) * visual_scale
+
+
+func _draw_animal_art_in_rect(card: Dictionary, rect: Rect2, tint: Color = Color.WHITE, external_clip: Rect2 = Rect2()) -> void:
+	var display_scale = _animal_art_display_scale(card)
+	var draw_size = rect.size * display_scale
+	var draw_rect = Rect2(rect.get_center() - draw_size * 0.5, draw_size)
+	if _rect_has_area(external_clip):
+		_draw_texture_rect_clipped(_card_texture(card), draw_rect, external_clip, tint)
+	else:
+		draw_texture_rect(_card_texture(card), draw_rect, false, tint)
 
 
 func _draw_animal_texture_at_foot(texture: Texture2D, foot: Vector2, size: Vector2, pose: Dictionary, visual_scale: float = 1.0) -> void:
@@ -6940,7 +7003,7 @@ func _draw_effect(effect: Dictionary) -> void:
 			dead_pos + Vector2(0, 14),
 			Vector2(44, 44),
 			UnitMotionFeedback.death_pose(effect),
-			_animal_rarity_visual_scale(dead_card)
+			_animal_art_visual_scale(dead_card)
 		)
 		return
 	if kind == "card_popup":
@@ -7298,7 +7361,7 @@ func _draw_card(rect: Rect2, card: Dictionary, selected: bool, show_collection_s
 	var art_bottom = name_rect.position.y - 5.0
 	var art_size = minf(rect.size.x - 30.0, maxf(44.0, art_bottom - art_top))
 	var art_rect = Rect2(Vector2(rect.position.x + (rect.size.x - art_size) * 0.5, art_top), Vector2(art_size, art_size))
-	draw_texture_rect(_card_texture(card), art_rect, false, tint)
+	_draw_animal_art_in_rect(card, art_rect, tint)
 	_box(name_rect, Color(0, 0, 0, 0.30), Color(1, 1, 1, 0.18), 1)
 	if not show_collection_state:
 		_draw_text_center(String(card.get("name", "")), name_rect, 15, Color.WHITE)
@@ -7330,7 +7393,7 @@ func _draw_card_clipped(rect: Rect2, card: Dictionary, selected: bool, clip_rect
 	var art_bottom = name_rect.position.y - 5.0
 	var art_size = minf(rect.size.x - 30.0, maxf(44.0, art_bottom - art_top))
 	var art_rect = Rect2(Vector2(rect.position.x + (rect.size.x - art_size) * 0.5, art_top), Vector2(art_size, art_size))
-	_draw_texture_rect_clipped(_card_texture(card), art_rect, clip_rect, tint)
+	_draw_animal_art_in_rect(card, art_rect, tint, clip_rect)
 	_box_clipped(name_rect, Color(0, 0, 0, 0.30), Color(1, 1, 1, 0.18), 1, clip_rect)
 	if owned:
 		_draw_text_center_clipped("Lv.%d  %s" % [_card_level(card_id), String(card.get("name", ""))], name_rect, 15, Color.WHITE, clip_rect)
@@ -7358,9 +7421,9 @@ func _draw_card_detail(rect: Rect2) -> void:
 	var art_rect = Rect2(rect.position + Vector2(20, 12), Vector2(88, 78))
 	var name_rect = Rect2(rect.position + Vector2(14, 92), Vector2(104, 28))
 	if detail_motion_progress >= 0.0:
-		_draw_animal_texture_at_foot(_card_texture(card), Vector2(art_rect.get_center().x, art_rect.end.y), art_rect.size, UnitMotionFeedback.power_up_pose(detail_motion_progress))
+		_draw_animal_texture_at_foot(_card_texture(card), Vector2(art_rect.get_center().x, art_rect.end.y), art_rect.size, UnitMotionFeedback.power_up_pose(detail_motion_progress), _animal_art_display_scale(card))
 	else:
-		draw_texture_rect(_card_texture(card), art_rect, false)
+		_draw_animal_art_in_rect(card, art_rect)
 	_box(name_rect, rarity_fill.darkened(0.16), Color(1, 1, 1, 0.18), 1)
 	_draw_text_center("Lv.%d  %s" % [_card_level(card_id), String(card.get("name", ""))], name_rect, 15, Color.WHITE)
 	var kind = _card_kind(card)

@@ -55,10 +55,10 @@ func _test_motion_math_keeps_logic_state_stable() -> void:
 
 func _test_rarity_visual_scaling_keeps_logic_state_stable() -> void:
 	var cases = [
-		{"card_id": "mouse", "rarity": "common", "scale": 1.0},
-		{"card_id": "cat", "rarity": "rare", "scale": 1.2},
-		{"card_id": "fox", "rarity": "epic", "scale": 1.5},
-		{"card_id": "bear", "rarity": "legendary", "scale": 1.8},
+		{"card_id": "mouse", "rarity": "common", "rarity_scale": 1.0, "art_scale": 1.35},
+		{"card_id": "cat", "rarity": "rare", "rarity_scale": 1.2, "art_scale": 1.35},
+		{"card_id": "fox", "rarity": "epic", "rarity_scale": 1.5, "art_scale": 1.35},
+		{"card_id": "bear", "rarity": "legendary", "rarity_scale": 1.8, "art_scale": 1.0},
 	]
 	var unit = {
 		"pos": Vector2(184.0, 362.0),
@@ -71,17 +71,23 @@ func _test_rarity_visual_scaling_keeps_logic_state_stable() -> void:
 	}
 	var unit_before = unit.duplicate(true)
 	var pose_before = pose.duplicate(true)
+	_expect_equal(MainApp.INTEGRATED_ANIMAL_ART_CARD_IDS.size(), 40, "integrated animal art scale roster has exactly 40 cards")
 	for test_case in cases:
 		var card_id = String(test_case["card_id"])
 		var expected_rarity = String(test_case["rarity"])
-		var expected_visual_scale = float(test_case["scale"])
+		var expected_rarity_scale = float(test_case["rarity_scale"])
+		var expected_art_scale = float(test_case["art_scale"])
 		var card: Dictionary = app.call("_card_by_id", card_id)
 		_expect_false(card.is_empty(), "%s card is available for rarity scale test" % card_id)
 		_expect_equal(String(card.get("rarity", "")), expected_rarity, "%s uses the expected rarity" % card_id)
-		var visual_scale = float(app.call("_animal_rarity_visual_scale", card))
-		_expect_close(visual_scale, expected_visual_scale, "%s uses the configured visual scale" % expected_rarity)
+		var rarity_scale = float(app.call("_animal_rarity_visual_scale", card))
+		var art_scale = float(app.call("_animal_art_display_scale", card))
+		var visual_scale = float(app.call("_animal_art_visual_scale", card))
+		_expect_close(rarity_scale, expected_rarity_scale, "%s uses the configured rarity scale" % expected_rarity)
+		_expect_close(art_scale, expected_art_scale, "%s uses the expected integrated-art display scale" % card_id)
+		_expect_close(visual_scale, expected_rarity_scale * expected_art_scale, "%s combines rarity and integrated-art scales" % card_id)
 		var combined_scale = Vector2(app.call("_animal_texture_draw_scale", pose, visual_scale))
-		var expected_combined = Vector2(pose["scale"]) * expected_visual_scale
+		var expected_combined = Vector2(pose["scale"]) * expected_rarity_scale * expected_art_scale
 		_expect_close(combined_scale.x, expected_combined.x, "%s multiplies procedural x scale" % expected_rarity)
 		_expect_close(combined_scale.y, expected_combined.y, "%s multiplies procedural y scale" % expected_rarity)
 	_expect_equal(pose, pose_before, "rarity visual scaling does not mutate the procedural pose")
