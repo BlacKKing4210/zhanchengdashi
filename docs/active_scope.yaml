@@ -4,9 +4,9 @@ updated_on: "2026-08-11"
 purpose: authoritative active priorities task ownership and shared write locks
 
 authority:
-  producer: producer_user
+  producer: null
   design_owner: null
-  engineering_owner: codex_primary
+  engineering_owner: null
   art_owner: null
   pm_execution_operator: null
   default_write_scope: none
@@ -43,32 +43,7 @@ feature_progress:
   not_applicable_display: Not needed
   source_collection: [functional_documents, numeric_or_config_tables, version_plan, filed_producer_directives, latest_accountable_receipts]
 
-active_modules:
-  - feature_id: F-ZC-RELEASE-20260811
-    task_id: REQ-20260811-RELEASE-AND-PUSH
-    title: three_platform_release_and_git_publication
-    phase: release
-    owner: codex_primary
-    branch: codex/animal-art-integration-20260811
-    state: RUNNING
-    evidence_root: docs/receipts/F-ZC-RELEASE-20260811-CLOSE-003.md
+active_modules: []
 queued_modules: []
 
-shared_locks:
-  release_artifacts:
-    owner: codex_primary
-    task_id: REQ-20260811-RELEASE-AND-PUSH
-    paths:
-      - build/windows/*
-      - build/android/*
-      - build/web/*
-    acquired_on: "2026-08-11"
-  git_publication:
-    owner: codex_primary
-    task_id: REQ-20260811-RELEASE-AND-PUSH
-    paths:
-      - refs/heads/codex/animal-art-integration-20260811
-      - refs/heads/main
-      - origin/codex/animal-art-integration-20260811
-      - origin/main
-    acquired_on: "2026-08-11"
+shared_locks: {}
