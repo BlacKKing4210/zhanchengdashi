@@ -17,7 +17,7 @@ func _ready() -> void:
 	app = MainApp.new()
 	add_child(app)
 	_test_rarity_visual_scaling_keeps_logic_state_stable()
-	_test_battle_animal_alpha_foot_alignment()
+	_test_battle_animal_clean_groundline_alignment()
 	_test_runtime_triggers_keep_world_state_stable()
 	_test_gold_gain_feedback()
 	_test_unit_value_feedback()
@@ -95,11 +95,13 @@ func _test_rarity_visual_scaling_keeps_logic_state_stable() -> void:
 	_expect_equal(unit, unit_before, "rarity visual scaling does not mutate unit world state")
 
 
-func _test_battle_animal_alpha_foot_alignment() -> void:
+func _test_battle_animal_clean_groundline_alignment() -> void:
 	var cases = [
-		{"card_id": "parrot", "bottom_padding_pixels": 59.0},
+		{"card_id": "parrot", "bottom_padding_pixels": 127.0},
 		{"card_id": "rabbit", "bottom_padding_pixels": 106.0},
-		{"card_id": "pigeon", "bottom_padding_pixels": 145.0},
+		{"card_id": "seal", "bottom_padding_pixels": 117.0},
+		{"card_id": "sheep", "bottom_padding_pixels": 91.0},
+		{"card_id": "pig", "bottom_padding_pixels": 77.0},
 	]
 	var draw_size = Vector2(44.0, 44.0)
 	var unit = {
@@ -117,7 +119,7 @@ func _test_battle_animal_alpha_foot_alignment() -> void:
 		var alpha_bottom = used_rect.position.y + used_rect.size.y
 		var measured_ratio = float(image.get_height() - alpha_bottom) / float(image.get_height())
 		var configured_ratio = float(app.call("_animal_art_bottom_padding_ratio", card))
-		_expect_close(configured_ratio, measured_ratio, "%s configured foot ratio matches its imported alpha pixels" % card_id)
+		_expect_close(configured_ratio, measured_ratio, "%s configured groundline matches its cleaned imported alpha pixels" % card_id)
 	for test_case in cases:
 		var card_id = String(test_case["card_id"])
 		var expected_ratio = float(test_case["bottom_padding_pixels"]) / 480.0
@@ -125,8 +127,8 @@ func _test_battle_animal_alpha_foot_alignment() -> void:
 		var actual_ratio = float(app.call("_animal_art_bottom_padding_ratio", card))
 		var foot_rect = Rect2(app.call("_animal_texture_foot_rect", draw_size, actual_ratio))
 		var visible_alpha_bottom = foot_rect.position.y + draw_size.y * (1.0 - actual_ratio)
-		_expect_close(actual_ratio, expected_ratio, "%s uses its measured transparent-bottom ratio" % card_id)
-		_expect_close(visible_alpha_bottom, 0.0, "%s visible alpha ends at the logical battle foot" % card_id)
+		_expect_close(actual_ratio, expected_ratio, "%s uses its cleaned subject-bottom ratio" % card_id)
+		_expect_close(visible_alpha_bottom, 0.0, "%s cleaned subject ends at the logical battle foot" % card_id)
 	_expect_close(20.0 - 14.0, 6.0, "fixed HP bar remains six design pixels below the logical foot")
 	var old_card: Dictionary = app.call("_card_by_id", "bear")
 	var old_ratio = float(app.call("_animal_art_bottom_padding_ratio", old_card))

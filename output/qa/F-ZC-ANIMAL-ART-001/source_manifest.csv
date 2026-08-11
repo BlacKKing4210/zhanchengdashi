@@ -4,38 +4,38 @@ ant,蚂蚁,蚂蚁.png,res://assets/card_art/animals/ant.png,d489af6743cd14df6536
 sparrow,麻雀,麻雀.png,res://assets/card_art/animals/sparrow.png,7f1b48d235ff249be2d3befd3deeb23ad1f2fdb9645d01bbff28189260b16e39,integrated,producer supplied 2026-08-11
 frog,青蛙,青蛙.png,res://assets/card_art/animals/frog.png,af4e1a44e00c1477865795544bcfde4ea9fca256b1d88f9ea0f45cefe167cf6b,integrated,producer supplied 2026-08-11
 rabbit,兔子,兔子.png,res://assets/card_art/animals/rabbit.png,1ebc2dee3f29b6e41465720aeb1ff565bbfa155cd08de93b83aeef3b68b5a11c,integrated,representative runtime slice
-chicken,鸡,鸡.png,res://assets/card_art/animals/chicken.png,01af1728483d11eb05cdb555713de7025dec5e60bfca4e1cf6c6e5764e6e49bd,integrated,producer supplied 2026-08-11
-pigeon,鸽子,鸽子.png,res://assets/card_art/animals/pigeon.png,9a491fdc22246e321d0dd00abf454e96f2ca64cc4211f0c9a65952cef18b7b93,integrated,producer supplied 2026-08-11
+chicken,鸡,鸡.png,res://assets/card_art/animals/chicken.png,bdcd6388b0c21ebcb2565ea930cb008f3affeddd704d882e2a2c29fa626853f5,integrated,producer supplied 2026-08-11; deterministic low-alpha canvas cleanup 2026-08-11
+pigeon,鸽子,鸽子.png,res://assets/card_art/animals/pigeon.png,092792157eaeb84d5cf1e39466e1051acb668994bc36dd2ad53a6fe0d005626b,integrated,producer supplied 2026-08-11; deterministic low-alpha canvas cleanup 2026-08-11
 hamster,仓鼠,仓鼠.png,res://assets/card_art/animals/hamster.png,c58f85bbd6adfb39110c6f102428b9d7aa930ef72a1b5b376af5f2f91fc9a42a,integrated,producer supplied 2026-08-11
 snail,蜗牛,蜗牛.png,res://assets/card_art/animals/snail.png,4b973f2a16fa7583125a437aa7cf6479ccec4277a706eadfd0f7a572fa2d13ff,integrated,producer supplied 2026-08-11
-tadpole,蝌蚪,蝌蚪.png,res://assets/card_art/animals/tadpole.png,b8f1cc8f11dd432fa2dba53b8e93210330e70d95c2acbe503d205c98d80ac9cc,integrated,producer supplied 2026-08-11
+tadpole,蝌蚪,蝌蚪.png,res://assets/card_art/animals/tadpole.png,b3d7cc94b841abeaee347a195da0a55af4e637931b10903581ff419ae68a7eee,integrated,producer supplied 2026-08-11; deterministic low-alpha canvas cleanup 2026-08-11
 cat,猫,猫.png,res://assets/card_art/animals/cat.png,5d7899d0b3bba633547b3939b7c7e5aac2c82406c99bc49bced4e2376a697c91,integrated,producer supplied 2026-08-11
-dog,狗,狗.png,res://assets/card_art/animals/dog.png,a53f5fc47d2c2dc4253b32bea31cbf127afae614f2e589d358a9cdcc48e5f244,integrated,producer supplied 2026-08-11
-duck,鸭,鸭.png,res://assets/card_art/animals/duck.png,122d38e39203f2eea03e1ccd22359b41f3894ca5bddd6c2b05476707d7cef919,integrated,producer supplied 2026-08-11
+dog,狗,狗.png,res://assets/card_art/animals/dog.png,0427a119a6a1d45e48b44b468878ad02208a2669462563696f02db21052bf8f8,integrated,producer supplied 2026-08-11; deterministic low-alpha canvas cleanup 2026-08-11
+duck,鸭,鸭.png,res://assets/card_art/animals/duck.png,74febe8569d95afebbfebf93e2e9b8e2dfcba353f945e8aac4907de7be164853,integrated,producer supplied 2026-08-11; deterministic low-alpha canvas cleanup 2026-08-11
 squirrel,松鼠,松鼠.png,res://assets/card_art/animals/squirrel.png,fdf8a4a95ff170331f3a90d2832ce9bcc601f56069e73097147ac8b14d2114ce,integrated,producer supplied 2026-08-11
 hedgehog,刺猬,刺猬.png,res://assets/card_art/animals/hedgehog.png,8ff989e5c723e53a44a6c3d562f2066c0df37a6f5799ffc479af6f930178979e,integrated,producer supplied 2026-08-11
-turtle,乌龟,乌龟.png,res://assets/card_art/animals/turtle.png,864f4889ee3ddb3c164d29dcd4cdbd0bfdfdf9ca5dab0975851e3e992e961cf6,integrated,producer supplied 2026-08-11
+turtle,乌龟,乌龟.png,res://assets/card_art/animals/turtle.png,c8616079b65d85e226cd442aed13fcb398e80a1573b2f31c3d8a28f9935b1d03,integrated,producer supplied 2026-08-11; deterministic low-alpha canvas cleanup 2026-08-11
 goat,山羊,山羊.png,res://assets/card_art/animals/goat.png,d774b5946225662d7fb63e88e6519e9ea4cb0ed9b62bb23f95b087fb9c963cc9,integrated,producer supplied 2026-08-11
-sheep,羊,羊.png,res://assets/card_art/animals/sheep.png,db6ba9f2d599c9e827fb0af296afb73b801eb3c9e43711fdf1a1470a1787b0dd,integrated,producer supplied 2026-08-11
-parrot,鹦鹉,鹦鹉.png,res://assets/card_art/animals/parrot.png,055f33fcde5bbe55b7c604811be6734557997486faf542c95e0a466e879dc61e,integrated,producer supplied 2026-08-11
+sheep,羊,羊.png,res://assets/card_art/animals/sheep.png,12ad2686d37a0f3ad658482ff1a0086c1c6dceeb2842ccbf374c6f66829f91d4,integrated,producer supplied 2026-08-11; deterministic low-alpha canvas cleanup 2026-08-11
+parrot,鹦鹉,鹦鹉.png,res://assets/card_art/animals/parrot.png,7ec7b09a151fbdb2b2e00b973a08b79b58785180fcab7af88207890e7469f53e,integrated,producer supplied 2026-08-11; deterministic low-alpha canvas cleanup 2026-08-11
 fox,狐狸,狐狸.png,res://assets/card_art/animals/fox.png,310fbed36f970caabd796cadfdb29d69ae92772e57e7cbf257c345f1cf5a5ef7,integrated,producer supplied 2026-08-11
 monkey,猴子,猴子.png,res://assets/card_art/animals/monkey.png,24850ab146bae132072b3ede416090e1882ac7d848346ebb6b353d54d5c3bc40,integrated,producer supplied 2026-08-11
-pig,猪,猪.png,res://assets/card_art/animals/pig.png,5702639f44043a2abdc830e3bec23fcf1672417e4cfdbdd575eaee4086aaf661,integrated,producer supplied 2026-08-11
-deer,鹿,鹿.png,res://assets/card_art/animals/deer.png,0244c08d0dfacd7a2e003dcacd9f1283eec4e37ee60ae989710a9f0ed093fbb5,integrated,producer supplied 2026-08-11
+pig,猪,猪.png,res://assets/card_art/animals/pig.png,86a72c0f453586f6c86dd51d1e4cc236d4a9e7b86a3bb6aeb0acab9a654b96f2,integrated,producer supplied 2026-08-11; deterministic low-alpha canvas cleanup 2026-08-11
+deer,鹿,鹿.png,res://assets/card_art/animals/deer.png,63e9df5884a2d8d8d53443306bfb8b973db06bc8f6d89e52a4254a2ab02446b2,integrated,producer supplied 2026-08-11; deterministic low-alpha canvas cleanup 2026-08-11
 beaver,河狸,河狸.png,res://assets/card_art/animals/beaver.png,ef550972f0bce1721919d9bd665b51124987404e9b5dae50c1817f833a83d4cf,integrated,producer supplied 2026-08-11
 otter,水獭,水獭.png,res://assets/card_art/animals/otter.png,0324c9025331e5853ebac08ca654ce85de4e6a8555e0ab792aeadc61e272f7e4,integrated,producer supplied 2026-08-11
-penguin,企鹅,企鹅.png,res://assets/card_art/animals/penguin.png,24f6b76a166f0e65bf2831454256c06d9481779458081982e778f5b7f456bf4d,integrated,producer supplied 2026-08-11
-peacock,孔雀,孔雀.png,res://assets/card_art/animals/peacock.png,9467542b187b3dc603d98a0a2ea7aa605eeeeff2ae30ed2eb52febee134a11f2,integrated,producer supplied 2026-08-11
+penguin,企鹅,企鹅.png,res://assets/card_art/animals/penguin.png,327e9a2bf0cc3c58dd2c4ef0cb8a9725539a98d82aca5428a083a70e8125881d,integrated,producer supplied 2026-08-11; deterministic low-alpha canvas cleanup 2026-08-11
+peacock,孔雀,孔雀.png,res://assets/card_art/animals/peacock.png,880fada7318bc54977691c2bbf0e73ed486fd9891ae5fa7ed0d4cc741e549da1,integrated,producer supplied 2026-08-11; deterministic low-alpha canvas cleanup 2026-08-11
 kangaroo,袋鼠,袋鼠.png,res://assets/card_art/animals/kangaroo.png,70f6ceb2c5b386257c31f95eddd3f73f62ee5906b93e1704d3f80ff7b38d2176,integrated,producer supplied 2026-08-11
-seal,海豹,海豹.png,res://assets/card_art/animals/seal.png,b803214c0172e51c96b460c1d34c8dfd90f1c36ae3aefd222871f8c2048fbba1,integrated,wide silhouette scale-out sample
+seal,海豹,海豹.png,res://assets/card_art/animals/seal.png,6cf14ae42ec68f3146f09ed2721c6cbb4b9d50622b682fd21e94509aca41f254,integrated,wide silhouette scale-out sample; deterministic low-alpha canvas cleanup 2026-08-11
 swan,天鹅,天鹅（章鱼）.png,res://assets/card_art/animals/swan.png,52b0da2a96dfa4a63b28a4482da6512de408b649a73d722db3a3ca9657ee0dd6,integrated,producer filename maps octopus artwork to existing swan slot; card identity unchanged
 wolf,狼,狼.png,res://assets/card_art/animals/wolf.png,493bcaa18aa72c2e3de0097c599e3669fa82749e4366852eb40ed0c34a4737f5,integrated,producer supplied 2026-08-11
-horse,马,马.png,res://assets/card_art/animals/horse.png,a41a0dae3f588dd9e9cd219124ca310528370b1c2081342bc41cbe0956a7829d,integrated,producer supplied 2026-08-11
-cow,牛,牛.png,res://assets/card_art/animals/cow.png,d79b2e75aa2fad89d68221e586abc962573decdbb5ea1a70f5ddbfae4b187658,integrated,producer supplied 2026-08-11
-zebra,斑马,斑马.png,res://assets/card_art/animals/zebra.png,34a49ef2166e5d9a15eecbf524da0cd03a3188b872f4b7cd3f19ef5184e13007,integrated,producer supplied 2026-08-11
+horse,马,马.png,res://assets/card_art/animals/horse.png,3c35ccdce82c02b34c4f4f118ede203ee226c7c23668674443dc37b0dbad01b1,integrated,producer supplied 2026-08-11; deterministic low-alpha canvas cleanup 2026-08-11
+cow,牛,牛.png,res://assets/card_art/animals/cow.png,6f86ffc105ddf3c5b4826a9ceaa9dd157f9d371c400a8684641d1522330e782b,integrated,producer supplied 2026-08-11; deterministic low-alpha canvas cleanup 2026-08-11
+zebra,斑马,斑马.png,res://assets/card_art/animals/zebra.png,9c414c012a5d425dec231335331a4f1c78a16f3ec5fa2709069ec2df651847d7,integrated,producer supplied 2026-08-11; deterministic low-alpha canvas cleanup 2026-08-11
 camel,骆驼,骆驼.png,res://assets/card_art/animals/camel.png,d1435d0ba651387f7e74eb52e3b46ab133982ed26f138e633157d93ac13e6c63,integrated,producer supplied 2026-08-11
-dolphin,海豚,海豚.png,res://assets/card_art/animals/dolphin.png,a39a0ae9a0045a20a37e74a9cf36a2cfea6ee347b966206642a177115ca87e7c,integrated,producer supplied 2026-08-11
-falcon,猎鹰,猎鹰.png,res://assets/card_art/animals/falcon.png,3c5c000a2fe96c4a56f6a0634e43baaf1509d3371f58fd969c20a18838cacd05,integrated,producer supplied 2026-08-11
-boar,野猪,野猪.png,res://assets/card_art/animals/boar.png,1e08abef1fe4c9627ea0d0c57c2526d8e2bbd5ff509e65b532802005bc9841fc,integrated,producer supplied 2026-08-11
+dolphin,海豚,海豚.png,res://assets/card_art/animals/dolphin.png,0a80704e833cd8f076df9305942e108bc7e2743754d96d8ad43bd0a4794f541c,integrated,producer supplied 2026-08-11; deterministic low-alpha canvas cleanup 2026-08-11
+falcon,猎鹰,猎鹰.png,res://assets/card_art/animals/falcon.png,b96bef7c75938bb5ef5aed62493d16822b1cafc78bb2a8fa2105e785472243d2,integrated,producer supplied 2026-08-11; deterministic low-alpha canvas cleanup 2026-08-11
+boar,野猪,野猪.png,res://assets/card_art/animals/boar.png,979823c9931172e84cc2e0dc195e63c7d40091dc2341c6502b627fa59f8d8093,integrated,producer supplied 2026-08-11; deterministic low-alpha canvas cleanup 2026-08-11
 crane,鹤,鹤（鹅）.png,res://assets/card_art/animals/crane.png,0f5c02aa6dba437c723edccb2537298205920199915197b99a8de49987464b88,integrated,producer filename maps goose artwork to existing crane slot; card identity unchanged
-lynx,猞猁,猞猁.png,res://assets/card_art/animals/lynx.png,22468d2ed17150768ddfbaf9ffcf29938ff48c1e36c99621dc9469f7f82495f0,integrated,producer supplied 2026-08-11
+lynx,猞猁,猞猁.png,res://assets/card_art/animals/lynx.png,2b44a431274b62aee464208254e6b65f63c7701aff1b1e54bc49d4a7e3d16f1f,integrated,producer supplied 2026-08-11; deterministic low-alpha canvas cleanup 2026-08-11

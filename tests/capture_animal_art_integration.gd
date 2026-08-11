@@ -56,13 +56,19 @@ const INTEGRATED_CARD_IDS = [
 	"tadpole",
 ]
 
+const GROUNDLINE_AUDIT_ARG = "--animal-groundline-audit"
+
 var app: Node
 var output_dir = ""
 var failures = 0
 
 
 func _ready() -> void:
-	output_dir = ProjectSettings.globalize_path("res://output/qa/F-ZC-ANIMAL-ART-001")
+	var groundline_audit = GROUNDLINE_AUDIT_ARG in OS.get_cmdline_user_args()
+	if groundline_audit:
+		output_dir = ProjectSettings.globalize_path("res://tmp/animal_groundline_runtime")
+	else:
+		output_dir = ProjectSettings.globalize_path("res://output/qa/F-ZC-ANIMAL-ART-001")
 	var make_dir_error = DirAccess.make_dir_recursive_absolute(output_dir)
 	if make_dir_error != OK:
 		push_error("Unable to create animal art QA output: %s" % error_string(make_dir_error))
@@ -77,9 +83,13 @@ func _ready() -> void:
 	app.call("_layout", get_viewport().get_visible_rect().size)
 	_validate_integrated_textures()
 
-	for card_id in SAMPLE_CARD_IDS:
-		await _capture_deck_card(card_id)
-		await _capture_battle_unit(card_id)
+	if groundline_audit:
+		for card_id in INTEGRATED_CARD_IDS:
+			await _capture_battle_unit(card_id)
+	else:
+		for card_id in SAMPLE_CARD_IDS:
+			await _capture_deck_card(card_id)
+			await _capture_battle_unit(card_id)
 
 	if failures == 0:
 		print("ANIMAL_ART_CAPTURE_PASS: %s" % output_dir)
