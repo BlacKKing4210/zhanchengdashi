@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "index_path": "knowledge/index/project-rag.sqlite3",
+  "gate_receipt_path": "tmp/rag/receipts/rag-gate.json",
+  "task_receipt_dir": "tmp/rag/receipts/tasks",
+  "context_dir": "tmp/rag/context",
+  "chunking": {
+    "target_chars": 1600,
+    "overlap_chars": 240,
+    "min_chars": 80
+  },
+  "retrieval": {
+    "lexical_k": 24,
+    "vector_k": 24,
+    "final_k": 8,
+    "rrf_k": 60,
+    "vector_dimensions": 2048,
+    "max_context_chars": 18000,
+    "embedding_provider": "hashing-ngrams-v1",
+    "reranker": "authority-feature-overlap-v1"
+  },
+  "evaluation": {
+    "default_k": 5,
+    "min_mean_recall_at_k": 0.8,
+    "min_pass_rate": 1.0,
+    "require_all_queries": true
+  }
+}

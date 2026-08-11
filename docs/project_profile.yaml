@@ -1,0 +1,86 @@
+schema_version: 1
+project:
+  name: "占城大师"
+  root: 'D:\AI\zhanchengdashi'
+  engine: "Godot"
+  stage: prototype
+
+formal_sources:
+  workflow: docs/WORKFLOW.md
+  handoff: docs/PM_HANDOFF.md
+  active_scope: docs/active_scope.yaml
+  feature_progress: PM/feature_progress.xlsx
+  design_index: docs/design_index.md
+  config_index: docs/config_index.md
+  aliyun_deployment: production/deployment/aliyun-profile.yaml
+  rag_manifest: knowledge/knowledge_manifest.csv
+  rag_config: knowledge/rag_config.json
+  rag_golden_queries: knowledge/golden_queries.csv
+
+rag:
+  required_skill: game-project-rag
+  mandatory_for_all_project_requests: true
+  manifest: knowledge/knowledge_manifest.csv
+  config: knowledge/rag_config.json
+  golden_queries: knowledge/golden_queries.csv
+  gate_receipt: tmp/rag/receipts/rag-gate.json
+  task_receipt_dir: tmp/rag/receipts/tasks
+  context_dir: tmp/rag/context
+  fail_closed_state: "NOT READY: game project RAG"
+  refresh_after_active_source_change: true
+  require_request_and_feature_match: true
+  require_verifiable_citations: true
+
+research:
+  primary_search_method: anysearch
+  entry_url: https://www.anysearch.com/home
+  require_original_source_validation: true
+  unavailable_state: DEGRADED
+
+runtime:
+  project_path: 'D:\AI\zhanchengdashi'
+  candidate_paths: []
+  formal_asset_paths: []
+  task_temporary_root: tmp
+
+visual_quality:
+  required_skill: game-visual-quality-pipeline
+  approved_art_direction: null
+  representative_slice: null
+  target_platforms: []
+  target_resolutions: []
+  current_gate: PROTOTYPE_READABLE
+  scale_out_requires_runtime_slice_approval: true
+  release_requires_exported_runtime_evidence: true
+
+roles:
+  producer: null
+  design_owner: null
+  engineering_owner: null
+  art_owner: null
+  pm_execution_operator: null
+
+rules:
+  one_active_producer: true
+  rag_is_mandatory: true
+  chat_memory_is_not_project_authority: true
+  adaptive_execution: true
+  direct_specialist_conversations: true
+  activate_persistent_roles_only_when_needed: true
+  pm_execution_is_background_only: true
+  execution_requires_read_only_receipt: true
+  l1_may_combine_preflight_and_authorization: true
+  l2_l3_require_independent_milestone_review: true
+  one_writer_per_shared_file: true
+  existing_final_assets_have_priority: true
+  ui_temporary_visuals_allowed: true
+  non_ui_art_final_quality_from_first_production: true
+  visual_quality_is_style_agnostic: true
+  visual_scale_out_requires_approval: true
+  static_mockups_do_not_prove_runtime_quality: true
+  progress_queries_show_table_and_address: true
+  anysearch_is_primary_external_discovery: true
+  search_results_require_original_source_validation: true
+  server_deployment_target: aliyun_remote_only
+  local_server_deployment_allowed: false
+  remote_deployment_requires_profile_and_authorization: true

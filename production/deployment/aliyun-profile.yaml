@@ -1,0 +1,49 @@
+schema_version: 1
+provider: alibaba_cloud
+placement_policy: remote_only
+
+ownership:
+  producer: null
+  deployment_owner: null
+
+environments:
+  staging:
+    ssh_alias: null
+    region: null
+    host_role: null
+    operating_system: null
+    domains: []
+    ports: []
+    runtime_model: null
+    service_paths: []
+    release_root: null
+    dependencies: []
+    tls_and_reverse_proxy: null
+    health_checks: []
+    backup_plan: null
+    rollback_plan: null
+    monitoring: null
+  production:
+    ssh_alias: null
+    region: null
+    host_role: null
+    operating_system: null
+    domains: []
+    ports: []
+    runtime_model: null
+    service_paths: []
+    release_root: null
+    dependencies: []
+    tls_and_reverse_proxy: null
+    health_checks: []
+    backup_plan: null
+    rollback_plan: null
+    monitoring: null
+
+secrets:
+  repository_values_allowed: false
+  delivery_method: ssh_agent_or_approved_secret_store
+
+authorization:
+  staging_remote_writes: false
+  production_remote_writes: false

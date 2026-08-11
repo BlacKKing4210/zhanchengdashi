@@ -1,0 +1,9 @@
+query_id,query,expected_source_ids,feature_ids,min_recall_at_k,k
+GQ-001,Where is the authoritative producer-led workflow and its gates defined?,PROJECT_WORKFLOW,GLOBAL,1.0,5
+GQ-002,Which source records active priorities task ownership and shared write locks?,ACTIVE_SCOPE,GLOBAL,1.0,5
+GQ-003,Which file defines project roles engine runtime paths and formal sources?,PROJECT_PROFILE,GLOBAL,1.0,5
+GQ-ZC-001,战城大师当前游戏设计文档 单人对战 六边形地块 购买相邻地块 自动单位推进 胜负结算,ZC_CURRENT_DESIGN,F-ZC-001,1.0,8
+GQ-ZC-002,board_cell_types cell_type appearance_weight appearance_probability_pct cell_unit cell_defense,ZC_BOARD_CELL_TYPES_CSV,F-ZC-001,1.0,8
+GQ-ZC-003,占城流程图 解析侧车 工作表 简图 游戏框架 ROGUE战斗 营地训练 占城GVG,ZC_FLOW_SIDECAR,F-ZC-001,1.0,8
+GQ-ZC-004,cards id name rarity attack max_hp move_speed attack_range summon_interval_sec skill_text,ZC_CARDS_CSV,F-ZC-001,1.0,8
+GQ-CONFIG-CSV-001,Configuration CSV Three-Row Header Convention V1 Row 1 machine field names Row 2 Chinese field names Row 3 usage notes Row 4 runtime data,CONFIG_TABLE_CONVENTION,GLOBAL-CONFIG,1.0,8

@@ -1,0 +1,48 @@
+schema_version: 1
+scope_id: SCOPE-001
+updated_on: "2026-07-27"
+
+authority:
+  producer: null
+  design_owner: null
+  engineering_owner: null
+  art_owner: null
+  pm_execution_operator: null
+  default_write_scope: none
+
+rag:
+  required: true
+  status: SEE_GATE_RECEIPT
+  gate_receipt: tmp/rag/receipts/rag-gate.json
+  live_task_receipt_dir: tmp/rag/receipts/tasks
+  live_context_dir: tmp/rag/context
+  dynamic_state_is_receipt_backed: true
+  refresh_required_after_source_change: true
+
+priority_order:
+  source: PM/feature_progress.xlsx
+  same_priority_tiebreaker: feature_id_ascending
+  completed_features_last: true
+  skip_only_for: [unmet_dependency, shared_lock, safety_blocker]
+
+monitoring:
+  active_batch_nodes: []
+  active_batch_tasks: []
+  dependency_paused_nodes: []
+  deferred_paused_nodes: []
+  exception_interval_minutes: 30
+  progress_refresh_interval_hours: 6
+  healthy_result: quiet
+
+feature_progress:
+  workbook: PM/feature_progress.xlsx
+  first_sheet: Nine Dimensions
+  row_definition: one_complete_feature
+  dimensions: [design_document, numeric_table, code, scene, UI, icon_or_image, scene_integration, image_integration, UI_integration]
+  not_applicable_display: Not needed
+  source_collection: [functional_documents, numeric_or_config_tables, version_plan, filed_producer_directives, latest_accountable_receipts]
+
+active_modules: []
+queued_modules: []
+
+shared_locks: {}

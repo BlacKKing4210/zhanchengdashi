@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://tests/test_legendary_camp_guards.gd" id="1_test"]
+
+[node name="LegendaryCampGuardsTest" type="Node"]
+script = ExtResource("1_test")
