@@ -3736,7 +3736,6 @@ func _apply_unit_spawn_skill(index: int) -> void:
 	if text.contains("移速提高"):
 		units[index]["haste_timer"] = maxf(float(units[index].get("haste_timer", 0.0)), 3.0)
 		_trigger_unit_motion(index, UnitMotionFeedback.KIND_STAT_GAIN)
-		_show_unit_value_feedback(index, "speed", 3.0, "s")
 	if _unit_uses_structured_skill(unit) and String(unit.get("skill_trigger", "")) == "on_spawn":
 		match String(unit.get("skill_effect", "")):
 			"gold":
@@ -3752,7 +3751,6 @@ func _apply_unit_spawn_skill(index: int) -> void:
 			"buff_speed":
 				units[index]["haste_timer"] = maxf(float(units[index].get("haste_timer", 0.0)), 3.0)
 				_trigger_unit_motion(index, UnitMotionFeedback.KIND_STAT_GAIN)
-				_show_unit_value_feedback(index, "speed", 3.0, "s")
 			"stun":
 				_stun_enemy_units_in_radius(int(unit["team"]), Vector2(unit["pos"]), SKILL_AURA_RADIUS, _unit_stun_seconds(unit))
 
@@ -4168,7 +4166,7 @@ func _show_gold_gain_feedback(anchor: Dictionary, amount: int, team: int) -> voi
 
 
 func _show_unit_value_feedback(index: int, stat: String, amount: float, suffix: String = "") -> void:
-	if index < 0 or index >= units.size() or is_zero_approx(amount):
+	if not _is_unit_value_feedback_visible(stat) or index < 0 or index >= units.size() or is_zero_approx(amount):
 		return
 	var unit_id = int(units[index].get("id", -1))
 	var pos = Vector2(units[index].get("pos", Vector2.ZERO)) + Vector2(0, -34)
@@ -4335,7 +4333,6 @@ func _add_aura_speed(team: int, pos: Vector2, mult: float, global: bool) -> void
 		if global or pos.distance_to(Vector2(units[i]["pos"])) <= SKILL_AURA_RADIUS:
 			var speed_before = float(units[i].get("speed", 0.0))
 			units[i]["speed"] = speed_before * mult
-			_show_unit_value_feedback(i, "speed", float(units[i]["speed"]) - speed_before)
 
 
 func _add_aura_speed_flat(team: int, pos: Vector2, amount: float, global: bool) -> void:
@@ -4345,7 +4342,6 @@ func _add_aura_speed_flat(team: int, pos: Vector2, amount: float, global: bool) 
 			continue
 		if global or pos.distance_to(Vector2(units[i]["pos"])) <= SKILL_AURA_RADIUS:
 			units[i]["speed"] = float(units[i].get("speed", 0.0)) + battle_amount
-			_show_unit_value_feedback(i, "speed", battle_amount)
 
 
 func _stun_enemy_units_in_radius(team: int, pos: Vector2, radius: float, seconds: float) -> void:
@@ -7061,6 +7057,8 @@ func _draw_effect(effect: Dictionary) -> void:
 		var rise = UNIT_VALUE_FEEDBACK_RISE * (1.0 - pow(1.0 - progress, 2.0))
 		var pos = _world_to_canvas(_effect_world_position(effect)) + Vector2(0, -rise)
 		var stat = String(effect.get("stat", "attack"))
+		if not _is_unit_value_feedback_visible(stat):
+			return
 		var color = _unit_value_feedback_color(stat)
 		color.a = alpha
 		var shadow = Color(0.04, 0.05, 0.07, 0.38 * alpha)
@@ -7095,6 +7093,10 @@ func _unit_value_feedback_text(stat: String, amount: float, suffix: String) -> S
 	var magnitude = str(roundi(absf(amount))) if is_equal_approx(absf(amount), float(roundi(absf(amount)))) else "%.1f" % absf(amount)
 	var sign_text = "-" if amount < 0.0 or stat in ["slow", "stun"] else "+"
 	return "%s%s%s" % [sign_text, magnitude, suffix]
+
+
+func _is_unit_value_feedback_visible(stat: String) -> bool:
+	return stat != "speed"
 
 
 func _unit_value_feedback_color(stat: String) -> Color:
