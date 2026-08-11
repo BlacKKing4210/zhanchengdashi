@@ -12,7 +12,7 @@
 ## Delivered scope
 
 - Replaced exactly 40 existing animal-card PNGs using the producer-supplied source pixels.
-- Added `assets/card_art/animals/source_manifest.csv` with card IDs, Chinese names, source filenames, runtime targets, and SHA-256 values.
+- Added `output/qa/F-ZC-ANIMAL-ART-001/source_manifest.csv` with card IDs, Chinese names, source filenames, runtime targets, and SHA-256 values; it stays outside runtime export paths.
 - Added a repeatable Godot capture scene that validates all 40 texture resources and captures seven representative deck/battle pairs.
 - Added 14 target-resolution runtime screenshots plus the Godot capture receipt under `output/qa/F-ZC-ANIMAL-ART-001/`.
 

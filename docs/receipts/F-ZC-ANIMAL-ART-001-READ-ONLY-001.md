@@ -39,7 +39,7 @@
 ## Allowed Writes
 
 - `assets/card_art/animals/{mouse..lynx}.png` for the exact 40 mapped IDs.
-- `assets/card_art/animals/source_manifest.csv`.
+- `output/qa/F-ZC-ANIMAL-ART-001/source_manifest.csv`.
 - `tests/capture_animal_art_integration.gd` and `.tscn`.
 - `docs/receipts/F-ZC-ANIMAL-ART-001-*.md`.
 - `docs/active_scope.yaml` for the task-level owner and lock lifecycle.
