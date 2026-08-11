@@ -53,46 +53,47 @@ const ANIMAL_RARITY_VISUAL_SCALES = {
 }
 const INTEGRATED_ANIMAL_ART_DISPLAY_SCALE = 1.35
 const INTEGRATED_ANIMAL_ART_CARD_IDS = {
-	"mouse": true,
-	"ant": true,
-	"sparrow": true,
-	"frog": true,
-	"rabbit": true,
-	"chicken": true,
-	"pigeon": true,
-	"hamster": true,
-	"snail": true,
-	"tadpole": true,
-	"cat": true,
-	"dog": true,
-	"duck": true,
-	"squirrel": true,
-	"hedgehog": true,
-	"turtle": true,
-	"goat": true,
-	"sheep": true,
-	"parrot": true,
-	"fox": true,
-	"monkey": true,
-	"pig": true,
-	"deer": true,
-	"beaver": true,
-	"otter": true,
-	"penguin": true,
-	"peacock": true,
-	"kangaroo": true,
-	"seal": true,
-	"swan": true,
-	"wolf": true,
-	"horse": true,
-	"cow": true,
-	"zebra": true,
-	"camel": true,
-	"dolphin": true,
-	"falcon": true,
-	"boar": true,
-	"crane": true,
-	"lynx": true,
+	# Values are transparent-bottom pixels divided by the 480-pixel source height.
+	"mouse": 112.0 / 480.0,
+	"ant": 112.0 / 480.0,
+	"sparrow": 137.0 / 480.0,
+	"frog": 134.0 / 480.0,
+	"rabbit": 106.0 / 480.0,
+	"chicken": 81.0 / 480.0,
+	"pigeon": 145.0 / 480.0,
+	"hamster": 119.0 / 480.0,
+	"snail": 138.0 / 480.0,
+	"tadpole": 136.0 / 480.0,
+	"cat": 98.0 / 480.0,
+	"dog": 97.0 / 480.0,
+	"duck": 107.0 / 480.0,
+	"squirrel": 140.0 / 480.0,
+	"hedgehog": 101.0 / 480.0,
+	"turtle": 120.0 / 480.0,
+	"goat": 98.0 / 480.0,
+	"sheep": 65.0 / 480.0,
+	"parrot": 59.0 / 480.0,
+	"fox": 90.0 / 480.0,
+	"monkey": 89.0 / 480.0,
+	"pig": 61.0 / 480.0,
+	"deer": 62.0 / 480.0,
+	"beaver": 112.0 / 480.0,
+	"otter": 113.0 / 480.0,
+	"penguin": 103.0 / 480.0,
+	"peacock": 91.0 / 480.0,
+	"kangaroo": 73.0 / 480.0,
+	"seal": 68.0 / 480.0,
+	"swan": 115.0 / 480.0,
+	"wolf": 83.0 / 480.0,
+	"horse": 85.0 / 480.0,
+	"cow": 82.0 / 480.0,
+	"zebra": 115.0 / 480.0,
+	"camel": 77.0 / 480.0,
+	"dolphin": 100.0 / 480.0,
+	"falcon": 125.0 / 480.0,
+	"boar": 106.0 / 480.0,
+	"crane": 90.0 / 480.0,
+	"lynx": 77.0 / 480.0,
 }
 const CARD_SPEED_FAST_THRESHOLD = 65.0
 const CARD_SPEED_SUPER_FAST_THRESHOLD = 75.0
@@ -6785,7 +6786,8 @@ func _draw_unit(unit: Dictionary) -> void:
 		pos + Vector2(0, 14),
 		Vector2(44, 44),
 		UnitMotionFeedback.pose(unit),
-		art_visual_scale
+		art_visual_scale,
+		_animal_art_bottom_padding_ratio(card)
 	)
 	var pct = clampf(float(unit["hp"]) / float(unit["max_hp"]), 0.0, 1.0)
 	_draw_compact_bar(Rect2(pos + Vector2(-18, 20), Vector2(36, 6)), pct, _team_health_color(team))
@@ -6801,6 +6803,10 @@ func _animal_rarity_visual_scale(card: Dictionary) -> float:
 func _animal_art_display_scale(card: Dictionary) -> float:
 	var card_id = String(card.get("id", ""))
 	return INTEGRATED_ANIMAL_ART_DISPLAY_SCALE if INTEGRATED_ANIMAL_ART_CARD_IDS.has(card_id) else 1.0
+
+
+func _animal_art_bottom_padding_ratio(card: Dictionary) -> float:
+	return float(INTEGRATED_ANIMAL_ART_CARD_IDS.get(String(card.get("id", "")), 0.0))
 
 
 func _animal_art_visual_scale(card: Dictionary) -> float:
@@ -6821,12 +6827,17 @@ func _draw_animal_art_in_rect(card: Dictionary, rect: Rect2, tint: Color = Color
 		draw_texture_rect(_card_texture(card), draw_rect, false, tint)
 
 
-func _draw_animal_texture_at_foot(texture: Texture2D, foot: Vector2, size: Vector2, pose: Dictionary, visual_scale: float = 1.0) -> void:
+func _animal_texture_foot_rect(size: Vector2, bottom_padding_ratio: float = 0.0) -> Rect2:
+	var padding = size.y * clampf(bottom_padding_ratio, 0.0, 1.0)
+	return Rect2(Vector2(-size.x * 0.5, -size.y + padding), size)
+
+
+func _draw_animal_texture_at_foot(texture: Texture2D, foot: Vector2, size: Vector2, pose: Dictionary, visual_scale: float = 1.0, bottom_padding_ratio: float = 0.0) -> void:
 	var offset = Vector2(pose.get("offset", Vector2.ZERO))
 	var draw_scale = _animal_texture_draw_scale(pose, visual_scale)
 	var rotation = float(pose.get("rotation", 0.0))
 	draw_set_transform(canvas_offset + (foot + offset) * canvas_scale, rotation, draw_scale * canvas_scale)
-	draw_texture_rect(texture, Rect2(Vector2(-size.x * 0.5, -size.y), size), false)
+	draw_texture_rect(texture, _animal_texture_foot_rect(size, bottom_padding_ratio), false)
 	draw_set_transform(canvas_offset, 0.0, Vector2(canvas_scale, canvas_scale))
 
 

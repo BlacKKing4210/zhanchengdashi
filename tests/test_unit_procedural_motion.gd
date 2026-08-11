@@ -17,6 +17,7 @@ func _ready() -> void:
 	app = MainApp.new()
 	add_child(app)
 	_test_rarity_visual_scaling_keeps_logic_state_stable()
+	_test_battle_animal_alpha_foot_alignment()
 	_test_runtime_triggers_keep_world_state_stable()
 	_test_gold_gain_feedback()
 	_test_unit_value_feedback()
@@ -92,6 +93,47 @@ func _test_rarity_visual_scaling_keeps_logic_state_stable() -> void:
 		_expect_close(combined_scale.y, expected_combined.y, "%s multiplies procedural y scale" % expected_rarity)
 	_expect_equal(pose, pose_before, "rarity visual scaling does not mutate the procedural pose")
 	_expect_equal(unit, unit_before, "rarity visual scaling does not mutate unit world state")
+
+
+func _test_battle_animal_alpha_foot_alignment() -> void:
+	var cases = [
+		{"card_id": "parrot", "bottom_padding_pixels": 59.0},
+		{"card_id": "rabbit", "bottom_padding_pixels": 106.0},
+		{"card_id": "pigeon", "bottom_padding_pixels": 145.0},
+	]
+	var draw_size = Vector2(44.0, 44.0)
+	var unit = {
+		"pos": Vector2(184.0, 362.0),
+		"tile": Vector2i(4, 7),
+	}
+	var unit_before = unit.duplicate(true)
+	_expect_equal(MainApp.INTEGRATED_ANIMAL_ART_CARD_IDS.size(), 40, "battle foot-alignment roster has exactly 40 integrated cards")
+	for card_id_value in MainApp.INTEGRATED_ANIMAL_ART_CARD_IDS.keys():
+		var card_id = String(card_id_value)
+		var card: Dictionary = app.call("_card_by_id", card_id)
+		var texture: Texture2D = app.call("_card_texture", card)
+		var image = texture.get_image()
+		var used_rect = image.get_used_rect()
+		var alpha_bottom = used_rect.position.y + used_rect.size.y
+		var measured_ratio = float(image.get_height() - alpha_bottom) / float(image.get_height())
+		var configured_ratio = float(app.call("_animal_art_bottom_padding_ratio", card))
+		_expect_close(configured_ratio, measured_ratio, "%s configured foot ratio matches its imported alpha pixels" % card_id)
+	for test_case in cases:
+		var card_id = String(test_case["card_id"])
+		var expected_ratio = float(test_case["bottom_padding_pixels"]) / 480.0
+		var card: Dictionary = app.call("_card_by_id", card_id)
+		var actual_ratio = float(app.call("_animal_art_bottom_padding_ratio", card))
+		var foot_rect = Rect2(app.call("_animal_texture_foot_rect", draw_size, actual_ratio))
+		var visible_alpha_bottom = foot_rect.position.y + draw_size.y * (1.0 - actual_ratio)
+		_expect_close(actual_ratio, expected_ratio, "%s uses its measured transparent-bottom ratio" % card_id)
+		_expect_close(visible_alpha_bottom, 0.0, "%s visible alpha ends at the logical battle foot" % card_id)
+	_expect_close(20.0 - 14.0, 6.0, "fixed HP bar remains six design pixels below the logical foot")
+	var old_card: Dictionary = app.call("_card_by_id", "bear")
+	var old_ratio = float(app.call("_animal_art_bottom_padding_ratio", old_card))
+	var old_rect = Rect2(app.call("_animal_texture_foot_rect", draw_size, old_ratio))
+	_expect_close(old_ratio, 0.0, "non-integrated animal art receives no foot compensation")
+	_expect_close(old_rect.end.y, 0.0, "non-integrated animal foot rectangle remains unchanged")
+	_expect_equal(unit, unit_before, "battle foot alignment does not mutate unit world state")
 
 
 func _test_priority_and_pending_motion() -> void:
