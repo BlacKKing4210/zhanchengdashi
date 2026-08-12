@@ -235,6 +235,14 @@ static func create_match(
 	)
 	if base_keys.size() != team_ids.size():
 		return {}
+	if not _apply_exact_bonus_mine_quota(
+		tiles,
+		players_per_side,
+		base_keys,
+		cell_type_rows,
+		layout_seed
+	):
+		return {}
 
 	_compat_tiles = tiles
 	_compat_base_keys = base_keys
@@ -267,6 +275,14 @@ static func create_free_for_all_match(cell_type_rows: Array = [], seed: int = 0)
 		spawn_template
 	)
 	if base_keys.size() != TEAM_IDS.size():
+		return {}
+	if not _apply_exact_bonus_mine_quota(
+		tiles,
+		MAX_PLAYERS_PER_SIDE,
+		base_keys,
+		cell_type_rows,
+		layout_seed
+	):
 		return {}
 	_compat_tiles = tiles
 	_compat_base_keys = base_keys
@@ -804,6 +820,154 @@ static func _key_before(left: Vector2i, right: Vector2i) -> bool:
 	if left.y != right.y:
 		return left.y < right.y
 	return left.x < right.x
+
+
+static func _apply_exact_bonus_mine_quota(
+	tiles: Dictionary,
+	players_per_side: int,
+	base_keys: Dictionary,
+	cell_type_rows: Array,
+	layout_seed: int
+) -> bool:
+	_remove_unallocated_mines(tiles, players_per_side, cell_type_rows, layout_seed)
+	if players_per_side == MAX_PLAYERS_PER_SIDE:
+		var canonical_key = _rotational_bonus_mine_key(tiles, base_keys, layout_seed)
+		if canonical_key == INVALID_KEY:
+			return false
+		_set_rotated_site(tiles, canonical_key, BoardRules.mine_site(), "")
+		return true
+	for team in range(1, players_per_side + 1):
+		var left_key = _mirrored_bonus_mine_key(
+			tiles,
+			team,
+			players_per_side,
+			base_keys,
+			layout_seed
+		)
+		if left_key == INVALID_KEY:
+			return false
+		_set_mirrored_site(
+			tiles,
+			left_key,
+			mirror_key(left_key),
+			BoardRules.mine_site(),
+			""
+		)
+	return true
+
+
+static func _remove_unallocated_mines(
+	tiles: Dictionary,
+	players_per_side: int,
+	cell_type_rows: Array,
+	layout_seed: int
+) -> void:
+	if players_per_side == MAX_PLAYERS_PER_SIDE:
+		for key in tiles:
+			if team_for_key(tiles, key) != 1:
+				continue
+			var tile: Dictionary = tiles[key]
+			if String(tile.get("site", "")) != "mine":
+				continue
+			if String(tile.get("starting_resource", "")) == "mine":
+				continue
+			var site = BoardRules.non_mine_starting_site_for_key(
+				key,
+				cell_type_rows,
+				layout_seed
+			)
+			_set_rotated_site(tiles, key, site, "")
+		return
+	for key in tiles:
+		var tile: Dictionary = tiles[key]
+		if String(tile.get("site", "")) != "mine":
+			continue
+		if String(tile.get("starting_resource", "")) == "mine":
+			continue
+		var team = team_for_key(tiles, key)
+		if side_for_team(team, players_per_side) == SIDE_B:
+			continue
+		var mirrored = mirror_key(key)
+		if team == NEUTRAL and mirrored != key and not _key_before(key, mirrored):
+			continue
+		var site = BoardRules.non_mine_starting_site_for_key(
+			key,
+			cell_type_rows,
+			layout_seed
+		)
+		_set_mirrored_site(tiles, key, mirrored, site, "")
+
+
+static func _mirrored_bonus_mine_key(
+	tiles: Dictionary,
+	team: int,
+	players_per_side: int,
+	base_keys: Dictionary,
+	layout_seed: int
+) -> Vector2i:
+	var rival_team = mirror_team(team, players_per_side)
+	var own_base: Vector2i = base_keys.get(team, INVALID_KEY)
+	var rival_base: Vector2i = base_keys.get(rival_team, INVALID_KEY)
+	var best_key = INVALID_KEY
+	var best_score = 2147483647
+	for key in tiles:
+		if not _is_bonus_mine_candidate(tiles, key, team, own_base):
+			continue
+		var mirrored = mirror_key(key)
+		if not _is_bonus_mine_candidate(tiles, mirrored, rival_team, rival_base):
+			continue
+		var score = _derived_seed(layout_seed, "bonus_mine:%d:%d" % [key.x, key.y])
+		if score < best_score or (score == best_score and _key_before(key, best_key)):
+			best_score = score
+			best_key = key
+	return best_key
+
+
+static func _rotational_bonus_mine_key(
+	tiles: Dictionary,
+	base_keys: Dictionary,
+	layout_seed: int
+) -> Vector2i:
+	var best_key = INVALID_KEY
+	var best_score = 2147483647
+	for key in tiles:
+		if team_for_key(tiles, key) != 1:
+			continue
+		var all_sectors_valid = true
+		for sector in range(6):
+			var team = sector + 1
+			var rotated = rotate_key(key, sector)
+			var base: Vector2i = base_keys.get(team, INVALID_KEY)
+			if not _is_bonus_mine_candidate(tiles, rotated, team, base):
+				all_sectors_valid = false
+				break
+		if not all_sectors_valid:
+			continue
+		var score = _derived_seed(layout_seed, "bonus_mine:%d:%d" % [key.x, key.y])
+		if score < best_score or (score == best_score and _key_before(key, best_key)):
+			best_score = score
+			best_key = key
+	return best_key
+
+
+static func _is_bonus_mine_candidate(
+	tiles: Dictionary,
+	key: Vector2i,
+	team: int,
+	base_key: Vector2i
+) -> bool:
+	if not tiles.has(key) or base_key == INVALID_KEY:
+		return false
+	var tile: Dictionary = tiles[key]
+	if int(tile.get("territory_team", NEUTRAL)) != team:
+		return false
+	if not String(tile.get("building", "")).is_empty():
+		return false
+	if not String(tile.get("starting_resource", "")).is_empty():
+		return false
+	if String(tile.get("site", "")).is_empty():
+		return false
+	return key not in neighbors(tiles, base_key)
 
 
 static func _apply_mirrored_starting_resources(

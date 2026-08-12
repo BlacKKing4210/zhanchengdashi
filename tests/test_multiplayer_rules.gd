@@ -21,6 +21,8 @@ func _init() -> void:
 	_test_seeded_setup_variation()
 	_test_all_maps()
 	_test_free_for_all_regular_hex()
+	_test_mine_quota_across_seeds()
+	_test_runtime_config_mine_quota()
 	_test_shape_signatures()
 	_test_scrolling_bounds_scale()
 	if failures == 0:
@@ -194,6 +196,7 @@ func _test_all_maps() -> void:
 			_test_balanced_territories(match_data, players_per_side, map_id)
 			_test_player_symmetry(match_data, players_per_side, map_id)
 			_test_bases_and_resources(match_data, players_per_side, map_id)
+			_test_exact_mine_quota(match_data, players_per_side, map_id)
 			_test_connectivity(match_data, players_per_side, map_id)
 			_test_coordinates_and_bounds(match_data, map_id)
 			print(
@@ -227,6 +230,7 @@ func _test_free_for_all_regular_hex() -> void:
 	_test_balanced_territories(match_data, MultiplayerRules.MAX_PLAYERS_PER_SIDE, MultiplayerRules.FREE_FOR_ALL_MAP_ID)
 	_test_sixfold_rotation(match_data, MultiplayerRules.FREE_FOR_ALL_MAP_ID)
 	_test_bases_and_resources(match_data, MultiplayerRules.MAX_PLAYERS_PER_SIDE, MultiplayerRules.FREE_FOR_ALL_MAP_ID)
+	_test_exact_mine_quota(match_data, MultiplayerRules.MAX_PLAYERS_PER_SIDE, MultiplayerRules.FREE_FOR_ALL_MAP_ID)
 	_test_connectivity(match_data, MultiplayerRules.MAX_PLAYERS_PER_SIDE, MultiplayerRules.FREE_FOR_ALL_MAP_ID)
 	_test_coordinates_and_bounds(match_data, MultiplayerRules.FREE_FOR_ALL_MAP_ID)
 
@@ -389,6 +393,113 @@ func _test_bases_and_resources(match_data: Dictionary, players_per_side: int, ma
 			expected_base,
 			base_keys[opposing_team],
 			"%s opposing bases use the map's exact symmetry" % map_id
+		)
+
+
+func _test_exact_mine_quota(
+	match_data: Dictionary,
+	players_per_side: int,
+	map_id: String
+) -> void:
+	var tiles: Dictionary = match_data["tiles"]
+	var base_keys: Dictionary = match_data["base_keys"]
+	var active_teams = MultiplayerRules.active_team_ids(players_per_side)
+	var mines_by_team = {}
+	var starting_mines_by_team = {}
+	var bonus_mines_by_team = {}
+	for team in active_teams:
+		mines_by_team[team] = []
+		starting_mines_by_team[team] = []
+		bonus_mines_by_team[team] = []
+	for key in tiles:
+		var tile: Dictionary = tiles[key]
+		if String(tile.get("site", "")) != "mine":
+			continue
+		var owner = int(tile.get("territory_team", BoardRules.NEUTRAL))
+		_expect_true(owner in active_teams, "%s has no neutral or inactive-territory mine" % map_id)
+		_expect_equal(int(tile.get("site_cost", 0)), BoardRules.MINE_PRICE, "%s mine %s costs 50" % [map_id, str(key)])
+		if not owner in active_teams:
+			continue
+		mines_by_team[owner].append(key)
+		if String(tile.get("starting_resource", "")) == "mine":
+			starting_mines_by_team[owner].append(key)
+		else:
+			bonus_mines_by_team[owner].append(key)
+	for team in active_teams:
+		_expect_equal(mines_by_team[team].size(), 2, "%s team %d has exactly two total mines" % [map_id, team])
+		_expect_equal(starting_mines_by_team[team].size(), 1, "%s team %d has exactly one starting mine" % [map_id, team])
+		_expect_equal(bonus_mines_by_team[team].size(), 1, "%s team %d has exactly one bonus mine" % [map_id, team])
+		if bonus_mines_by_team[team].size() != 1:
+			continue
+		var base: Vector2i = base_keys.get(team, MultiplayerRules.INVALID_KEY)
+		var bonus_mine: Vector2i = bonus_mines_by_team[team][0]
+		_expect_false(
+			bonus_mine in MultiplayerRules.neighbors(tiles, base),
+			"%s team %d bonus mine is outside the initially unlockable base ring" % [map_id, team]
+		)
+
+
+func _test_mine_quota_across_seeds() -> void:
+	var regression_seeds = [1, 17, 24680, 987654]
+	for players_per_side in range(1, 4):
+		for map_id in MultiplayerRules.map_ids_for_size(players_per_side):
+			for seed in regression_seeds:
+				var match_data = MultiplayerRules.create_match(players_per_side, map_id, [], seed)
+				var label = "%s seed %d" % [map_id, seed]
+				_expect_false(match_data.is_empty(), "%s generates for mine quota regression" % label)
+				if not match_data.is_empty():
+					_test_exact_mine_quota(match_data, players_per_side, label)
+	for seed in regression_seeds:
+		var ffa_match = MultiplayerRules.create_free_for_all_match([], seed)
+		var label = "%s seed %d" % [MultiplayerRules.FREE_FOR_ALL_MAP_ID, seed]
+		_expect_false(ffa_match.is_empty(), "%s generates for mine quota regression" % label)
+		if not ffa_match.is_empty():
+			_test_exact_mine_quota(ffa_match, MultiplayerRules.MAX_PLAYERS_PER_SIDE, label)
+
+
+func _test_runtime_config_mine_quota() -> void:
+	var config_file = FileAccess.open("res://runtime/config/board_cells.json", FileAccess.READ)
+	_expect_true(config_file != null, "runtime board-cell config is readable")
+	if config_file == null:
+		return
+	var parsed = JSON.parse_string(config_file.get_as_text())
+	_expect_equal(typeof(parsed), TYPE_ARRAY, "runtime board-cell config contains an array")
+	if typeof(parsed) != TYPE_ARRAY:
+		return
+	var rows: Array = parsed
+	var expected_probabilities = {
+		"cell_question": 52.6,
+		"cell_unit": 31.6,
+		"cell_defense": 15.8,
+		"cell_gold_mine": 0.0,
+	}
+	for row in rows:
+		var row_id = String(row.get("id", ""))
+		if not expected_probabilities.has(row_id):
+			continue
+		_expect_true(
+			is_equal_approx(
+				float(row.get("appearance_probability_pct", -1.0)),
+				float(expected_probabilities[row_id])
+			),
+			"%s exports its normalized ordinary-pool probability" % row_id
+		)
+		if row_id == "cell_gold_mine":
+			_expect_equal(int(row.get("appearance_weight", -1)), 0, "runtime gold mine weight is zero")
+	for players_per_side in range(1, 4):
+		for map_id in MultiplayerRules.map_ids_for_size(players_per_side):
+			var match_data = MultiplayerRules.create_match(players_per_side, map_id, rows, 42042)
+			var label = "%s runtime config" % map_id
+			_expect_false(match_data.is_empty(), "%s generates" % label)
+			if not match_data.is_empty():
+				_test_exact_mine_quota(match_data, players_per_side, label)
+	var ffa_match = MultiplayerRules.create_free_for_all_match(rows, 42042)
+	_expect_false(ffa_match.is_empty(), "FFA runtime config generates")
+	if not ffa_match.is_empty():
+		_test_exact_mine_quota(
+			ffa_match,
+			MultiplayerRules.MAX_PLAYERS_PER_SIDE,
+			"FFA runtime config"
 		)
 
 

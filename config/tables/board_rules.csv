@@ -1,4 +1,4 @@
 id,map_key,randomize_cell_type_at_start,randomize_price_at_start,lock_cell_type_after_generation,lock_price_after_generation,mirror_axis,mirror_anchor,mirror_source,cell_type_weight_table,notes
 ID,地图键,开始时随机地块类型,开始时随机价格,生成后锁定地块类型,生成后锁定价格,镜像轴,镜像锚点,镜像来源,地块类型权重表,备注
 ,,,,,,,,,,
-default_board,map_default,true,true,true,true,horizontal,map_center,upper_to_lower,board_cells,每局开始时先在上半地图按 board_cells.appearance_weight 随机类型和价格，再以地图中心水平轴镜像到下半地图；地块一旦生成类型和价格，本局内不因解锁其他地块而重新随机
+default_board,map_default,true,true,true,true,horizontal,map_center,upper_to_lower,board_cells,每局开始时先按 board_cells.appearance_weight 为普通地块随机类型和价格，再按房间地图的镜像或六重旋转规则保持公平；金矿权重为0并由地图规则为每个势力固定放置1块基地相邻初始金矿和1块非相邻额外金矿；地块一旦生成类型和价格，本局内不因解锁其他地块而重新随机

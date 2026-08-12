@@ -12,13 +12,13 @@
     "income_amount": 0,
     "income_interval_sec": 0.0,
     "appearance_weight": 50,
-    "appearance_probability_pct": 50.0,
+    "appearance_probability_pct": 52.6,
     "risk_level": 1,
     "effect_tags": [
       "question",
       "mystery"
     ],
-    "notes": "开局随机地块类型之一，价格永远25，购买后按问号池抽空/防御/单位/金币"
+    "notes": "普通地块随机类型之一，价格永远25，购买后按问号池抽空/防御/单位/金币"
   },
   {
     "id": "cell_unit",
@@ -33,13 +33,13 @@
     "income_amount": 0,
     "income_interval_sec": 0.0,
     "appearance_weight": 30,
-    "appearance_probability_pct": 30.0,
+    "appearance_probability_pct": 31.6,
     "risk_level": 2,
     "effect_tags": [
       "unit",
       "card"
     ],
-    "notes": "开局随机出类型和价格，价格从50/100/250中抽，价格越高进入越高品质的单位卡池"
+    "notes": "普通地块随机类型之一，价格从50/100/250中抽，价格越高进入越高品质的单位卡池"
   },
   {
     "id": "cell_defense",
@@ -54,14 +54,14 @@
     "income_amount": 0,
     "income_interval_sec": 0.0,
     "appearance_weight": 15,
-    "appearance_probability_pct": 15.0,
+    "appearance_probability_pct": 15.8,
     "risk_level": 2,
     "effect_tags": [
       "defense",
       "tower",
       "card"
     ],
-    "notes": "开局随机出类型和价格，价格池同单位地块，价格越高进入越高品质的防御卡池"
+    "notes": "普通地块随机类型之一，价格池同单位地块，价格越高进入越高品质的防御卡池"
   },
   {
     "id": "cell_gold_mine",
@@ -75,14 +75,14 @@
     "income_currency": "gold",
     "income_amount": 10,
     "income_interval_sec": 3.0,
-    "appearance_weight": 5,
-    "appearance_probability_pct": 5.0,
+    "appearance_weight": 0,
+    "appearance_probability_pct": 0.0,
     "risk_level": 1,
     "effect_tags": [
       "gold",
       "income"
     ],
-    "notes": "非常稀有的金矿类型，价格永远50，占领后每3秒产出10金币；双方初始可解锁地块中各保证有且仅有1块金矿"
+    "notes": "不参与普通随机地块池；每个势力固定生成1块基地相邻初始金矿和1块非相邻额外金矿，总计严格2块；价格永远50，占领后每3秒产出10金币"
   },
   {
     "id": "cell_home_base",
