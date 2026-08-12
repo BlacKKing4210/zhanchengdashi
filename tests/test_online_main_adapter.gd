@@ -60,8 +60,8 @@ func _test_legacy_server_profile_without_rank_mirrors() -> void:
 	})
 	_expect_equal(
 		(app.get("rank_db") as Dictionary).get("mirrors", {}),
-		existing_mirrors,
-		"legacy server profile without rank_mirrors keeps local winner lineups without errors"
+		{},
+		"legacy server profile without current-policy rank_mirrors clears stale local lineups"
 	)
 
 

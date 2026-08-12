@@ -23,7 +23,7 @@ func _ready() -> void:
 	_expect_equal(transport._installation_id, installation_id, "legacy credentials retain the installation id")
 	_expect_equal(transport._refresh_token, "", "legacy credentials clear the unscoped refresh token")
 	var migrated = _read_credentials()
-	_expect_equal(int(migrated.get("version", 0)), 2, "legacy credentials are migrated to version two")
+	_expect_equal(int(migrated.get("version", 0)), 3, "legacy credentials are migrated to the current version three format")
 	_expect_equal(String(migrated.get("server_identity", "")), "old.example.com:24567", "migrated credentials record their server identity")
 
 	_write_credentials({

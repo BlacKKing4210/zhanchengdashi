@@ -1,12 +1,12 @@
 schema_version: 1
 scope_id: SCOPE-001
-updated_on: "2026-08-11"
+updated_on: "2026-08-12"
 purpose: authoritative active priorities task ownership and shared write locks
 
 authority:
-  producer: null
+  producer: user-producer
   design_owner: null
-  engineering_owner: null
+  engineering_owner: codex-primary
   art_owner: null
   pm_execution_operator: null
   default_write_scope: none
@@ -43,7 +43,40 @@ feature_progress:
   not_applicable_display: Not needed
   source_collection: [functional_documents, numeric_or_config_tables, version_plan, filed_producer_directives, latest_accountable_receipts]
 
-active_modules: []
+active_modules:
+  - task_id: REQ-20260812-PRODUCER-CAMERA-MAP-ACCOUNT-APK
+    feature_id: GLOBAL
+    version: 2026-08-12-producer-bundle-v1
+    phase: closure
+    domain: cross_domain
+    owner: codex-primary
+    status: COMPLETE
+    completed_on: "2026-08-12"
+    fingerprint: 41A7A9D45BDB096A74ED3ED8C1046C1FAF1D11EC3F1E4EDE10162F8EA6324EF5
+    rag_gate_receipt: temp/rag/receipts/rag-gate.json
+    rag_task_receipt: temp/rag/receipts/tasks/REQ-20260812-PRODUCER-CAMERA-MAP-ACCOUNT-APK.json
+    read_only_receipt: docs/receipts/REQ-20260812-CAMERA-MAP-ACCOUNT-READ-ONLY-001.md
+    completion_receipt: docs/receipts/REQ-20260812-CAMERA-MAP-ACCOUNT-CLOSE-002.md
+    release_artifact: build/android/JungleLaw-android-2026-08-12-camera-map-account-r2.apk
 queued_modules: []
 
-shared_locks: {}
+shared_locks:
+  camera_map_account_release_20260812:
+    task_id: REQ-20260812-PRODUCER-CAMERA-MAP-ACCOUNT-APK
+    owner: codex-primary
+    status: RELEASED
+    write_set:
+      - docs/CURRENT_GAME_DESIGN.md
+      - docs/CURRENT_GAME_DESIGN.docx
+      - export_presets.cfg
+      - scripts/app/main.gd
+      - scripts/app/systems/classic_map_rules.gd
+      - scripts/network/online_room.gd
+      - scripts/server/player_account_store.gd
+      - tests/test_classic_frontier_rules.gd
+      - tests/test_classic_battle_regression.gd
+      - tests/test_multiplayer_camera.gd
+      - tests/test_account_password_login_loop.gd
+      - tests/test_device_account_credentials.gd
+      - tests/test_online_main_adapter.gd
+    completion_receipt: docs/receipts/REQ-20260812-CAMERA-MAP-ACCOUNT-CLOSE-002.md

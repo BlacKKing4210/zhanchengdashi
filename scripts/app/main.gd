@@ -3,6 +3,7 @@ extends Node2D
 const CardRules = preload("res://scripts/app/systems/card_rules.gd")
 const BoardRules = preload("res://scripts/app/systems/board_rules.gd")
 const MultiplayerRules = preload("res://scripts/app/systems/multiplayer_rules.gd")
+const ClassicMapRules = preload("res://scripts/app/systems/classic_map_rules.gd")
 const RankingRules = preload("res://scripts/app/systems/ranking_rules.gd")
 const RankAIDecks = preload("res://scripts/app/systems/rank_ai_decks.gd")
 const PlayerNameLibrary = preload("res://scripts/core/player_name_library.gd")
@@ -15,6 +16,7 @@ const MainPageLayout = preload("res://scripts/foundation/ui/main_page_layout.gd"
 
 const DESIGN_SIZE = Vector2(720.0, 1280.0)
 const HEX_SIZE = 43.0
+const DEFAULT_BATTLE_CAMERA_ZOOM = 1.30
 const DEFENSE_TOWER_RANGE_BONUS = HEX_SIZE * 0.5
 const DEFENSE_TOWER_ATTACK_INTERVAL = 1.0
 const GRID_COLS = BoardRules.GRID_COLS
@@ -682,7 +684,7 @@ func _reset_multiplayer_board_pan() -> void:
 	var player_base = _battle_base_key(_local_control_team())
 	var base_pos = MultiplayerRules.hex_center(player_base, Vector2.ZERO, HEX_SIZE)
 	var desired_pos = view_rect.position + Vector2(view_rect.size.x * 0.5, view_rect.size.y * 0.76)
-	board_pan = desired_pos - view_rect.get_center() - base_pos
+	board_pan = desired_pos - view_rect.get_center() - base_pos * _battle_camera_zoom()
 	_clamp_board_pan()
 
 
@@ -693,8 +695,10 @@ func _clamp_board_pan() -> void:
 	var bounds = multiplayer_board_bounds
 	if bounds.size.x <= 0.0 or bounds.size.y <= 0.0:
 		bounds = MultiplayerRules.board_bounds(tiles, Vector2.ZERO, HEX_SIZE)
+	var camera_zoom = _battle_camera_zoom()
+	bounds = Rect2(bounds.position * camera_zoom, bounds.size * camera_zoom)
 	var view_center = view_rect.get_center()
-	var margin = HEX_SIZE * 1.5
+	var margin = HEX_SIZE * camera_zoom * 1.5
 	var bounds_right = bounds.position.x + bounds.size.x
 	var bounds_bottom = bounds.position.y + bounds.size.y
 	var min_x = view_rect.position.x + margin - view_center.x - bounds_right
@@ -707,6 +711,10 @@ func _clamp_board_pan() -> void:
 
 func _uses_axial_battle_map() -> bool:
 	return battle_mode == BATTLE_MODE_MULTIPLAYER or classic_map_id != ""
+
+
+func _battle_camera_zoom() -> float:
+	return DEFAULT_BATTLE_CAMERA_ZOOM if _uses_axial_battle_map() else 1.0
 
 
 func _battle_base_key(team: int) -> Vector2i:
@@ -2249,6 +2257,7 @@ func _reset_classic_map() -> void:
 	)
 	if match_data.is_empty():
 		match_data = MultiplayerRules.create_match(1, "", _board_cell_type_rows())
+	match_data = ClassicMapRules.optimize_match(match_data)
 	classic_map_id = String(match_data.get("map_id", ""))
 	classic_map_name = String(match_data.get("map_name", classic_map_id))
 	battle_match_seed = int(match_data.get("match_seed", 0))
@@ -4117,9 +4126,10 @@ func _unit_index_at_canvas(canvas_pos: Vector2) -> int:
 		var visual_scale = _animal_rarity_visual_scale(card)
 		if _uses_axial_battle_map() and not _is_world_pos_visible(world_pos, 54.0 * visual_scale):
 			continue
-		var center = _world_to_canvas(world_pos) + Vector2(0.0, 14.0 - 22.0 * visual_scale)
+		var camera_zoom = _battle_camera_zoom()
+		var center = _world_to_canvas(world_pos) + Vector2(0.0, 14.0 - 22.0 * visual_scale * camera_zoom)
 		var distance = canvas_pos.distance_to(center)
-		var hit_radius = maxf(24.0, 26.0 * visual_scale)
+		var hit_radius = maxf(24.0, 26.0 * visual_scale * camera_zoom)
 		if distance <= hit_radius and distance < best_distance:
 			best_distance = distance
 			best_index = index
@@ -6534,10 +6544,24 @@ func _draw_tile(key: Vector2i, tile: Dictionary) -> void:
 		line_width = 3.0
 	draw_polygon(points, PackedColorArray([fill, fill, fill, fill, fill, fill]))
 	draw_polyline(_closed_points(points), line, line_width)
+	_draw_world_tile_content(center, tile, can_unlock, unlock_cost)
+
+
+func _draw_world_tile_content(center: Vector2, tile: Dictionary, can_unlock: bool, unlock_cost: int) -> void:
+	var camera_zoom = _battle_camera_zoom()
+	if not is_equal_approx(camera_zoom, 1.0):
+		draw_set_transform(
+			canvas_offset + center * canvas_scale,
+			0.0,
+			Vector2.ONE * canvas_scale * camera_zoom
+		)
+		center = Vector2.ZERO
 	if String(tile["building"]) != "":
 		_draw_building(center, tile)
 	elif can_unlock:
 		_draw_site(center, tile, unlock_cost)
+	if not is_equal_approx(camera_zoom, 1.0):
+		draw_set_transform(canvas_offset, 0.0, Vector2(canvas_scale, canvas_scale))
 
 
 func _draw_unlockable_tile_borders() -> void:
@@ -6777,8 +6801,9 @@ func _draw_unit(unit: Dictionary) -> void:
 	var world_pos = Vector2(unit["pos"])
 	var card = _unit_card(unit)
 	var visual_scale = _animal_rarity_visual_scale(card)
-	var art_visual_scale = _animal_art_visual_scale(card)
-	if _uses_axial_battle_map() and not _is_world_pos_visible(world_pos, 54.0 * art_visual_scale):
+	var art_visual_scale = _battle_animal_art_visual_scale(card)
+	var camera_zoom = _battle_camera_zoom()
+	if _uses_axial_battle_map() and not _is_world_pos_visible(world_pos, 54.0 * _animal_art_visual_scale(card)):
 		return
 	var pos = _world_to_canvas(world_pos)
 	var team = int(unit["team"])
@@ -6787,7 +6812,7 @@ func _draw_unit(unit: Dictionary) -> void:
 		var selection_color = _team_color(team).lightened(0.20)
 		selection_color.a = 0.94
 		draw_circle(selection_center, maxf(28.0, 30.0 * visual_scale), selection_color, false, 2.4, true)
-	draw_circle(pos + Vector2(0, 14), 17.0 * visual_scale, Color(0, 0, 0, 0.18))
+	draw_circle(pos + Vector2(0, 14), 17.0 * visual_scale * camera_zoom, Color(0, 0, 0, 0.18))
 	_draw_animal_texture_at_foot(
 		_card_texture(card),
 		pos + Vector2(0, 14),
@@ -6818,6 +6843,10 @@ func _animal_art_bottom_padding_ratio(card: Dictionary) -> float:
 
 func _animal_art_visual_scale(card: Dictionary) -> float:
 	return _animal_rarity_visual_scale(card) * _animal_art_display_scale(card)
+
+
+func _battle_animal_art_visual_scale(card: Dictionary) -> float:
+	return _animal_art_visual_scale(card) * _battle_camera_zoom()
 
 
 func _animal_texture_draw_scale(pose: Dictionary, visual_scale: float) -> Vector2:
@@ -6929,7 +6958,7 @@ func _draw_team_marker(center: Vector2, team: int) -> void:
 
 
 func _is_world_pos_visible(pos: Vector2, margin: float = 0.0) -> bool:
-	return _battle_view_rect().grow(margin).has_point(_world_to_canvas(pos))
+	return _battle_view_rect().grow(margin * _battle_camera_zoom()).has_point(_world_to_canvas(pos))
 
 
 func _tile_display_card(tile: Dictionary) -> Dictionary:
@@ -7021,7 +7050,7 @@ func _draw_effect(effect: Dictionary) -> void:
 			dead_pos + Vector2(0, 14),
 			Vector2(44, 44),
 			UnitMotionFeedback.death_pose(effect),
-			_animal_art_visual_scale(dead_card)
+			_battle_animal_art_visual_scale(dead_card)
 		)
 		return
 	if kind == "card_popup":
@@ -7737,18 +7766,18 @@ func _multiplayer_camera_offset() -> Vector2:
 
 func _world_to_canvas(pos: Vector2) -> Vector2:
 	if _uses_axial_battle_map():
-		return pos + _multiplayer_camera_offset()
+		return pos * _battle_camera_zoom() + _multiplayer_camera_offset()
 	return pos
 
 
 func _canvas_to_world(pos: Vector2) -> Vector2:
 	if _uses_axial_battle_map():
-		return pos - _multiplayer_camera_offset()
+		return (pos - _multiplayer_camera_offset()) / _battle_camera_zoom()
 	return pos
 
 
 func _hex_points(center: Vector2) -> PackedVector2Array:
-	return BoardRules.hex_points(center, HEX_SIZE)
+	return BoardRules.hex_points(center, HEX_SIZE * _battle_camera_zoom())
 
 
 func _closed_points(points: PackedVector2Array) -> PackedVector2Array:

@@ -30,6 +30,20 @@ func _test_camera_drag_keeps_world_state_stable() -> void:
 	var enemy_base_key: Vector2i = app.call("_multiplayer_base_key", 4)
 	var player_base_world = MultiplayerRules.hex_center(player_base_key, Vector2.ZERO, HEX_SIZE)
 	var enemy_base_world = MultiplayerRules.hex_center(enemy_base_key, Vector2.ZERO, HEX_SIZE)
+	_expect_float_close(float(app.call("_battle_camera_zoom")), 1.30, "default axial battle camera is 30 percent closer")
+	_expect_vector_close(
+		Vector2(app.call("_world_to_canvas", enemy_base_world)) - Vector2(app.call("_world_to_canvas", player_base_world)),
+		(enemy_base_world - player_base_world) * 1.30,
+		"camera zoom scales world projection without changing world coordinates"
+	)
+	var zoomed_hex_points: PackedVector2Array = app.call("_hex_points", Vector2.ZERO)
+	_expect_float_close(zoomed_hex_points[0].length(), HEX_SIZE * 1.30, "hex geometry uses the 1.30 camera zoom")
+	var rabbit_card: Dictionary = app.call("_card_by_id", "rabbit")
+	_expect_float_close(
+		float(app.call("_battle_animal_art_visual_scale", rabbit_card)) / float(app.call("_animal_art_visual_scale", rabbit_card)),
+		1.30,
+		"animal artwork receives the same 30 percent camera enlargement"
+	)
 	var spawned_id = int(app.get("next_unit_id"))
 	app.call("_spawn_unit", BoardRules.PLAYER, player_base_key, "rabbit")
 	var unit_before = _unit_with_id(spawned_id)
@@ -108,7 +122,11 @@ func _test_camera_drag_keeps_world_state_stable() -> void:
 	_expect_vector_close(app.call("_canvas_to_world", building_canvas_after), building_world_before, "canvas-to-world conversion reverses camera projection")
 	_expect_equal(app.call("_tile_at_canvas", building_canvas_after), player_base_key, "post-drag building projection still hits its tile")
 
-	var building_screen_after = offset + building_canvas_after * scale
+	# The unit fixture stands on the base center and intentionally has input
+	# priority. Tap a clear part of the enlarged hex to verify building/tile hit
+	# conversion without selecting the unit first.
+	var clear_building_canvas = building_canvas_after + Vector2(HEX_SIZE * 1.30 * 0.75, 0.0)
+	var building_screen_after = offset + clear_building_canvas * scale
 	app.call("_handle_tap", building_screen_after)
 	_expect_equal(app.get("selected_tile"), player_base_key, "post-drag click selects the projected building tile")
 
@@ -154,3 +172,10 @@ func _expect_vector_close(actual: Vector2, expected: Vector2, label: String) -> 
 		return
 	failures += 1
 	push_error("%s: expected %s, got %s" % [label, str(expected), str(actual)])
+
+
+func _expect_float_close(actual: float, expected: float, label: String) -> void:
+	if absf(actual - expected) <= POSITION_EPSILON:
+		return
+	failures += 1
+	push_error("%s: expected %.3f, got %.3f" % [label, expected, actual])
