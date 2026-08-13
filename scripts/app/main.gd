@@ -5979,34 +5979,6 @@ func _account_password_available_for_view() -> bool:
 	)
 
 
-func _open_account_manual_login() -> void:
-	account_switch_open = false
-	account_manual_login_open = true
-	if account_name_field != null and not OnlineRoom.current_account_name.is_empty():
-		account_name_field.text = OnlineRoom.current_account_name
-	_set_account_fields_visible(true)
-	if account_password_field != null:
-		call_deferred("_focus_account_field", account_password_field)
-
-
-func _server_profile_snapshot() -> Dictionary:
-	var profile = RankingRules.normalize_profile(_player_profile())
-	_ensure_rank_database_shape()
-	return {
-		"card_counts": card_counts.duplicate(true),
-		"card_levels": card_levels.duplicate(true),
-		"deck": deck.duplicate(),
-		"gacha_tickets": gacha_tickets,
-		"rank_stars": int(profile.get("stars", RankingRules.INITIAL_STARS)),
-		"rank_key": String(profile.get("rank_key", RankingRules.INITIAL_RANK_KEY)),
-		"elo": int(profile.get("elo", RankingRules.INITIAL_ELO)),
-		"rank_mirrors": (rank_db.get("mirrors", {}) as Dictionary).duplicate(true),
-		"rank_mirror_policy_version": RankMirrorRules.POLICY_VERSION,
-	}
-
-
-func _apply_server_profile(value: Variant) -> void:
-	if typeof(value) != TYPE_DICTIONARY:
 func _account_credential_clipboard_text() -> String:
 	if not _account_password_available_for_view():
 		return ""
@@ -6053,6 +6025,34 @@ func _clipboard_payload_matches_tracked(current_clipboard: String) -> bool:
 	)
 
 
+func _open_account_manual_login() -> void:
+	account_switch_open = false
+	account_manual_login_open = true
+	if account_name_field != null and not OnlineRoom.current_account_name.is_empty():
+		account_name_field.text = OnlineRoom.current_account_name
+	_set_account_fields_visible(true)
+	if account_password_field != null:
+		call_deferred("_focus_account_field", account_password_field)
+
+
+func _server_profile_snapshot() -> Dictionary:
+	var profile = RankingRules.normalize_profile(_player_profile())
+	_ensure_rank_database_shape()
+	return {
+		"card_counts": card_counts.duplicate(true),
+		"card_levels": card_levels.duplicate(true),
+		"deck": deck.duplicate(),
+		"gacha_tickets": gacha_tickets,
+		"rank_stars": int(profile.get("stars", RankingRules.INITIAL_STARS)),
+		"rank_key": String(profile.get("rank_key", RankingRules.INITIAL_RANK_KEY)),
+		"elo": int(profile.get("elo", RankingRules.INITIAL_ELO)),
+		"rank_mirrors": (rank_db.get("mirrors", {}) as Dictionary).duplicate(true),
+		"rank_mirror_policy_version": RankMirrorRules.POLICY_VERSION,
+	}
+
+
+func _apply_server_profile(value: Variant) -> void:
+	if typeof(value) != TYPE_DICTIONARY:
 		return
 	var previous_selected_card_id = selected_card_id
 	var profile: Dictionary = value
@@ -6153,6 +6153,14 @@ func _handle_account_center_tap(pos: Vector2) -> void:
 			_open_account_manual_login()
 			_toast("为安全起见，请重新输入密码验证")
 		GameAudio.play_sfx("ui_click")
+	elif not OnlineRoom.current_user_id.is_empty() and not account_manual_login_open and _account_password_copy_rect().has_point(pos):
+		if _copy_account_credentials_to_clipboard():
+			_toast("账号密码已复制，剪贴板将在 60 秒后清除")
+			GameAudio.play_sfx("ui_confirm")
+		else:
+			_open_account_manual_login()
+			_toast("请重新登录验证后复制账号密码")
+			GameAudio.play_sfx("ui_click")
 	elif not OnlineRoom.current_user_id.is_empty() and _account_bind_rect().has_point(pos):
 		_open_account_manual_login()
 		_toast("请输入账号和密码")
@@ -6181,14 +6189,6 @@ func _draw_account_center() -> void:
 	draw_rect(Rect2(0, 0, DESIGN_SIZE.x, DESIGN_SIZE.y), Color(0.03, 0.04, 0.05, 0.72))
 	var panel = _account_panel_rect()
 	_box(panel, Color(0.93, 0.82, 0.57), COLOR_LINE, 6)
-	elif not OnlineRoom.current_user_id.is_empty() and not account_manual_login_open and _account_password_copy_rect().has_point(pos):
-		if _copy_account_credentials_to_clipboard():
-			_toast("账号密码已复制，剪贴板将在 60 秒后清除")
-			GameAudio.play_sfx("ui_confirm")
-		else:
-			_open_account_manual_login()
-			_toast("请重新登录验证后复制账号密码")
-			GameAudio.play_sfx("ui_click")
 	_draw_text_center("玩家协议" if player_agreement_open else "设置与账号", _account_title_rect(), 34, COLOR_LINE)
 	_cta(_account_close_rect(), "关闭", false)
 	draw_line(Vector2(92, 264), Vector2(628, 264), Color(0.36, 0.27, 0.16, 0.45), 2.0)
@@ -8244,6 +8244,10 @@ func _account_password_view_rect() -> Rect2:
 	return Rect2(476, 446, 120, 46)
 
 
+func _account_password_copy_rect() -> Rect2:
+	return Rect2(392, 496, 204, 48)
+
+
 func _account_switch_rect() -> Rect2:
 	return Rect2(104, 856, 246, 68)
 
@@ -8270,10 +8274,6 @@ func _room_mode_rect(players_per_side: int) -> Rect2:
 
 func _room_code_copy_rect() -> Rect2:
 	return Rect2(506, 246, 92, 48)
-
-
-func _account_password_copy_rect() -> Rect2:
-	return Rect2(392, 496, 204, 48)
 
 
 func _room_code_refresh_rect() -> Rect2:
