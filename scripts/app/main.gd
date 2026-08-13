@@ -308,6 +308,8 @@ var account_switch_entries: Array = []
 var account_switch_loading = false
 var account_name_field: LineEdit
 var account_password_field: LineEdit
+var online_room_code_field: LineEdit
+var online_room_code_syncing = false
 var account_pending_register_password = ""
 var account_profile_sync_timer = 0.0
 var account_profile_signature = ""
@@ -360,6 +362,7 @@ func _ready() -> void:
 	_reset_battle()
 	_setup_online_room()
 	_setup_account_fields()
+	_setup_online_room_code_field()
 	call_deferred("_auto_login_saved_account_on_startup")
 
 
@@ -374,6 +377,7 @@ func _process(delta: float) -> void:
 	_update_building_card_preview(delta)
 	_update_gacha_animation(delta)
 	_update_account_fields_layout()
+	_update_online_room_code_field_layout()
 	_update_server_profile_sync(delta)
 	_update_online_auto_connection(delta)
 
@@ -391,6 +395,21 @@ func _process(delta: float) -> void:
 			_update_battle(delta)
 
 	queue_redraw()
+
+
+func _input(event: InputEvent) -> void:
+	if not _online_room_code_field_should_show() or online_room_code_field == null:
+		return
+	var pointer_position = Vector2.ZERO
+	var pressed = false
+	if event is InputEventMouseButton:
+		pressed = event.pressed and event.button_index == MOUSE_BUTTON_LEFT
+		pointer_position = event.position
+	elif event is InputEventScreenTouch:
+		pressed = event.pressed
+		pointer_position = event.position
+	if pressed and online_room_code_field.get_global_rect().has_point(pointer_position):
+		_focus_online_room_code_input()
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -1114,6 +1133,7 @@ func _on_online_room_snapshot(snapshot: Dictionary) -> void:
 	if not bool(snapshot.get("ok", false)):
 		return
 	online_room_active = true
+	_release_online_room_code_focus()
 	room_invite_code = String(snapshot.get("room_code", ""))
 	room_players_per_side = clampi(int(snapshot.get("players_per_side", 1)), 1, 3)
 	room_fill_with_ai = bool(snapshot.get("fill_with_ai", false))
@@ -1427,18 +1447,20 @@ func _local_outcome_for_authority_result(authority_outcome: String) -> String:
 func _handle_online_room_keyboard(event: InputEvent) -> bool:
 	if online_room_active or not (event is InputEventKey) or not event.pressed or event.echo:
 		return false
+	if online_room_code_field != null and online_room_code_field.has_focus():
+		return false
 	if event.keycode == KEY_BACKSPACE:
-		online_room_join_code = online_room_join_code.left(maxi(0, online_room_join_code.length() - 1))
+		_set_online_room_code(online_room_join_code.left(maxi(0, online_room_join_code.length() - 1)))
 		return true
 	if event.keycode == KEY_ENTER or event.keycode == KEY_KP_ENTER:
 		_request_online_join()
 		return true
 	if event.ctrl_pressed and event.keycode == KEY_V:
-		online_room_join_code = _sanitize_online_room_code(DisplayServer.clipboard_get())
+		_set_online_room_code(DisplayServer.clipboard_get())
 		return true
 	var character = String.chr(event.unicode)
 	if character >= "0" and character <= "9" and online_room_join_code.length() < ONLINE_ROOM_CODE_LENGTH:
-		online_room_join_code += character
+		_set_online_room_code(online_room_join_code + character)
 		return true
 	return false
 
@@ -1452,6 +1474,28 @@ func _sanitize_online_room_code(value: String) -> String:
 			if result.length() >= ONLINE_ROOM_CODE_LENGTH:
 				break
 	return result
+
+
+func _set_online_room_code(value: String) -> void:
+	var sanitized = _sanitize_online_room_code(value)
+	online_room_join_code = sanitized
+	if online_room_code_field == null or online_room_code_field.text == sanitized:
+		return
+	online_room_code_syncing = true
+	online_room_code_field.text = sanitized
+	online_room_code_field.caret_column = sanitized.length()
+	online_room_code_syncing = false
+
+
+func _on_online_room_code_text_changed(value: String) -> void:
+	if online_room_code_syncing:
+		return
+	_set_online_room_code(value)
+
+
+func _on_online_room_code_text_submitted(value: String) -> void:
+	_set_online_room_code(value)
+	_request_online_join()
 
 
 func _request_online_create_room() -> void:
@@ -1468,7 +1512,9 @@ func _request_online_create_room() -> void:
 func _request_online_join() -> void:
 	if online_room_join_code.length() != ONLINE_ROOM_CODE_LENGTH:
 		_toast("请输入6位房间码")
+		_focus_online_room_code_input()
 		return
+	_release_online_room_code_focus()
 	if not _ensure_online_room_connection():
 		return
 	online_room_service.call("join_room", online_room_join_code, _online_player_name())
@@ -5524,6 +5570,8 @@ func _handle_nav(pos: Vector2) -> bool:
 			_toast(String(item["label"]) + "暂未开放")
 			return true
 		var id = String(item["id"])
+		if id != SCREEN_ROOM:
+			_release_online_room_code_focus()
 		var route = page_router.go_to(id)
 		if not bool(route.get("ok", false)):
 			GameAudio.play_sfx("ui_error")
@@ -5556,6 +5604,7 @@ func _handle_room_tap(pos: Vector2) -> void:
 			return
 		if _room_online_code_input_rect().has_point(pos):
 			GameAudio.play_sfx("ui_click")
+			_focus_online_room_code_input()
 			return
 		if _room_online_join_rect().has_point(pos):
 			_request_online_join()
@@ -5699,6 +5748,73 @@ func _setup_account_fields() -> void:
 	account_password_field.add_theme_font_size_override("font_size", 22)
 	add_child(account_password_field)
 	_set_account_fields_visible(false)
+
+
+func _setup_online_room_code_field() -> void:
+	online_room_code_field = LineEdit.new()
+	online_room_code_field.name = "OnlineRoomCodeField"
+	online_room_code_field.placeholder_text = "点击输入6位数字"
+	online_room_code_field.max_length = ONLINE_ROOM_CODE_LENGTH
+	online_room_code_field.alignment = HORIZONTAL_ALIGNMENT_CENTER
+	online_room_code_field.focus_mode = Control.FOCUS_ALL
+	online_room_code_field.mouse_filter = Control.MOUSE_FILTER_STOP
+	online_room_code_field.virtual_keyboard_enabled = true
+	online_room_code_field.virtual_keyboard_show_on_focus = true
+	online_room_code_field.virtual_keyboard_type = LineEdit.KEYBOARD_TYPE_NUMBER
+	online_room_code_field.add_theme_color_override("font_color", COLOR_PURPLE)
+	online_room_code_field.add_theme_color_override("caret_color", COLOR_PURPLE)
+	online_room_code_field.add_theme_color_override("font_placeholder_color", Color(COLOR_PURPLE, 0.78))
+	var normal_style = StyleBoxFlat.new()
+	normal_style.bg_color = Color(1.0, 0.96, 0.83)
+	normal_style.border_color = COLOR_LINE
+	normal_style.set_border_width_all(4)
+	normal_style.set_corner_radius_all(2)
+	normal_style.content_margin_left = 12.0
+	normal_style.content_margin_right = 12.0
+	var focus_style = normal_style.duplicate()
+	focus_style.border_color = COLOR_ORANGE
+	focus_style.set_border_width_all(5)
+	online_room_code_field.add_theme_stylebox_override("normal", normal_style)
+	online_room_code_field.add_theme_stylebox_override("focus", focus_style)
+	online_room_code_field.text_changed.connect(_on_online_room_code_text_changed)
+	online_room_code_field.text_submitted.connect(_on_online_room_code_text_submitted)
+	add_child(online_room_code_field)
+	_update_online_room_code_field_layout()
+
+
+func _online_room_code_field_should_show() -> bool:
+	return screen == SCREEN_ROOM and not online_room_active and not account_center_open
+
+
+func _update_online_room_code_field_layout() -> void:
+	if online_room_code_field == null:
+		return
+	var should_show = _online_room_code_field_should_show()
+	if not should_show:
+		if online_room_code_field.has_focus():
+			_release_online_room_code_focus()
+		online_room_code_field.visible = false
+		return
+	online_room_code_field.visible = true
+	_set_line_edit_canvas_rect(online_room_code_field, _room_online_code_input_rect())
+	online_room_code_field.add_theme_font_size_override("font_size", maxi(18, roundi(24.0 * canvas_scale)))
+	if online_room_code_field.text != online_room_join_code:
+		_set_online_room_code(online_room_join_code)
+
+
+func _focus_online_room_code_input() -> void:
+	if online_room_code_field == null or not _online_room_code_field_should_show():
+		return
+	_update_online_room_code_field_layout()
+	online_room_code_field.grab_focus()
+	online_room_code_field.caret_column = online_room_code_field.text.length()
+
+
+func _release_online_room_code_focus() -> void:
+	if online_room_code_field == null or not online_room_code_field.has_focus():
+		return
+	online_room_code_field.release_focus()
+	DisplayServer.virtual_keyboard_hide()
 
 
 func _set_account_fields_visible(visible: bool) -> void:
@@ -6016,11 +6132,12 @@ func _draw_online_room_entry() -> void:
 
 	_cta(_room_online_create_rect(), "创建 %dV%d 房间" % [room_players_per_side, room_players_per_side], online_connection_state == "connected")
 	_draw_text_center("或输入房主分享的6位房间码", Rect2(72, 418, 576, 30), 18, Color.WHITE)
-	_box(_room_online_code_input_rect(), Color(1.0, 0.96, 0.83), COLOR_LINE, 4)
-	var code_text = online_room_join_code
-	if code_text == "":
-		code_text = "点击后直接输入数字"
-	_draw_text_center(code_text, _room_online_code_input_rect(), 28 if online_room_join_code != "" else 17, COLOR_PURPLE)
+	if online_room_code_field == null:
+		_box(_room_online_code_input_rect(), Color(1.0, 0.96, 0.83), COLOR_LINE, 4)
+		var code_text = online_room_join_code
+		if code_text == "":
+			code_text = "点击后直接输入数字"
+		_draw_text_center(code_text, _room_online_code_input_rect(), 28 if online_room_join_code != "" else 17, COLOR_PURPLE)
 	_cta(_room_online_join_rect(), "加入房间", online_connection_state == "connected" and online_room_join_code.length() == ONLINE_ROOM_CODE_LENGTH)
 
 	var fill_rect = _room_entry_ai_fill_rect()
