@@ -7,7 +7,7 @@ from docx.shared import Inches, Pt, RGBColor
 
 
 ROOT = Path(__file__).resolve().parents[1]
-OUT = ROOT / "docs" / "PLAYER_ACCOUNT_AND_SERVER_PROFILE_DESIGN_v1.4.docx"
+OUT = ROOT / "docs" / "PLAYER_ACCOUNT_AND_SERVER_PROFILE_DESIGN_v1.5.docx"
 
 
 def set_font(run, size=11, bold=False, color="20252B"):
@@ -57,7 +57,7 @@ header.text = "战城大师 · 功能规格"
 set_font(header.runs[0], 9, color="6B7280")
 footer = section.footer.paragraphs[0]
 footer.alignment = WD_ALIGN_PARAGRAPH.RIGHT
-footer.text = "v1.4 · 2026-08-13"
+footer.text = "v1.5 · 2026-08-13"
 set_font(footer.runs[0], 9, color="6B7280")
 
 title = doc.add_paragraph()
@@ -65,7 +65,7 @@ title.paragraph_format.space_after = Pt(4)
 set_font(title.add_run("玩家账号与服务器资料设计"), 23, True, "111827")
 subtitle = doc.add_paragraph()
 subtitle.paragraph_format.space_after = Pt(16)
-set_font(subtitle.add_run("跨安装账号密码登录、安全凭据查看与服务端权威进度"), 13, color="4B5563")
+set_font(subtitle.add_run("跨安装账号密码登录、安全凭据查看复制与服务端权威进度"), 13, color="4B5563")
 
 sections = [
     ("1. 目标", [
@@ -91,6 +91,8 @@ sections = [
         "客户端只在 user:// 保存随机安装 ID 与随机长期令牌，不保存账号密码；长期令牌错误时服务器统一拒绝认证。服务器账号记录只保存随机盐与单向密码派生值，历史明文密码不可恢复。",
         "网络 peer 只能读写其当前会话对应的玩家资料；断线与切换都会解除旧 peer 到用户的映射。",
         "账号中心只可临时查看本次手动登录时玩家刚输入的密码：默认遮罩，点击查看后短时显示；应用失焦、进入后台、断线、切换账号或进程退出立即清空。自动登录只显示账号名和“密码已设置”，不能显示旧密码。",
+        "“复制账号密码”只在当前账号与本次前台手动登录账号一致、且会话内仍持有本次输入密码时可用。复制内容为带“账号”“密码”标签的单个文本，不从服务器、本地凭据、刷新令牌、盐或密码派生值恢复历史口令，也不写入日志或存档。",
+        "复制后的明文由操作系统剪贴板暂存。客户端仅在运行期间跟踪自己写入的文本，并在 60 秒后、且剪贴板仍未被玩家改写时清空；若操作系统暂停或终止进程，客户端无法保证跨进程强制清理，页面必须明确提示玩家及时粘贴并避免在公共设备使用。",
         "删除应用数据或丢失本机凭据会失去自动登录能力；正式发行前需补充安全改密、可信找回、登录限速、令牌撤销及版本化密码 KDF。",
         "公网注册和口令登录必须使用校验证书的加密认证通道。当前普通 ENet UDP 口令 RPC 只能作为开发阶段能力，不能通过正式发行安全门禁。",
     ]),
@@ -103,6 +105,7 @@ sections = [
     ("6. 页面入口", [
         "账号与密码输入使用引擎原生 LineEdit，支持鼠标、触摸、移动端软键盘、密码键盘类型、提交键和失焦隐藏键盘。",
         "手动登录后账号中心显示账号名、UserID、同步状态和遮罩密码。只有当前前台会话仍持有本次输入时，“查看”按钮才可短时显示；否则提示重新登录验证。",
+        "账号信息区提供一个不与查看按钮重叠的“复制账号密码”按钮。可用时复制当前账号名与本次输入密码并提示 60 秒清理；不可用时不写剪贴板，直接进入重新登录验证。",
         "主页面点击基地仅打开账号中心，不再负责触发自动登录；可切换或新建档案、阅读玩家协议并切换音乐与音效。",
     ]),
     ("7. 验收", [
@@ -115,6 +118,7 @@ sections = [
         "不同安装获得不同 UserID；伪造安装 ID、错误令牌及未认证资料写入均被拒绝。",
         "分段获胜阵容在服务器重启和同账号换设备后仍可恢复，且服务器只保留规范化后的卡组数据。",
         "Windows 鼠标键盘与 Android 触摸软键盘均能聚焦账号/密码框、输入、切换遮罩并提交。",
+        "Windows 鼠标与 Android 触摸均能点击复制按钮；有本次会话密码时复制内容与当前账号完全一致，无会话密码时剪贴板不变并进入重新验证；60 秒到期只清理仍等于本次复制内容的剪贴板。",
         "账号存储测试、跨安装身份回归、账号凭据 UI 回归和 Godot 全项目解析通过。",
     ]),
     ("8. 发布门禁", [
@@ -131,7 +135,7 @@ for heading, items in sections:
         set_font(paragraph.add_run(item))
 
 doc.core_properties.title = "玩家账号与服务器资料设计"
-doc.core_properties.subject = "跨安装账号登录、安全凭据查看与服务端权威资料规格"
+doc.core_properties.subject = "跨安装账号登录、安全凭据查看复制与服务端权威资料规格"
 doc.core_properties.author = "Codex Game Studio"
 doc.save(OUT)
 print(OUT)

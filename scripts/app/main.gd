@@ -126,6 +126,7 @@ const ONLINE_ROOM_CODE_LENGTH = 6
 const ONLINE_AUTO_RETRY_INITIAL_DELAY = 1.5
 const ONLINE_AUTO_RETRY_MAX_DELAY = 15.0
 const ACCOUNT_PASSWORD_REVEAL_SECONDS = 10.0
+const ACCOUNT_CREDENTIAL_CLIPBOARD_SECONDS = 60.0
 const GOLD_GAIN_FEEDBACK_DURATION = 0.90
 const GOLD_GAIN_FEEDBACK_RISE = 38.0
 const GOLD_GAIN_FEEDBACK_MERGE_WINDOW = 0.18
@@ -317,6 +318,8 @@ var account_session_auth_name = ""
 var account_session_password = ""
 var account_password_revealed = false
 var account_password_reveal_timer = 0.0
+var account_clipboard_payload = ""
+var account_clipboard_clear_timer = 0.0
 var account_profile_sync_timer = 0.0
 var account_profile_signature = ""
 var battle_reward_given = false
@@ -390,6 +393,7 @@ func _process(delta: float) -> void:
 		account_password_reveal_timer = maxf(0.0, account_password_reveal_timer - delta)
 		if account_password_reveal_timer <= 0.0:
 			account_password_revealed = false
+	_update_account_clipboard_expiry(delta)
 	_update_building_card_preview(delta)
 	_update_gacha_animation(delta)
 	_update_account_fields_layout()
@@ -6003,6 +6007,52 @@ func _server_profile_snapshot() -> Dictionary:
 
 func _apply_server_profile(value: Variant) -> void:
 	if typeof(value) != TYPE_DICTIONARY:
+func _account_credential_clipboard_text() -> String:
+	if not _account_password_available_for_view():
+		return ""
+	var account = OnlineRoom.current_account_name.strip_edges()
+	if account.is_empty():
+		return ""
+	return "账号：%s\n密码：%s" % [account, account_session_password]
+
+
+func _copy_account_credentials_to_clipboard() -> bool:
+	var payload = _account_credential_clipboard_text()
+	if payload.is_empty() or not DisplayServer.has_feature(DisplayServer.FEATURE_CLIPBOARD):
+		return false
+	DisplayServer.clipboard_set(payload)
+	account_clipboard_payload = payload
+	account_clipboard_clear_timer = ACCOUNT_CREDENTIAL_CLIPBOARD_SECONDS
+	return true
+
+
+func _update_account_clipboard_expiry(delta: float) -> void:
+	if account_clipboard_clear_timer <= 0.0:
+		return
+	account_clipboard_clear_timer = maxf(0.0, account_clipboard_clear_timer - delta)
+	if account_clipboard_clear_timer <= 0.0:
+		_clear_account_clipboard_if_unchanged()
+
+
+func _clear_account_clipboard_if_unchanged() -> void:
+	if account_clipboard_payload.is_empty():
+		return
+	if (
+		DisplayServer.has_feature(DisplayServer.FEATURE_CLIPBOARD)
+		and _clipboard_payload_matches_tracked(DisplayServer.clipboard_get())
+	):
+		DisplayServer.clipboard_set("")
+	account_clipboard_payload = ""
+	account_clipboard_clear_timer = 0.0
+
+
+func _clipboard_payload_matches_tracked(current_clipboard: String) -> bool:
+	return (
+		not account_clipboard_payload.is_empty()
+		and current_clipboard.replace("\r\n", "\n") == account_clipboard_payload.replace("\r\n", "\n")
+	)
+
+
 		return
 	var previous_selected_card_id = selected_card_id
 	var profile: Dictionary = value
@@ -6131,6 +6181,14 @@ func _draw_account_center() -> void:
 	draw_rect(Rect2(0, 0, DESIGN_SIZE.x, DESIGN_SIZE.y), Color(0.03, 0.04, 0.05, 0.72))
 	var panel = _account_panel_rect()
 	_box(panel, Color(0.93, 0.82, 0.57), COLOR_LINE, 6)
+	elif not OnlineRoom.current_user_id.is_empty() and not account_manual_login_open and _account_password_copy_rect().has_point(pos):
+		if _copy_account_credentials_to_clipboard():
+			_toast("账号密码已复制，剪贴板将在 60 秒后清除")
+			GameAudio.play_sfx("ui_confirm")
+		else:
+			_open_account_manual_login()
+			_toast("请重新登录验证后复制账号密码")
+			GameAudio.play_sfx("ui_click")
 	_draw_text_center("玩家协议" if player_agreement_open else "设置与账号", _account_title_rect(), 34, COLOR_LINE)
 	_cta(_account_close_rect(), "关闭", false)
 	draw_line(Vector2(92, 264), Vector2(628, 264), Color(0.36, 0.27, 0.16, 0.45), 2.0)
@@ -6166,11 +6224,12 @@ func _draw_account_center() -> void:
 		if account_password_revealed and _account_password_available_for_view():
 			credential_button_label = "隐藏"
 		_cta(_account_password_view_rect(), credential_button_label, _account_password_available_for_view())
-		_draw_text_fit("服务器已同步", Rect2(128, 506, 464, 24), 17, COLOR_GREEN.darkened(0.35))
+		_draw_text_fit("服务器已同步", Rect2(128, 506, 246, 24), 17, COLOR_GREEN.darkened(0.35))
+		_cta(_account_password_copy_rect(), "复制账号密码", _account_password_available_for_view())
 		var password_note = "游客档案未设置密码，可绑定命名账号"
 		if OnlineRoom.current_account_has_password:
 			password_note = "仅本次前台登录可查看；离开应用立即清除" if _account_password_available_for_view() else "历史密码不保存；重新登录验证后可临时查看"
-		_draw_text_fit(password_note, Rect2(128, 540, 464, 24), 14, Color(0.35, 0.29, 0.22))
+		_draw_text_fit(password_note, Rect2(128, 552, 464, 22), 14, Color(0.35, 0.29, 0.22))
 	_cta(_account_agreement_rect(), "玩家协议", false)
 	_draw_text_fit("声音设置", Rect2(104, 710, 120, 32), 22, COLOR_LINE)
 	draw_line(Vector2(230, 727), Vector2(616, 727), Color(0.36, 0.27, 0.16, 0.34), 2.0)
@@ -8211,6 +8270,10 @@ func _room_mode_rect(players_per_side: int) -> Rect2:
 
 func _room_code_copy_rect() -> Rect2:
 	return Rect2(506, 246, 92, 48)
+
+
+func _account_password_copy_rect() -> Rect2:
+	return Rect2(392, 496, 204, 48)
 
 
 func _room_code_refresh_rect() -> Rect2:

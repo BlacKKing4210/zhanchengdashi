@@ -104,9 +104,39 @@ shared_locks:
     status: RELEASED
     write_set:
       - docs/CURRENT_GAME_DESIGN.md
+  - task_id: REQ-20260813-ACCOUNT-CREDENTIAL-COPY-APK
+    feature_id: F-ZC-AUTH-001
+    version: 2026-08-13-account-credential-copy-r1
+    phase: implementation_and_android_package
+    domain: cross_domain
+    owner: codex-primary
+    status: RUNNING
+    started_on: "2026-08-13"
+    release_status: INTERNAL_TEST_ONLY
+    fingerprint: AD9459F22887A736BA574E6B3EC21C7B2F4D3487AA569F6A9B9F7A46C77658D9
+    rag_gate_receipt: temp/rag/receipts/rag-gate.json
+    rag_task_receipt: temp/rag/receipts/tasks/REQ-20260813-ACCOUNT-CREDENTIAL-COPY-APK.json
+    read_only_receipt: docs/receipts/REQ-20260813-ACCOUNT-CREDENTIAL-COPY-APK-READ-ONLY-001.md
+    blockers: [production_auth_transport, production_password_kdf, aliyun_profile, android_device_acceptance]
       - docs/CURRENT_GAME_DESIGN.docx
       - export_presets.cfg
       - scripts/app/main.gd
+  account_credential_copy_apk_20260813:
+    task_id: REQ-20260813-ACCOUNT-CREDENTIAL-COPY-APK
+    owner: codex-primary
+    status: HELD
+    write_set:
+      - build/android/JungleLaw-android-2026-08-13-account-credential-copy-r1.apk
+      - docs/PLAYER_ACCOUNT_AND_SERVER_PROFILE_DESIGN_v1.5.docx
+      - docs/active_scope.yaml
+      - docs/receipts/REQ-20260813-ACCOUNT-CREDENTIAL-COPY-APK-READ-ONLY-001.md
+      - docs/receipts/REQ-20260813-ACCOUNT-CREDENTIAL-COPY-APK-CLOSE-002.md
+      - knowledge/knowledge_manifest.csv
+      - scripts/app/main.gd
+      - tests/capture_account_credentials_ui.gd
+      - tests/test_account_manual_login_entry.gd
+      - tools/build_player_account_design_docx.py
+    evidence_root: temp/qa/F-ZC-AUTH-001
       - scripts/app/systems/classic_map_rules.gd
       - scripts/network/online_room.gd
       - scripts/server/player_account_store.gd

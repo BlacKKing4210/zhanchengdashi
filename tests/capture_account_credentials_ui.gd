@@ -39,6 +39,10 @@ func _ready() -> void:
 
 	app.call("_handle_account_center_tap", (app.call("_account_password_view_rect") as Rect2).get_center())
 	await _capture(output_dir.path_join("account_credentials_revealed.png"))
+	if DisplayServer.has_feature(DisplayServer.FEATURE_CLIPBOARD):
+		app.call("_handle_account_center_tap", (app.call("_account_password_copy_rect") as Rect2).get_center())
+		await _capture(output_dir.path_join("account_credentials_copy.png"))
+		app.call("_clear_account_clipboard_if_unchanged")
 
 	print("ACCOUNT_CREDENTIALS_UI_CAPTURE_PASS: %s" % output_dir)
 	app.queue_free()
