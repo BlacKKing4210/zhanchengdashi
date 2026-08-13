@@ -54,6 +54,8 @@ var current_room_snapshot: Dictionary = {}
 var current_match: Dictionary = {}
 var last_operation_error = ""
 var current_user_id = ""
+var current_account_name = ""
+var current_account_has_password = false
 var current_profile: Dictionary = {}
 var current_account_summaries: Array = []
 
@@ -1205,6 +1207,8 @@ func _apply_account_operation(operation: String, result: Dictionary) -> void:
 	if operation in ["login_account", "authenticate_installation", "switch_account", "create_new_account"]:
 		_client_session_token = String(result.get("session_token", ""))
 		current_user_id = String(result.get("user_id", ""))
+		current_account_name = String(result.get("account", ""))
+		current_account_has_password = bool(result.get("has_password", false))
 		current_profile = (result.get("profile", {}) as Dictionary).duplicate(true)
 		var issued_refresh_token = String(result.get("refresh_token", ""))
 		if not issued_refresh_token.is_empty():
@@ -1212,6 +1216,8 @@ func _apply_account_operation(operation: String, result: Dictionary) -> void:
 			_save_device_credentials()
 	elif operation in ["load_player_profile", "save_player_profile"]:
 		current_user_id = String(result.get("user_id", current_user_id))
+		current_account_name = String(result.get("account", current_account_name))
+		current_account_has_password = bool(result.get("has_password", current_account_has_password))
 		current_profile = (result.get("profile", {}) as Dictionary).duplicate(true)
 	elif operation == "logout_account":
 		_clear_account_state()
@@ -1219,6 +1225,8 @@ func _apply_account_operation(operation: String, result: Dictionary) -> void:
 		current_account_summaries = (result.get("accounts") as Array).duplicate(true)
 	account_state_changed.emit({
 		"user_id": current_user_id,
+		"account": current_account_name,
+		"has_password": current_account_has_password,
 		"profile": current_profile.duplicate(true),
 		"accounts": current_account_summaries.duplicate(true),
 		"logged_in": not current_user_id.is_empty(),
@@ -1228,6 +1236,8 @@ func _apply_account_operation(operation: String, result: Dictionary) -> void:
 func _clear_account_state() -> void:
 	_client_session_token = ""
 	current_user_id = ""
+	current_account_name = ""
+	current_account_has_password = false
 	current_profile.clear()
 	current_account_summaries.clear()
 

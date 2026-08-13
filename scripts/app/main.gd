@@ -125,6 +125,7 @@ const ONLINE_SNAPSHOT_INTERVAL = 0.20
 const ONLINE_ROOM_CODE_LENGTH = 6
 const ONLINE_AUTO_RETRY_INITIAL_DELAY = 1.5
 const ONLINE_AUTO_RETRY_MAX_DELAY = 15.0
+const ACCOUNT_PASSWORD_REVEAL_SECONDS = 10.0
 const GOLD_GAIN_FEEDBACK_DURATION = 0.90
 const GOLD_GAIN_FEEDBACK_RISE = 38.0
 const GOLD_GAIN_FEEDBACK_MERGE_WINDOW = 0.18
@@ -310,7 +311,12 @@ var account_name_field: LineEdit
 var account_password_field: LineEdit
 var online_room_code_field: LineEdit
 var online_room_code_syncing = false
-var account_pending_register_password = ""
+var account_pending_auth_name = ""
+var account_pending_auth_password = ""
+var account_session_auth_name = ""
+var account_session_password = ""
+var account_password_revealed = false
+var account_password_reveal_timer = 0.0
 var account_profile_sync_timer = 0.0
 var account_profile_signature = ""
 var battle_reward_given = false
@@ -366,6 +372,12 @@ func _ready() -> void:
 	call_deferred("_auto_login_saved_account_on_startup")
 
 
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_APPLICATION_FOCUS_OUT or what == NOTIFICATION_APPLICATION_PAUSED:
+		_clear_all_account_password_memory()
+		_release_account_field_focus()
+
+
 func _process(delta: float) -> void:
 	ui_time += delta
 	if toast_timer > 0.0:
@@ -374,6 +386,10 @@ func _process(delta: float) -> void:
 		detail_pulse_timer = maxf(0.0, detail_pulse_timer - delta)
 	if detail_upgrade_motion_timer > 0.0:
 		detail_upgrade_motion_timer = maxf(0.0, detail_upgrade_motion_timer - delta)
+	if account_password_reveal_timer > 0.0:
+		account_password_reveal_timer = maxf(0.0, account_password_reveal_timer - delta)
+		if account_password_reveal_timer <= 0.0:
+			account_password_revealed = false
 	_update_building_card_preview(delta)
 	_update_gacha_animation(delta)
 	_update_account_fields_layout()
@@ -398,8 +414,6 @@ func _process(delta: float) -> void:
 
 
 func _input(event: InputEvent) -> void:
-	if not _online_room_code_field_should_show() or online_room_code_field == null:
-		return
 	var pointer_position = Vector2.ZERO
 	var pressed = false
 	if event is InputEventMouseButton:
@@ -408,7 +422,15 @@ func _input(event: InputEvent) -> void:
 	elif event is InputEventScreenTouch:
 		pressed = event.pressed
 		pointer_position = event.position
-	if pressed and online_room_code_field.get_global_rect().has_point(pointer_position):
+	if not pressed:
+		return
+	if account_name_field != null and account_name_field.visible and account_name_field.get_global_rect().has_point(pointer_position):
+		_focus_account_field(account_name_field)
+		return
+	if account_password_field != null and account_password_field.visible and account_password_field.get_global_rect().has_point(pointer_position):
+		_focus_account_field(account_password_field)
+		return
+	if _online_room_code_field_should_show() and online_room_code_field != null and online_room_code_field.get_global_rect().has_point(pointer_position):
 		_focus_online_room_code_input()
 
 
@@ -1035,6 +1057,7 @@ func _on_online_server_connection_failed(message: String) -> void:
 
 func _on_online_server_disconnected() -> void:
 	online_connection_state = "offline"
+	_clear_all_account_password_memory()
 	_reset_online_room_state()
 	if _is_online_match_active():
 		_clear_online_match_state()
@@ -1043,17 +1066,22 @@ func _on_online_server_disconnected() -> void:
 	_toast("互联网房间服务器已断开")
 
 
-func _on_online_operation_completed(operation: String, _result: Dictionary) -> void:
+func _on_online_operation_completed(operation: String, result: Dictionary) -> void:
 	match operation:
 		"register_account":
 			_toast("账号注册成功，正在登录")
-			if account_name_field != null and not account_pending_register_password.is_empty():
-				OnlineRoom.login_account(account_name_field.text, account_pending_register_password)
-			account_pending_register_password = ""
+			if not account_pending_auth_name.is_empty() and not account_pending_auth_password.is_empty():
+				if not OnlineRoom.login_account(account_pending_auth_name, account_pending_auth_password):
+					_clear_pending_account_auth()
 		"login_account":
 			_toast("登录成功，服务器资料已同步")
+			var logged_in_account = String(result.get("account", account_pending_auth_name)).strip_edges()
+			if not account_pending_auth_password.is_empty() and logged_in_account.to_lower() == account_pending_auth_name.to_lower():
+				_remember_account_password(logged_in_account, account_pending_auth_password)
+			_clear_pending_account_auth()
 			if account_password_field != null:
 				account_password_field.clear()
+			_release_account_field_focus()
 			account_manual_login_open = false
 			_set_account_fields_visible(false)
 		"save_player_profile":
@@ -1061,10 +1089,12 @@ func _on_online_operation_completed(operation: String, _result: Dictionary) -> v
 		"list_accounts":
 			account_switch_loading = false
 		"switch_account":
+			_clear_all_account_password_memory()
 			account_switch_loading = false
 			account_switch_open = false
 			_toast("已切换账号，服务器资料已同步")
 		"create_new_account":
+			_clear_all_account_password_memory()
 			account_switch_loading = false
 			account_switch_open = false
 			_toast("已新建账号，开始新的游戏进度")
@@ -1078,8 +1108,8 @@ func _on_online_operation_completed(operation: String, _result: Dictionary) -> v
 
 
 func _on_online_operation_failed(operation: String, error: String) -> void:
-	if operation == "register_account":
-		account_pending_register_password = ""
+	if operation in ["register_account", "login_account"]:
+		_clear_pending_account_auth()
 	if operation in ["list_accounts", "switch_account", "create_new_account"]:
 		account_switch_loading = false
 	GameAudio.play_sfx("ui_error")
@@ -1091,12 +1121,16 @@ func _on_account_state_changed(state: Dictionary) -> void:
 	if typeof(summaries) == TYPE_ARRAY:
 		account_switch_entries = (summaries as Array).duplicate(true)
 	if bool(state.get("logged_in", false)):
+		var state_account = String(state.get("account", "")).strip_edges()
+		if not account_session_password.is_empty() and state_account.to_lower() != account_session_auth_name.to_lower():
+			_clear_session_account_password()
 		var remote_profile = state.get("profile", {})
 		_apply_server_profile(remote_profile)
 		account_profile_signature = JSON.stringify(remote_profile)
 		if not account_manual_login_open:
 			_set_account_fields_visible(false)
 	else:
+		_clear_session_account_password()
 		account_profile_signature = ""
 		_set_account_fields_visible(account_center_open and not player_agreement_open)
 
@@ -5738,16 +5772,52 @@ func _setup_account_fields() -> void:
 	account_name_field.name = "AccountNameField"
 	account_name_field.placeholder_text = "输入账号（3-32位）"
 	account_name_field.max_length = 32
+	account_name_field.focus_mode = Control.FOCUS_ALL
+	account_name_field.mouse_filter = Control.MOUSE_FILTER_STOP
+	account_name_field.virtual_keyboard_enabled = true
+	account_name_field.virtual_keyboard_show_on_focus = true
+	account_name_field.virtual_keyboard_type = LineEdit.KEYBOARD_TYPE_DEFAULT
 	account_name_field.add_theme_font_size_override("font_size", 22)
+	account_name_field.text_submitted.connect(_on_account_name_text_submitted)
 	add_child(account_name_field)
 	account_password_field = LineEdit.new()
 	account_password_field.name = "AccountPasswordField"
 	account_password_field.placeholder_text = "输入密码（8-72位）"
 	account_password_field.max_length = 72
 	account_password_field.secret = true
+	account_password_field.focus_mode = Control.FOCUS_ALL
+	account_password_field.mouse_filter = Control.MOUSE_FILTER_STOP
+	account_password_field.virtual_keyboard_enabled = true
+	account_password_field.virtual_keyboard_show_on_focus = true
+	account_password_field.virtual_keyboard_type = LineEdit.KEYBOARD_TYPE_PASSWORD
 	account_password_field.add_theme_font_size_override("font_size", 22)
+	account_password_field.text_submitted.connect(_on_account_password_text_submitted)
 	add_child(account_password_field)
 	_set_account_fields_visible(false)
+
+
+func _on_account_name_text_submitted(_value: String) -> void:
+	_focus_account_field(account_password_field)
+
+
+func _on_account_password_text_submitted(_value: String) -> void:
+	_submit_account_login(false)
+
+
+func _focus_account_field(field: LineEdit) -> void:
+	if field == null or not field.visible:
+		return
+	_update_account_fields_layout()
+	field.grab_focus()
+	field.caret_column = field.text.length()
+
+
+func _release_account_field_focus() -> void:
+	for field in [account_name_field, account_password_field]:
+		if field != null and field.has_focus():
+			field.release_focus()
+	if DisplayServer.has_feature(DisplayServer.FEATURE_VIRTUAL_KEYBOARD):
+		DisplayServer.virtual_keyboard_hide()
 
 
 func _setup_online_room_code_field() -> void:
@@ -5825,6 +5895,8 @@ func _set_account_fields_visible(visible: bool) -> void:
 		account_name_field.visible = show_fields
 	if account_password_field != null:
 		account_password_field.visible = show_fields
+	if not show_fields:
+		_release_account_field_focus()
 
 
 func _update_account_fields_layout() -> void:
@@ -5856,11 +5928,61 @@ func _submit_account_login(register_new: bool) -> void:
 	if not _ensure_online_room_connection():
 		_toast("正在连接服务器，请稍后重试")
 		return
+	account_pending_auth_name = account
+	account_pending_auth_password = password
+	var requested = false
 	if register_new:
-		account_pending_register_password = password
-		OnlineRoom.register_account(account, password)
+		requested = OnlineRoom.register_account(account, password)
 	else:
-		OnlineRoom.login_account(account, password)
+		requested = OnlineRoom.login_account(account, password)
+	if not requested:
+		_clear_pending_account_auth()
+
+
+func _remember_account_password(account: String, password: String) -> void:
+	account_session_auth_name = account.strip_edges()
+	account_session_password = password
+	account_password_revealed = false
+	account_password_reveal_timer = 0.0
+
+
+func _clear_pending_account_auth() -> void:
+	account_pending_auth_name = ""
+	account_pending_auth_password = ""
+
+
+func _clear_session_account_password() -> void:
+	account_session_auth_name = ""
+	account_session_password = ""
+	account_password_revealed = false
+	account_password_reveal_timer = 0.0
+
+
+func _clear_all_account_password_memory() -> void:
+	_clear_pending_account_auth()
+	_clear_session_account_password()
+	if account_password_field != null:
+		account_password_field.clear()
+
+
+func _account_password_available_for_view() -> bool:
+	return (
+		not OnlineRoom.current_user_id.is_empty()
+		and OnlineRoom.current_account_has_password
+		and not account_session_password.is_empty()
+		and not OnlineRoom.current_account_name.is_empty()
+		and account_session_auth_name.to_lower() == OnlineRoom.current_account_name.to_lower()
+	)
+
+
+func _open_account_manual_login() -> void:
+	account_switch_open = false
+	account_manual_login_open = true
+	if account_name_field != null and not OnlineRoom.current_account_name.is_empty():
+		account_name_field.text = OnlineRoom.current_account_name
+	_set_account_fields_visible(true)
+	if account_password_field != null:
+		call_deferred("_focus_account_field", account_password_field)
 
 
 func _server_profile_snapshot() -> Dictionary:
@@ -5933,18 +6055,20 @@ func _handle_account_center_tap(pos: Vector2) -> void:
 		account_center_open = false
 		account_switch_open = false
 		account_manual_login_open = false
+		_clear_pending_account_auth()
+		if account_password_field != null:
+			account_password_field.clear()
 		_set_account_fields_visible(false)
 		GameAudio.play_sfx("ui_click")
 	elif account_switch_open:
 		if _account_bind_rect().has_point(pos):
-			account_switch_open = false
-			account_manual_login_open = true
-			_set_account_fields_visible(true)
+			_open_account_manual_login()
 			_toast("请输入账号和密码")
 			GameAudio.play_sfx("ui_click")
 			return
 		if _account_new_rect().has_point(pos):
 			if OnlineRoom.create_new_account():
+				_clear_session_account_password()
 				account_switch_loading = true
 				_toast("正在创建新的游戏账号…")
 				GameAudio.play_sfx("ui_confirm")
@@ -5961,6 +6085,7 @@ func _handle_account_center_tap(pos: Vector2) -> void:
 				_toast("当前已使用该账号")
 				GameAudio.play_sfx("ui_click")
 			elif OnlineRoom.switch_account(target_user_id):
+				_clear_session_account_password()
 				account_switch_loading = true
 				_toast("正在切换账号…")
 				GameAudio.play_sfx("ui_confirm")
@@ -5969,9 +6094,17 @@ func _handle_account_center_tap(pos: Vector2) -> void:
 		_submit_account_login(false)
 	elif (OnlineRoom.current_user_id == "" or account_manual_login_open) and _account_register_rect().has_point(pos):
 		_submit_account_login(true)
+	elif not OnlineRoom.current_user_id.is_empty() and not account_manual_login_open and _account_password_view_rect().has_point(pos):
+		if _account_password_available_for_view():
+			account_password_revealed = not account_password_revealed
+			account_password_reveal_timer = ACCOUNT_PASSWORD_REVEAL_SECONDS if account_password_revealed else 0.0
+			_toast("密码将在 10 秒后重新隐藏" if account_password_revealed else "密码已隐藏")
+		else:
+			_open_account_manual_login()
+			_toast("为安全起见，请重新输入密码验证")
+		GameAudio.play_sfx("ui_click")
 	elif not OnlineRoom.current_user_id.is_empty() and _account_bind_rect().has_point(pos):
-		account_manual_login_open = true
-		_set_account_fields_visible(true)
+		_open_account_manual_login()
 		_toast("请输入账号和密码")
 		GameAudio.play_sfx("ui_click")
 	elif not OnlineRoom.current_user_id.is_empty() and _account_switch_rect().has_point(pos):
@@ -6018,10 +6151,26 @@ func _draw_account_center() -> void:
 		_cta(_account_register_rect(), "注册", false)
 		_draw_text_fit("连接状态：" + online_connection_state, Rect2(104, 570, 512, 30), 17, COLOR_LINE)
 	else:
-		_box(Rect2(104, 334, 512, 180), Color(1.0, 0.95, 0.79), COLOR_LINE, 4)
-		_draw_text_fit("UserID", Rect2(128, 352, 120, 32), 22, COLOR_PURPLE)
-		_draw_text_fit(user_id, Rect2(128, 390, 464, 42), 26, COLOR_LINE)
-		_draw_text_fit("服务器已同步", Rect2(128, 454, 464, 26), 18, COLOR_GREEN.darkened(0.35))
+		_box(Rect2(104, 334, 512, 250), Color(1.0, 0.95, 0.79), COLOR_LINE, 4)
+		var account_name = OnlineRoom.current_account_name.strip_edges()
+		_draw_text_fit("账号", Rect2(128, 350, 86, 30), 20, COLOR_PURPLE)
+		_draw_text_fit(account_name if not account_name.is_empty() else "游客账号（未绑定）", Rect2(226, 348, 366, 34), 22, COLOR_LINE)
+		_draw_text_fit("UserID", Rect2(128, 397, 86, 30), 20, COLOR_PURPLE)
+		_draw_text_fit(user_id, Rect2(226, 395, 366, 34), 21, COLOR_LINE)
+		_draw_text_fit("密码", Rect2(128, 452, 86, 32), 20, COLOR_PURPLE)
+		var password_text = "未设置"
+		if OnlineRoom.current_account_has_password:
+			password_text = account_session_password if account_password_revealed and _account_password_available_for_view() else "••••••••"
+		_draw_text_fit(password_text, Rect2(226, 450, 236, 36), 22, COLOR_LINE)
+		var credential_button_label = "查看" if _account_password_available_for_view() else "重新验证"
+		if account_password_revealed and _account_password_available_for_view():
+			credential_button_label = "隐藏"
+		_cta(_account_password_view_rect(), credential_button_label, _account_password_available_for_view())
+		_draw_text_fit("服务器已同步", Rect2(128, 506, 464, 24), 17, COLOR_GREEN.darkened(0.35))
+		var password_note = "游客档案未设置密码，可绑定命名账号"
+		if OnlineRoom.current_account_has_password:
+			password_note = "仅本次前台登录可查看；离开应用立即清除" if _account_password_available_for_view() else "历史密码不保存；重新登录验证后可临时查看"
+		_draw_text_fit(password_note, Rect2(128, 540, 464, 24), 14, Color(0.35, 0.29, 0.22))
 	_cta(_account_agreement_rect(), "玩家协议", false)
 	_draw_text_fit("声音设置", Rect2(104, 710, 120, 32), 22, COLOR_LINE)
 	draw_line(Vector2(230, 727), Vector2(616, 727), Color(0.36, 0.27, 0.16, 0.34), 2.0)
@@ -6029,7 +6178,7 @@ func _draw_account_center() -> void:
 	_cta(_account_sfx_rect(), "音效：开" if GameAudio.sfx_enabled else "音效：关", false)
 	if not user_id.is_empty() and not account_manual_login_open:
 		_cta(_account_switch_rect(), "切换账号", true)
-		_cta(_account_bind_rect(), "绑定账号", false)
+		_cta(_account_bind_rect(), "重新登录/绑定", false)
 
 
 func _draw_account_switcher() -> void:
@@ -6046,7 +6195,8 @@ func _draw_account_switcher() -> void:
 			var row = _account_switch_row_rect(index)
 			var is_active = bool(entry.get("is_active", false))
 			_box(row, Color(1.0, 0.91, 0.60) if is_active else Color(1.0, 0.97, 0.84), COLOR_LINE, 3)
-			_draw_text_fit(String(entry.get("user_id", "")), Rect2(row.position + Vector2(16, 7), Vector2(292, 24)), 18, COLOR_LINE)
+			var entry_account = String(entry.get("account", "")).strip_edges()
+			_draw_text_fit(entry_account if not entry_account.is_empty() else String(entry.get("user_id", "")), Rect2(row.position + Vector2(16, 7), Vector2(292, 24)), 18, COLOR_LINE)
 			var summary = "%s · 动物 %d" % [String(entry.get("rank_display", "青铜 1星")), int(entry.get("animal_count", 0))]
 			_draw_text_fit(summary, Rect2(row.position + Vector2(16, 31), Vector2(350, 18)), 15, Color(0.27, 0.22, 0.18))
 			_draw_text_right("当前" if is_active else "切换", Rect2(row.position + Vector2(372, 13), Vector2(120, 28)), 18, COLOR_GREEN.darkened(0.35) if is_active else COLOR_PURPLE)
@@ -8029,6 +8179,10 @@ func _account_login_rect() -> Rect2:
 
 func _account_register_rect() -> Rect2:
 	return Rect2(370, 494, 246, 64)
+
+
+func _account_password_view_rect() -> Rect2:
+	return Rect2(476, 446, 120, 46)
 
 
 func _account_switch_rect() -> Rect2:

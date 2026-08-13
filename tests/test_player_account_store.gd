@@ -34,6 +34,10 @@ func _ready() -> void:
 
 	var login: Dictionary = store.login("fieldmouse", "safe-pass-1936")
 	_expect(bool(login.get("ok", false)), "correct password logs in")
+	_expect(String(login.get("account", "")) == "FieldMouse", "login returns the canonical account name")
+	_expect(bool(login.get("has_password", false)), "login reports that a password is configured")
+	_expect(not login.has("password") and not login.has("salt") and not login.has("password_hash"), "login never returns password material")
+	_expect(not JSON.stringify(login).contains("safe-pass-1936"), "login response never contains the plaintext password")
 	var token = String(login.get("session_token", ""))
 	var saved: Dictionary = store.save_profile(token, {
 		"card_counts": {"rabbit": 7, "wolf": 2},
@@ -124,10 +128,13 @@ func _ready() -> void:
 	)
 	_expect(bool(bound_login.get("ok", false)), "manual account login binds the current installation securely")
 	_expect(String(bound_login.get("user_id", "")) == String(registered.get("user_id", "")), "manual login selects the named account")
+	_expect(String(bound_login.get("account", "")) == "FieldMouse", "bound installation receives the named account identity")
 	var restarted_after_binding = PlayerAccountStore.new(TEST_PATH)
 	var auto_login: Dictionary = restarted_after_binding.authenticate_installation(named_installation_id, named_refresh_token)
 	_expect(bool(auto_login.get("ok", false)), "bound installation credentials survive a server restart")
 	_expect(String(auto_login.get("user_id", "")) == String(registered.get("user_id", "")), "saved device credentials automatically restore the named account")
+	_expect(String(auto_login.get("account", "")) == "FieldMouse", "automatic restore includes the account name without returning the password")
+	_expect(not JSON.stringify(auto_login).contains("safe-pass-1936"), "automatic restore never returns the historical password")
 	var password_recovery: Dictionary = restarted_after_binding.login(
 		"FieldMouse",
 		"safe-pass-1936",
@@ -156,9 +163,15 @@ func _ready() -> void:
 	_expect(bool(unbound_login.get("ok", false)), "correct password binds an installation not yet known to the server")
 	var unbound_refresh_token = String(unbound_login.get("refresh_token", ""))
 	_expect(unbound_refresh_token.length() == 64, "new password-bound installation receives its own refresh token")
+	_expect(unbound_refresh_token != rotated_refresh_token, "different installations receive independent refresh tokens")
 	var unbound_auto_login: Dictionary = restarted_after_binding.authenticate_installation(unbound_installation_id, unbound_refresh_token)
 	_expect(bool(unbound_auto_login.get("ok", false)), "new password-bound installation resumes with its issued token")
 	_expect(String(unbound_auto_login.get("user_id", "")) == String(registered.get("user_id", "")), "new installation resumes the named account")
+	_expect(String(unbound_auto_login.get("account", "")) == "FieldMouse", "second installation restores the same named account")
+	_expect(
+		not bool(restarted_after_binding.authenticate_installation(unbound_installation_id, rotated_refresh_token).get("ok", true)),
+		"one installation cannot reuse another installation's refresh token"
+	)
 	var rejected_installation_id = "f1".repeat(32)
 	_expect(
 		not bool(restarted_after_binding.login("FieldMouse", "wrong-password", rejected_installation_id, "", []).get("ok", true)),

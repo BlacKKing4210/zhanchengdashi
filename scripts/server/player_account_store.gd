@@ -185,6 +185,8 @@ func switch_account(
 		var current_record = _record_for_session(session_token)
 		return _success({
 			"user_id": target_user_id,
+			"account": String(current_record.get("account", "")),
+			"has_password": not String(current_record.get("password_hash", "")).is_empty(),
 			"session_token": session_token,
 			"profile": (current_record.get("profile", {}) as Dictionary).duplicate(true),
 			"accounts": _account_summaries(installation_hash, animal_card_ids),
@@ -220,6 +222,8 @@ func profile_for_session(session_token: String) -> Dictionary:
 			return _failure("storage_error")
 	return _success({
 		"user_id": record["user_id"],
+		"account": String(record.get("account", "")),
+		"has_password": not String(record.get("password_hash", "")).is_empty(),
 		"profile": normalized_profile.duplicate(true),
 	})
 
@@ -397,6 +401,8 @@ func _create_session(user_id: String, installation_hash: String = "") -> Diction
 	var record: Dictionary = accounts[key]
 	return _success({
 		"user_id": user_id,
+		"account": String(record.get("account", "")),
+		"has_password": not String(record.get("password_hash", "")).is_empty(),
 		"session_token": token,
 		"profile": (record["profile"] as Dictionary).duplicate(true),
 	})
@@ -478,6 +484,8 @@ func _account_summaries(installation_hash: String, animal_card_ids: Array) -> Ar
 		var profile: Dictionary = record.get("profile", {})
 		var summary = profile_adapter.summary_for_profile(profile, animal_card_ids)
 		summary["user_id"] = user_id
+		summary["account"] = String(record.get("account", ""))
+		summary["has_password"] = not String(record.get("password_hash", "")).is_empty()
 		summary["is_active"] = user_id == active_user_id
 		result.append(summary)
 		continue
