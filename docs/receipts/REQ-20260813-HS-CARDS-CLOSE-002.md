@@ -1,0 +1,23 @@
+# REQ-20260813-HS-CARDS-001 Completion Receipt
+
+- State: `COMPLETE`
+- Delivery: `outputs/019ff0ec-63ef-7f01-8d36-9be00ae2a670/hearthstone_card_reference_2026-08-13.xlsx`
+- Delivery SHA-256: `80A4DD355ED9BD13BB11B6164E3BFF6CAAE372248E5F78E1FA52F4BEF2E87AF3`
+- Delivery size: `10,915,149` bytes
+- Source snapshot: HearthstoneJSON build `248348`; retrieved `2026-08-13`
+- External discovery: AnySearch succeeded; decision-critical definitions were checked against the original HearthstoneJSON card and image documentation and Blizzard card library
+- Agent Reach: Jina Reader backend used for original JSON retrieval; raw packets remained outside the project
+- All-card reconciliation: zhCN `35,713`; enUS `35,713`; ID symmetric difference `0`; duplicate IDs `0`
+- Collectible reconciliation: `8,115`; exactly equal to all-card rows with `collectible=true`; symmetric difference `0`
+- Animal reference pool: `758` collectible rows, selected from Beast race or explicit project-animal name matches
+- Workbook sheets: `说明与总览`, `统计参数`, `全量卡牌`, `动物参考池`, `机制映射`, `卡面示例`, `来源与字段`
+- Card-face coverage: every all-card row includes zhCN 256/512 render URLs plus art URL; 10 representative zhCN card renders are embedded and all 10 image relationships are present in the XLSX package
+- Information coverage: localized names, types, classes, rarity, sets, cost/attack/health/durability/armor, races, spell school, readable and raw text, mechanics, referenced tags, artist/flavor/targeting and remaining unmapped JSON fields
+- Formula QA: no `#REF!`, `#DIV/0!`, `#VALUE!`, `#NAME?`, or `#N/A`; overview formulas resolve to `35,713 / 8,115 / 27,598 / 758`; mechanics formulas resolve to non-zero source counts
+- Package QA: XLSX ZIP package read successfully; 32 entries; 85,037,623 uncompressed bytes streamed; 10 embedded media files and 10 drawing relationships
+- Visual QA: all seven sheets rendered and reviewed at target ranges; Chinese text, totals, headers, wrapped effects and card-face labels are readable; full data sheets remain filterable and freeze headers/identity columns
+- Copyright boundary: third-party card names, rules text and card art remain research references only; no Hearthstone asset or identity was copied into project runtime assets
+- Conflict closure: no change to locked `cards.csv`, schema, runtime configuration, Godot scenes/scripts, active scope, gameplay design or combat tests
+- Project RAG closure: `READY`; 53 sources, 712 chunks, 13/13 golden queries passed, mean recall `1.0`; fresh request receipt contains 8 cited project chunks
+- Cleanup: temporary research packets, preview renders, authoring caches and export inspection support file were removed; only the final XLSX and project receipts remain
+- Reusable method candidate: none
