@@ -121,19 +121,21 @@ static func is_animal_card(card: Dictionary) -> bool:
 	return true
 
 
-static func is_ranged_or_summon_animal(card: Dictionary) -> bool:
+static func is_ranged_animal(card: Dictionary) -> bool:
 	if not is_animal_card(card):
 		return false
-	var is_ranged = float(card.get("base_attack_range", 0.0)) > MELEE_ATTACK_RANGE
-	var is_summon_type = String(card.get("skill_effect", "")) == "summon"
-	return is_ranged or is_summon_type
+	return float(card.get("base_attack_range", 0.0)) > MELEE_ATTACK_RANGE
+
+
+static func is_ranged_or_summon_animal(card: Dictionary) -> bool:
+	return is_ranged_animal(card)
 
 
 static func upgrade_hp_bonus(card: Dictionary, card_levels: Dictionary) -> int:
 	if not is_animal_card(card):
 		return 0
 	var level = max(1, card_level(card_levels, String(card.get("id", ""))))
-	if is_ranged_or_summon_animal(card):
+	if is_ranged_animal(card):
 		return floori(float(level) / 2.0)
 	return level - 1
 
@@ -141,9 +143,12 @@ static func card_stats(card: Dictionary, card_levels: Dictionary) -> Dictionary:
 	var id = String(card.get("id", ""))
 	var mult = card_multiplier(card_levels, id)
 	var hp_bonus = upgrade_hp_bonus(card, card_levels)
+	var max_hp = roundi(float(card.get("base_max_hp", 1)) * mult)
+	if is_animal_card(card):
+		max_hp = roundi(float(card.get("base_max_hp", 1))) + hp_bonus
 	return {
 		"attack": maxi(0, roundi(float(card.get("base_attack", 1)) * mult)),
-		"max_hp": maxi(1, roundi(float(card.get("base_max_hp", 1)) * mult)) + hp_bonus,
+		"max_hp": maxi(1, max_hp),
 		"move_speed": float(card.get("base_move_speed", 60.0)) * mult,
 		"attack_range": float(card.get("base_attack_range", 42.0)) * mult,
 		"summon_interval_sec": maxf(1.0, float(card.get("base_summon_interval_sec", 3.5)) / mult),

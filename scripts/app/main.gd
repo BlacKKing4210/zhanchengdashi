@@ -1128,6 +1128,13 @@ func _on_online_operation_failed(operation: String, error: String) -> void:
 	if operation in ["list_accounts", "switch_account", "create_new_account"]:
 		account_switch_loading = false
 	GameAudio.play_sfx("ui_error")
+	if operation == "set_auto_account_credentials":
+		_toast(
+			"本机无法查看该自动账号密码，请重新登录"
+			if OnlineRoom.current_account_has_password
+			else "自动账号密码创建失败，请重新连接"
+		)
+		return
 	_toast(_online_error_message(operation, error))
 
 
@@ -5997,13 +6004,21 @@ func _clear_all_account_password_memory() -> void:
 		account_password_field.clear()
 
 
+func _current_account_password_for_view() -> String:
+	if (
+		not account_session_password.is_empty()
+		and account_session_auth_name.to_lower() == OnlineRoom.current_account_name.to_lower()
+	):
+		return account_session_password
+	return OnlineRoom.current_generated_account_password()
+
+
 func _account_password_available_for_view() -> bool:
 	return (
 		not OnlineRoom.current_user_id.is_empty()
 		and OnlineRoom.current_account_has_password
-		and not account_session_password.is_empty()
 		and not OnlineRoom.current_account_name.is_empty()
-		and account_session_auth_name.to_lower() == OnlineRoom.current_account_name.to_lower()
+		and not _current_account_password_for_view().is_empty()
 	)
 
 
@@ -6011,9 +6026,10 @@ func _account_credential_clipboard_text() -> String:
 	if not _account_password_available_for_view():
 		return ""
 	var account = OnlineRoom.current_account_name.strip_edges()
-	if account.is_empty():
+	var password = _current_account_password_for_view()
+	if account.is_empty() or password.is_empty():
 		return ""
-	return "账号：%s\n密码：%s" % [account, account_session_password]
+	return "账号ID：%s\n密码：%s" % [account, password]
 
 
 func _copy_account_credentials_to_clipboard() -> bool:
@@ -6179,7 +6195,7 @@ func _handle_account_center_tap(pos: Vector2) -> void:
 			_toast("密码将在 10 秒后重新隐藏" if account_password_revealed else "密码已隐藏")
 		else:
 			_open_account_manual_login()
-			_toast("为安全起见，请重新输入密码验证")
+			_toast("请重新登录后查看密码")
 		GameAudio.play_sfx("ui_click")
 	elif not OnlineRoom.current_user_id.is_empty() and not account_manual_login_open and _account_password_copy_rect().has_point(pos):
 		if _copy_account_credentials_to_clipboard():
@@ -6239,16 +6255,16 @@ func _draw_account_center() -> void:
 	else:
 		_box(Rect2(104, 334, 512, 250), Color(1.0, 0.95, 0.79), COLOR_LINE, 4)
 		var account_name = OnlineRoom.current_account_name.strip_edges()
-		_draw_text_fit("账号", Rect2(128, 350, 86, 30), 20, COLOR_PURPLE)
+		_draw_text_fit("账号ID" if OnlineRoom.current_account_is_generated else "账号", Rect2(128, 350, 86, 30), 20, COLOR_PURPLE)
 		_draw_text_fit(account_name if not account_name.is_empty() else "游客账号（未绑定）", Rect2(226, 348, 366, 34), 22, COLOR_LINE)
 		_draw_text_fit("UserID", Rect2(128, 397, 86, 30), 20, COLOR_PURPLE)
 		_draw_text_fit(user_id, Rect2(226, 395, 366, 34), 21, COLOR_LINE)
 		_draw_text_fit("密码", Rect2(128, 452, 86, 32), 20, COLOR_PURPLE)
 		var password_text = "未设置"
 		if OnlineRoom.current_account_has_password:
-			password_text = account_session_password if account_password_revealed and _account_password_available_for_view() else "••••••••"
+			password_text = _current_account_password_for_view() if account_password_revealed and _account_password_available_for_view() else "••••••••"
 		_draw_text_fit(password_text, Rect2(226, 450, 236, 36), 22, COLOR_LINE)
-		var credential_button_label = "查看" if _account_password_available_for_view() else "重新验证"
+		var credential_button_label = "查看" if _account_password_available_for_view() else "重新登录"
 		if account_password_revealed and _account_password_available_for_view():
 			credential_button_label = "隐藏"
 		_cta(_account_password_view_rect(), credential_button_label, _account_password_available_for_view())
@@ -6256,7 +6272,10 @@ func _draw_account_center() -> void:
 		_cta(_account_password_copy_rect(), "复制账号密码", _account_password_available_for_view())
 		var password_note = "游客档案未设置密码，可绑定命名账号"
 		if OnlineRoom.current_account_has_password:
-			password_note = "仅本次前台登录可查看；离开应用立即清除" if _account_password_available_for_view() else "历史密码不保存；重新登录验证后可临时查看"
+			if OnlineRoom.current_account_is_generated and _account_password_available_for_view():
+				password_note = "自动账号密码可复制到其他平台登录；离开应用立即隐藏"
+			else:
+				password_note = "仅本次前台登录可查看；离开应用立即清除" if _account_password_available_for_view() else "历史密码不保存；重新登录后可临时查看"
 		_draw_text_fit(password_note, Rect2(128, 552, 464, 22), 14, Color(0.35, 0.29, 0.22))
 	_cta(_account_agreement_rect(), "玩家协议", false)
 	_draw_text_fit("声音设置", Rect2(104, 710, 120, 32), 22, COLOR_LINE)

@@ -243,6 +243,13 @@ static func create_match(
 		layout_seed
 	):
 		return {}
+	if not _apply_opening_high_price_quota(
+		tiles,
+		players_per_side,
+		base_keys,
+		layout_seed
+	):
+		return {}
 
 	_compat_tiles = tiles
 	_compat_base_keys = base_keys
@@ -281,6 +288,13 @@ static func create_free_for_all_match(cell_type_rows: Array = [], seed: int = 0)
 		MAX_PLAYERS_PER_SIDE,
 		base_keys,
 		cell_type_rows,
+		layout_seed
+	):
+		return {}
+	if not _apply_opening_high_price_quota(
+		tiles,
+		MAX_PLAYERS_PER_SIDE,
+		base_keys,
 		layout_seed
 	):
 		return {}
@@ -854,6 +868,162 @@ static func _apply_exact_bonus_mine_quota(
 			""
 		)
 	return true
+
+
+static func _apply_opening_high_price_quota(
+	tiles: Dictionary,
+	players_per_side: int,
+	base_keys: Dictionary,
+	layout_seed: int
+) -> bool:
+	var high_price_site = BoardRules.camp_site_for_cost(BoardRules.UNIT_HIGH_PRICE)
+	if players_per_side == MAX_PLAYERS_PER_SIDE:
+		var canonical_key = _rotational_opening_high_price_key(
+			tiles,
+			base_keys,
+			layout_seed
+		)
+		if canonical_key == INVALID_KEY:
+			return false
+		if not _rotational_opening_sites_are_high_price(tiles, canonical_key):
+			_set_rotated_site(tiles, canonical_key, high_price_site, "")
+		return true
+	for team in range(1, players_per_side + 1):
+		var left_key = _mirrored_opening_high_price_key(
+			tiles,
+			team,
+			players_per_side,
+			base_keys,
+			layout_seed
+		)
+		if left_key == INVALID_KEY:
+			return false
+		var right_key = mirror_key(left_key)
+		if not (
+			_is_high_price_hall(tiles[left_key])
+			and _is_high_price_hall(tiles[right_key])
+		):
+			_set_mirrored_site(tiles, left_key, right_key, high_price_site, "")
+	return true
+
+
+static func _mirrored_opening_high_price_key(
+	tiles: Dictionary,
+	team: int,
+	players_per_side: int,
+	base_keys: Dictionary,
+	layout_seed: int
+) -> Vector2i:
+	var rival_team = mirror_team(team, players_per_side)
+	var own_base: Vector2i = base_keys.get(team, INVALID_KEY)
+	var rival_base: Vector2i = base_keys.get(rival_team, INVALID_KEY)
+	var best_existing_key = INVALID_KEY
+	var best_existing_score = 2147483647
+	var best_key = INVALID_KEY
+	var best_score = 2147483647
+	for key in neighbors(tiles, own_base):
+		if not _is_opening_high_price_candidate(tiles, key, team, own_base):
+			continue
+		var mirrored = mirror_key(key)
+		if not _is_opening_high_price_candidate(tiles, mirrored, rival_team, rival_base):
+			continue
+		var score = _derived_seed(
+			layout_seed,
+			"opening_high_price:%d:%d:%d" % [team, key.x, key.y]
+		)
+		if score < best_score or (score == best_score and _key_before(key, best_key)):
+			best_score = score
+			best_key = key
+		if not (_is_high_price_hall(tiles[key]) and _is_high_price_hall(tiles[mirrored])):
+			continue
+		if (
+			score < best_existing_score
+			or (score == best_existing_score and _key_before(key, best_existing_key))
+		):
+			best_existing_score = score
+			best_existing_key = key
+	return best_existing_key if best_existing_key != INVALID_KEY else best_key
+
+
+static func _rotational_opening_high_price_key(
+	tiles: Dictionary,
+	base_keys: Dictionary,
+	layout_seed: int
+) -> Vector2i:
+	var canonical_base: Vector2i = base_keys.get(1, INVALID_KEY)
+	var best_existing_key = INVALID_KEY
+	var best_existing_score = 2147483647
+	var best_key = INVALID_KEY
+	var best_score = 2147483647
+	for key in neighbors(tiles, canonical_base):
+		var all_sectors_valid = true
+		for sector in range(6):
+			var team = sector + 1
+			var rotated_key = rotate_key(key, sector)
+			var base: Vector2i = base_keys.get(team, INVALID_KEY)
+			if not _is_opening_high_price_candidate(tiles, rotated_key, team, base):
+				all_sectors_valid = false
+				break
+		if not all_sectors_valid:
+			continue
+		var score = _derived_seed(
+			layout_seed,
+			"opening_high_price:%d:%d" % [key.x, key.y]
+		)
+		if score < best_score or (score == best_score and _key_before(key, best_key)):
+			best_score = score
+			best_key = key
+		if not _rotational_opening_sites_are_high_price(tiles, key):
+			continue
+		if (
+			score < best_existing_score
+			or (score == best_existing_score and _key_before(key, best_existing_key))
+		):
+			best_existing_score = score
+			best_existing_key = key
+	return best_existing_key if best_existing_key != INVALID_KEY else best_key
+
+
+static func _is_opening_high_price_candidate(
+	tiles: Dictionary,
+	key: Vector2i,
+	team: int,
+	base_key: Vector2i
+) -> bool:
+	if not tiles.has(key) or not tiles.has(base_key):
+		return false
+	if key not in neighbors(tiles, base_key):
+		return false
+	var tile: Dictionary = tiles[key]
+	if int(tile.get("territory_team", NEUTRAL)) != team:
+		return false
+	if int(tile.get("team", NEUTRAL)) != NEUTRAL:
+		return false
+	if BoardRules.visual_owner(tile) != team:
+		return false
+	if not String(tile.get("building", "")).is_empty():
+		return false
+	if not String(tile.get("starting_resource", "")).is_empty():
+		return false
+	return String(tile.get("site", "")) != "mine"
+
+
+static func _rotational_opening_sites_are_high_price(
+	tiles: Dictionary,
+	canonical_key: Vector2i
+) -> bool:
+	for sector in range(6):
+		var key = rotate_key(canonical_key, sector)
+		if not tiles.has(key) or not _is_high_price_hall(tiles[key]):
+			return false
+	return true
+
+
+static func _is_high_price_hall(tile: Dictionary) -> bool:
+	return (
+		String(tile.get("site", "")) == "hall"
+		and int(tile.get("site_cost", 0)) == BoardRules.UNIT_HIGH_PRICE
+	)
 
 
 static func _remove_unallocated_mines(

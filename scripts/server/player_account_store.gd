@@ -1,6 +1,7 @@
 extends RefCounted
 
 const ProfileAdapter = preload("res://scripts/server/player_account_profile_adapter.gd")
+const AccountCredentialRules = preload("res://scripts/shared/account_credential_rules.gd")
 
 const DEFAULT_PATH = "user://server/player_accounts.json"
 const PASSWORD_ROUNDS = 12000
@@ -48,6 +49,7 @@ func register_account(account: String, password: String) -> Dictionary:
 	var record = {
 		"user_id": _new_user_id(),
 		"account": account.strip_edges(),
+		"auto_generated": false,
 		"salt": salt,
 		"password_hash": _password_hash(password, salt),
 		"created_at_unix": now,
@@ -132,6 +134,57 @@ func account_summaries_for_session(session_token: String, animal_card_ids: Array
 	})
 
 
+func set_auto_account_credentials_for_session(
+	session_token: String,
+	password: String,
+	animal_card_ids: Array = []
+) -> Dictionary:
+	if not sessions.has(session_token):
+		return _failure("invalid_session")
+	var user_id = String(sessions[session_token])
+	var old_key = _key_for_user_id(user_id)
+	var normalized_password = password.strip_edges().to_lower()
+	if (
+		old_key.is_empty()
+		or not AccountCredentialRules.is_valid_auto_account_id(user_id)
+		or not _is_valid_auto_password(normalized_password)
+	):
+		return _failure("invalid_credentials")
+	var previous_record: Dictionary = (accounts[old_key] as Dictionary).duplicate(true)
+	var record: Dictionary = previous_record.duplicate(true)
+	var account_name = String(record.get("account", "")).strip_edges()
+	var has_password = not String(record.get("password_hash", "")).is_empty()
+	var is_generated = bool(record.get("auto_generated", false))
+	if account_name.is_empty() and not has_password and not is_generated:
+		var new_key = _account_key(user_id)
+		if accounts.has(new_key) and new_key != old_key:
+			return _failure("account_exists")
+		var salt = _random_hex(16)
+		record["account"] = user_id
+		record["auto_generated"] = true
+		record["salt"] = salt
+		record["password_hash"] = _password_hash(normalized_password, salt)
+		record["updated_at_unix"] = int(Time.get_unix_time_from_system())
+		accounts.erase(old_key)
+		accounts[new_key] = record
+		if not _save():
+			accounts.erase(new_key)
+			accounts[old_key] = previous_record
+			return _failure("storage_error")
+	elif (
+		not AccountCredentialRules.is_auto_account(account_name, user_id, is_generated)
+		or not has_password
+		or _password_hash(normalized_password, String(record.get("salt", "")))
+			!= String(record.get("password_hash", ""))
+	):
+		return _failure("invalid_credentials")
+	var result = _session_result(session_token, true)
+	var installation_hash = String(session_installations.get(session_token, ""))
+	if not installation_hash.is_empty():
+		result["accounts"] = _account_summaries(installation_hash, animal_card_ids)
+	return result
+
+
 func create_account_for_session(
 	session_token: String,
 	starter_profile: Dictionary,
@@ -187,6 +240,8 @@ func switch_account(
 			"user_id": target_user_id,
 			"account": String(current_record.get("account", "")),
 			"has_password": not String(current_record.get("password_hash", "")).is_empty(),
+			"auto_generated": bool(current_record.get("auto_generated", false)),
+			"auto_password_local": false,
 			"session_token": session_token,
 			"profile": (current_record.get("profile", {}) as Dictionary).duplicate(true),
 			"accounts": _account_summaries(installation_hash, animal_card_ids),
@@ -224,6 +279,7 @@ func profile_for_session(session_token: String) -> Dictionary:
 		"user_id": record["user_id"],
 		"account": String(record.get("account", "")),
 		"has_password": not String(record.get("password_hash", "")).is_empty(),
+		"auto_generated": bool(record.get("auto_generated", false)),
 		"profile": normalized_profile.duplicate(true),
 	})
 
@@ -390,7 +446,11 @@ func _recover_installation_with_recovery_secret(
 	return result
 
 
-func _create_session(user_id: String, installation_hash: String = "") -> Dictionary:
+func _create_session(
+	user_id: String,
+	installation_hash: String = "",
+	auto_password_local: bool = false
+) -> Dictionary:
 	var key = _key_for_user_id(user_id)
 	if key.is_empty():
 		return _failure("invalid_device_credentials")
@@ -398,12 +458,22 @@ func _create_session(user_id: String, installation_hash: String = "") -> Diction
 	sessions[token] = user_id
 	if not installation_hash.is_empty():
 		session_installations[token] = installation_hash
+	return _session_result(token, auto_password_local)
+
+
+func _session_result(session_token: String, auto_password_local: bool = false) -> Dictionary:
+	var user_id = String(sessions.get(session_token, ""))
+	var key = _key_for_user_id(user_id)
+	if key.is_empty():
+		return _failure("invalid_session")
 	var record: Dictionary = accounts[key]
 	return _success({
 		"user_id": user_id,
 		"account": String(record.get("account", "")),
 		"has_password": not String(record.get("password_hash", "")).is_empty(),
-		"session_token": token,
+		"auto_generated": bool(record.get("auto_generated", false)),
+		"auto_password_local": auto_password_local,
+		"session_token": session_token,
 		"profile": (record["profile"] as Dictionary).duplicate(true),
 	})
 
@@ -412,6 +482,7 @@ func _device_account_record(user_id: String, now: int, starter_profile: Dictiona
 	return {
 		"user_id": user_id,
 		"account": "",
+		"auto_generated": false,
 		"salt": "",
 		"password_hash": "",
 		"created_at_unix": now,
@@ -432,7 +503,15 @@ func _installation_token_is_valid(installation_hash: String, refresh_token: Stri
 
 
 func _is_valid_recovery_secret(recovery_secret: String) -> bool:
-	return recovery_secret.length() == 64 and recovery_secret.is_valid_hex_number(false)
+	return AccountCredentialRules.is_valid_recovery_secret(recovery_secret)
+
+
+func _is_valid_auto_password(password: String) -> bool:
+	return (
+		password.length() == AccountCredentialRules.AUTO_PASSWORD_HEX_LENGTH
+		and password.is_valid_hex_number(false)
+		and password == password.to_lower()
+	)
 
 
 func _installation_recovery_secret_is_valid(installation_hash: String, recovery_secret: String) -> bool:
@@ -486,6 +565,7 @@ func _account_summaries(installation_hash: String, animal_card_ids: Array) -> Ar
 		summary["user_id"] = user_id
 		summary["account"] = String(record.get("account", ""))
 		summary["has_password"] = not String(record.get("password_hash", "")).is_empty()
+		summary["auto_generated"] = bool(record.get("auto_generated", false))
 		summary["is_active"] = user_id == active_user_id
 		result.append(summary)
 		continue

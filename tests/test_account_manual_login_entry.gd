@@ -1,6 +1,7 @@
 extends Node
 
 const MainApp = preload("res://scripts/app/main.gd")
+const AccountCredentialRules = preload("res://scripts/shared/account_credential_rules.gd")
 
 var failures = 0
 
@@ -9,6 +10,9 @@ func _ready() -> void:
 	var original_user_id = OnlineRoom.current_user_id
 	var original_account_name = OnlineRoom.current_account_name
 	var original_has_password = OnlineRoom.current_account_has_password
+	var original_is_generated = OnlineRoom.current_account_is_generated
+	var original_auto_password_local = OnlineRoom.current_auto_password_local
+	var original_recovery_secret = String(OnlineRoom.get("_device_recovery_secret"))
 	OnlineRoom.current_user_id = "U-account-entry-test"
 	OnlineRoom.current_account_name = "FieldMouse"
 	OnlineRoom.current_account_has_password = true
@@ -49,12 +53,12 @@ func _ready() -> void:
 	_expect_false(name_field.visible, "closing the account panel hides the account field")
 	app.set("account_center_open", true)
 	app.call("_handle_account_center_tap", password_copy_rect.get_center())
-	_expect_true(bool(app.get("account_manual_login_open")), "copy without current-session credentials requires re-verification")
+	_expect_true(bool(app.get("account_manual_login_open")), "copy without current-session credentials requires re-login")
 	_expect_true(String(app.get("account_clipboard_payload")).is_empty(), "copy without current-session credentials writes no tracked payload")
 	app.set("account_manual_login_open", false)
 	app.call("_set_account_fields_visible", false)
 	app.call("_remember_account_password", "FieldMouse", "copy-password-demo")
-	var expected_payload = "账号：FieldMouse\n密码：copy-password-demo"
+	var expected_payload = "账号ID：FieldMouse\n密码：copy-password-demo"
 	_expect_true(String(app.call("_account_credential_clipboard_text")) == expected_payload, "copy payload uses the current account and manual-session password")
 	app.set("account_clipboard_payload", expected_payload)
 	app.set("account_clipboard_clear_timer", 60.0)
@@ -75,12 +79,34 @@ func _ready() -> void:
 		_expect_true(DisplayServer.clipboard_get().is_empty(), "clipboard expiry clears the unchanged credential payload")
 	app.call("_clear_session_account_password")
 	app.call("_handle_account_center_tap", password_view_rect.get_center())
-	_expect_true(bool(app.get("account_manual_login_open")), "password view without current-session credentials requires re-verification")
-	_expect_true(name_field.visible and password_field.visible, "re-verification exposes native account inputs")
-	_expect_true(name_field.text == "FieldMouse", "re-verification pre-fills the known account name")
+	_expect_true(bool(app.get("account_manual_login_open")), "password view without current-session credentials requires re-login")
+	_expect_true(name_field.visible and password_field.visible, "re-login exposes native account inputs")
+	_expect_true(name_field.text == "FieldMouse", "re-login pre-fills the known account name")
+	var auto_user_id = "U-1786700000-ABCDEF1234"
+	var auto_recovery_secret = "a1".repeat(32)
+	var auto_password = AccountCredentialRules.derive_auto_password(auto_user_id, auto_recovery_secret)
+	OnlineRoom.current_user_id = auto_user_id
+	OnlineRoom.current_account_name = auto_user_id
+	OnlineRoom.current_account_has_password = true
+	OnlineRoom.current_account_is_generated = true
+	OnlineRoom.current_auto_password_local = true
+	OnlineRoom.set("_device_recovery_secret", auto_recovery_secret)
+	app.call("_clear_session_account_password")
+	app.set("account_manual_login_open", false)
+	app.call("_set_account_fields_visible", false)
+	var expected_auto_payload = "账号ID：%s\n密码：%s" % [auto_user_id, auto_password]
+	_expect_true(bool(app.call("_account_password_available_for_view")), "origin device can view its generated account password")
+	_expect_true(String(app.call("_account_credential_clipboard_text")) == expected_auto_payload, "generated account copy payload contains its account id and derived password")
+	if DisplayServer.has_feature(DisplayServer.FEATURE_CLIPBOARD):
+		DisplayServer.clipboard_set("")
+		app.call("_handle_account_center_tap", password_copy_rect.get_center())
+		_expect_true(String(app.get("account_clipboard_payload")) == expected_auto_payload, "generated account copy button works without reopening login")
 	OnlineRoom.current_user_id = original_user_id
 	OnlineRoom.current_account_name = original_account_name
 	OnlineRoom.current_account_has_password = original_has_password
+	OnlineRoom.current_account_is_generated = original_is_generated
+	OnlineRoom.current_auto_password_local = original_auto_password_local
+	OnlineRoom.set("_device_recovery_secret", original_recovery_secret)
 	if DisplayServer.has_feature(DisplayServer.FEATURE_CLIPBOARD):
 		DisplayServer.clipboard_set("")
 	app.queue_free()

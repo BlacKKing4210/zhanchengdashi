@@ -32,6 +32,7 @@ const CHANNEL_COUNT = 3
 const REGISTRY_PATH = "res://scripts/network/room_registry.gd"
 const ACCOUNT_STORE_PATH = "res://scripts/server/player_account_store.gd"
 const MATCH_ANALYTICS_STORE_PATH = "res://scripts/server/match_analytics_store.gd"
+const AccountCredentialRules = preload("res://scripts/shared/account_credential_rules.gd")
 const DEVICE_CREDENTIAL_PATH = "user://client/device_account.json"
 const MAX_PLAYER_NAME_LENGTH = 24
 const MAX_COMMAND_BYTES = 64 * 1024
@@ -56,6 +57,8 @@ var last_operation_error = ""
 var current_user_id = ""
 var current_account_name = ""
 var current_account_has_password = false
+var current_account_is_generated = false
+var current_auto_password_local = false
 var current_profile: Dictionary = {}
 var current_account_summaries: Array = []
 
@@ -79,6 +82,7 @@ var _refresh_token = ""
 var _device_recovery_secret = ""
 var _credential_server_identity = ""
 var _automatic_auth_retry_used = false
+var _auto_credential_request_pending = false
 
 
 func _ready() -> void:
@@ -381,6 +385,42 @@ func create_new_account() -> bool:
 	return true
 
 
+func current_generated_account_password() -> String:
+	if not current_auto_password_local:
+		return ""
+	if not AccountCredentialRules.is_auto_account(
+		current_account_name,
+		current_user_id,
+		current_account_is_generated
+	):
+		return ""
+	return AccountCredentialRules.derive_auto_password(current_user_id, _device_recovery_secret)
+
+
+func _request_current_auto_account_credentials() -> void:
+	if _auto_credential_request_pending or not is_connected_to_server():
+		return
+	if _client_session_token.is_empty() or current_user_id.is_empty():
+		return
+	if current_account_has_password and not current_account_is_generated:
+		return
+	if not current_account_name.is_empty() and current_account_name.to_lower() != current_user_id.to_lower():
+		return
+	var password = AccountCredentialRules.derive_auto_password(
+		current_user_id,
+		_device_recovery_secret
+	)
+	if password.is_empty():
+		return
+	_auto_credential_request_pending = true
+	rpc_id(
+		SERVER_PEER_ID,
+		"_rpc_request_set_auto_account_credentials",
+		_client_session_token,
+		password
+	)
+
+
 func request_player_profile() -> bool:
 	if not _require_client_connection("load_player_profile"):
 		return false
@@ -563,6 +603,23 @@ func _rpc_request_create_new_account(session_token: String) -> void:
 	if bool(result.get("ok", false)) and result.has("session_token"):
 		_server_peer_sessions[sender] = String(result.get("session_token", ""))
 	_send_operation_result(sender, "create_new_account", result)
+
+
+@rpc("any_peer", "call_remote", "reliable", 0)
+func _rpc_request_set_auto_account_credentials(session_token: String, password: String) -> void:
+	if not _accept_server_request():
+		return
+	var sender = multiplayer.get_remote_sender_id()
+	if session_token != String(_server_peer_sessions.get(sender, "")):
+		_send_operation_result(sender, "set_auto_account_credentials", _failure("invalid_session"))
+		return
+	var result: Dictionary = _account_store.call(
+		"set_auto_account_credentials_for_session",
+		session_token,
+		password,
+		_server_animal_card_ids()
+	)
+	_send_operation_result(sender, "set_auto_account_credentials", result)
 
 
 @rpc("any_peer", "call_remote", "reliable", 0)
@@ -779,6 +836,8 @@ func _rpc_receive_operation_result(operation: String, result: Dictionary) -> voi
 		_apply_account_operation(operation, result)
 		operation_completed.emit(operation, result.duplicate(true))
 	else:
+		if operation == "set_auto_account_credentials":
+			_auto_credential_request_pending = false
 		if operation == "authenticate_installation" and _retry_default_authentication_without_refresh_token(last_operation_error):
 			return
 		operation_failed.emit(operation, last_operation_error)
@@ -1204,11 +1263,13 @@ func _create_match_analytics_store() -> Variant:
 
 
 func _apply_account_operation(operation: String, result: Dictionary) -> void:
-	if operation in ["login_account", "authenticate_installation", "switch_account", "create_new_account"]:
+	if operation in ["login_account", "authenticate_installation", "switch_account", "create_new_account", "set_auto_account_credentials"]:
 		_client_session_token = String(result.get("session_token", ""))
 		current_user_id = String(result.get("user_id", ""))
 		current_account_name = String(result.get("account", ""))
 		current_account_has_password = bool(result.get("has_password", false))
+		current_account_is_generated = bool(result.get("auto_generated", false))
+		current_auto_password_local = bool(result.get("auto_password_local", false))
 		current_profile = (result.get("profile", {}) as Dictionary).duplicate(true)
 		var issued_refresh_token = String(result.get("refresh_token", ""))
 		if not issued_refresh_token.is_empty():
@@ -1218,19 +1279,26 @@ func _apply_account_operation(operation: String, result: Dictionary) -> void:
 		current_user_id = String(result.get("user_id", current_user_id))
 		current_account_name = String(result.get("account", current_account_name))
 		current_account_has_password = bool(result.get("has_password", current_account_has_password))
+		current_account_is_generated = bool(result.get("auto_generated", current_account_is_generated))
 		current_profile = (result.get("profile", {}) as Dictionary).duplicate(true)
 	elif operation == "logout_account":
 		_clear_account_state()
 	if result.has("accounts") and typeof(result.get("accounts")) == TYPE_ARRAY:
 		current_account_summaries = (result.get("accounts") as Array).duplicate(true)
+	if operation == "set_auto_account_credentials":
+		_auto_credential_request_pending = false
 	account_state_changed.emit({
 		"user_id": current_user_id,
 		"account": current_account_name,
 		"has_password": current_account_has_password,
+		"auto_generated": current_account_is_generated,
+		"auto_password_local": current_auto_password_local,
 		"profile": current_profile.duplicate(true),
 		"accounts": current_account_summaries.duplicate(true),
 		"logged_in": not current_user_id.is_empty(),
 	})
+	if operation in ["authenticate_installation", "switch_account", "create_new_account"]:
+		call_deferred("_request_current_auto_account_credentials")
 
 
 func _clear_account_state() -> void:
@@ -1238,6 +1306,9 @@ func _clear_account_state() -> void:
 	current_user_id = ""
 	current_account_name = ""
 	current_account_has_password = false
+	current_account_is_generated = false
+	current_auto_password_local = false
+	_auto_credential_request_pending = false
 	current_profile.clear()
 	current_account_summaries.clear()
 
