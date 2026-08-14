@@ -94,9 +94,45 @@ active_modules:
     package_source_commit: 5d6348cef9fe941db8c4ea3bc6dfa4b98dbd2a3a
     package_sha256: EB354ADE654B2DC351015ABCBAE62160CB3D8BCDB0356FC7CCA9DB4BD921322E
     blockers: [production_auth_transport, production_password_kdf, aliyun_profile, android_device_acceptance]
+  - task_id: REQ-20260814-RENDER-CLARITY-BATTLE-PERF
+    feature_id: F-ZC-001
+    version: 2026-08-14-render-clarity-battle-perf-v1
+    phase: closure
+    domain: cross_domain
+    owner: codex-primary
+    status: COMPLETE
+    started_on: "2026-08-14"
+    completed_on: "2026-08-14"
+    release_status: WINDOWS_GPU_VERIFIED_ANDROID_DEVICE_PENDING
+    fingerprint: A68B4CCE79B89A6B50DFF884C6960E4CC719FDCB0E8D83E2261921044AC80A53
+    rag_gate_receipt: temp/rag/receipts/rag-gate.json
+    rag_task_receipt: temp/rag/receipts/tasks/REQ-20260814-RENDER-CLARITY-BATTLE-PERF.json
+    read_only_receipt: docs/receipts/REQ-20260814-RENDER-CLARITY-BATTLE-PERF-READ-ONLY-001.md
+    completion_receipt: docs/receipts/REQ-20260814-RENDER-CLARITY-BATTLE-PERF-CLOSE-002.md
 queued_modules: []
 
 shared_locks:
+  render_clarity_battle_perf_20260814:
+    task_id: REQ-20260814-RENDER-CLARITY-BATTLE-PERF
+    owner: codex-primary
+    status: RELEASED
+    write_set:
+      - docs/RENDERING_CLARITY_AND_BATTLE_PERFORMANCE_DESIGN_v1.0.docx
+      - docs/active_scope.yaml
+      - docs/receipts/REQ-20260814-RENDER-CLARITY-BATTLE-PERF-READ-ONLY-001.md
+      - docs/receipts/REQ-20260814-RENDER-CLARITY-BATTLE-PERF-CLOSE-002.md
+      - knowledge/knowledge_manifest.csv
+      - project.godot
+      - scripts/app/main.gd
+      - tests/test_rendering_clarity.gd
+      - tests/test_rendering_clarity.tscn
+      - tests/test_battle_performance.gd
+      - tests/test_battle_performance.tscn
+      - tests/capture_rendering_clarity.gd
+      - tests/capture_rendering_clarity.tscn
+      - tools/build_rendering_performance_docx.py
+    evidence_root: temp/qa/F-ZC-001/render-clarity-battle-perf
+    completion_receipt: docs/receipts/REQ-20260814-RENDER-CLARITY-BATTLE-PERF-CLOSE-002.md
   account_credential_copy_apk_20260813:
     task_id: REQ-20260813-ACCOUNT-CREDENTIAL-COPY-APK
     owner: codex-primary

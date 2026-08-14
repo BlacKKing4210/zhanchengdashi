@@ -206,6 +206,7 @@ const NAV_ITEMS = [
 
 var tiles = {}
 var units = []
+var unit_index_cache = {}
 var effects = []
 var cards = []
 var deck = []
@@ -351,6 +352,9 @@ var font: Font
 var texture_cache = {}
 var page_router: RefCounted
 var main_page_layout: RefCounted
+var text_draw_origin = Vector2.ZERO
+var text_draw_rotation = 0.0
+var text_draw_scale = Vector2.ONE
 
 
 func _ready() -> void:
@@ -661,7 +665,7 @@ func _draw() -> void:
 	var view_size = get_viewport_rect().size
 	_layout(view_size)
 	_draw_full_bleed_background(view_size)
-	draw_set_transform(canvas_offset, 0.0, Vector2(canvas_scale, canvas_scale))
+	_set_tracked_draw_transform(canvas_offset, 0.0, Vector2(canvas_scale, canvas_scale))
 
 	if screen == SCREEN_DECK:
 		_draw_deck_screen()
@@ -680,7 +684,7 @@ func _draw() -> void:
 		_draw_account_center()
 
 	_draw_toast()
-	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+	_set_tracked_draw_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 
 
 func _draw_full_bleed_background(view_size: Vector2) -> void:
@@ -700,6 +704,13 @@ func _layout(view_size: Vector2) -> void:
 		return
 	var board_bounds = _board_hex_bounds(Vector2.ZERO)
 	board_origin = play_rect.get_center() - board_bounds.get_center()
+
+
+func _set_tracked_draw_transform(origin: Vector2, rotation: float, scale: Vector2) -> void:
+	text_draw_origin = origin
+	text_draw_rotation = rotation
+	text_draw_scale = scale
+	draw_set_transform(origin, rotation, scale)
 
 
 func _board_hex_bounds(origin: Vector2) -> Rect2:
@@ -2929,6 +2940,7 @@ func _nearest_alive_enemy_base(team: int) -> Vector2i:
 func _update_units(delta: float) -> void:
 	_refresh_unit_skill_state(delta)
 	_refresh_combat_building_keys()
+	_refresh_unit_index_cache()
 	for i in range(units.size()):
 		if game_over:
 			break
@@ -2981,6 +2993,7 @@ func _update_units(delta: float) -> void:
 		if float(unit["hp"]) > 0.0:
 			alive.append(unit)
 	units = alive
+	_refresh_unit_index_cache()
 	_clear_selected_unit_if_invalid()
 
 
@@ -3372,7 +3385,6 @@ func _spawn_unit(team: int, key: Vector2i, card_id: String, is_extra: bool = fal
 func _ensure_unit_navigation_target(unit: Dictionary) -> Dictionary:
 	if not _locked_unit_navigation_target(unit).is_empty():
 		return unit
-	_refresh_combat_building_keys()
 	var target = _nearest_enemy_building_target(
 		Vector2(unit.get("pos", Vector2.ZERO)),
 		int(unit.get("team", NEUTRAL))
@@ -4170,10 +4182,24 @@ func _card_extra_spawn_count(card: Dictionary) -> int:
 
 
 func _unit_index_by_id(unit_id: int) -> int:
+	if unit_id < 0:
+		return -1
+	var cached_index = int(unit_index_cache.get(unit_id, -1))
+	if cached_index >= 0 and cached_index < units.size() and int(units[cached_index].get("id", -1)) == unit_id:
+		return cached_index
 	for i in range(units.size()):
 		if int(units[i].get("id", -1)) == unit_id:
+			unit_index_cache[unit_id] = i
 			return i
 	return -1
+
+
+func _refresh_unit_index_cache() -> void:
+	unit_index_cache.clear()
+	for i in range(units.size()):
+		var unit_id = int(units[i].get("id", -1))
+		if unit_id >= 0:
+			unit_index_cache[unit_id] = i
 
 
 func _selected_unit() -> Dictionary:
@@ -5906,6 +5932,8 @@ func _set_account_fields_visible(visible: bool) -> void:
 func _update_account_fields_layout() -> void:
 	if account_name_field == null or account_password_field == null:
 		return
+	if not account_name_field.visible and not account_password_field.visible:
+		return
 	_set_line_edit_canvas_rect(account_name_field, _account_name_input_rect())
 	_set_line_edit_canvas_rect(account_password_field, _account_password_input_rect())
 
@@ -6876,7 +6904,7 @@ func _draw_tile(key: Vector2i, tile: Dictionary) -> void:
 func _draw_world_tile_content(center: Vector2, tile: Dictionary, can_unlock: bool, unlock_cost: int) -> void:
 	var camera_zoom = _battle_camera_zoom()
 	if not is_equal_approx(camera_zoom, 1.0):
-		draw_set_transform(
+		_set_tracked_draw_transform(
 			canvas_offset + center * canvas_scale,
 			0.0,
 			Vector2.ONE * canvas_scale * camera_zoom
@@ -6887,7 +6915,7 @@ func _draw_world_tile_content(center: Vector2, tile: Dictionary, can_unlock: boo
 	elif can_unlock:
 		_draw_site(center, tile, unlock_cost)
 	if not is_equal_approx(camera_zoom, 1.0):
-		draw_set_transform(canvas_offset, 0.0, Vector2(canvas_scale, canvas_scale))
+		_set_tracked_draw_transform(canvas_offset, 0.0, Vector2(canvas_scale, canvas_scale))
 
 
 func _draw_unlockable_tile_borders() -> void:
@@ -8037,21 +8065,51 @@ func _box(rect: Rect2, fill: Color, line: Color, width: float) -> void:
 
 func _draw_text_fit(text: String, rect: Rect2, size: int, color: Color) -> void:
 	var label = _fit_text(text, rect.size.x, size)
-	var y = rect.position.y + rect.size.y * 0.5 + size * 0.36
-	draw_string(font, Vector2(rect.position.x, y), label, HORIZONTAL_ALIGNMENT_LEFT, rect.size.x, size, color)
+	_draw_text_native(label, rect, size, color, HORIZONTAL_ALIGNMENT_LEFT)
 
 
 func _draw_text_right(text: String, rect: Rect2, size: int, color: Color) -> void:
 	var label = _fit_text(text, rect.size.x, size)
-	var y = rect.position.y + rect.size.y * 0.5 + size * 0.36
-	draw_string(font, Vector2(rect.position.x, y), label, HORIZONTAL_ALIGNMENT_RIGHT, rect.size.x, size, color)
+	_draw_text_native(label, rect, size, color, HORIZONTAL_ALIGNMENT_RIGHT)
 
 
 func _draw_text_center(text: String, rect: Rect2, size: int, color: Color) -> void:
 	var label = _fit_text(text, rect.size.x, size)
-	var text_size = font.get_string_size(label, HORIZONTAL_ALIGNMENT_LEFT, -1, size)
-	var pos = rect.position + Vector2((rect.size.x - text_size.x) * 0.5, (rect.size.y + text_size.y * 0.55) * 0.5)
-	draw_string(font, pos, label, HORIZONTAL_ALIGNMENT_LEFT, -1, size, color)
+	_draw_text_native(label, rect, size, color, HORIZONTAL_ALIGNMENT_CENTER)
+
+
+func _draw_text_native(label: String, rect: Rect2, size: int, color: Color, alignment: HorizontalAlignment) -> void:
+	var screen_rect = _text_screen_rect(rect)
+	var native_size = _native_font_size_for_scale(size, _effective_text_scale())
+	var restore_origin = text_draw_origin
+	var restore_rotation = text_draw_rotation
+	var restore_scale = text_draw_scale
+	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+	if alignment == HORIZONTAL_ALIGNMENT_CENTER:
+		var native_text_size = font.get_string_size(label, HORIZONTAL_ALIGNMENT_LEFT, -1, native_size)
+		var position = screen_rect.position + Vector2(
+			(screen_rect.size.x - native_text_size.x) * 0.5,
+			(screen_rect.size.y + native_text_size.y * 0.55) * 0.5
+		)
+		draw_string(font, position, label, HORIZONTAL_ALIGNMENT_LEFT, -1, native_size, color)
+	else:
+		var baseline_y = screen_rect.position.y + screen_rect.size.y * 0.5 + float(native_size) * 0.36
+		draw_string(font, Vector2(screen_rect.position.x, baseline_y), label, alignment, screen_rect.size.x, native_size, color)
+	draw_set_transform(restore_origin, restore_rotation, restore_scale)
+
+
+func _text_screen_rect(rect: Rect2) -> Rect2:
+	var scaled_position = rect.position * text_draw_scale
+	var scaled_size = rect.size * Vector2(absf(text_draw_scale.x), absf(text_draw_scale.y))
+	return Rect2(text_draw_origin + scaled_position, scaled_size)
+
+
+func _effective_text_scale() -> float:
+	return maxf(0.001, minf(absf(text_draw_scale.x), absf(text_draw_scale.y)))
+
+
+func _native_font_size_for_scale(logical_size: int, scale: float) -> int:
+	return maxi(1, roundi(float(logical_size) * maxf(0.001, scale)))
 
 
 func _fit_text(text: String, max_width: float, size: int) -> String:

@@ -1,4 +1,5 @@
 source_id,path,kind,authority,status,version,owner,feature_ids,tags,updated_at,expires_at,access_scope,conflict_group,resolution_state
+ZC_RENDERING_PERFORMANCE_DESIGN,docs/RENDERING_CLARITY_AND_BATTLE_PERFORMANCE_DESIGN_v1.0.docx,design,approved,active,2026-08-14-v1.0,design_owner,F-ZC-001,rendering;resolution;text;UI;battle;performance,2026-08-14,,project,,
 PROJECT_AGENTS,AGENTS.md,workflow,canonical,active,v1,producer,GLOBAL,authority;workflow,2026-07-27,,project,,
 PROJECT_WORKFLOW,docs/WORKFLOW.md,workflow,canonical,active,v1,producer,GLOBAL,workflow;gates,2026-07-27,,project,,
 PROJECT_PROFILE,docs/project_profile.yaml,workflow,canonical,active,v1,producer,GLOBAL,profile;roles;sources,2026-07-27,,project,,
