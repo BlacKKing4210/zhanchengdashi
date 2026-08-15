@@ -497,8 +497,8 @@
     "summon_interval_sec": 7.0,
     "skill_id": "sheep_wool",
     "skill_trigger": "on_spawn",
-    "skill_effect": "shield",
-    "skill_power": 14.0,
+    "skill_effect": "buff_hp",
+    "skill_power": 1.0,
     "skill_cooldown_sec": 0.0,
     "skill_chance": null,
     "skill_target": null,
@@ -507,10 +507,11 @@
       "tier_2",
       "common",
       "support",
-      "shield",
+      "hp",
+      "group_buff",
       "skill"
     ],
-    "design_notes": "羊：群体保护，输出较低。"
+    "design_notes": "羊：召唤时为当时在场的全部友军增加1生命。"
   },
   {
     "id": "parrot",
@@ -552,11 +553,11 @@
     "move_speed": 40.0,
     "attack_range": 40.0,
     "summon_interval_sec": 10.0,
-    "skill_id": null,
-    "skill_trigger": null,
-    "skill_effect": null,
-    "skill_power": null,
-    "skill_cooldown_sec": null,
+    "skill_id": "fox_pack",
+    "skill_trigger": "on_spawn",
+    "skill_effect": "buff_attack",
+    "skill_power": 1.0,
+    "skill_cooldown_sec": 0.0,
     "skill_chance": null,
     "skill_target": null,
     "skill_text": "我方动物攻击+1",
@@ -564,9 +565,11 @@
       "tier_2",
       "common",
       "scout",
-      "no_skill"
+      "attack",
+      "group_buff",
+      "skill"
     ],
-    "design_notes": "狐狸：无技能快攻单位，属性集中在速度和攻击。"
+    "design_notes": "狐狸：召唤时为当时在场的全部友军增加1攻击。"
   },
   {
     "id": "monkey",
@@ -839,10 +842,10 @@
     "attack_range": 40.0,
     "summon_interval_sec": 10.0,
     "skill_id": "swan_grace",
-    "skill_trigger": "aura",
-    "skill_effect": "shield",
-    "skill_power": 18.0,
-    "skill_cooldown_sec": 8.0,
+    "skill_trigger": "on_spawn",
+    "skill_effect": "buff_attack",
+    "skill_power": 1.0,
+    "skill_cooldown_sec": 0.0,
     "skill_chance": null,
     "skill_target": null,
     "skill_text": "所有动物攻击+1",
@@ -850,12 +853,12 @@
       "tier_3",
       "rare",
       "support",
-      "shield",
-      "aura",
+      "attack",
+      "group_buff",
       "skill",
       "flying"
     ],
-    "design_notes": "天鹅：优雅护盾辅助。"
+    "design_notes": "天鹅：召唤时为当时在场的全部友军增加1攻击。"
   },
   {
     "id": "wolf",
@@ -898,10 +901,10 @@
     "attack_range": 40.0,
     "summon_interval_sec": 10.0,
     "skill_id": "horse_gallop",
-    "skill_trigger": "aura",
+    "skill_trigger": "on_spawn",
     "skill_effect": "buff_speed",
-    "skill_power": 18.0,
-    "skill_cooldown_sec": 7.0,
+    "skill_power": 20.0,
+    "skill_cooldown_sec": 0.0,
     "skill_chance": null,
     "skill_target": null,
     "skill_text": "我方所有动物速度+20",
@@ -910,10 +913,10 @@
       "rare",
       "scout",
       "speed",
-      "aura",
+      "group_buff",
       "skill"
     ],
-    "design_notes": "马：快速支援与补线。"
+    "design_notes": "马：召唤时为当时在场的全部友军增加20速度。"
   },
   {
     "id": "cow",
@@ -956,10 +959,10 @@
     "attack_range": 40.0,
     "summon_interval_sec": 10.0,
     "skill_id": "zebra_stripes",
-    "skill_trigger": "aura",
+    "skill_trigger": "on_spawn",
     "skill_effect": "buff_attack",
-    "skill_power": 3.0,
-    "skill_cooldown_sec": 8.0,
+    "skill_power": 1.0,
+    "skill_cooldown_sec": 0.0,
     "skill_chance": null,
     "skill_target": null,
     "skill_text": "每20点速度，提供1攻击力",
@@ -967,11 +970,12 @@
       "tier_4",
       "rare",
       "scout",
-      "aura",
       "attack",
+      "speed_scaled",
+      "group_buff",
       "skill"
     ],
-    "design_notes": "斑马：快速光环单位。"
+    "design_notes": "斑马：召唤时按自身每20点速度，为当时在场的全部友军增加1攻击。"
   },
   {
     "id": "camel",
@@ -1299,10 +1303,10 @@
     "attack_range": 40.0,
     "summon_interval_sec": 12.0,
     "skill_id": "giraffe_watch",
-    "skill_trigger": "aura",
+    "skill_trigger": "on_spawn",
     "skill_effect": "buff_hp",
-    "skill_power": 28.0,
-    "skill_cooldown_sec": 8.0,
+    "skill_power": 3.0,
+    "skill_cooldown_sec": 0.0,
     "skill_chance": null,
     "skill_target": null,
     "skill_text": "提高所有友军生命值3点",
@@ -1310,11 +1314,11 @@
       "tier_5",
       "epic",
       "ranged",
-      "aura",
       "hp",
+      "group_buff",
       "skill"
     ],
-    "design_notes": "长颈鹿：远程支援。"
+    "design_notes": "长颈鹿：召唤时为当时在场的全部友军增加3生命。"
   },
   {
     "id": "gorilla",

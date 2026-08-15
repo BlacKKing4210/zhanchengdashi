@@ -39,6 +39,7 @@ const MAX_COMMAND_BYTES = 64 * 1024
 const MAX_SNAPSHOT_BYTES = 1024 * 1024
 const SERVER_PEER_ID = 1
 const MAP_SUFFIXES = ["plateau", "diamond", "hourglass", "crossroads", "ripple"]
+const ADMIN_COMMAND_POLL_SECONDS = 1.0
 
 enum TransportMode {
 	OFFLINE,
@@ -60,6 +61,7 @@ var current_account_has_password = false
 var current_account_is_generated = false
 var current_auto_password_local = false
 var current_profile: Dictionary = {}
+var current_profile_revision = 0
 var current_account_summaries: Array = []
 
 var _enet_peer: ENetMultiplayerPeer
@@ -83,6 +85,8 @@ var _device_recovery_secret = ""
 var _credential_server_identity = ""
 var _automatic_auth_retry_used = false
 var _auto_credential_request_pending = false
+var _admin_command_timer: Timer
+var _account_store_factory = Callable()
 
 
 func _ready() -> void:
@@ -93,6 +97,10 @@ func _ready() -> void:
 	_load_or_create_device_credentials()
 	if OS.has_feature("dedicated_server"):
 		call_deferred("_start_feature_dedicated_server")
+
+
+func _exit_tree() -> void:
+	stop_transport()
 
 
 func start_server(
@@ -116,6 +124,8 @@ func start_server(
 
 	if _account_store == null:
 		return _server_start_failed(ERR_CANT_CREATE, "PlayerAccountStore could not load")
+	if not _account_store.has_method("is_authority_storage_ready") or not bool(_account_store.call("is_authority_storage_ready")):
+		return _server_start_failed(ERR_CANT_OPEN, "PlayerAccountStore authority storage is unavailable")
 	if _match_analytics_store == null:
 		return _server_start_failed(ERR_CANT_CREATE, "MatchAnalyticsStore could not load")
 	var catalog_result = _match_analytics_store.call("register_animal_catalog", _server_animal_catalog())
@@ -134,6 +144,7 @@ func start_server(
 
 	mode = TransportMode.SERVER
 	multiplayer.multiplayer_peer = _enet_peer
+	_start_admin_command_polling()
 	server_started.emit(bind_host, server_port)
 	return OK
 
@@ -166,9 +177,15 @@ func connect_to_server(
 
 
 func stop_transport() -> void:
+	stop_transport_and_confirm()
+
+
+func stop_transport_and_confirm() -> bool:
 	if _stopping:
-		return
+		push_error("OnlineRoom transport shutdown was requested recursively.")
+		return false
 	_stopping = true
+	_stop_admin_command_polling()
 	var previous_mode = mode
 	if _enet_peer != null:
 		_enet_peer.close()
@@ -184,13 +201,14 @@ func stop_transport() -> void:
 	_server_authority_sequences.clear()
 	_server_boot_nonce = ""
 	_server_peer_sessions.clear()
-	_account_store = null
+	var account_store_closed = _close_account_store()
 	_match_analytics_store = null
 	_clear_account_state()
 	_clear_client_room_state(false)
 	_stopping = false
 	if previous_mode == TransportMode.SERVER:
 		server_stopped.emit()
+	return account_store_closed
 
 
 func disconnect_from_server() -> void:
@@ -431,7 +449,9 @@ func request_player_profile() -> bool:
 func save_player_profile(profile: Dictionary) -> bool:
 	if not _require_client_connection("save_player_profile"):
 		return false
-	rpc_id(SERVER_PEER_ID, "_rpc_request_save_player_profile", _client_session_token, profile.duplicate(true))
+	var profile_with_revision = profile.duplicate(true)
+	profile_with_revision["_profile_revision"] = current_profile_revision
+	rpc_id(SERVER_PEER_ID, "_rpc_request_save_player_profile", _client_session_token, profile_with_revision)
 	return true
 
 
@@ -483,6 +503,7 @@ func _start_feature_dedicated_server() -> void:
 	var error = start_server(default_bind_host(), default_server_port(), null, default_max_clients())
 	if error != OK:
 		push_error("Dedicated internet room server failed to start (error %d)." % error)
+		get_tree().quit(maxi(1, int(error)))
 		return
 	print("Dedicated internet room server listening on UDP %s:%d." % [bind_host, server_port])
 
@@ -1049,6 +1070,23 @@ func _server_animal_card_ids() -> Array:
 	return result
 
 
+func _server_all_card_ids() -> Array:
+	var config_db = get_node_or_null("/root/ConfigDB")
+	if config_db == null or not config_db.has_method("get_table"):
+		return []
+	var card_rows = config_db.call("get_table", "cards")
+	if typeof(card_rows) != TYPE_ARRAY:
+		return []
+	var result = []
+	for raw_card in card_rows:
+		if typeof(raw_card) != TYPE_DICTIONARY:
+			continue
+		var card_id = String((raw_card as Dictionary).get("id", "")).strip_edges()
+		if not card_id.is_empty() and not result.has(card_id):
+			result.append(card_id)
+	return result
+
+
 func _server_animal_catalog() -> Dictionary:
 	var config_db = get_node_or_null("/root/ConfigDB")
 	if config_db == null or not config_db.has_method("get_table"):
@@ -1253,13 +1291,58 @@ func _create_registry() -> Variant:
 
 
 func _create_account_store() -> Variant:
+	if _account_store_factory.is_valid():
+		return _account_store_factory.call()
 	var script = load(ACCOUNT_STORE_PATH)
 	return script.new() if script != null else null
+
+
+func _close_account_store() -> bool:
+	if _account_store == null:
+		return true
+	if not _account_store.has_method("close"):
+		push_error("OnlineRoom PlayerAccountStore has no explicit close method.")
+		return false
+	var close_result = _account_store.call("close")
+	if typeof(close_result) != TYPE_BOOL or not bool(close_result):
+		push_error("OnlineRoom could not release its PlayerAccountStore lifecycle lock cleanly.")
+		return false
+	_account_store = null
+	return true
 
 
 func _create_match_analytics_store() -> Variant:
 	var script = load(MATCH_ANALYTICS_STORE_PATH)
 	return script.new() if script != null else null
+
+
+func _start_admin_command_polling() -> void:
+	_stop_admin_command_polling()
+	_admin_command_timer = Timer.new()
+	_admin_command_timer.name = "AdminCommandPollTimer"
+	_admin_command_timer.wait_time = ADMIN_COMMAND_POLL_SECONDS
+	_admin_command_timer.one_shot = false
+	_admin_command_timer.timeout.connect(_poll_admin_commands)
+	add_child(_admin_command_timer)
+	_admin_command_timer.start()
+	_poll_admin_commands()
+
+
+func _stop_admin_command_polling() -> void:
+	if _admin_command_timer == null:
+		return
+	_admin_command_timer.stop()
+	if is_instance_valid(_admin_command_timer):
+		_admin_command_timer.queue_free()
+	_admin_command_timer = null
+
+
+func _poll_admin_commands() -> void:
+	if mode != TransportMode.SERVER or _account_store == null or not _account_store.has_method("process_admin_commands"):
+		return
+	var result = _account_store.call("process_admin_commands", _server_all_card_ids())
+	if typeof(result) == TYPE_DICTIONARY and not bool((result as Dictionary).get("ok", false)):
+		push_error("Admin resource command polling failed: %s" % String((result as Dictionary).get("error", "unknown")))
 
 
 func _apply_account_operation(operation: String, result: Dictionary) -> void:
@@ -1271,6 +1354,7 @@ func _apply_account_operation(operation: String, result: Dictionary) -> void:
 		current_account_is_generated = bool(result.get("auto_generated", false))
 		current_auto_password_local = bool(result.get("auto_password_local", false))
 		current_profile = (result.get("profile", {}) as Dictionary).duplicate(true)
+		current_profile_revision = maxi(0, int(result.get("profile_revision", 0)))
 		var issued_refresh_token = String(result.get("refresh_token", ""))
 		if not issued_refresh_token.is_empty():
 			_refresh_token = issued_refresh_token
@@ -1281,6 +1365,7 @@ func _apply_account_operation(operation: String, result: Dictionary) -> void:
 		current_account_has_password = bool(result.get("has_password", current_account_has_password))
 		current_account_is_generated = bool(result.get("auto_generated", current_account_is_generated))
 		current_profile = (result.get("profile", {}) as Dictionary).duplicate(true)
+		current_profile_revision = maxi(0, int(result.get("profile_revision", current_profile_revision)))
 	elif operation == "logout_account":
 		_clear_account_state()
 	if result.has("accounts") and typeof(result.get("accounts")) == TYPE_ARRAY:
@@ -1294,6 +1379,7 @@ func _apply_account_operation(operation: String, result: Dictionary) -> void:
 		"auto_generated": current_account_is_generated,
 		"auto_password_local": current_auto_password_local,
 		"profile": current_profile.duplicate(true),
+		"profile_revision": current_profile_revision,
 		"accounts": current_account_summaries.duplicate(true),
 		"logged_in": not current_user_id.is_empty(),
 	})
@@ -1309,6 +1395,7 @@ func _clear_account_state() -> void:
 	current_account_is_generated = false
 	current_auto_password_local = false
 	_auto_credential_request_pending = false
+	current_profile_revision = 0
 	current_profile.clear()
 	current_account_summaries.clear()
 
@@ -1510,6 +1597,8 @@ func _emit_local_failure(operation: String, message: String) -> void:
 func _server_start_failed(error: Error, message: String) -> Error:
 	_enet_peer = null
 	_registry = null
+	_close_account_store()
+	_match_analytics_store = null
 	mode = TransportMode.OFFLINE
 	server_connection_failed.emit(message)
 	return error

@@ -3,7 +3,9 @@ import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import test from "node:test";
+import { sanitizeAccountSnapshot } from "../../tools/admin_dashboard/lib/account_snapshot.mjs";
 import { hashPassword, LoginRateLimiter, verifyPassword } from "../../tools/admin_dashboard/lib/auth.mjs";
+import { enqueueGrantCommand, prepareGrantCommand } from "../../tools/admin_dashboard/lib/resource_grants.mjs";
 import { sanitizeDashboardSnapshot } from "../../tools/admin_dashboard/lib/snapshot.mjs";
 import { DashboardState, SESSION_IDLE_MS } from "../../tools/admin_dashboard/lib/state_store.mjs";
 import { buildRuntimeConfig, createDashboardServer } from "../../tools/admin_dashboard/server.mjs";
@@ -139,7 +141,21 @@ test("snapshot sanitizer keeps only dashboard allow-list fields", () => {
       deck: ["rabbit", "wolf", "invalid card id"],
       card_levels: { rabbit: 4, wolf: 3, hidden: 99 },
     }],
-    animals: [{ card_id: "rabbit", name: "兔子", games: 9, wins: 6, losses: 3, pick_rate: 0.5, private_note: "must-not-leak" }],
+    animals: [{
+      card_id: "rabbit",
+      name: "兔子",
+      games: 9,
+      wins: 6,
+      losses: 3,
+      pick_rate: 0.5,
+      placement_samples: 9,
+      placement_sum: 13,
+      placement_score_sum: 5,
+      placement_field_size_sum: 18,
+      balance_signal: "observe",
+      confidence: { sample_sufficient: false, win_rate_lower: 0.35, win_rate_upper: 0.88, rationale: "样本不足" },
+      private_note: "must-not-leak",
+    }],
     recent_matches: [{
       match_id: "server-match-1",
       map_id: "1v1_crossroads",
@@ -157,6 +173,16 @@ test("snapshot sanitizer keeps only dashboard allow-list fields", () => {
   assert.equal(Object.hasOwn(snapshot.leaderboard[0], "account"), false);
   assert.equal(Object.hasOwn(snapshot.animals[0], "private_note"), false);
   assert.equal(snapshot.animals[0].pick_rate, 0.5);
+  assert.equal(snapshot.animals[0].average_placement, 13 / 9);
+  assert.equal(snapshot.animals[0].average_placement_score, 5 / 9);
+  assert.equal(snapshot.animals[0].average_field_size, 2);
+  assert.equal(snapshot.animals[0].balance_signal, "observe");
+  assert.deepEqual(snapshot.animals[0].confidence, {
+    sample_sufficient: false,
+    win_rate_lower: 0.35,
+    win_rate_upper: 0.88,
+    rationale: "样本不足",
+  });
   assert.equal(snapshot.overview.source, "server_recorded_host_authority_full_human_online");
   assert.equal(snapshot.recent_matches.length, 1);
   assert.deepEqual(snapshot.recent_matches[0].team_outcomes, { 1: "win", 4: "loss" });
@@ -223,7 +249,7 @@ test("protected HTTP dashboard enforces RBAC, cookies, CSRF/origin and session r
   const landing = await fetch(`${baseUrl}/`);
   assert.equal(landing.status, 200);
   assert.match(landing.headers.get("content-security-policy") ?? "", /default-src 'self'/);
-  assert.match(await landing.text(), /赛事数据中心/);
+  assert.match(await landing.text(), /运营数据后台|赛事数据中心/);
 
   const dashboard = await jsonRequest(baseUrl, "/api/dashboard", { headers: { Cookie: ownerCookie } });
   assert.equal(dashboard.response.status, 200);
@@ -278,6 +304,260 @@ test("protected HTTP dashboard enforces RBAC, cookies, CSRF/origin and session r
   assert.match(auditText, /login_success/);
   assert.doesNotMatch(auditText, /Owner password one 123/);
   assert.doesNotMatch(auditText, /jungle_admin_session/);
+});
+
+test("account snapshot sanitizer exposes saved decks and resources without credential material", () => {
+  const snapshot = sanitizeAccountSnapshot({
+    generated_at_unix: 1_700_000_000,
+    accounts: [{
+      user_id: "U-ONE",
+      masked_account: "f***e",
+      account: "fieldmouse",
+      salt: "must-not-leak",
+      password_hash: "must-not-leak",
+      session_token: "must-not-leak",
+      installation_id: "must-not-leak",
+      profile_revision: 7,
+      deck: ["rabbit", "wolf", "invalid card id"],
+      card_levels: { rabbit: 4, wolf: 3, reserve_card: 2, "invalid card id": 99 },
+      rank: { rank_key: "gold", rank_stars: 8, elo: 1234 },
+      rank_mirrors: {
+        gold: [{ mirror_id: "mirror-1", player_id: "U-MIRROR", deck: ["rabbit"], card_levels: { rabbit: 4 }, password_hash: "must-not-leak" }],
+      },
+      resources: { gacha_tickets: 19, card_copies: { rabbit: 7, wolf: 2 } },
+    }],
+  });
+  assert.equal(snapshot.availability, "ready");
+  assert.equal(snapshot.accounts.length, 1);
+  assert.deepEqual(snapshot.accounts[0].deck, ["rabbit", "wolf"]);
+  assert.deepEqual(snapshot.accounts[0].card_levels, { rabbit: 4, wolf: 3, reserve_card: 2 });
+  assert.equal(snapshot.accounts[0].resources.gacha_tickets, 19);
+  assert.equal(snapshot.accounts[0].resources.card_copies.rabbit, 7);
+  const serialized = JSON.stringify(snapshot);
+  assert.doesNotMatch(serialized, /fieldmouse|must-not-leak|password_hash|installation_id|session_token/);
+});
+
+test("primary resource grant contract freezes explicit targets and retains legacy compatibility", () => {
+  const accountSnapshot = {
+    availability: "ready",
+    accounts: [{ user_id: "U-ONE" }, { user_id: "U-TWO" }],
+  };
+  const primary = prepareGrantCommand({
+    actor: "owner-one",
+    now: 1_700_000_000_000,
+    accountSnapshot,
+    body: {
+      target: { kind: "all" },
+      grant: { type: "card_copies", card_id: "rabbit", amount: 8 },
+      reason: "平衡性补偿",
+      confirmation: "SEND TO ALL",
+      idempotency_key: "11111111-1111-4111-8111-111111111111",
+    },
+  });
+  assert.equal(primary.scope, "all");
+  assert.deepEqual(primary.target_user_ids, ["U-ONE", "U-TWO"]);
+  assert.deepEqual(primary.grants, [{ resource: "card_copies", card_id: "rabbit", amount: 8 }]);
+  assert.equal(primary.reason, "平衡性补偿");
+  assert.throws(
+    () => prepareGrantCommand({
+      actor: "owner-one",
+      accountSnapshot,
+      body: {
+        target: { kind: "all" },
+        grant: { type: "gacha_tickets", amount: 1 },
+        reason: "测试",
+        confirmation: "yes",
+        idempotency_key: "22222222-2222-4222-8222-222222222222",
+      },
+    }),
+    (error) => error.code === "all_confirmation_required",
+  );
+  const legacy = prepareGrantCommand({
+    actor: "owner-one",
+    accountSnapshot,
+    body: {
+      scope: "target",
+      target_user_id: "U-ONE",
+      grants: [{ resource: "gacha_tickets", amount: 3 }],
+      idempotency_key: "33333333-3333-4333-8333-333333333333",
+    },
+  });
+  assert.equal(legacy.reason, "legacy_request");
+  assert.deepEqual(legacy.target_user_ids, ["U-ONE"]);
+});
+
+test("concurrent enqueue rejects a different payload that reuses the same idempotency key", async (context) => {
+  const directory = await temporaryDirectory(context);
+  const commandRoot = path.join(directory, "admin_commands");
+  const accountSnapshot = { availability: "ready", accounts: [{ user_id: "U-ONE" }] };
+  const baseBody = {
+    target: { kind: "user", user_id: "U-ONE" },
+    reason: "并发补发",
+    confirmation: "CONFIRM",
+    idempotency_key: "66666666-6666-4666-8666-666666666666",
+  };
+  const first = prepareGrantCommand({
+    actor: "owner-one",
+    accountSnapshot,
+    body: { ...baseBody, grant: { type: "gacha_tickets", amount: 1 } },
+  });
+  const second = prepareGrantCommand({
+    actor: "owner-one",
+    accountSnapshot,
+    body: { ...baseBody, grant: { type: "gacha_tickets", amount: 2 } },
+  });
+  const results = await Promise.allSettled([
+    enqueueGrantCommand(commandRoot, first),
+    enqueueGrantCommand(commandRoot, second),
+  ]);
+  assert.equal(results.filter((result) => result.status === "fulfilled").length, 1);
+  const rejected = results.find((result) => result.status === "rejected");
+  assert.equal(rejected?.reason?.code, "idempotency_conflict");
+  const pending = await fs.readdir(path.join(commandRoot, "pending"));
+  assert.deepEqual(pending.filter((name) => name.endsWith(".json")), [`${baseBody.idempotency_key}.json`]);
+});
+
+test("resource grant API requires owner reauthentication and atomically enqueues primary commands", async (context) => {
+  const directory = await temporaryDirectory(context);
+  const snapshotPath = path.join(directory, "dashboard_snapshot.json");
+  const accountSnapshotPath = path.join(directory, "admin_accounts_snapshot.json");
+  const commandRoot = path.join(directory, "admin_commands");
+  await fs.writeFile(snapshotPath, JSON.stringify({ generated_at_unix: 1_700_000_000, overview: {}, animals: [] }));
+  await fs.writeFile(accountSnapshotPath, JSON.stringify({
+    version: 1,
+    generated_at_unix: 1_700_000_001,
+    accounts: [
+      { user_id: "U-ONE", masked_account: "o***e", deck: ["rabbit"], card_levels: { rabbit: 2 }, rank: {}, resources: {} },
+      { user_id: "U-TWO", masked_account: "t***o", deck: ["wolf"], card_levels: { wolf: 3 }, rank: {}, resources: {} },
+    ],
+  }));
+  const stateDirectory = path.join(directory, "state");
+  const state = await DashboardState.open(stateDirectory);
+  await state.initializeOwner("owner-one", "Owner password one 123");
+  await state.createUser({ username: "analyst-one", password: "Analyst password one 123", role: "analyst" });
+  const app = await createDashboardServer({
+    host: "127.0.0.1",
+    port: 0,
+    snapshotPath,
+    accountSnapshotPath,
+    commandRoot,
+    stateDirectory,
+    state,
+  });
+  context.after(() => app.close());
+  const address = await app.listen();
+  const baseUrl = `http://127.0.0.1:${address.port}`;
+
+  const ownerLogin = await jsonRequest(baseUrl, "/api/auth/login", {
+    method: "POST",
+    headers: { Origin: baseUrl, "Content-Type": "application/json" },
+    body: JSON.stringify({ username: "owner-one", password: "Owner password one 123" }),
+  });
+  const ownerCookie = cookiePair(ownerLogin.response);
+  const ownerCsrf = ownerLogin.body.csrf_token;
+  const analystLogin = await jsonRequest(baseUrl, "/api/auth/login", {
+    method: "POST",
+    headers: { Origin: baseUrl, "Content-Type": "application/json" },
+    body: JSON.stringify({ username: "analyst-one", password: "Analyst password one 123" }),
+  });
+  const analystCookie = cookiePair(analystLogin.response);
+  const analystCsrf = analystLogin.body.csrf_token;
+
+  const accounts = await jsonRequest(baseUrl, "/api/accounts", { headers: { Cookie: analystCookie } });
+  assert.equal(accounts.response.status, 200);
+  assert.equal(accounts.body.availability, "ready");
+  assert.deepEqual(accounts.body.accounts.map((entry) => entry.user_id), ["U-ONE", "U-TWO"]);
+
+  const requestBody = {
+    target: { kind: "user", user_id: "U-ONE" },
+    grant: { type: "gacha_tickets", amount: 5 },
+    reason: "客服补发",
+    confirmation: "CONFIRM",
+    password: "Owner password one 123",
+    idempotency_key: "44444444-4444-4444-8444-444444444444",
+  };
+  const analystAttempt = await jsonRequest(baseUrl, "/api/resource-grants", {
+    method: "POST",
+    headers: { Cookie: analystCookie, Origin: baseUrl, "X-CSRF-Token": analystCsrf, "Content-Type": "application/json" },
+    body: JSON.stringify(requestBody),
+  });
+  assert.equal(analystAttempt.response.status, 403);
+  assert.equal(analystAttempt.body.error, "owner_required");
+
+  const wrongPassword = await jsonRequest(baseUrl, "/api/resource-grants", {
+    method: "POST",
+    headers: { Cookie: ownerCookie, Origin: baseUrl, "X-CSRF-Token": ownerCsrf, "Content-Type": "application/json" },
+    body: JSON.stringify({ ...requestBody, password: "wrong owner password" }),
+  });
+  assert.equal(wrongPassword.response.status, 401);
+  assert.equal(wrongPassword.body.error, "owner_reauthentication_failed");
+  await assert.rejects(() => fs.stat(path.join(commandRoot, "pending", `${requestBody.idempotency_key}.json`)), (error) => error.code === "ENOENT");
+
+  const created = await jsonRequest(baseUrl, "/api/resource-grants", {
+    method: "POST",
+    headers: { Cookie: ownerCookie, Origin: baseUrl, "X-CSRF-Token": ownerCsrf, "Content-Type": "application/json" },
+    body: JSON.stringify(requestBody),
+  });
+  assert.equal(created.response.status, 202, JSON.stringify(created.body));
+  assert.equal(created.body.command.command_id, requestBody.idempotency_key);
+  assert.equal(created.body.command.reason, "客服补发");
+  assert.deepEqual(created.body.command.target_user_ids, ["U-ONE"]);
+  const queuedRaw = await fs.readFile(path.join(commandRoot, "pending", `${requestBody.idempotency_key}.json`), "utf8");
+  assert.match(queuedRaw, /客服补发/);
+  assert.doesNotMatch(queuedRaw, /Owner password one 123|owner_password|"password"/);
+
+  const retry = await jsonRequest(baseUrl, "/api/resource-grants", {
+    method: "POST",
+    headers: { Cookie: ownerCookie, Origin: baseUrl, "X-CSRF-Token": ownerCsrf, "Content-Type": "application/json" },
+    body: JSON.stringify(requestBody),
+  });
+  assert.equal(retry.response.status, 200);
+  assert.equal(retry.body.idempotent, true);
+  assert.equal((await fs.readdir(path.join(commandRoot, "pending"))).filter((name) => name.endsWith(".json")).length, 1);
+
+  const amountConflict = await jsonRequest(baseUrl, "/api/resource-grants", {
+    method: "POST",
+    headers: { Cookie: ownerCookie, Origin: baseUrl, "X-CSRF-Token": ownerCsrf, "Content-Type": "application/json" },
+    body: JSON.stringify({ ...requestBody, grant: { type: "gacha_tickets", amount: 6 } }),
+  });
+  assert.equal(amountConflict.response.status, 409);
+  assert.equal(amountConflict.body.error, "idempotency_conflict");
+  const targetConflict = await jsonRequest(baseUrl, "/api/resource-grants", {
+    method: "POST",
+    headers: { Cookie: ownerCookie, Origin: baseUrl, "X-CSRF-Token": ownerCsrf, "Content-Type": "application/json" },
+    body: JSON.stringify({ ...requestBody, target: { kind: "user", user_id: "U-TWO" } }),
+  });
+  assert.equal(targetConflict.response.status, 409);
+  assert.equal(targetConflict.body.error, "idempotency_conflict");
+  assert.equal((await fs.readdir(path.join(commandRoot, "pending"))).filter((name) => name.endsWith(".json")).length, 1);
+
+  const allBody = {
+    target: { kind: "all" },
+    grant: { type: "card_copies", card_id: "rabbit", amount: 2 },
+    reason: "全服活动补偿",
+    confirmation: "SEND TO ALL",
+    password: "Owner password one 123",
+    idempotency_key: "55555555-5555-4555-8555-555555555555",
+  };
+  const allCreated = await jsonRequest(baseUrl, "/api/resource-grants", {
+    method: "POST",
+    headers: { Cookie: ownerCookie, Origin: baseUrl, "X-CSRF-Token": ownerCsrf, "Content-Type": "application/json" },
+    body: JSON.stringify(allBody),
+  });
+  assert.equal(allCreated.response.status, 202);
+  assert.deepEqual(allCreated.body.command.target_user_ids, ["U-ONE", "U-TWO"]);
+
+  const analystList = await jsonRequest(baseUrl, "/api/resource-grants", { headers: { Cookie: analystCookie } });
+  assert.equal(analystList.response.status, 403);
+  const ownerList = await jsonRequest(baseUrl, "/api/resource-grants", { headers: { Cookie: ownerCookie } });
+  assert.equal(ownerList.response.status, 200);
+  assert.equal(ownerList.body.command, null);
+  assert.equal(ownerList.body.entries.length, 2);
+
+  const auditText = JSON.stringify(await state.readAudit(200));
+  assert.match(auditText, /grant_enqueue_authorized/);
+  assert.match(auditText, /客服补发/);
+  assert.doesNotMatch(auditText, /Owner password one 123/);
 });
 
 test("server configuration rejects a public cleartext binding", async (context) => {

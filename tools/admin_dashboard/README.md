@@ -1,6 +1,6 @@
 # 丛林法则私有数据后台
 
-这是一个仅使用 Node.js 标准库的私有管理网站。它读取专用服务器生成的脱敏统计快照，提供排行榜、头部玩家卡组、动物胜率和 Owner 授权管理；它不是游戏账号登录页。
+这是一个仅使用 Node.js 标准库的私有运营后台。它读取阿里云服务端生成的两份脱敏只读投影，提供总览、动物平均排名与平衡信号、全量保存阵容，以及受重新认证、二次确认、幂等和审计保护的 Owner 资源指令；它不是游戏账号登录页，也不直接修改玩家权威存档。
 
 ## 首次初始化 Owner
 
@@ -12,18 +12,20 @@
   -OwnerUsername owner
 ```
 
-之后由 Owner 在“授权管理”页面创建或停用 Analyst / Owner 账号。
+之后由 Owner 在“Owner 权限”页面创建、停用或调整 Analyst / Owner 账号。仓库、文档和启动脚本均不得保存管理员明文密码。
 
 ## 启动
 
-传入服务端写出的 `dashboard_snapshot.json` 路径即可启动本机后台：
+在阿里云目标机上提供统计投影、账号阵容投影和受保护的资源指令目录：
 
 ```powershell
 .\tools\start_admin_dashboard.ps1 `
-  -SnapshotPath "D:\server-data\dashboard_snapshot.json"
+  -SnapshotPath "D:\server-data\dashboard_snapshot.json" `
+  -AccountSnapshotPath "D:\server-data\admin_accounts_snapshot.json" `
+  -CommandRoot "D:\server-private\admin-commands"
 ```
 
-默认地址为 [http://127.0.0.1:24568](http://127.0.0.1:24568)。管理员状态（密码哈希、会话哈希和审计日志）默认保存在：
+默认地址为 [http://127.0.0.1:24568](http://127.0.0.1:24568)。该地址只用于目标服务器上的回环预检；正式外部访问必须走受控 HTTPS。管理员状态（密码哈希、会话哈希和审计日志）默认保存在：
 
 ```text
 %LOCALAPPDATA%\JungleLaw\AdminDashboard
@@ -38,18 +40,30 @@
 ```powershell
 .\tools\start_admin_dashboard.ps1 `
   -SnapshotPath "D:\server-data\dashboard_snapshot.json" `
+  -AccountSnapshotPath "D:\server-data\admin_accounts_snapshot.json" `
+  -CommandRoot "D:\server-private\admin-commands" `
   -Host "0.0.0.0" `
   -TlsKeyPath "D:\secrets\dashboard-key.pem" `
   -TlsCertPath "D:\secrets\dashboard-cert.pem"
 ```
 
-建议再通过 VPN 或受控 HTTPS 入口限制到 Owner 和明确授权人员的设备。
+建议通过 VPN、访问白名单或受控 HTTPS 入口限制到 Owner 和明确授权人员的设备。部署前必须使用项目正式阿里云部署档案核对域名、TLS、备份、回滚、监控和目录权限；本脚本不等于生产部署授权。
 
 ## 数据边界
 
-只设置 `ZHANCHENG_DASHBOARD_SNAPSHOT_PATH`（或使用上述 `-SnapshotPath`）指向名字严格为 `dashboard_snapshot.json` 的服务端统计投影。后台会再次对字段做白名单清洗。
+后台使用以下三个互相分离的服务端边界：
+
+- `-SnapshotPath` / `ZHANCHENG_DASHBOARD_SNAPSHOT_PATH`：文件名必须严格为 `dashboard_snapshot.json`，只含赛事与动物统计投影。
+- `-AccountSnapshotPath` / `ZHANCHENG_DASHBOARD_ACCOUNT_SNAPSHOT_PATH`：文件名必须严格为 `admin_accounts_snapshot.json`，只含后台需要的脱敏账号、阵容、段位镜像和资源摘要。
+- `-CommandRoot` / `ZHANCHENG_DASHBOARD_COMMAND_ROOT`：资源发放指令的服务器私有目录，只允许后台写入、授权执行器读取并回写状态；不得位于 Web 静态目录、投影目录或公开下载目录。
+
+两份投影均由服务器按白名单生成，后台读取后还会再次做字段白名单清洗。资源发放采用“预览 → Owner 重新认证 → 二次确认 → 提交”流程：指定账号确认文本为 `SEND`，全服确认文本必须严格为 `SEND TO ALL`。提交成功只代表命令已登记，必须在“Owner 任务与审计”跟踪最终状态；操作不可撤销。
 
 **绝不能**把 `player_accounts.json`、游戏账号数据库、安装 ID、刷新令牌或任何凭据文件设为数据源；该网站从不读取这些文件。
+
+## 页面与权限
+
+页面顺序固定为：总览、动物平衡、阵容库、Owner 资源发放、Owner 任务与审计、Owner 权限。Analyst 只能访问前三页；后三页在界面隐藏，服务端也必须再次执行 Owner 校验。动物平衡页是决策辅助，不会直接改写 `config/tables/` 或运行时配置。
 
 ## 验证
 

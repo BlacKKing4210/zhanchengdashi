@@ -37,6 +37,8 @@ func _ready() -> void:
 	_expect_true(bool(saved.get("ok", false)), "authenticated account saves its server-authoritative profile")
 	var persisted_text = _read_text(TEST_PATH)
 	_expect_false(persisted_text.contains(PASSWORD), "persisted account data never contains the plaintext password")
+	_expect_true(bool(store.close()), "first account store explicitly releases its lifecycle lock")
+	store = null
 	var restarted = PlayerAccountStore.new(TEST_PATH)
 	var resumed: Dictionary = restarted.authenticate_installation(installation_id, refresh_token)
 	_expect_true(bool(resumed.get("ok", false)), "saved installation credentials restore the named account after restart")
@@ -89,6 +91,9 @@ func _ready() -> void:
 	OnlineRoom.current_account_summaries = original_summaries
 	OnlineRoom.set("_client_session_token", original_session_token)
 
+	_expect_true(bool(restarted.close()), "restarted account store explicitly releases its lifecycle lock")
+	_expect_true(bool(restarted.close()), "repeated account store close is idempotently safe")
+	restarted = null
 	_cleanup()
 	if failures == 0:
 		print("ACCOUNT_PASSWORD_LOGIN_LOOP_TEST_PASS")
@@ -124,7 +129,13 @@ func _expect_equal(actual: Variant, expected: Variant, label: String) -> void:
 
 
 func _cleanup() -> void:
-	for suffix in ["", ".tmp"]:
+	for suffix in ["", ".previous", ".tmp"]:
 		var path = TEST_PATH + suffix
 		if FileAccess.file_exists(path):
 			DirAccess.remove_absolute(ProjectSettings.globalize_path(path))
+	var lock_path = TEST_PATH + ".write_lock"
+	var owner_path = lock_path.path_join("owner_token")
+	if FileAccess.file_exists(owner_path):
+		DirAccess.remove_absolute(ProjectSettings.globalize_path(owner_path))
+	if DirAccess.dir_exists_absolute(ProjectSettings.globalize_path(lock_path)):
+		DirAccess.remove_absolute(ProjectSettings.globalize_path(lock_path))

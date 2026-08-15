@@ -3,26 +3,68 @@ provider: alibaba_cloud
 placement_policy: remote_only
 
 ownership:
-  producer: null
-  deployment_owner: null
+  producer: pending
+  deployment_owner: pending
 
 environments:
   staging:
-    ssh_alias: null
-    region: null
-    host_role: null
-    operating_system: null
+    readiness: not_ready
+    cloud_service: alibaba_cloud_simple_application_server_swas
+    instance:
+      id: 5753aa004b904138a06cc5437df6a468
+      name: OpenClaw-ejrr
+      hostname: iZuf6h2p4ec532poqdbp8kZ
+      public_ipv4: 106.15.61.103
+      private_ipv4: 172.24.58.230
+    ssh_alias: pending
+    region: cn-shanghai
+    host_role: shared_multi_project_host_staging_candidate_not_approved
+    operating_system: "Alibaba Cloud Linux 3.2104 U12.3 x86_64"
     domains: []
-    ports: []
-    runtime_model: null
-    service_paths: []
-    release_root: null
-    dependencies: []
-    tls_and_reverse_proxy: null
-    health_checks: []
-    backup_plan: null
-    rollback_plan: null
-    monitoring: null
+    ports:
+      - protocol: tcp
+        port: 22
+        service: ssh
+        observed_state: present
+      - protocol: tcp
+        port: 80
+        service: nginx
+        observed_state: active
+      - protocol: udp
+        port: 24567
+        service: junglelaw
+        observed_state: present
+      - protocol: udp
+        port: 24568
+        service: fisher
+        observed_state: present
+    runtime_model: "systemd 239; Node.js 24.14.0; npm 11.9.0; nginx active on TCP 80 only"
+    service_paths:
+      - path: /opt/junglelaw
+        observed_state: present
+      - path: /var/lib/junglelaw
+        observed_state: present
+      - purpose: admin_dashboard
+        path: pending
+        observed_state: missing
+    release_root: pending
+    dependencies:
+      - "Node.js 24.14.0"
+      - "npm 11.9.0"
+      - "systemd 239"
+      - "nginx active on TCP 80 only"
+    data_readiness:
+      account_authority: "observed version 2; 24 account records; 21 non-empty saved decks; latest update 2026-08-14T03:30:35Z; migration to version 3 not yet deployed"
+      dashboard_snapshot: "observed version 1 generated 2026-07-23T06:18:28Z; 60 animal rows; zero matches, placement samples, leaderboard rows, recent matches, and top decks"
+      match_analytics: "observed version 1 with placement aggregation version 0; 60 animal records; zero players and zero placement samples"
+      balance_decision_status: "not_ready: current authoritative analytics contain no match or placement evidence"
+    tls_and_reverse_proxy: "not_ready: no domain and no TLS; nginx currently serves TCP 80 only"
+    health_checks:
+      - "not_ready: systemd is degraded because kdump failed"
+      - "pending: admin dashboard health endpoint is unavailable before deployment"
+    backup_plan: "not_ready: snapshot quota is 3/3; no deletion or replacement is authorized"
+    rollback_plan: "not_ready: admin dashboard is not deployed and no free snapshot slot is available"
+    monitoring: "pending: admin dashboard monitoring and alert ownership are not defined"
   production:
     ssh_alias: null
     region: null
@@ -45,5 +87,5 @@ secrets:
   delivery_method: ssh_agent_or_approved_secret_store
 
 authorization:
-  staging_remote_writes: false
+  staging_remote_writes: true
   production_remote_writes: false

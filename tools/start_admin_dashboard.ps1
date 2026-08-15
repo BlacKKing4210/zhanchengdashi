@@ -1,6 +1,8 @@
 [CmdletBinding()]
 param(
     [string]$SnapshotPath = $env:ZHANCHENG_DASHBOARD_SNAPSHOT_PATH,
+    [string]$AccountSnapshotPath = $env:ZHANCHENG_DASHBOARD_ACCOUNT_SNAPSHOT_PATH,
+    [string]$CommandRoot = $env:ZHANCHENG_DASHBOARD_COMMAND_ROOT,
     [string]$StateDir = $env:ZHANCHENG_DASHBOARD_STATE_DIR,
     [string]$Host = $(if ($env:ZHANCHENG_DASHBOARD_HOST) { $env:ZHANCHENG_DASHBOARD_HOST } else { "127.0.0.1" }),
     [int]$Port = $(if ($env:ZHANCHENG_DASHBOARD_PORT) { [int]$env:ZHANCHENG_DASHBOARD_PORT } else { 24568 }),
@@ -42,6 +44,15 @@ if (-not $SnapshotPath) {
 if ([System.IO.Path]::GetFileName($SnapshotPath).ToLowerInvariant() -ne "dashboard_snapshot.json") {
     throw "SnapshotPath must end in dashboard_snapshot.json. The dashboard will never read player_accounts.json."
 }
+if (-not $AccountSnapshotPath) {
+    throw "Provide -AccountSnapshotPath (must end in admin_accounts_snapshot.json) or set ZHANCHENG_DASHBOARD_ACCOUNT_SNAPSHOT_PATH."
+}
+if ([System.IO.Path]::GetFileName($AccountSnapshotPath).ToLowerInvariant() -ne "admin_accounts_snapshot.json") {
+    throw "AccountSnapshotPath must end in admin_accounts_snapshot.json. The dashboard will never read player_accounts.json."
+}
+if (-not $CommandRoot) {
+    throw "Provide -CommandRoot or set ZHANCHENG_DASHBOARD_COMMAND_ROOT. It must be a protected server-private directory."
+}
 
 $isLoopback = $Host -eq "localhost" -or $Host -eq "::1" -or $Host -eq "[::1]" -or $Host -match "^127(\.\d{1,3}){3}$"
 if (-not $isLoopback -and ((-not $TlsKeyPath) -or (-not $TlsCertPath))) {
@@ -49,6 +60,8 @@ if (-not $isLoopback -and ((-not $TlsKeyPath) -or (-not $TlsCertPath))) {
 }
 
 $env:ZHANCHENG_DASHBOARD_SNAPSHOT_PATH = [System.IO.Path]::GetFullPath($SnapshotPath)
+$env:ZHANCHENG_DASHBOARD_ACCOUNT_SNAPSHOT_PATH = [System.IO.Path]::GetFullPath($AccountSnapshotPath)
+$env:ZHANCHENG_DASHBOARD_COMMAND_ROOT = [System.IO.Path]::GetFullPath($CommandRoot)
 $env:ZHANCHENG_DASHBOARD_HOST = $Host
 $env:ZHANCHENG_DASHBOARD_PORT = [string]$Port
 

@@ -26,6 +26,14 @@ function optionalInteger(value, minimum = 0, maximum = 1_000_000_000) {
   return Math.min(maximum, Math.max(minimum, Math.trunc(parsed)));
 }
 
+function optionalNumber(value, minimum = 0, maximum = 1_000_000_000) {
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed)) {
+    return null;
+  }
+  return Math.min(maximum, Math.max(minimum, parsed));
+}
+
 function ratio(value, fallback = 0) {
   const parsed = Number(value);
   return Number.isFinite(parsed) ? Math.min(1, Math.max(0, parsed)) : fallback;
@@ -165,12 +173,57 @@ function sanitizeAnimal(value) {
     return null;
   }
   const counts = outcomeCounts(value);
+  const placementSamples = integer(value.placement_samples, 0, 0, counts.games);
+  const placementSum = optionalNumber(value.placement_sum, 0, placementSamples * 6) ?? 0;
+  const placementScoreSum = optionalNumber(value.placement_score_sum, 0, placementSamples) ?? 0;
+  const placementFieldSizeSum = integer(value.placement_field_size_sum, 0, 0, placementSamples * 6);
+  const averagePlacement = placementSamples > 0
+    ? (optionalNumber(value.average_placement, 1, 6) ?? placementSum / placementSamples)
+    : null;
+  const averagePlacementScore = placementSamples > 0
+    ? (optionalNumber(value.average_placement_score, 0, 1) ?? placementScoreSum / placementSamples)
+    : null;
+  const averageFieldSize = placementSamples > 0
+    ? (optionalNumber(value.average_field_size, 1, 6) ?? placementFieldSizeSum / placementSamples)
+    : null;
+  const balanceSignal = text(value.balance_signal, 32);
+  const confidenceSource = value.confidence && typeof value.confidence === "object" && !Array.isArray(value.confidence)
+    ? value.confidence
+    : {};
+  const winRateLower = Number.isFinite(Number(confidenceSource.win_rate_lower ?? value.win_rate_ci_low))
+    ? ratio(confidenceSource.win_rate_lower ?? value.win_rate_ci_low, 0)
+    : null;
+  const winRateUpper = Number.isFinite(Number(confidenceSource.win_rate_upper ?? value.win_rate_ci_high))
+    ? ratio(confidenceSource.win_rate_upper ?? value.win_rate_ci_high, 0)
+    : null;
+  const balanceReason = text(value.balance_reason, 160);
   return {
     card_id: cardId,
     name: text(value.name, 48) || cardId,
     ...counts,
     win_rate: winRate(value.win_rate, counts),
     pick_rate: Number.isFinite(Number(value.pick_rate)) ? ratio(value.pick_rate, 0) : null,
+    placement_samples: placementSamples,
+    placement_sum: placementSum,
+    average_placement: averagePlacement,
+    placement_score_sum: placementScoreSum,
+    average_placement_score: averagePlacementScore,
+    placement_field_size_sum: placementFieldSizeSum,
+    average_field_size: averageFieldSize,
+    win_rate_ci_low: winRateLower,
+    win_rate_ci_high: winRateUpper,
+    balance_signal: ["insufficient_samples", "review_nerf", "review_buff", "observe"].includes(balanceSignal)
+      ? balanceSignal
+      : "insufficient_samples",
+    balance_reason: balanceReason,
+    balance_scope: text(value.balance_scope, 64),
+    placement_scope: text(value.placement_scope, 80),
+    confidence: {
+      sample_sufficient: Boolean(confidenceSource.sample_sufficient),
+      win_rate_lower: winRateLower,
+      win_rate_upper: winRateUpper,
+      rationale: text(confidenceSource.rationale, 160) || balanceReason,
+    },
   };
 }
 

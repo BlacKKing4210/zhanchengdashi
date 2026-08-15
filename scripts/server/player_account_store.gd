@@ -1,9 +1,13 @@
 extends RefCounted
 
 const ProfileAdapter = preload("res://scripts/server/player_account_profile_adapter.gd")
+const LifecycleLock = preload("res://scripts/server/player_account_lifecycle_lock.gd")
 const AccountCredentialRules = preload("res://scripts/shared/account_credential_rules.gd")
 
 const DEFAULT_PATH = "user://server/player_accounts.json"
+const ADMIN_ACCOUNTS_SNAPSHOT_BASENAME = "admin_accounts_snapshot.json"
+const DEFAULT_ADMIN_COMMAND_DIRECTORY_NAME = "admin_commands"
+const AUTHORITY_LOCK_OWNER_BASENAME = "owner_token"
 const PASSWORD_ROUNDS = 12000
 const ACCOUNT_MIN_LENGTH = 3
 const ACCOUNT_MAX_LENGTH = 32
@@ -11,6 +15,13 @@ const PASSWORD_MIN_LENGTH = 8
 const PASSWORD_MAX_LENGTH = 72
 const MAX_INSTALLATION_ACCOUNTS = 8
 const RECOVERY_SECRET_HASH_PREFIX = "zhanchengdashi-recovery-v1:"
+const PROFILE_REVISION_FIELD = "_profile_revision"
+const MAX_AUTHORITY_BYTES = 64 * 1024 * 1024
+const MAX_ADMIN_COMMAND_BYTES = 8 * 1024 * 1024
+const MAX_ADMIN_COMMAND_GRANTS = 20
+const MAX_ADMIN_GRANT_AMOUNT = 100000
+const MAX_ADMIN_COMMANDS_PER_POLL = 20
+const MAX_ADMIN_COMMAND_RECEIPTS = 5000
 
 const RANK_NAMES = {
 	"bronze": "青铜",
@@ -27,17 +38,78 @@ var accounts: Dictionary = {}
 var sessions: Dictionary = {}
 var session_installations: Dictionary = {}
 var installations: Dictionary = {}
+var admin_command_receipts: Dictionary = {}
 var profile_adapter: RefCounted
+var admin_accounts_snapshot_path = ""
+var admin_command_root = ""
+var authority_storage_ready = true
+var admin_snapshot_ready = false
+var authority_extra_fields: Dictionary = {}
+var last_atomic_write_cleanup_degraded = false
+var authority_lifecycle_storage_path = ""
+var authority_lifecycle_lock_path = ""
+var authority_lifecycle_lock_owner_path = ""
+var authority_lifecycle_lock_token = ""
+var authority_lifecycle_lock_held = false
 
 
 func _init(path_override: String = "", adapter: RefCounted = null) -> void:
 	profile_adapter = adapter if adapter != null else ProfileAdapter.new()
 	if not path_override.is_empty():
 		storage_path = path_override
+	var storage_directory = storage_path.get_base_dir()
+	admin_accounts_snapshot_path = OS.get_environment("ZHANCHENG_DASHBOARD_ACCOUNT_SNAPSHOT_PATH").strip_edges()
+	if admin_accounts_snapshot_path.is_empty():
+		admin_accounts_snapshot_path = storage_directory.path_join(ADMIN_ACCOUNTS_SNAPSHOT_BASENAME)
+	admin_command_root = OS.get_environment("ZHANCHENG_DASHBOARD_COMMAND_ROOT").strip_edges()
+	if admin_command_root.is_empty():
+		admin_command_root = storage_directory.path_join(DEFAULT_ADMIN_COMMAND_DIRECTORY_NAME)
 	_load()
+	if not authority_storage_ready:
+		return
+	_ensure_admin_command_directories()
+	admin_snapshot_ready = _write_admin_accounts_snapshot() and not last_atomic_write_cleanup_degraded
+	if not admin_snapshot_ready:
+		push_error("PlayerAccountStore could not write the sanitized admin account snapshot.")
+
+
+func _notification(what: int) -> void:
+	if what != NOTIFICATION_PREDELETE or not authority_lifecycle_lock_held:
+		return
+	authority_lifecycle_lock_held = false
+	LifecycleLock.release(
+		authority_lifecycle_lock_path,
+		authority_lifecycle_lock_owner_path,
+		authority_lifecycle_lock_token,
+		"object destruction"
+	)
+
+
+func is_authority_storage_ready() -> bool:
+	return authority_storage_ready
+
+
+func is_admin_snapshot_ready() -> bool:
+	return admin_snapshot_ready
+
+
+func close() -> bool:
+	if not authority_lifecycle_lock_held:
+		return true
+	var released = LifecycleLock.release(
+		authority_lifecycle_lock_path,
+		authority_lifecycle_lock_owner_path,
+		authority_lifecycle_lock_token,
+		"explicit close"
+	)
+	if released:
+		authority_lifecycle_lock_held = false
+	return released
 
 
 func register_account(account: String, password: String) -> Dictionary:
+	if not authority_storage_ready:
+		return _failure("authority_storage_unavailable")
 	var key = _account_key(account)
 	var error = _credential_error(key, password)
 	if not error.is_empty():
@@ -54,6 +126,7 @@ func register_account(account: String, password: String) -> Dictionary:
 		"password_hash": _password_hash(password, salt),
 		"created_at_unix": now,
 		"updated_at_unix": now,
+		"profile_revision": 1,
 		"profile": _normalize_profile({}),
 	}
 	accounts[key] = record
@@ -71,6 +144,8 @@ func login(
 	animal_card_ids: Array = [],
 	recovery_secret: String = ""
 ) -> Dictionary:
+	if not authority_storage_ready:
+		return _failure("authority_storage_unavailable")
 	var key = _account_key(account)
 	if not accounts.has(key):
 		return _failure("invalid_credentials")
@@ -104,6 +179,8 @@ func authenticate_installation(
 	animal_card_ids: Array = [],
 	recovery_secret: String = ""
 ) -> Dictionary:
+	if not authority_storage_ready:
+		return _failure("authority_storage_unavailable")
 	var installation_hash = _installation_hash(installation_id)
 	if installation_hash.is_empty():
 		return _failure("invalid_installation_id")
@@ -123,6 +200,8 @@ func logout(session_token: String) -> Dictionary:
 
 
 func account_summaries_for_session(session_token: String, animal_card_ids: Array = []) -> Dictionary:
+	if not authority_storage_ready:
+		return _failure("authority_storage_unavailable")
 	if not sessions.has(session_token):
 		return _failure("invalid_session")
 	var installation_hash = String(session_installations.get(session_token, ""))
@@ -139,6 +218,8 @@ func set_auto_account_credentials_for_session(
 	password: String,
 	animal_card_ids: Array = []
 ) -> Dictionary:
+	if not authority_storage_ready:
+		return _failure("authority_storage_unavailable")
 	if not sessions.has(session_token):
 		return _failure("invalid_session")
 	var user_id = String(sessions[session_token])
@@ -190,6 +271,8 @@ func create_account_for_session(
 	starter_profile: Dictionary,
 	animal_card_ids: Array = []
 ) -> Dictionary:
+	if not authority_storage_ready:
+		return _failure("authority_storage_unavailable")
 	if not sessions.has(session_token):
 		return _failure("invalid_session")
 	var installation_hash = String(session_installations.get(session_token, ""))
@@ -225,6 +308,8 @@ func switch_account(
 	target_user_id: String,
 	animal_card_ids: Array = []
 ) -> Dictionary:
+	if not authority_storage_ready:
+		return _failure("authority_storage_unavailable")
 	if not sessions.has(session_token):
 		return _failure("invalid_session")
 	var installation_hash = String(session_installations.get(session_token, ""))
@@ -244,6 +329,7 @@ func switch_account(
 			"auto_password_local": false,
 			"session_token": session_token,
 			"profile": (current_record.get("profile", {}) as Dictionary).duplicate(true),
+			"profile_revision": maxi(1, int(current_record.get("profile_revision", 1))),
 			"accounts": _account_summaries(installation_hash, animal_card_ids),
 		})
 	var binding = previous_binding.duplicate(true)
@@ -261,19 +347,24 @@ func switch_account(
 
 
 func profile_for_session(session_token: String) -> Dictionary:
+	if not authority_storage_ready:
+		return _failure("authority_storage_unavailable")
 	var user_id = String(sessions.get(session_token, ""))
 	var key = _key_for_user_id(user_id)
 	if key.is_empty():
 		return _failure("invalid_session")
-	var record: Dictionary = accounts[key]
+	var previous_record: Dictionary = (accounts[key] as Dictionary).duplicate(true)
+	var record: Dictionary = previous_record.duplicate(true)
 	var profile_value = record.get("profile", {})
 	var existing_profile = (profile_value as Dictionary).duplicate(true) if typeof(profile_value) == TYPE_DICTIONARY else {}
 	var normalized_profile = _normalize_profile(existing_profile)
 	if JSON.stringify(existing_profile) != JSON.stringify(normalized_profile):
 		record["profile"] = normalized_profile
+		record["profile_revision"] = maxi(1, int(record.get("profile_revision", 1))) + 1
 		record["updated_at_unix"] = int(Time.get_unix_time_from_system())
 		accounts[key] = record
 		if not _save():
+			accounts[key] = previous_record
 			return _failure("storage_error")
 	return _success({
 		"user_id": record["user_id"],
@@ -281,21 +372,50 @@ func profile_for_session(session_token: String) -> Dictionary:
 		"has_password": not String(record.get("password_hash", "")).is_empty(),
 		"auto_generated": bool(record.get("auto_generated", false)),
 		"profile": normalized_profile.duplicate(true),
+		"profile_revision": maxi(1, int(record.get("profile_revision", 1))),
+		"conflict": false,
 	})
 
 
 func save_profile(session_token: String, profile: Dictionary) -> Dictionary:
+	if not authority_storage_ready:
+		return _failure("authority_storage_unavailable")
 	var user_id = String(sessions.get(session_token, ""))
 	var key = _key_for_user_id(user_id)
 	if key.is_empty():
 		return _failure("invalid_session")
-	var record: Dictionary = accounts[key]
-	record["profile"] = _normalize_profile(profile)
+	var previous_record: Dictionary = (accounts[key] as Dictionary).duplicate(true)
+	var record: Dictionary = previous_record.duplicate(true)
+	var current_revision = maxi(1, int(record.get("profile_revision", 1)))
+	var supplied_revision = int(profile.get(PROFILE_REVISION_FIELD, profile.get("profile_revision", -1)))
+	if supplied_revision < 0 and current_revision == 1:
+		# One compatibility write lets pre-CAS local tests and clients migrate.
+		supplied_revision = current_revision
+	if supplied_revision != current_revision:
+		return _profile_result(record, true)
+	var profile_source = profile.duplicate(true)
+	profile_source.erase(PROFILE_REVISION_FIELD)
+	profile_source.erase("profile_revision")
+	record["profile"] = _normalize_profile(profile_source)
+	record["profile_revision"] = current_revision + 1
 	record["updated_at_unix"] = int(Time.get_unix_time_from_system())
 	accounts[key] = record
 	if not _save():
+		accounts[key] = previous_record
 		return _failure("storage_error")
-	return profile_for_session(session_token)
+	return _profile_result(record, false)
+
+
+func _profile_result(record: Dictionary, conflict: bool) -> Dictionary:
+	return _success({
+		"user_id": String(record.get("user_id", "")),
+		"account": String(record.get("account", "")),
+		"has_password": not String(record.get("password_hash", "")).is_empty(),
+		"auto_generated": bool(record.get("auto_generated", false)),
+		"profile": (record.get("profile", {}) as Dictionary).duplicate(true),
+		"profile_revision": maxi(1, int(record.get("profile_revision", 1))),
+		"conflict": conflict,
+	})
 
 
 func _record_for_session(session_token: String) -> Dictionary:
@@ -475,10 +595,15 @@ func _session_result(session_token: String, auto_password_local: bool = false) -
 		"auto_password_local": auto_password_local,
 		"session_token": session_token,
 		"profile": (record["profile"] as Dictionary).duplicate(true),
+		"profile_revision": maxi(1, int(record.get("profile_revision", 1))),
 	})
 
 
-func _device_account_record(user_id: String, now: int, starter_profile: Dictionary) -> Dictionary:
+func _device_account_record(
+	user_id: String,
+	now: int,
+	starter_profile: Dictionary
+) -> Dictionary:
 	return {
 		"user_id": user_id,
 		"account": "",
@@ -487,6 +612,7 @@ func _device_account_record(user_id: String, now: int, starter_profile: Dictiona
 		"password_hash": "",
 		"created_at_unix": now,
 		"updated_at_unix": now,
+		"profile_revision": 1,
 		"profile": _normalize_profile(starter_profile),
 	}
 
@@ -567,6 +693,7 @@ func _account_summaries(installation_hash: String, animal_card_ids: Array) -> Ar
 		summary["has_password"] = not String(record.get("password_hash", "")).is_empty()
 		summary["auto_generated"] = bool(record.get("auto_generated", false))
 		summary["is_active"] = user_id == active_user_id
+		summary["profile_revision"] = maxi(1, int(record.get("profile_revision", 1)))
 		result.append(summary)
 		continue
 		var rank_key = String(profile.get("rank_key", "bronze")).strip_edges().to_lower()
@@ -597,6 +724,421 @@ func _animal_count(profile: Dictionary, animal_card_ids: Array) -> int:
 		if allowed_ids.is_empty() or allowed_ids.has(card_id):
 			count += maxi(0, int(card_counts[raw_card_id]))
 	return count
+
+
+func admin_accounts_snapshot() -> Dictionary:
+	var rows = []
+	for account_key_value in accounts:
+		if typeof(accounts[account_key_value]) != TYPE_DICTIONARY:
+			continue
+		var record: Dictionary = accounts[account_key_value]
+		var user_id = _safe_admin_text(record.get("user_id", ""), 80)
+		if user_id.is_empty():
+			continue
+		var profile_value = record.get("profile", {})
+		var profile: Dictionary = _normalize_profile(profile_value if typeof(profile_value) == TYPE_DICTIONARY else {})
+		rows.append({
+			"user_id": user_id,
+			"masked_account": _masked_account(record.get("account", "")),
+			"created_at_unix": maxi(0, int(record.get("created_at_unix", 0))),
+			"updated_at_unix": maxi(0, int(record.get("updated_at_unix", 0))),
+			"profile_revision": maxi(1, int(record.get("profile_revision", 1))),
+			"deck": _admin_card_array(profile.get("deck", []), 8),
+			"card_levels": _admin_card_dictionary(profile.get("card_levels", {}), 1, 99),
+			"rank": {
+				"rank_key": _safe_admin_text(profile.get("rank_key", "bronze"), 24).to_lower(),
+				"rank_stars": maxi(0, int(profile.get("rank_stars", 1))),
+				"elo": maxi(0, int(profile.get("elo", 1000))),
+			},
+			"rank_mirrors": _normalize_rank_mirrors(profile.get("rank_mirrors", {})),
+			"resources": {
+				"gacha_tickets": maxi(0, int(profile.get("gacha_tickets", 0))),
+				"card_copies": _admin_card_dictionary(profile.get("card_counts", {}), 0, 1000000000),
+			},
+		})
+	rows.sort_custom(func(a: Dictionary, b: Dictionary) -> bool:
+		return String(a.get("user_id", "")) < String(b.get("user_id", ""))
+	)
+	return {
+		"version": 1,
+		"generated_at_unix": int(Time.get_unix_time_from_system()),
+		"accounts": rows,
+	}
+
+
+func process_admin_commands(allowed_card_ids: Array = [], max_commands: int = MAX_ADMIN_COMMANDS_PER_POLL) -> Dictionary:
+	if not authority_storage_ready:
+		return _failure("authority_storage_unavailable")
+	_ensure_admin_command_directories()
+	var allowed_cards = {}
+	for raw_card_id in allowed_card_ids:
+		var card_id = _safe_admin_card_id(raw_card_id)
+		if not card_id.is_empty():
+			allowed_cards[card_id] = true
+	var pending_directory_path = _admin_command_bucket_path("pending")
+	var directory = DirAccess.open(pending_directory_path)
+	if directory == null:
+		return _failure("command_directory_unavailable")
+	var files = []
+	directory.list_dir_begin()
+	var file_name = directory.get_next()
+	while not file_name.is_empty():
+		if not directory.current_is_dir() and file_name.to_lower().ends_with(".json"):
+			files.append(file_name)
+		file_name = directory.get_next()
+	directory.list_dir_end()
+	files.sort()
+	var processed = 0
+	var failed = 0
+	var idempotent = 0
+	var attempted = 0
+	for pending_file_name in files:
+		if attempted >= clampi(max_commands, 1, MAX_ADMIN_COMMANDS_PER_POLL):
+			break
+		attempted += 1
+		var result = _process_admin_command_file(String(pending_file_name), allowed_cards)
+		match String(result.get("status", "")):
+			"processed":
+				processed += 1
+			"idempotent":
+				idempotent += 1
+			"failed":
+				failed += 1
+	return _success({
+		"processed": processed,
+		"failed": failed,
+		"idempotent": idempotent,
+		"remaining_observed": maxi(0, files.size() - attempted),
+	})
+
+
+func _process_admin_command_file(file_name: String, allowed_cards: Dictionary) -> Dictionary:
+	var pending_path = _admin_command_bucket_path("pending").path_join(file_name)
+	var command_id_from_file = file_name.trim_suffix(".json").to_lower()
+	var failure_id = command_id_from_file if _is_valid_admin_command_id(command_id_from_file) else "invalid-%s" % file_name.sha256_text().left(32)
+	var file = FileAccess.open(pending_path, FileAccess.READ)
+	if file == null:
+		return {"status": "skipped"}
+	if file.get_length() <= 0 or file.get_length() > MAX_ADMIN_COMMAND_BYTES:
+		file.close()
+		return _complete_failed_admin_command(pending_path, failure_id, "invalid_command_size")
+	var parsed = JSON.parse_string(file.get_as_text())
+	file.close()
+	if typeof(parsed) != TYPE_DICTIONARY:
+		return _complete_failed_admin_command(pending_path, failure_id, "invalid_command_json")
+	var source: Dictionary = parsed
+	var command_id = String(source.get("command_id", "")).strip_edges().to_lower()
+	if not _is_valid_admin_command_id(command_id) or command_id != command_id_from_file:
+		return _complete_failed_admin_command(pending_path, failure_id, "invalid_command_id", source)
+	if admin_command_receipts.has(command_id) and typeof(admin_command_receipts[command_id]) == TYPE_DICTIONARY:
+		var existing_receipt: Dictionary = (admin_command_receipts[command_id] as Dictionary).duplicate(true)
+		if _write_admin_command_receipt("processed", command_id, existing_receipt):
+			_remove_data_file(pending_path)
+			return {"status": "idempotent", "command_id": command_id}
+		return {"status": "skipped", "command_id": command_id}
+	var processed_receipt = _read_admin_command_receipt("processed", command_id)
+	if not processed_receipt.is_empty():
+		_remove_data_file(pending_path)
+		return {"status": "idempotent", "command_id": command_id}
+	var failed_receipt = _read_admin_command_receipt("failed", command_id)
+	if not failed_receipt.is_empty():
+		_remove_data_file(pending_path)
+		return {"status": "failed", "command_id": command_id, "error": String(failed_receipt.get("error", "previously_failed"))}
+
+	var validation = _validate_admin_command(source, command_id, allowed_cards)
+	if not bool(validation.get("ok", false)):
+		return _complete_failed_admin_command(pending_path, command_id, String(validation.get("error", "invalid_command")), source)
+	var command: Dictionary = validation["command"]
+	var previous_accounts = accounts.duplicate(true)
+	var previous_receipts = admin_command_receipts.duplicate(true)
+	var now = int(Time.get_unix_time_from_system())
+	var applied_accounts = []
+	for target_user_id_value in command["target_user_ids"]:
+		var target_user_id = String(target_user_id_value)
+		var account_key = _key_for_user_id(target_user_id)
+		var record: Dictionary = (accounts[account_key] as Dictionary).duplicate(true)
+		var profile: Dictionary = _normalize_profile(record.get("profile", {}))
+		for grant_value in command["grants"]:
+			var grant: Dictionary = grant_value
+			var amount = int(grant.get("amount", 0))
+			if String(grant.get("resource", "")) == "gacha_tickets":
+				profile["gacha_tickets"] = clampi(maxi(0, int(profile.get("gacha_tickets", 0))) + amount, 0, 1000000000)
+			else:
+				var card_id = String(grant.get("card_id", ""))
+				var card_counts: Dictionary = profile.get("card_counts", {}).duplicate(true)
+				card_counts[card_id] = clampi(maxi(0, int(card_counts.get(card_id, 0))) + amount, 0, 1000000000)
+				profile["card_counts"] = card_counts
+		record["profile"] = _normalize_profile(profile)
+		record["profile_revision"] = maxi(1, int(record.get("profile_revision", 1))) + 1
+		record["updated_at_unix"] = now
+		accounts[account_key] = record
+		applied_accounts.append({
+			"user_id": target_user_id,
+			"profile_revision": int(record["profile_revision"]),
+		})
+	var receipt = {
+		"version": 1,
+		"command_id": command_id,
+		"idempotency_key": String(command.get("idempotency_key", command_id)),
+		"status": "processed",
+		"scope": String(command.get("scope", "target")),
+		"actor": String(command.get("actor", "")),
+		"reason": String(command.get("reason", "")),
+		"target_user_ids": (command.get("target_user_ids", []) as Array).duplicate(),
+		"target_count": (command.get("target_user_ids", []) as Array).size(),
+		"grants": (command.get("grants", []) as Array).duplicate(true),
+		"created_at_unix": maxi(0, int(command.get("created_at_unix", 0))),
+		"processed_at_unix": now,
+		"accounts": applied_accounts,
+	}
+	admin_command_receipts[command_id] = receipt.duplicate(true)
+	_trim_admin_command_receipts()
+	if not _save():
+		accounts = previous_accounts
+		admin_command_receipts = previous_receipts
+		return {"status": "skipped", "command_id": command_id, "error": "storage_error"}
+	if not _write_admin_command_receipt("processed", command_id, receipt):
+		# The durable ledger prevents a retry from crediting the same command twice.
+		return {"status": "skipped", "command_id": command_id, "error": "receipt_write_error"}
+	_remove_data_file(pending_path)
+	return {"status": "processed", "command_id": command_id}
+
+
+func _validate_admin_command(source: Dictionary, expected_command_id: String, allowed_cards: Dictionary) -> Dictionary:
+	if int(source.get("version", 0)) != 1:
+		return _failure("unsupported_command_version")
+	var command_id = String(source.get("command_id", "")).strip_edges().to_lower()
+	var idempotency_key = String(source.get("idempotency_key", "")).strip_edges().to_lower()
+	if command_id != expected_command_id or idempotency_key != command_id:
+		return _failure("idempotency_mismatch")
+	var actor = _safe_admin_text(source.get("actor", ""), 40)
+	if actor.is_empty():
+		return _failure("invalid_actor")
+	var reason = _safe_admin_text(source.get("reason", ""), 200)
+	if reason.is_empty():
+		return _failure("invalid_reason")
+	var scope = String(source.get("scope", "")).strip_edges().to_lower()
+	if scope not in ["target", "all"]:
+		return _failure("invalid_scope")
+	if scope == "all" and String(source.get("all_confirmation", "")) != "SEND TO ALL":
+		return _failure("all_confirmation_required")
+	var raw_target_user_ids = source.get("target_user_ids", [])
+	if typeof(raw_target_user_ids) != TYPE_ARRAY:
+		return _failure("invalid_targets")
+	var target_user_ids = []
+	for raw_user_id in raw_target_user_ids:
+		var user_id = _safe_admin_text(raw_user_id, 80)
+		if user_id.is_empty() or target_user_ids.has(user_id) or _key_for_user_id(user_id).is_empty():
+			return _failure("invalid_target")
+		target_user_ids.append(user_id)
+	if target_user_ids.is_empty() or (scope == "target" and target_user_ids.size() != 1):
+		return _failure("invalid_targets")
+	var raw_grants = source.get("grants", [])
+	if typeof(raw_grants) != TYPE_ARRAY or raw_grants.is_empty() or raw_grants.size() > MAX_ADMIN_COMMAND_GRANTS:
+		return _failure("invalid_grants")
+	var grants = []
+	var grant_keys = {}
+	for raw_grant in raw_grants:
+		if typeof(raw_grant) != TYPE_DICTIONARY:
+			return _failure("invalid_grant")
+		var resource = String((raw_grant as Dictionary).get("resource", "")).strip_edges().to_lower()
+		var amount = int((raw_grant as Dictionary).get("amount", 0))
+		if amount < 1 or amount > MAX_ADMIN_GRANT_AMOUNT:
+			return _failure("invalid_grant_amount")
+		if resource == "gacha_tickets":
+			if grant_keys.has(resource):
+				return _failure("duplicate_grant")
+			grant_keys[resource] = true
+			grants.append({"resource": resource, "amount": amount})
+		elif resource == "card_copies":
+			var card_id = _safe_admin_card_id((raw_grant as Dictionary).get("card_id", ""))
+			if card_id.is_empty() or allowed_cards.is_empty() or not allowed_cards.has(card_id):
+				return _failure("invalid_card_id")
+			var grant_key = "%s:%s" % [resource, card_id]
+			if grant_keys.has(grant_key):
+				return _failure("duplicate_grant")
+			grant_keys[grant_key] = true
+			grants.append({"resource": resource, "card_id": card_id, "amount": amount})
+		else:
+			return _failure("unsupported_resource")
+	return _success({
+		"command": {
+			"version": 1,
+			"command_id": command_id,
+			"idempotency_key": idempotency_key,
+			"actor": actor,
+			"reason": reason,
+			"scope": scope,
+			"all_confirmation": "SEND TO ALL" if scope == "all" else "",
+			"target_user_ids": target_user_ids,
+			"grants": grants,
+			"created_at_unix": maxi(0, int(source.get("created_at_unix", 0))),
+		},
+	})
+
+
+func _complete_failed_admin_command(pending_path: String, command_id: String, error: String, source: Dictionary = {}) -> Dictionary:
+	var failed_targets = _safe_failed_command_targets(source.get("target_user_ids", []))
+	var receipt = {
+		"version": 1,
+		"command_id": command_id,
+		"idempotency_key": _safe_admin_text(source.get("idempotency_key", ""), 80),
+		"status": "failed",
+		"scope": _safe_admin_text(source.get("scope", ""), 16),
+		"actor": _safe_admin_text(source.get("actor", ""), 40),
+		"reason": _safe_admin_text(source.get("reason", ""), 200),
+		"target_user_ids": failed_targets,
+		"target_count": failed_targets.size(),
+		"grants": _safe_failed_command_grants(source.get("grants", [])),
+		"created_at_unix": maxi(0, int(source.get("created_at_unix", 0))),
+		"processed_at_unix": int(Time.get_unix_time_from_system()),
+		"error": _safe_admin_text(error, 64),
+	}
+	if _write_admin_command_receipt("failed", command_id, receipt):
+		_remove_data_file(pending_path)
+		return {"status": "failed", "command_id": command_id, "error": error}
+	return {"status": "skipped", "command_id": command_id, "error": "receipt_write_error"}
+
+
+func _safe_failed_command_targets(value: Variant) -> Array:
+	var result = []
+	if typeof(value) != TYPE_ARRAY:
+		return result
+	for raw_user_id in value:
+		var user_id = _safe_admin_text(raw_user_id, 80)
+		if not user_id.is_empty() and not result.has(user_id):
+			result.append(user_id)
+		if result.size() >= 100000:
+			break
+	return result
+
+
+func _safe_failed_command_grants(value: Variant) -> Array:
+	var result = []
+	if typeof(value) != TYPE_ARRAY:
+		return result
+	for raw_grant in value:
+		if typeof(raw_grant) != TYPE_DICTIONARY:
+			continue
+		var resource = String((raw_grant as Dictionary).get("resource", "")).strip_edges().to_lower()
+		var amount = clampi(int((raw_grant as Dictionary).get("amount", 0)), 0, MAX_ADMIN_GRANT_AMOUNT)
+		if resource == "gacha_tickets" and amount > 0:
+			result.append({"resource": resource, "amount": amount})
+		elif resource == "card_copies" and amount > 0:
+			var card_id = _safe_admin_card_id((raw_grant as Dictionary).get("card_id", ""))
+			if not card_id.is_empty():
+				result.append({"resource": resource, "card_id": card_id, "amount": amount})
+		if result.size() >= MAX_ADMIN_COMMAND_GRANTS:
+			break
+	return result
+
+
+func _write_admin_command_receipt(bucket: String, command_id: String, receipt: Dictionary) -> bool:
+	return _atomic_write_json(_admin_command_bucket_path(bucket).path_join("%s.json" % command_id), receipt)
+
+
+func _read_admin_command_receipt(bucket: String, command_id: String) -> Dictionary:
+	var path = _admin_command_bucket_path(bucket).path_join("%s.json" % command_id)
+	var file = FileAccess.open(path, FileAccess.READ)
+	if file == null or file.get_length() <= 0 or file.get_length() > MAX_ADMIN_COMMAND_BYTES:
+		if file != null:
+			file.close()
+		return {}
+	var parsed = JSON.parse_string(file.get_as_text())
+	file.close()
+	if typeof(parsed) != TYPE_DICTIONARY:
+		return {}
+	var receipt: Dictionary = parsed
+	if String(receipt.get("command_id", "")).to_lower() != command_id or String(receipt.get("status", "")) != bucket:
+		return {}
+	return receipt.duplicate(true)
+
+
+func _trim_admin_command_receipts() -> void:
+	while admin_command_receipts.size() > MAX_ADMIN_COMMAND_RECEIPTS:
+		var oldest_id = ""
+		var oldest_time = 9223372036854775807
+		for command_id_value in admin_command_receipts:
+			var receipt_value = admin_command_receipts[command_id_value]
+			var processed_at = int((receipt_value as Dictionary).get("processed_at_unix", 0)) if typeof(receipt_value) == TYPE_DICTIONARY else 0
+			if processed_at < oldest_time:
+				oldest_time = processed_at
+				oldest_id = String(command_id_value)
+		if oldest_id.is_empty():
+			break
+		admin_command_receipts.erase(oldest_id)
+
+
+func _ensure_admin_command_directories() -> void:
+	for bucket in ["pending", "processed", "failed"]:
+		DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(_admin_command_bucket_path(bucket)))
+
+
+func _admin_command_bucket_path(bucket: String) -> String:
+	return admin_command_root.path_join(bucket)
+
+
+func _remove_data_file(path: String) -> bool:
+	var state = _path_entry_state(path)
+	if state == "missing":
+		return true
+	if state != "file":
+		return false
+	return DirAccess.remove_absolute(ProjectSettings.globalize_path(path)) == OK
+
+
+func _is_valid_admin_command_id(value: String) -> bool:
+	var pattern = RegEx.new()
+	if pattern.compile("^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$") != OK:
+		return false
+	return pattern.search(value.to_lower()) != null
+
+
+func _safe_admin_card_id(value: Variant) -> String:
+	var card_id = _safe_admin_text(value, 64)
+	var pattern = RegEx.new()
+	if pattern.compile("^[A-Za-z0-9_.:-]{1,64}$") != OK:
+		return ""
+	return card_id if pattern.search(card_id) != null else ""
+
+
+func _safe_admin_text(value: Variant, max_length: int) -> String:
+	return String(value).replace("\n", " ").replace("\r", " ").replace("\t", " ").strip_edges().left(max_length)
+
+
+func _masked_account(value: Variant) -> String:
+	var account = _safe_admin_text(value, ACCOUNT_MAX_LENGTH)
+	if account.is_empty():
+		return "device-account"
+	if account.length() == 1:
+		return "*"
+	if account.length() == 2:
+		return "%s*" % account.left(1)
+	return "%s***%s" % [account.left(1), account.right(1)]
+
+
+func _admin_card_array(value: Variant, limit: int) -> Array:
+	var result = []
+	if typeof(value) != TYPE_ARRAY:
+		return result
+	for raw_card_id in value:
+		var card_id = _safe_admin_card_id(raw_card_id)
+		if not card_id.is_empty() and not result.has(card_id):
+			result.append(card_id)
+		if result.size() >= limit:
+			break
+	return result
+
+
+func _admin_card_dictionary(value: Variant, minimum: int, maximum: int) -> Dictionary:
+	var result = {}
+	if typeof(value) != TYPE_DICTIONARY:
+		return result
+	for raw_card_id in value:
+		var card_id = _safe_admin_card_id(raw_card_id)
+		if not card_id.is_empty():
+			result[card_id] = clampi(int(value[raw_card_id]), minimum, maximum)
+	return result
 
 
 func _key_for_user_id(user_id: String) -> String:
@@ -718,62 +1260,450 @@ func _random_hex(byte_count: int) -> String:
 	return crypto.generate_random_bytes(byte_count).hex_encode()
 
 
+func _prepare_authority_storage_path() -> String:
+	if storage_path.get_file().strip_edges().is_empty():
+		return "authority_path_invalid"
+	var directory = storage_path.get_base_dir()
+	if directory.is_empty():
+		return "authority_directory_invalid"
+	var directory_error = DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(directory))
+	if directory_error != OK and directory_error != ERR_ALREADY_EXISTS:
+		return "authority_directory_unavailable"
+	var primary_state = _path_entry_state(storage_path)
+	if primary_state == "unknown":
+		return "authority_directory_unreadable"
+	if primary_state == "directory":
+		return "authority_path_is_directory"
+	return _probe_directory_writable(directory)
+
+
+func _probe_directory_writable(directory: String) -> String:
+	var probe_path = directory.path_join(".player_account_store_probe_%d_%s.tmp" % [Time.get_ticks_usec(), _random_hex(4)])
+	var probe = FileAccess.open(probe_path, FileAccess.WRITE)
+	if probe == null:
+		return "authority_directory_unwritable"
+	probe.store_string("authority-storage-ready")
+	probe.flush()
+	var write_error = probe.get_error()
+	probe.close()
+	if write_error != OK:
+		_remove_data_file(probe_path)
+		return "authority_directory_unwritable"
+	var verification = FileAccess.open(probe_path, FileAccess.READ)
+	if verification == null:
+		_remove_data_file(probe_path)
+		return "authority_directory_unreadable"
+	var verified_text = verification.get_as_text()
+	var read_error = verification.get_error()
+	verification.close()
+	if read_error != OK or verified_text != "authority-storage-ready":
+		_remove_data_file(probe_path)
+		return "authority_directory_unreadable"
+	if not _remove_data_file(probe_path):
+		return "authority_directory_cleanup_failed"
+	return ""
+
+
+func _path_entry_state(path: String) -> String:
+	var directory_path = path.get_base_dir()
+	if directory_path.is_empty():
+		return "unknown"
+	var directory = DirAccess.open(directory_path)
+	if directory == null:
+		return "unknown"
+	var listing_error = directory.list_dir_begin()
+	if listing_error != OK:
+		return "unknown"
+	var expected_name = path.get_file()
+	var entry_name = directory.get_next()
+	while not entry_name.is_empty():
+		var matches = entry_name == expected_name
+		if OS.get_name() == "Windows":
+			matches = entry_name.to_lower() == expected_name.to_lower()
+		if matches:
+			var state = "directory" if directory.current_is_dir() else "file"
+			directory.list_dir_end()
+			return state
+		entry_name = directory.get_next()
+	directory.list_dir_end()
+	return "missing"
+
+
 func _load() -> void:
+	authority_storage_ready = true
+	admin_snapshot_ready = false
 	accounts.clear()
 	sessions.clear()
 	session_installations.clear()
 	installations.clear()
-	if not FileAccess.file_exists(storage_path):
+	admin_command_receipts.clear()
+	authority_extra_fields.clear()
+	var path_error = _prepare_authority_storage_path()
+	if not path_error.is_empty():
+		_mark_authority_unavailable(path_error)
 		return
-	var file = FileAccess.open(storage_path, FileAccess.READ)
+	var lock_error = _acquire_authority_lifecycle_lock()
+	if not lock_error.is_empty():
+		_mark_authority_unavailable(lock_error)
+		return
+	var read_result: Dictionary
+	var primary_state = _path_entry_state(storage_path)
+	if primary_state == "file":
+		read_result = _read_authority_payload(storage_path)
+		if not bool(read_result.get("ok", false)):
+			_mark_authority_unavailable(String(read_result.get("error", "authority_read_failed")))
+			return
+	elif primary_state == "missing":
+		var previous_path = "%s.previous" % storage_path
+		var previous_state = _path_entry_state(previous_path)
+		if previous_state == "missing":
+			return
+		if previous_state != "file":
+			_mark_authority_unavailable("authority_previous_unavailable")
+			return
+		read_result = _read_authority_payload(previous_path)
+		if not bool(read_result.get("ok", false)):
+			_mark_authority_unavailable("authority_previous_invalid")
+			return
+		var recovery_payload: Dictionary = (read_result.get("payload", {}) as Dictionary).duplicate(true)
+		if not _atomic_write_json(storage_path, recovery_payload):
+			_mark_authority_unavailable("authority_previous_restore_failed")
+			return
+		if last_atomic_write_cleanup_degraded:
+			_mark_authority_unavailable("authority_previous_restore_degraded")
+			return
+		push_warning("PlayerAccountStore restored a missing authority file from its validated previous generation.")
+	else:
+		_mark_authority_unavailable("authority_path_unavailable")
+		return
+	var parsed: Dictionary = (read_result.get("payload", {}) as Dictionary).duplicate(true)
+	var version = int(parsed.get("version", 0))
+	accounts = (parsed.get("accounts", {}) as Dictionary).duplicate(true)
+	installations = (parsed.get("installations", {}) as Dictionary).duplicate(true)
+	if version >= 3:
+		admin_command_receipts = (parsed.get("admin_command_receipts", {}) as Dictionary).duplicate(true)
+	else:
+		var legacy_receipts = parsed.get("admin_command_receipts", {})
+		admin_command_receipts = (legacy_receipts as Dictionary).duplicate(true) if typeof(legacy_receipts) == TYPE_DICTIONARY else {}
+	for field_name_value in parsed:
+		var field_name = String(field_name_value)
+		if field_name not in ["version", "accounts", "installations", "admin_command_receipts"]:
+			authority_extra_fields[field_name] = parsed[field_name_value]
+	var migration_required = version < 3
+	if _add_missing_profile_revisions():
+		migration_required = true
+	if migration_required and not _save():
+		_mark_authority_unavailable("authority_migration_persist_failed")
+
+
+func _read_authority_payload(path: String) -> Dictionary:
+	var file = FileAccess.open(path, FileAccess.READ)
 	if file == null:
-		return
-	var parsed = JSON.parse_string(file.get_as_text())
-	if typeof(parsed) == TYPE_DICTIONARY and typeof(parsed.get("accounts", {})) == TYPE_DICTIONARY:
-		accounts = (parsed["accounts"] as Dictionary).duplicate(true)
-		if typeof(parsed.get("installations", {})) == TYPE_DICTIONARY:
-			installations = (parsed["installations"] as Dictionary).duplicate(true)
-		if _normalize_loaded_profiles():
-			_save()
+		return _failure("authority_unreadable")
+	var length = file.get_length()
+	if length <= 0 or length > MAX_AUTHORITY_BYTES:
+		file.close()
+		return _failure("authority_size_invalid")
+	var stored_text = file.get_as_text()
+	var read_error = file.get_error()
+	file.close()
+	if read_error != OK:
+		return _failure("authority_unreadable")
+	var parsed = JSON.parse_string(stored_text)
+	var schema_error = _authority_payload_error(parsed)
+	if not schema_error.is_empty():
+		return _failure(schema_error)
+	return _success({"payload": (parsed as Dictionary).duplicate(true)})
 
 
-func _normalize_loaded_profiles() -> bool:
+func _authority_payload_error(value: Variant) -> String:
+	if typeof(value) != TYPE_DICTIONARY:
+		return "authority_json_invalid"
+	var payload: Dictionary = value
+	var raw_version = payload.get("version", 0)
+	if typeof(raw_version) != TYPE_INT and typeof(raw_version) != TYPE_FLOAT:
+		return "authority_version_invalid"
+	var version_number = float(raw_version)
+	if version_number != floor(version_number):
+		return "authority_version_invalid"
+	var version = int(raw_version)
+	if version < 2 or version > 3:
+		return "authority_version_unsupported"
+	var loaded_accounts = payload.get("accounts", null)
+	if typeof(loaded_accounts) != TYPE_DICTIONARY:
+		return "authority_accounts_invalid"
+	var seen_user_ids = {}
+	for raw_account_key in loaded_accounts:
+		if String(raw_account_key).strip_edges().is_empty() or typeof(loaded_accounts[raw_account_key]) != TYPE_DICTIONARY:
+			return "authority_account_record_invalid"
+		var record: Dictionary = loaded_accounts[raw_account_key]
+		var user_id = String(record.get("user_id", "")).strip_edges()
+		if user_id.is_empty() or seen_user_ids.has(user_id):
+			return "authority_user_id_invalid"
+		seen_user_ids[user_id] = true
+		if typeof(record.get("profile", null)) != TYPE_DICTIONARY:
+			return "authority_profile_invalid"
+		if version >= 3 and int(record.get("profile_revision", 0)) < 1:
+			return "authority_profile_revision_invalid"
+	var loaded_installations = payload.get("installations", {})
+	if typeof(loaded_installations) != TYPE_DICTIONARY:
+		return "authority_installations_invalid"
+	for installation_key in loaded_installations:
+		if typeof(loaded_installations[installation_key]) != TYPE_DICTIONARY:
+			return "authority_installation_record_invalid"
+	var loaded_receipts = payload.get("admin_command_receipts", null if version >= 3 else {})
+	if typeof(loaded_receipts) != TYPE_DICTIONARY:
+		return "authority_receipts_invalid"
+	for receipt_key in loaded_receipts:
+		if typeof(loaded_receipts[receipt_key]) != TYPE_DICTIONARY:
+			return "authority_receipt_record_invalid"
+	return ""
+
+
+func _add_missing_profile_revisions() -> bool:
 	var changed = false
 	for raw_account_key in accounts:
-		if typeof(accounts[raw_account_key]) != TYPE_DICTIONARY:
+		var record: Dictionary = (accounts[raw_account_key] as Dictionary).duplicate(true)
+		if int(record.get("profile_revision", 0)) >= 1:
 			continue
-		var record: Dictionary = accounts[raw_account_key]
-		var raw_profile = record.get("profile", {})
-		var existing_profile: Dictionary = raw_profile if typeof(raw_profile) == TYPE_DICTIONARY else {}
-		var normalized_profile = _normalize_profile(existing_profile)
-		if JSON.stringify(existing_profile) == JSON.stringify(normalized_profile):
-			continue
-		record["profile"] = normalized_profile
-		record["updated_at_unix"] = int(Time.get_unix_time_from_system())
+		record["profile_revision"] = 1
 		accounts[raw_account_key] = record
 		changed = true
 	return changed
 
 
+func _mark_authority_unavailable(error_code: String) -> void:
+	authority_storage_ready = false
+	admin_snapshot_ready = false
+	push_error("PlayerAccountStore authority storage is unavailable: %s" % error_code)
+
+
+func _acquire_authority_lifecycle_lock() -> String:
+	authority_lifecycle_storage_path = storage_path
+	authority_lifecycle_lock_path = "%s.write_lock" % storage_path
+	authority_lifecycle_lock_owner_path = authority_lifecycle_lock_path.path_join(AUTHORITY_LOCK_OWNER_BASENAME)
+	authority_lifecycle_lock_token = "%d:%d:%s" % [OS.get_process_id(), Time.get_ticks_usec(), _random_hex(16)]
+	authority_lifecycle_lock_held = false
+	var lock_error = DirAccess.make_dir_absolute(ProjectSettings.globalize_path(authority_lifecycle_lock_path))
+	if lock_error != OK:
+		push_error("PlayerAccountStore lifecycle lock acquisition failed for %s (error %d); an existing or residual lock is never guessed safe." % [storage_path.get_file(), lock_error])
+		return "authority_lifecycle_lock_unavailable"
+	var owner_file = FileAccess.open(authority_lifecycle_lock_owner_path, FileAccess.WRITE)
+	if owner_file == null:
+		var owner_open_error = FileAccess.get_open_error()
+		push_error("PlayerAccountStore lifecycle lock owner write failed for %s (error %d)." % [storage_path.get_file(), owner_open_error])
+		_cleanup_unclaimed_authority_lock()
+		return "authority_lifecycle_lock_owner_unwritable"
+	owner_file.store_string(authority_lifecycle_lock_token)
+	owner_file.flush()
+	var owner_write_error = owner_file.get_error()
+	owner_file.close()
+	if owner_write_error != OK or _read_lock_owner_token() != authority_lifecycle_lock_token:
+		push_error("PlayerAccountStore lifecycle lock owner verification failed for %s (error %d)." % [storage_path.get_file(), owner_write_error])
+		_cleanup_unclaimed_authority_lock()
+		return "authority_lifecycle_lock_owner_invalid"
+	authority_lifecycle_lock_held = true
+	return ""
+
+
+func _cleanup_unclaimed_authority_lock() -> void:
+	if _path_entry_state(authority_lifecycle_lock_owner_path) == "file":
+		var owner_cleanup_error = DirAccess.remove_absolute(ProjectSettings.globalize_path(authority_lifecycle_lock_owner_path))
+		if owner_cleanup_error != OK:
+			push_error("PlayerAccountStore could not clean an unclaimed lifecycle lock owner file (error %d)." % owner_cleanup_error)
+			return
+	var lock_cleanup_error = DirAccess.remove_absolute(ProjectSettings.globalize_path(authority_lifecycle_lock_path))
+	if lock_cleanup_error != OK:
+		push_error("PlayerAccountStore could not clean an unclaimed lifecycle lock directory (error %d)." % lock_cleanup_error)
+
+
+func _read_lock_owner_token() -> String:
+	var owner_file = FileAccess.open(authority_lifecycle_lock_owner_path, FileAccess.READ)
+	if owner_file == null:
+		return ""
+	var token = owner_file.get_as_text()
+	var read_error = owner_file.get_error()
+	owner_file.close()
+	return token if read_error == OK else ""
+
+
+func _authority_lifecycle_lock_is_owned() -> bool:
+	return (
+		authority_lifecycle_lock_held
+		and not authority_lifecycle_lock_token.is_empty()
+		and _path_entry_state(authority_lifecycle_lock_path) == "directory"
+		and _read_lock_owner_token() == authority_lifecycle_lock_token
+	)
+
+
 func _save() -> bool:
-	var directory = storage_path.get_base_dir()
-	if not directory.is_empty():
-		DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(directory))
-	var temporary_path = storage_path + ".tmp"
-	var file = FileAccess.open(temporary_path, FileAccess.WRITE)
-	if file == null:
+	if not authority_storage_ready:
 		return false
-	file.store_string(JSON.stringify({
-		"version": 2,
+	var payload = authority_extra_fields.duplicate(true)
+	payload.merge({
+		"version": 3,
 		"accounts": accounts,
 		"installations": installations,
-	}, "\t"))
+		"admin_command_receipts": admin_command_receipts,
+	}, true)
+	var schema_error = _authority_payload_error(payload)
+	if not schema_error.is_empty():
+		_mark_authority_unavailable(schema_error)
+		return false
+	if not _atomic_write_json(storage_path, payload):
+		_mark_authority_unavailable("authority_write_failed")
+		return false
+	var authority_cleanup_degraded = last_atomic_write_cleanup_degraded
+	var snapshot_written = _write_admin_accounts_snapshot()
+	admin_snapshot_ready = snapshot_written and not last_atomic_write_cleanup_degraded
+	if authority_cleanup_degraded:
+		_mark_authority_unavailable("authority_postcommit_cleanup_degraded")
+	if not admin_snapshot_ready:
+		push_error("PlayerAccountStore saved authority data but could not refresh the sanitized admin account snapshot.")
+	return true
+
+
+func _write_admin_accounts_snapshot() -> bool:
+	if admin_accounts_snapshot_path.get_file().to_lower() != ADMIN_ACCOUNTS_SNAPSHOT_BASENAME:
+		return false
+	return _atomic_write_json(admin_accounts_snapshot_path, admin_accounts_snapshot())
+
+
+func _atomic_write_json(path: String, payload: Dictionary) -> bool:
+	last_atomic_write_cleanup_degraded = false
+	var directory = path.get_base_dir()
+	if directory.is_empty():
+		_report_atomic_write_error(path, "directory_invalid", ERR_INVALID_PARAMETER)
+		return false
+	var directory_error = DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(directory))
+	if directory_error != OK and directory_error != ERR_ALREADY_EXISTS:
+		_report_atomic_write_error(path, "directory_create", directory_error)
+		return false
+	if path == storage_path:
+		if path != authority_lifecycle_storage_path or not _authority_lifecycle_lock_is_owned():
+			_report_atomic_write_error(path, "lifecycle_lock_not_owned", ERR_LOCKED)
+			return false
+		return _atomic_write_json_locked(path, payload)
+	var lock_path = "%s.write_lock" % path
+	var lock_error = DirAccess.make_dir_absolute(ProjectSettings.globalize_path(lock_path))
+	if lock_error != OK:
+		_report_atomic_write_error(path, "lock_acquire", lock_error)
+		return false
+	var result = _atomic_write_json_locked(path, payload)
+	var unlock_error = DirAccess.remove_absolute(ProjectSettings.globalize_path(lock_path))
+	if unlock_error != OK:
+		last_atomic_write_cleanup_degraded = true
+		var unlock_stage = "postcommit_lock_release" if result else "lock_release"
+		_report_atomic_write_error(path, unlock_stage, unlock_error)
+	return result
+
+
+func _atomic_write_json_locked(path: String, payload: Dictionary) -> bool:
+	var temporary_path = "%s.%d.%s.tmp" % [path, Time.get_ticks_usec(), _random_hex(4)]
+	var file = FileAccess.open(temporary_path, FileAccess.WRITE)
+	if file == null:
+		_report_atomic_write_error(path, "temporary_open", FileAccess.get_open_error())
+		return false
+	var serialized = JSON.stringify(payload, "\t")
+	file.store_string(serialized)
+	file.flush()
+	var write_error = file.get_error()
 	file.close()
-	var absolute_target = ProjectSettings.globalize_path(storage_path)
-	var absolute_temporary = ProjectSettings.globalize_path(temporary_path)
-	if FileAccess.file_exists(storage_path):
-		DirAccess.remove_absolute(absolute_target)
-	return DirAccess.rename_absolute(absolute_temporary, absolute_target) == OK
+	if write_error != OK:
+		_report_atomic_write_error(path, "temporary_flush", write_error)
+		_cleanup_atomic_file(path, temporary_path, "temporary_cleanup_after_flush")
+		return false
+	var verification_file = FileAccess.open(temporary_path, FileAccess.READ)
+	if verification_file == null:
+		_report_atomic_write_error(path, "temporary_reopen", FileAccess.get_open_error())
+		_cleanup_atomic_file(path, temporary_path, "temporary_cleanup_after_reopen")
+		return false
+	var verified_text = verification_file.get_as_text()
+	var verification_error = verification_file.get_error()
+	verification_file.close()
+	var verified_payload = JSON.parse_string(verified_text)
+	if verification_error != OK:
+		_report_atomic_write_error(path, "temporary_readback", verification_error)
+		_cleanup_atomic_file(path, temporary_path, "temporary_cleanup_after_readback")
+		return false
+	if verified_text != serialized or typeof(verified_payload) != TYPE_DICTIONARY:
+		_report_atomic_write_error(path, "temporary_verify", ERR_FILE_CORRUPT)
+		_cleanup_atomic_file(path, temporary_path, "temporary_cleanup_after_verify")
+		return false
+	var absolute_path = ProjectSettings.globalize_path(path)
+	var absolute_temporary_path = ProjectSettings.globalize_path(temporary_path)
+	var target_state = _path_entry_state(path)
+	if target_state == "missing":
+		var create_error = DirAccess.rename_absolute(absolute_temporary_path, absolute_path)
+		if create_error == OK:
+			return true
+		_report_atomic_write_error(path, "target_create", create_error)
+		_cleanup_atomic_file(path, temporary_path, "temporary_cleanup_after_create")
+		return false
+	if target_state != "file":
+		_report_atomic_write_error(path, "target_state_%s" % target_state, ERR_CANT_OPEN)
+		_cleanup_atomic_file(path, temporary_path, "temporary_cleanup_after_target_state")
+		return false
+	var backup_path = "%s.previous" % path
+	var absolute_backup_path = ProjectSettings.globalize_path(backup_path)
+	var rollback_path = "%s.transaction_%d_%s" % [backup_path, Time.get_ticks_usec(), _random_hex(4)]
+	var absolute_rollback_path = ProjectSettings.globalize_path(rollback_path)
+	var previous_state = _path_entry_state(backup_path)
+	if previous_state not in ["missing", "file"]:
+		_report_atomic_write_error(path, "previous_state_%s" % previous_state, ERR_CANT_OPEN)
+		_cleanup_atomic_file(path, temporary_path, "temporary_cleanup_after_previous_state")
+		return false
+	var previous_staged = false
+	if previous_state == "file":
+		var stage_error = DirAccess.rename_absolute(absolute_backup_path, absolute_rollback_path)
+		if stage_error != OK:
+			_report_atomic_write_error(path, "previous_stage", stage_error)
+			_cleanup_atomic_file(path, temporary_path, "temporary_cleanup_after_previous_stage")
+			return false
+		previous_staged = true
+	var primary_backup_error = DirAccess.rename_absolute(absolute_path, absolute_backup_path)
+	if primary_backup_error != OK:
+		_report_atomic_write_error(path, "primary_to_previous", primary_backup_error)
+		if previous_staged:
+			var previous_restore_error = DirAccess.rename_absolute(absolute_rollback_path, absolute_backup_path)
+			if previous_restore_error != OK:
+				_report_atomic_write_error(path, "previous_restore_after_primary_failure", previous_restore_error)
+		_cleanup_atomic_file(path, temporary_path, "temporary_cleanup_after_primary_backup")
+		return false
+	var commit_error = DirAccess.rename_absolute(absolute_temporary_path, absolute_path)
+	if commit_error == OK:
+		if previous_staged:
+			var stale_cleanup_error = DirAccess.remove_absolute(absolute_rollback_path)
+			if stale_cleanup_error != OK:
+				last_atomic_write_cleanup_degraded = true
+				_report_atomic_write_error(path, "postcommit_previous_cleanup", stale_cleanup_error)
+		return true
+	_report_atomic_write_error(path, "temporary_to_primary", commit_error)
+	var primary_restore_error = DirAccess.rename_absolute(absolute_backup_path, absolute_path)
+	if primary_restore_error != OK:
+		_report_atomic_write_error(path, "primary_restore", primary_restore_error)
+	elif previous_staged:
+		var previous_restore_error = DirAccess.rename_absolute(absolute_rollback_path, absolute_backup_path)
+		if previous_restore_error != OK:
+			_report_atomic_write_error(path, "previous_restore", previous_restore_error)
+	_cleanup_atomic_file(path, temporary_path, "temporary_cleanup_after_commit_failure")
+	return false
+
+
+func _cleanup_atomic_file(target_path: String, cleanup_path: String, stage: String) -> void:
+	var state = _path_entry_state(cleanup_path)
+	if state == "missing":
+		return
+	if state != "file":
+		_report_atomic_write_error(target_path, stage, ERR_CANT_OPEN)
+		return
+	var cleanup_error = DirAccess.remove_absolute(ProjectSettings.globalize_path(cleanup_path))
+	if cleanup_error != OK:
+		_report_atomic_write_error(target_path, stage, cleanup_error)
+
+
+func _report_atomic_write_error(path: String, stage: String, error: int) -> void:
+	push_error("PlayerAccountStore atomic write failed for %s at %s (error %d)." % [path.get_file(), stage, error])
 
 
 func _success(extra: Dictionary = {}) -> Dictionary:

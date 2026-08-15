@@ -13,12 +13,9 @@ config_version=5
 config/name="丛林法则"
 run/main_scene="res://scenes/bootstrap.tscn"
 config/features=PackedStringArray("4.6", "Forward Plus")
-config/icon="res://assets/branding/app_icon_1024.png"
 boot_splash/bg_color=Color(0.925, 0.741, 0.376, 1)
-boot_splash/show_image=true
 boot_splash/image="res://assets/branding/loading_portrait_1080x1920.png"
-boot_splash/stretch_mode=1
-boot_splash/use_filter=true
+config/icon="res://assets/branding/app_icon_1024.png"
 boot_splash/minimum_display_time=1000
 
 [autoload]
@@ -31,9 +28,9 @@ OnlineRoom="*res://scripts/network/online_room.gd"
 
 window/size/viewport_width=1080
 window/size/viewport_height=1920
-window/handheld/orientation=1
 window/stretch/mode="canvas_items"
 window/stretch/aspect="expand"
+window/handheld/orientation=1
 
 [network]
 
@@ -46,7 +43,7 @@ server_port=24567
 
 [rendering]
 
+textures/vram_compression/import_etc2_astc=true
+environment/defaults/default_clear_color=Color(0.6, 0.85, 0.5, 1)
 2d/snap/snap_2d_transforms_to_pixel=true
 2d/snap/snap_2d_vertices_to_pixel=true
-environment/defaults/default_clear_color=Color(0.6, 0.85, 0.5, 1)
-textures/vram_compression/import_etc2_astc=true

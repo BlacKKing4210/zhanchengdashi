@@ -23,6 +23,16 @@ import {
   sendJson,
   sendText,
 } from "./lib/http_utils.mjs";
+import { readAccountSnapshot, resolveAccountSnapshotPath } from "./lib/account_snapshot.mjs";
+import {
+  enqueueGrantCommand,
+  findGrantEntry,
+  grantPayloadMatches,
+  GrantError,
+  prepareGrantCommand,
+  readGrantEntries,
+  resolveCommandRoot,
+} from "./lib/resource_grants.mjs";
 import { readDashboardSnapshot, resolveSnapshotPath } from "./lib/snapshot.mjs";
 import { DashboardState, SESSION_ABSOLUTE_MS, StateError } from "./lib/state_store.mjs";
 
@@ -66,6 +76,18 @@ export function buildRuntimeConfig(overrides = {}) {
   // isolated ephemeral listener. Production values still require 1..65535.
   const port = overrides.port === 0 ? 0 : parsePort(requestedPort);
   const snapshotPath = resolveSnapshotPath(configValue(overrides, "snapshotPath", "ZHANCHENG_DASHBOARD_SNAPSHOT_PATH"));
+  const accountSnapshotPath = resolveAccountSnapshotPath(configValue(
+    overrides,
+    "accountSnapshotPath",
+    "ZHANCHENG_DASHBOARD_ACCOUNT_SNAPSHOT_PATH",
+    path.join(path.dirname(snapshotPath), "admin_accounts_snapshot.json"),
+  ));
+  const commandRoot = resolveCommandRoot(configValue(
+    overrides,
+    "commandRoot",
+    "ZHANCHENG_DASHBOARD_COMMAND_ROOT",
+    path.join(path.dirname(snapshotPath), "admin_commands"),
+  ));
   const stateDirectory = path.resolve(configValue(overrides, "stateDirectory", "ZHANCHENG_DASHBOARD_STATE_DIR", defaultStateDirectory()));
   const tlsKeyPath = String(configValue(overrides, "tlsKeyPath", "ZHANCHENG_DASHBOARD_TLS_KEY_PATH", "")).trim();
   const tlsCertPath = String(configValue(overrides, "tlsCertPath", "ZHANCHENG_DASHBOARD_TLS_CERT_PATH", "")).trim();
@@ -80,6 +102,8 @@ export function buildRuntimeConfig(overrides = {}) {
     host,
     port,
     snapshotPath,
+    accountSnapshotPath,
+    commandRoot,
     stateDirectory,
     tls: hasTls ? { keyPath: path.resolve(tlsKeyPath), certPath: path.resolve(tlsCertPath) } : null,
     sessionCookieSecure: hasTls,
@@ -97,6 +121,9 @@ function publicError(error) {
           : error.code === "last_owner_protected" || error.code === "owner_initialization_closed" ? 409
             : 400;
     return { status, body: { error: error.code }, headers: {} };
+  }
+  if (error instanceof GrantError) {
+    return { status: error.status, body: { error: error.code }, headers: {} };
   }
   return { status: 500, body: { error: "internal_error" }, headers: {} };
 }
@@ -137,6 +164,7 @@ export async function createDashboardServer(overrides = {}) {
   const config = buildRuntimeConfig(overrides);
   const state = overrides.state ?? await DashboardState.open(config.stateDirectory);
   const limiter = overrides.limiter ?? new LoginRateLimiter();
+  const reauthLimiter = overrides.reauthLimiter ?? new LoginRateLimiter({ limit: 5, windowMs: 15 * 60 * 1000 });
   const tlsOptions = config.tls ? {
     key: await fs.readFile(config.tls.keyPath),
     cert: await fs.readFile(config.tls.certPath),
@@ -183,8 +211,15 @@ export async function createDashboardServer(overrides = {}) {
     applySecurityHeaders(res, { tlsEnabled: Boolean(config.tls), api: true });
 
     if (method === "GET" && pathname === "/api/health") {
-      const dashboard = await readDashboardSnapshot(config.snapshotPath);
-      sendJson(res, 200, { ok: true, availability: dashboard.availability });
+      const [dashboard, accounts] = await Promise.all([
+        readDashboardSnapshot(config.snapshotPath),
+        readAccountSnapshot(config.accountSnapshotPath),
+      ]);
+      sendJson(res, 200, {
+        ok: dashboard.availability === "ready" && accounts.availability === "ready",
+        availability: dashboard.availability,
+        accounts_availability: accounts.availability,
+      });
       return;
     }
 
@@ -250,6 +285,74 @@ export async function createDashboardServer(overrides = {}) {
       await requireSession(req);
       const dashboard = await readDashboardSnapshot(config.snapshotPath);
       sendJson(res, 200, dashboard);
+      return;
+    }
+
+    if (method === "GET" && pathname === "/api/accounts") {
+      await requireSession(req);
+      sendJson(res, 200, await readAccountSnapshot(config.accountSnapshotPath));
+      return;
+    }
+
+    if (method === "GET" && pathname === "/api/resource-grants") {
+      const session = await requireSession(req);
+      requireOwner(session);
+      sendJson(res, 200, { command: null, entries: await readGrantEntries(config.commandRoot) });
+      return;
+    }
+
+    if (method === "POST" && pathname === "/api/resource-grants") {
+      const session = await requireSession(req);
+      requireOwner(session);
+      requireCsrf(req, session);
+      const body = await readJsonBody(req);
+      const admission = reauthLimiter.admit(ip, session.user.username);
+      if (!admission.allowed) {
+        await appendAuditSafe({ event: "grant_reauth_rate_limited", actor: session.user.username, ip });
+        throw new HttpError(429, "grant_reauth_rate_limited", "grant_reauth_rate_limited", {
+          "Retry-After": String(admission.retryAfterSeconds),
+        });
+      }
+      let reauthenticated = false;
+      try {
+        reauthenticated = await state.verifyPasswordForUser(session.user.username, body.password ?? body.owner_password);
+      } finally {
+        reauthLimiter.settle(admission.reservation, { failure: !reauthenticated });
+      }
+      if (!reauthenticated) {
+        await appendAuditSafe({ event: "grant_reauth_failed", actor: session.user.username, ip });
+        throw new HttpError(401, "owner_reauthentication_failed");
+      }
+      const accounts = await readAccountSnapshot(config.accountSnapshotPath);
+      const command = prepareGrantCommand({ body, accountSnapshot: accounts, actor: session.user.username });
+      const existing = await findGrantEntry(config.commandRoot, command.command_id);
+      if (existing) {
+        if (!grantPayloadMatches(existing, command)) {
+          throw new GrantError(409, "idempotency_conflict");
+        }
+        sendJson(res, 200, { command: existing, entries: [existing], idempotent: true });
+        return;
+      }
+      const grantSummary = command.grants.map((grant) => (
+        grant.resource === "card_copies"
+          ? `${grant.resource}:${grant.card_id}:${grant.amount}`
+          : `${grant.resource}:${grant.amount}`
+      )).join(",");
+      // Fail closed: a durable authorization audit must exist before the
+      // protected game-server command queue receives any mutation request.
+      await state.appendAudit({
+        event: "grant_enqueue_authorized",
+        actor: session.user.username,
+        target: command.scope === "all" ? `all:${command.target_count}` : command.target_user_ids[0],
+        ip,
+        detail: `${command.command_id}:${command.reason}:${grantSummary}`,
+      });
+      const enqueued = await enqueueGrantCommand(config.commandRoot, command);
+      sendJson(res, enqueued.idempotent ? 200 : 202, {
+        command: enqueued.command,
+        entries: [enqueued.command],
+        idempotent: enqueued.idempotent,
+      });
       return;
     }
 
@@ -392,7 +495,7 @@ function parseCommandLine(argumentsList) {
       options[name] = inlineValue;
       continue;
     }
-    if (["state-dir", "host", "port", "tls-key", "tls-cert", "username"].includes(name)) {
+    if (["state-dir", "host", "port", "tls-key", "tls-cert", "username", "account-snapshot", "command-root"].includes(name)) {
       index += 1;
       if (index >= argumentsList.length) {
         throw new Error(`missing value for --${name}`);
@@ -486,6 +589,8 @@ function cliOverrides(options) {
     stateDirectory: options["state-dir"],
     tlsKeyPath: options["tls-key"],
     tlsCertPath: options["tls-cert"],
+    accountSnapshotPath: options["account-snapshot"],
+    commandRoot: options["command-root"],
   };
 }
 
@@ -493,6 +598,8 @@ function printUsage() {
   console.log("Usage:");
   console.log("  node server.mjs init-owner [--state-dir <directory>] [--username <name>]");
   console.log("  ZHANCHENG_DASHBOARD_SNAPSHOT_PATH=<.../dashboard_snapshot.json> node server.mjs [--host 127.0.0.1] [--port 24568]");
+  console.log("  Optional: ZHANCHENG_DASHBOARD_ACCOUNT_SNAPSHOT_PATH=<.../admin_accounts_snapshot.json>");
+  console.log("            ZHANCHENG_DASHBOARD_COMMAND_ROOT=<.../admin_commands>");
 }
 
 export async function runCli(argumentsList = process.argv.slice(2)) {

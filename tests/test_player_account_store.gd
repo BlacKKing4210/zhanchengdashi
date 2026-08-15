@@ -63,6 +63,8 @@ func _ready() -> void:
 	_expect(bool(saved.get("ok", false)), "saves the authenticated player's profile")
 	_expect(not bool(store.save_profile("invalid", {}).get("ok", true)), "rejects unauthenticated profile writes")
 
+	_expect(bool(store.close()), "first store explicitly releases its lifecycle lock before restart")
+	store = null
 	var reloaded = PlayerAccountStore.new(TEST_PATH)
 	var resumed_device: Dictionary = reloaded.authenticate_installation(installation_id, refresh_token, {}, [], recovery_secret)
 	_expect(bool(resumed_device.get("ok", false)), "saved device credentials log in after server restart")
@@ -129,6 +131,9 @@ func _ready() -> void:
 	_expect(bool(bound_login.get("ok", false)), "manual account login binds the current installation securely")
 	_expect(String(bound_login.get("user_id", "")) == String(registered.get("user_id", "")), "manual login selects the named account")
 	_expect(String(bound_login.get("account", "")) == "FieldMouse", "bound installation receives the named account identity")
+	_expect(bool(reloaded.logout(String(relogin.get("session_token", ""))).get("ok", false)), "logout invalidates the session")
+	_expect(bool(reloaded.close()), "reloaded store explicitly releases its lifecycle lock before restart")
+	reloaded = null
 	var restarted_after_binding = PlayerAccountStore.new(TEST_PATH)
 	var auto_login: Dictionary = restarted_after_binding.authenticate_installation(named_installation_id, named_refresh_token)
 	_expect(bool(auto_login.get("ok", false)), "bound installation credentials survive a server restart")
@@ -181,8 +186,9 @@ func _ready() -> void:
 		not restarted_after_binding.installations.has(restarted_after_binding.call("_installation_hash", rejected_installation_id)),
 		"failed password login leaves the installation unbound"
 	)
-	_expect(bool(reloaded.logout(String(relogin.get("session_token", ""))).get("ok", false)), "logout invalidates the session")
-
+	_expect(bool(restarted_after_binding.close()), "final store explicitly releases its lifecycle lock")
+	_expect(bool(restarted_after_binding.close()), "repeated final store close is idempotently safe")
+	restarted_after_binding = null
 	_cleanup()
 	if failures == 0:
 		print("PLAYER_ACCOUNT_STORE_TEST_PASS")
@@ -199,7 +205,13 @@ func _expect(condition: bool, message: String) -> void:
 
 
 func _cleanup() -> void:
-	for suffix in ["", ".tmp"]:
+	for suffix in ["", ".previous", ".tmp"]:
 		var path = TEST_PATH + suffix
 		if FileAccess.file_exists(path):
 			DirAccess.remove_absolute(ProjectSettings.globalize_path(path))
+	var lock_path = TEST_PATH + ".write_lock"
+	var owner_path = lock_path.path_join("owner_token")
+	if FileAccess.file_exists(owner_path):
+		DirAccess.remove_absolute(ProjectSettings.globalize_path(owner_path))
+	if DirAccess.dir_exists_absolute(ProjectSettings.globalize_path(lock_path)):
+		DirAccess.remove_absolute(ProjectSettings.globalize_path(lock_path))

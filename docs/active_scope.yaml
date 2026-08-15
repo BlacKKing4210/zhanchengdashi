@@ -1,6 +1,6 @@
-﻿schema_version: 1
+schema_version: 1
 scope_id: SCOPE-001
-updated_on: "2026-08-13"
+updated_on: "2026-08-14"
 purpose: authoritative active priorities task ownership and shared write locks
 
 authority:
@@ -14,9 +14,9 @@ authority:
 rag:
   required: true
   status: SEE_GATE_RECEIPT
-  gate_receipt: tmp/rag/receipts/rag-gate.json
-  live_task_receipt_dir: tmp/rag/receipts/tasks
-  live_context_dir: tmp/rag/context
+  gate_receipt: temp/rag/receipts/rag-gate.json
+  live_task_receipt_dir: temp/rag/receipts/tasks
+  live_context_dir: temp/rag/context
   dynamic_state_is_receipt_backed: true
   refresh_required_after_source_change: true
 
@@ -58,6 +58,35 @@ active_modules:
     read_only_receipt: docs/receipts/REQ-20260812-CAMERA-MAP-ACCOUNT-READ-ONLY-001.md
     completion_receipt: docs/receipts/REQ-20260812-CAMERA-MAP-ACCOUNT-CLOSE-002.md
     release_artifact: build/android/JungleLaw-android-2026-08-12-camera-map-account-r2.apk
+  - task_id: REQ-20260813-GROUP-BUFF-UPGRADE-R2
+    feature_id: F-ZC-COMBAT-BALANCE-20260812
+    version: 2026-08-13-r2
+    phase: closure
+    domain: engineering
+    owner: codex-primary
+    status: COMPLETE
+    started_on: "2026-08-13"
+    completed_on: "2026-08-13"
+    fingerprint: EA233564F1A287DEBB8955034F4D175BBAAD243502515CEDA8987B362AC03C90
+    rag_gate_receipt: temp/rag/receipts/rag-gate.json
+    rag_task_receipt: temp/rag/receipts/tasks/REQ-20260813-GROUP-BUFF-UPGRADE-R2.json
+    read_only_receipt: docs/receipts/REQ-20260813-GROUP-BUFF-UPGRADE-READ-ONLY-001.md
+    completion_receipt: docs/receipts/REQ-20260813-GROUP-BUFF-UPGRADE-CLOSE-002.md
+  - task_id: REQ-20260813-ROOM-CODE-MOBILE-INPUT
+    feature_id: F-ZC-NETWORK-001
+    version: 2026-08-13-room-code-mobile-input-v1
+    phase: closure
+    domain: engineering
+    owner: codex-primary
+    status: COMPLETE
+    started_on: "2026-08-13"
+    completed_on: "2026-08-13"
+    fingerprint: FA4F37C79DE31D3C6B1E60B4732AA75E25D412C405E32C8B7AE39CD8A3B01C2C
+    rag_gate_receipt: temp/rag/receipts/rag-gate.json
+    rag_task_receipt: temp/rag/receipts/tasks/REQ-20260813-ROOM-CODE-MOBILE-INPUT.json
+    read_only_receipt: docs/receipts/REQ-20260813-ROOM-CODE-MOBILE-INPUT-READ-ONLY-001.md
+    completion_receipt: docs/receipts/REQ-20260813-ROOM-CODE-MOBILE-INPUT-CLOSE-002.md
+    release_artifact: build/android/JungleLaw-android-2026-08-13-room-code-mobile-input-r1.apk
   - task_id: REQ-20260813-CROSS-PLATFORM-ACCOUNT-CREDENTIALS
     feature_id: F-ZC-AUTH-001
     version: 2026-08-13-cross-platform-account-credentials-v1
@@ -109,9 +138,54 @@ active_modules:
     rag_task_receipt: temp/rag/receipts/tasks/REQ-20260814-RENDER-CLARITY-BATTLE-PERF.json
     read_only_receipt: docs/receipts/REQ-20260814-RENDER-CLARITY-BATTLE-PERF-READ-ONLY-001.md
     completion_receipt: docs/receipts/REQ-20260814-RENDER-CLARITY-BATTLE-PERF-CLOSE-002.md
+  - task_id: REQ-20260814-AUTO-ACCOUNT-250-HEALTH-RULE
+    feature_id: GLOBAL
+    version: 2026-08-14-auto-account-250-health-rule-v1
+    phase: closure
+    domain: cross_domain
+    owner: codex-primary
+    status: COMPLETE
+    started_on: "2026-08-14"
+    completed_on: "2026-08-15"
+    release_status: LOCAL_IMPLEMENTATION_COMPLETE
+    fingerprint: A730B47EB62691E309FEA5A7B0D4B4EF978109EC6A3C4C201FF2C60E354CC30E
+    rag_gate_receipt: temp/rag/receipts/rag-gate.json
+    rag_task_receipt: temp/rag/receipts/tasks/REQ-20260814-AUTO-ACCOUNT-250-HEALTH-RULE.json
+    read_only_receipt: docs/receipts/REQ-20260814-AUTO-ACCOUNT-250-HEALTH-RULE-READ-ONLY-001.md
+    completion_receipt: docs/receipts/REQ-20260814-AUTO-ACCOUNT-250-HEALTH-RULE-CLOSE-002.md
+    blockers: [production_auth_transport, production_password_kdf, aliyun_profile, android_device_acceptance]
 queued_modules: []
 
 shared_locks:
+  auto_account_250_health_rule_20260814:
+    task_id: REQ-20260814-AUTO-ACCOUNT-250-HEALTH-RULE
+    owner: codex-primary
+    status: RELEASED
+    write_set:
+      - docs/AUTO_ACCOUNT_250_TILE_AND_UPGRADE_RULE_DESIGN_v1.0.docx
+      - docs/CARD_UPGRADE_HEALTH_RULE.md
+      - docs/active_scope.yaml
+      - docs/receipts/REQ-20260814-AUTO-ACCOUNT-250-HEALTH-RULE-READ-ONLY-001.md
+      - docs/receipts/REQ-20260814-AUTO-ACCOUNT-250-HEALTH-RULE-CLOSE-002.md
+      - knowledge/knowledge_manifest.csv
+      - scripts/app/main.gd
+      - scripts/app/systems/card_rules.gd
+      - scripts/app/systems/multiplayer_rules.gd
+      - scripts/network/online_room.gd
+      - scripts/server/player_account_store.gd
+      - scripts/shared/account_credential_rules.gd
+      - scripts/shared/account_credential_rules.gd.uid
+      - tests/test_account_credential_rules.gd
+      - tests/test_account_credential_rules.tscn
+      - tests/test_auto_generated_account_credentials.gd
+      - tests/test_auto_generated_account_credentials.tscn
+      - tests/test_account_manual_login_entry.gd
+      - tests/test_card_upgrade_health_rules.gd
+      - tests/test_opening_high_price_tile_quota.gd
+      - tests/test_opening_high_price_tile_quota.tscn
+      - tools/build_auto_account_tile_upgrade_docx.py
+    evidence_root: temp/qa/GLOBAL/auto-account-250-health-rule
+    completion_receipt: docs/receipts/REQ-20260814-AUTO-ACCOUNT-250-HEALTH-RULE-CLOSE-002.md
   render_clarity_battle_perf_20260814:
     task_id: REQ-20260814-RENDER-CLARITY-BATTLE-PERF
     owner: codex-primary
@@ -170,6 +244,37 @@ shared_locks:
       - tests/capture_account_credentials_ui.gd
       - tests/capture_account_credentials_ui.tscn
     completion_receipt: docs/receipts/REQ-20260813-CROSS-PLATFORM-ACCOUNT-CREDENTIALS-CLOSE-002.md
+  room_code_mobile_input_20260813:
+    task_id: REQ-20260813-ROOM-CODE-MOBILE-INPUT
+    owner: codex-primary
+    status: RELEASED
+    write_set:
+      - docs/active_scope.yaml
+      - docs/receipts/REQ-20260813-ROOM-CODE-MOBILE-INPUT-READ-ONLY-001.md
+      - docs/receipts/REQ-20260813-ROOM-CODE-MOBILE-INPUT-CLOSE-002.md
+      - scripts/app/main.gd
+      - tests/test_online_room_code_input.gd
+      - tests/test_online_room_code_input.tscn
+      - tests/test_online_main_adapter.gd
+    completion_receipt: docs/receipts/REQ-20260813-ROOM-CODE-MOBILE-INPUT-CLOSE-002.md
+  group_buff_upgrade_20260813:
+    task_id: REQ-20260813-GROUP-BUFF-UPGRADE-R2
+    owner: codex-primary
+    status: RELEASED
+    write_set:
+      - docs/active_scope.yaml
+      - docs/receipts/REQ-20260813-GROUP-BUFF-UPGRADE-READ-ONLY-001.md
+      - docs/receipts/REQ-20260813-GROUP-BUFF-UPGRADE-CLOSE-002.md
+      - docs/CURRENT_GAME_DESIGN.md
+      - docs/CARD_UPGRADE_HEALTH_RULE.md
+      - docs/ANIMAL_SKILL_IMPLEMENTATION_AUDIT.md
+      - scripts/app/main.gd
+      - scripts/app/systems/card_rules.gd
+      - config/tables/cards.csv
+      - runtime/config/cards.json
+      - tests/test_animal_skill_audit.gd
+      - tests/test_card_upgrade_health_rules.gd
+    completion_receipt: docs/receipts/REQ-20260813-GROUP-BUFF-UPGRADE-CLOSE-002.md
   camera_map_account_release_20260812:
     task_id: REQ-20260812-PRODUCER-CAMERA-MAP-ACCOUNT-APK
     owner: codex-primary

@@ -1,6 +1,6 @@
 {
   "name": "zhanchengdashi-admin-dashboard",
-  "version": "1.0.0",
+  "version": "1.1.2",
   "private": true,
   "type": "module",
   "description": "Private, dependency-free administration dashboard for Jungle Law statistics.",

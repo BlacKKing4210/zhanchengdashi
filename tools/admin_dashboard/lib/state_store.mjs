@@ -241,6 +241,20 @@ export class DashboardState {
     });
   }
 
+  async verifyPasswordForUser(usernameInput, password) {
+    let username = "";
+    try {
+      username = normalizeUsername(usernameInput);
+    } catch (error) {
+      if (!(error instanceof AuthError)) throw error;
+    }
+    const verifiedUser = username ? this._user(username) : null;
+    const valid = await verifyPasswordAgainstUser(password, verifiedUser);
+    if (!valid || !verifiedUser) return false;
+    const current = this._user(username);
+    return Boolean(current && current.status === "active" && current.password?.hash === verifiedUser.password?.hash);
+  }
+
   async sessionForToken(sessionToken, timestamp = Date.now()) {
     if (typeof sessionToken !== "string" || sessionToken.length < 32 || sessionToken.length > 128) {
       return null;
@@ -399,7 +413,13 @@ export class DashboardState {
     if (!entry.event) {
       throw new StateError("invalid_audit_event");
     }
-    await fs.appendFile(this.auditPath, `${JSON.stringify(entry)}\n`, { encoding: "utf8", mode: 0o600 });
+    const auditHandle = await fs.open(this.auditPath, "a", 0o600);
+    try {
+      await auditHandle.writeFile(`${JSON.stringify(entry)}\n`, "utf8");
+      await auditHandle.sync();
+    } finally {
+      await auditHandle.close();
+    }
     try {
       await fs.chmod(this.auditPath, 0o600);
     } catch {

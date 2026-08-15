@@ -10,19 +10,27 @@ Group=junglelaw
 WorkingDirectory=/opt/junglelaw
 StateDirectory=junglelaw
 StateDirectoryMode=0750
+RuntimeDirectory=junglelaw
+RuntimeDirectoryMode=0700
+RuntimeDirectoryPreserve=yes
 Environment=HOME=/var/lib/junglelaw
 Environment=XDG_DATA_HOME=/var/lib/junglelaw/.local/share
 Environment=ZHANCHENG_BIND_HOST=0.0.0.0
 Environment=ZHANCHENG_SERVER_PORT=24567
 Environment=ZHANCHENG_MAX_CLIENTS=64
+Environment=ZHANCHENG_SHUTDOWN_CONTROL_ROOT=/run/junglelaw
+ExecStartPre=/usr/bin/test -x /usr/bin/python3
 ExecStart=/opt/junglelaw/JungleLawServer.x86_64 --headless -- --bind-host=0.0.0.0 --server-port=24567 --max-clients=64
+ExecStop=/usr/local/libexec/junglelaw-server-stop $MAINPID
+TimeoutStopSec=40
 Restart=on-failure
+RestartPreventExitStatus=74 78
 RestartSec=5
 NoNewPrivileges=true
 PrivateTmp=true
 ProtectSystem=full
 ProtectHome=true
-ReadWritePaths=/var/lib/junglelaw
+ReadWritePaths=/var/lib/junglelaw /run/junglelaw
 UMask=0077
 StandardOutput=journal
 StandardError=journal

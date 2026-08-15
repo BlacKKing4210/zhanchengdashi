@@ -17,6 +17,8 @@ const MAX_ANIMAL_NAME_LENGTH = 48
 const MAX_MATCH_ID_LENGTH = 128
 const MAX_ROOM_CODE_LENGTH = 24
 const MAX_MAP_ID_LENGTH = 64
+const PLACEMENT_AGGREGATION_VERSION = 1
+const BALANCE_MIN_SAMPLES = 30
 
 const RANK_ORDER = {
 	"bronze": 0,
@@ -38,9 +40,16 @@ func _init(path_override: String = "", dashboard_path_override: String = "") -> 
 		storage_path = path_override
 	if not dashboard_path_override.is_empty():
 		dashboard_path = dashboard_path_override
+	else:
+		var environment_dashboard_path = OS.get_environment("ZHANCHENG_DASHBOARD_SNAPSHOT_PATH").strip_edges()
+		if not environment_dashboard_path.is_empty() and environment_dashboard_path.get_file().to_lower() == "dashboard_snapshot.json":
+			dashboard_path = environment_dashboard_path
 	_load()
 	_ensure_shape()
-	_write_dashboard_snapshot()
+	if _backfill_placement_aggregates():
+		_persist()
+	else:
+		_write_dashboard_snapshot()
 
 
 func begin_match(match_value: Variant, roster_value: Variant, animal_card_ids_value: Variant = []) -> Dictionary:
@@ -119,6 +128,7 @@ func finalize_match(match_id_value: Variant, result_value: Variant) -> Dictionar
 	matches[match_id] = record
 
 	var team_outcomes: Dictionary = normalized_result["team_outcomes"]
+	var placements: Dictionary = (normalized_result["result"] as Dictionary).get("placements_by_team", {})
 	for player_value in record.get("players", []):
 		if typeof(player_value) != TYPE_DICTIONARY:
 			continue
@@ -127,7 +137,8 @@ func finalize_match(match_id_value: Variant, result_value: Variant) -> Dictionar
 		var outcome = String(team_outcomes.get(team_id, ""))
 		if outcome.is_empty():
 			continue
-		_apply_player_result(player, outcome, now)
+		var placement_context = _placement_context(team_id, outcome, team_outcomes, placements)
+		_apply_player_result(player, outcome, now, placement_context)
 
 	if not _persist():
 		return _failure("storage_error")
@@ -195,17 +206,30 @@ func dashboard_snapshot() -> Dictionary:
 			continue
 		var animal: Dictionary = animal_records[card_id_value]
 		var appearances = maxi(0, int(animal.get("appearances", 0)))
-		animals.append({
+		var placement_samples = maxi(0, int(animal.get("placement_samples", 0)))
+		var wins = maxi(0, int(animal.get("wins", 0)))
+		var animal_row = {
 			"card_id": String(animal.get("card_id", card_id_value)),
 			"name": _safe_animal_name(animal.get("name", ""), String(animal.get("card_id", card_id_value))),
 			"games": appearances,
 			"appearances": appearances,
-			"wins": maxi(0, int(animal.get("wins", 0))),
+			"wins": wins,
 			"losses": maxi(0, int(animal.get("losses", 0))),
 			"draws": maxi(0, int(animal.get("draws", 0))),
-			"win_rate": float(animal.get("wins", 0)) / float(appearances) if appearances > 0 else null,
+			"win_rate": float(wins) / float(appearances) if appearances > 0 else null,
 			"pick_rate": float(appearances) / float(completed_player_results) if completed_player_results > 0 else null,
-		})
+			"placement_samples": placement_samples,
+			"placement_sum": float(animal.get("placement_sum", 0.0)),
+			"average_placement": float(animal.get("placement_sum", 0.0)) / float(placement_samples) if placement_samples > 0 else null,
+			"placement_score_sum": float(animal.get("placement_score_sum", 0.0)),
+			"average_placement_score": float(animal.get("placement_score_sum", 0.0)) / float(placement_samples) if placement_samples > 0 else null,
+			"placement_field_size_sum": maxi(0, int(animal.get("placement_field_size_sum", 0))),
+			"average_field_size": float(animal.get("placement_field_size_sum", 0)) / float(placement_samples) if placement_samples > 0 else null,
+			"balance_scope": "global_server_aggregate_review_only",
+			"placement_scope": "retained_finalized_match_backfill_plus_new_matches",
+		}
+		animal_row.merge(_balance_review_signal(wins, appearances, animal_row.get("average_placement_score", null), placement_samples), true)
+		animals.append(animal_row)
 	animals.sort_custom(func(a: Dictionary, b: Dictionary) -> bool:
 		if int(a.get("appearances", 0)) != int(b.get("appearances", 0)):
 			return int(a.get("appearances", 0)) > int(b.get("appearances", 0))
@@ -213,7 +237,7 @@ func dashboard_snapshot() -> Dictionary:
 	)
 
 	return {
-		"version": 1,
+		"version": 2,
 		"generated_at_unix": generated_at_unix,
 		"overview": {
 			"matches": _completed_match_count(),
@@ -310,7 +334,7 @@ func _normalize_terminal_result(value: Variant, players_value: Variant) -> Dicti
 	}
 
 
-func _apply_player_result(player: Dictionary, outcome: String, timestamp: int) -> void:
+func _apply_player_result(player: Dictionary, outcome: String, timestamp: int, placement_context: Dictionary = {}) -> void:
 	var user_id = String(player.get("user_id", ""))
 	if user_id.is_empty():
 		return
@@ -326,15 +350,16 @@ func _apply_player_result(player: Dictionary, outcome: String, timestamp: int) -
 		"draw":
 			record["draws"] = maxi(0, int(record.get("draws", 0))) + 1
 	record["last_match_at_unix"] = timestamp
+	_apply_placement_fields(record, placement_context)
 	players[user_id] = record
 
 	for card_id_value in player.get("animal_deck", []):
 		var card_id = String(card_id_value)
 		if not card_id.is_empty():
-			_apply_animal_result(card_id, outcome)
+			_apply_animal_result(card_id, outcome, placement_context)
 
 
-func _apply_animal_result(card_id: String, outcome: String) -> void:
+func _apply_animal_result(card_id: String, outcome: String, placement_context: Dictionary = {}) -> void:
 	var animals: Dictionary = data["animals"]
 	var record: Dictionary = (animals.get(card_id, _empty_animal_record(card_id)) as Dictionary).duplicate(true)
 	record["appearances"] = maxi(0, int(record.get("appearances", 0))) + 1
@@ -345,7 +370,101 @@ func _apply_animal_result(card_id: String, outcome: String) -> void:
 			record["losses"] = maxi(0, int(record.get("losses", 0))) + 1
 		"draw":
 			record["draws"] = maxi(0, int(record.get("draws", 0))) + 1
+	_apply_placement_fields(record, placement_context)
 	animals[card_id] = record
+
+
+func _apply_placement_fields(record: Dictionary, placement_context: Dictionary) -> void:
+	if not bool(placement_context.get("available", false)):
+		return
+	record["placement_samples"] = maxi(0, int(record.get("placement_samples", 0))) + 1
+	record["placement_sum"] = maxf(0.0, float(record.get("placement_sum", 0.0))) + float(placement_context.get("placement", 0.0))
+	record["placement_score_sum"] = maxf(0.0, float(record.get("placement_score_sum", 0.0))) + float(placement_context.get("normalized_score", 0.0))
+	record["placement_field_size_sum"] = maxi(0, int(record.get("placement_field_size_sum", 0))) + int(placement_context.get("field_size", 0))
+
+
+func _placement_context(team_id: int, outcome: String, team_outcomes: Dictionary, placements: Dictionary) -> Dictionary:
+	var participating_teams = {}
+	for raw_team_id in team_outcomes:
+		var normalized_team_id = int(raw_team_id)
+		if normalized_team_id >= 1 and normalized_team_id <= 6:
+			participating_teams[normalized_team_id] = true
+	var field_size = participating_teams.size()
+	for raw_team_id in placements:
+		var normalized_team_id = int(raw_team_id)
+		var supplied_placement = int(placements[raw_team_id])
+		if normalized_team_id >= 1 and normalized_team_id <= 6 and supplied_placement > 0:
+			participating_teams[normalized_team_id] = true
+			field_size = maxi(field_size, supplied_placement)
+	field_size = participating_teams.size() if field_size <= 0 else maxi(field_size, participating_teams.size())
+	if field_size < 2:
+		return {"available": false}
+
+	var placement = 0.0
+	if placements.has(team_id):
+		placement = float(placements[team_id])
+	elif placements.has(str(team_id)):
+		placement = float(placements[str(team_id)])
+	elif outcome == "win":
+		placement = 1.0
+	elif outcome == "loss":
+		placement = 2.0 if field_size == 2 else (float(field_size) + 2.0) / 2.0
+	elif outcome == "draw":
+		placement = (float(field_size) + 1.0) / 2.0
+	if placement <= 0.0:
+		return {"available": false}
+	placement = clampf(placement, 1.0, float(maxi(1, field_size)))
+	var normalized_score = 1.0 if field_size <= 1 else (float(field_size) - placement) / float(field_size - 1)
+	return {
+		"available": true,
+		"placement": placement,
+		"field_size": field_size,
+		"normalized_score": clampf(normalized_score, 0.0, 1.0),
+	}
+
+
+func _balance_review_signal(wins: int, appearances: int, average_placement_score: Variant, placement_samples: int) -> Dictionary:
+	var interval = _wilson_interval(wins, appearances)
+	var balance_signal_value = "insufficient_samples"
+	var reason = "至少需要 %d 个胜负与名次样本" % BALANCE_MIN_SAMPLES
+	if appearances >= BALANCE_MIN_SAMPLES and placement_samples >= BALANCE_MIN_SAMPLES and average_placement_score != null:
+		var score = float(average_placement_score)
+		if score >= 0.62 and float(interval.get("low", 0.0)) > 0.5:
+			balance_signal_value = "review_nerf"
+			reason = "平均名次得分偏高且胜率置信区间整体高于 50%"
+		elif score <= 0.38 and float(interval.get("high", 1.0)) < 0.5:
+			balance_signal_value = "review_buff"
+			reason = "平均名次得分偏低且胜率置信区间整体低于 50%"
+		else:
+			balance_signal_value = "observe"
+			reason = "全局聚合未形成一致的增强或削弱信号"
+	return {
+		"win_rate_ci_low": interval.get("low", null),
+		"win_rate_ci_high": interval.get("high", null),
+		"balance_signal": balance_signal_value,
+		"balance_reason": reason,
+		"confidence": {
+			"sample_sufficient": appearances >= BALANCE_MIN_SAMPLES and placement_samples >= BALANCE_MIN_SAMPLES,
+			"win_rate_lower": interval.get("low", null),
+			"win_rate_upper": interval.get("high", null),
+			"rationale": reason,
+		},
+	}
+
+
+func _wilson_interval(wins: int, samples: int) -> Dictionary:
+	if samples <= 0:
+		return {"low": null, "high": null}
+	var z = 1.959963984540054
+	var n = float(samples)
+	var proportion = clampf(float(wins) / n, 0.0, 1.0)
+	var denominator = 1.0 + z * z / n
+	var center = (proportion + z * z / (2.0 * n)) / denominator
+	var margin = z * sqrt((proportion * (1.0 - proportion) + z * z / (4.0 * n)) / n) / denominator
+	return {
+		"low": clampf(center - margin, 0.0, 1.0),
+		"high": clampf(center + margin, 0.0, 1.0),
+	}
 
 
 func _upsert_player_snapshot(player: Dictionary, timestamp: int) -> void:
@@ -387,6 +506,71 @@ func _ensure_animal_catalog(value: Variant) -> Dictionary:
 		record["name"] = animal_name
 		animals[normalized_id] = record
 	return catalog
+
+
+func _backfill_placement_aggregates() -> bool:
+	if int(data.get("placement_aggregation_version", 0)) >= PLACEMENT_AGGREGATION_VERSION:
+		return false
+	for user_id_value in data["players"]:
+		if typeof(data["players"][user_id_value]) != TYPE_DICTIONARY:
+			continue
+		var player_record: Dictionary = data["players"][user_id_value]
+		_reset_placement_fields(player_record)
+		data["players"][user_id_value] = player_record
+	for card_id_value in data["animals"]:
+		if typeof(data["animals"][card_id_value]) != TYPE_DICTIONARY:
+			continue
+		var animal_record: Dictionary = data["animals"][card_id_value]
+		_reset_placement_fields(animal_record)
+		data["animals"][card_id_value] = animal_record
+
+	var matches: Dictionary = data["matches"]
+	for match_id_value in matches:
+		if typeof(matches[match_id_value]) != TYPE_DICTIONARY:
+			continue
+		var match_record: Dictionary = matches[match_id_value]
+		if String(match_record.get("state", "")) != "finalized" or bool(match_record.get("result_incomplete", false)):
+			continue
+		var result_value = match_record.get("result", {})
+		if typeof(result_value) != TYPE_DICTIONARY:
+			continue
+		var result: Dictionary = result_value
+		var team_outcomes: Dictionary = result.get("team_outcomes", {}) if typeof(result.get("team_outcomes", {})) == TYPE_DICTIONARY else {}
+		var placements: Dictionary = result.get("placements_by_team", {}) if typeof(result.get("placements_by_team", {})) == TYPE_DICTIONARY else {}
+		for player_value in match_record.get("players", []):
+			if typeof(player_value) != TYPE_DICTIONARY:
+				continue
+			var player: Dictionary = player_value
+			var team_id = int(player.get("team_id", 0))
+			var outcome = ""
+			if team_outcomes.has(team_id):
+				outcome = _safe_outcome(team_outcomes[team_id])
+			elif team_outcomes.has(str(team_id)):
+				outcome = _safe_outcome(team_outcomes[str(team_id)])
+			if outcome.is_empty():
+				continue
+			var placement_context = _placement_context(team_id, outcome, team_outcomes, placements)
+			var user_id = String(player.get("user_id", ""))
+			if data["players"].has(user_id) and typeof(data["players"][user_id]) == TYPE_DICTIONARY:
+				var aggregate_player: Dictionary = data["players"][user_id]
+				_apply_placement_fields(aggregate_player, placement_context)
+				data["players"][user_id] = aggregate_player
+			for card_id_value in player.get("animal_deck", []):
+				var card_id = String(card_id_value)
+				if card_id.is_empty() or not data["animals"].has(card_id) or typeof(data["animals"][card_id]) != TYPE_DICTIONARY:
+					continue
+				var aggregate_animal: Dictionary = data["animals"][card_id]
+				_apply_placement_fields(aggregate_animal, placement_context)
+				data["animals"][card_id] = aggregate_animal
+	data["placement_aggregation_version"] = PLACEMENT_AGGREGATION_VERSION
+	return true
+
+
+func _reset_placement_fields(record: Dictionary) -> void:
+	record["placement_samples"] = 0
+	record["placement_sum"] = 0.0
+	record["placement_score_sum"] = 0.0
+	record["placement_field_size_sum"] = 0
 
 
 func _trim_match_history() -> void:
@@ -553,6 +737,10 @@ func _empty_player_record(user_id: String) -> Dictionary:
 		"wins": 0,
 		"losses": 0,
 		"draws": 0,
+		"placement_samples": 0,
+		"placement_sum": 0.0,
+		"placement_score_sum": 0.0,
+		"placement_field_size_sum": 0,
 		"last_seen_at_unix": 0,
 		"last_match_at_unix": 0,
 	}
@@ -566,13 +754,17 @@ func _empty_animal_record(card_id: String, name: String = "") -> Dictionary:
 		"wins": 0,
 		"losses": 0,
 		"draws": 0,
+		"placement_samples": 0,
+		"placement_sum": 0.0,
+		"placement_score_sum": 0.0,
+		"placement_field_size_sum": 0,
 	}
 
 
 func _ensure_shape() -> void:
 	if typeof(data) != TYPE_DICTIONARY:
 		data = {}
-	data["version"] = 1
+	data["version"] = 2
 	if not data.has("matches") or typeof(data["matches"]) != TYPE_DICTIONARY:
 		data["matches"] = {}
 	if not data.has("match_order") or typeof(data["match_order"]) != TYPE_ARRAY:
@@ -581,6 +773,8 @@ func _ensure_shape() -> void:
 		data["players"] = {}
 	if not data.has("animals") or typeof(data["animals"]) != TYPE_DICTIONARY:
 		data["animals"] = {}
+	if not data.has("placement_aggregation_version"):
+		data["placement_aggregation_version"] = 0
 
 
 func _load() -> void:

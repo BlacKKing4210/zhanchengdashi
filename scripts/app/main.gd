@@ -3354,6 +3354,7 @@ func _spawn_unit(team: int, key: Vector2i, card_id: String, is_extra: bool = fal
 		"attack_bonus": 0.0,
 		"speed": float(stats["move_speed"]) * UNIT_MOVE_SPEED_MULT,
 		"base_speed": float(stats["move_speed"]) * UNIT_MOVE_SPEED_MULT,
+		"speed_bonus": 0.0,
 		"range": float(stats["attack_range"]),
 		"base_range": float(stats["attack_range"]),
 		"shield": 0.0,
@@ -3677,32 +3678,22 @@ func _refresh_unit_aura_bonuses() -> void:
 		var unit = units[i]
 		if float(unit.get("hp", 0.0)) <= 0.0:
 			continue
-		var speed_mult = 1.0
-		if float(unit.get("slow_timer", 0.0)) > 0.0:
-			speed_mult *= 0.55
-		if float(unit.get("haste_timer", 0.0)) > 0.0:
-			speed_mult *= 1.35
+		var speed_mult = _unit_speed_status_multiplier(unit)
 		unit["attack"] = maxf(0.0, float(unit.get("base_attack", unit.get("attack", 0.0))) + float(unit.get("attack_bonus", 0.0)))
-		unit["speed"] = float(unit.get("base_speed", unit.get("speed", 0.0))) * speed_mult
+		unit["speed"] = (float(unit.get("base_speed", unit.get("speed", 0.0))) + float(unit.get("speed_bonus", 0.0))) * speed_mult
 		unit["range"] = float(unit.get("base_range", unit.get("range", HEX_SIZE)))
 		unit["max_hp"] = maxf(1.0, float(unit.get("base_max_hp", unit.get("max_hp", 1.0))) + float(unit.get("max_hp_bonus", 0.0)))
 		unit["hp"] = minf(float(unit.get("hp", 0.0)), float(unit["max_hp"]))
 		units[i] = unit
-	for source_index in range(units.size()):
-		if float(units[source_index].get("hp", 0.0)) <= 0.0 or not _unit_skill_triggers_enabled(units[source_index]):
-			continue
-		var text = _unit_skill_text(units[source_index])
-		var team = int(units[source_index].get("team", NEUTRAL))
-		var pos = Vector2(units[source_index].get("pos", Vector2.ZERO))
-		if text.contains("我方动物攻击+1") or text.contains("所有动物攻击+1"):
-			_add_aura_attack(team, pos, 1.0, true)
-		if text.contains("每20点速度"):
-			var amount = max(1, floori(float(units[source_index].get("base_speed", 0.0)) / maxf(1.0, 20.0 * UNIT_MOVE_SPEED_MULT)))
-			_add_aura_attack(team, pos, float(amount), true)
-		if text.contains("速度+20%"):
-			_add_aura_speed(team, pos, 1.20, true)
-		elif text.contains("速度+20"):
-			_add_aura_speed_flat(team, pos, 20.0, true)
+
+
+func _unit_speed_status_multiplier(unit: Dictionary) -> float:
+	var speed_mult = 1.0
+	if float(unit.get("slow_timer", 0.0)) > 0.0:
+		speed_mult *= 0.55
+	if float(unit.get("haste_timer", 0.0)) > 0.0:
+		speed_mult *= 1.35
+	return speed_mult
 
 
 func _unit_attack_cooldown(unit: Dictionary) -> float:
@@ -3846,14 +3837,11 @@ func _apply_unit_spawn_skill(index: int) -> void:
 	if not _unit_skill_triggers_enabled(unit):
 		return
 	var text = _unit_skill_text(unit)
+	_apply_group_stat_spawn_snapshot(index)
 	if text.contains("随机友军") and text.contains("攻击"):
 		_buff_random_allies(int(unit["team"]), index, 1, "attack", 1.0)
 	if text.contains("随机友军") and text.contains("生命"):
 		_buff_random_allies(int(unit["team"]), index, 1, "hp", 2.0)
-	if text.contains("提高所有友军生命值3点"):
-		_buff_allies(int(unit["team"]), index, "hp", 3.0)
-	elif text.contains("所有友军生命+1") or text.contains("提高所有友军生命值1点"):
-		_buff_allies(int(unit["team"]), index, "hp", 1.0)
 	if text.contains("护盾"):
 		_add_shield_to_unit(index, _unit_shield_amount(unit))
 	if text.contains("移速提高"):
@@ -4394,6 +4382,20 @@ func _add_max_hp_bonus(index: int, amount: float, heal: bool, play_audio: bool =
 	_pulse(Vector2(units[index]["pos"]), COLOR_GREEN)
 
 
+func _add_move_speed_bonus(index: int, amount: float) -> void:
+	if index < 0 or index >= units.size() or amount == 0.0:
+		return
+	var battle_amount = amount * UNIT_MOVE_SPEED_MULT
+	units[index]["speed_bonus"] = float(units[index].get("speed_bonus", 0.0)) + battle_amount
+	units[index]["speed"] = (
+		float(units[index].get("base_speed", units[index].get("speed", 0.0)))
+		+ float(units[index].get("speed_bonus", 0.0))
+	) * _unit_speed_status_multiplier(units[index])
+	if amount > 0.0:
+		_trigger_unit_motion(index, UnitMotionFeedback.KIND_STAT_GAIN)
+	_pulse(Vector2(units[index]["pos"]), COLOR_BLUE)
+
+
 func _add_shield_to_unit(index: int, amount: float) -> void:
 	if index < 0 or index >= units.size() or amount <= 0.0:
 		return
@@ -4430,9 +4432,35 @@ func _buff_random_allies(team: int, source_index: int, count: int, stat: String,
 		_apply_unit_stat_buff(target_index, stat, amount)
 
 
-func _buff_allies(team: int, source_index: int, stat: String, amount: float) -> void:
+func _apply_group_stat_spawn_snapshot(source_index: int) -> void:
+	if source_index < 0 or source_index >= units.size():
+		return
+	var source = units[source_index]
+	var card = _unit_card(source)
+	if String(source.get("skill_trigger", "")) != "on_spawn" or not _card_has_tag(card, "group_buff"):
+		return
+	var stat = ""
+	match String(source.get("skill_effect", "")):
+		"buff_attack":
+			stat = "attack"
+		"buff_hp":
+			stat = "hp"
+		"buff_speed":
+			stat = "speed"
+		_:
+			return
+	var amount = maxf(0.0, float(source.get("skill_power", 0.0)))
+	if _card_has_tag(card, "speed_scaled"):
+		var source_speed = (
+			float(source.get("base_speed", 0.0))
+			+ float(source.get("speed_bonus", 0.0))
+		) / maxf(0.001, UNIT_MOVE_SPEED_MULT)
+		amount *= float(maxi(1, floori(source_speed / 20.0)))
+	if amount <= 0.0:
+		return
+	var team = int(source.get("team", NEUTRAL))
 	for i in range(units.size()):
-		if i == source_index or not _are_allies(int(units[i].get("team", NEUTRAL)), team) or float(units[i].get("hp", 0.0)) <= 0.0:
+		if not _are_allies(int(units[i].get("team", NEUTRAL)), team) or float(units[i].get("hp", 0.0)) <= 0.0:
 			continue
 		_apply_unit_stat_buff(i, stat, amount)
 
@@ -4451,35 +4479,35 @@ func _apply_unit_stat_buff(index: int, stat: String, amount: float) -> void:
 			_add_attack_bonus(index, amount)
 		"hp":
 			_add_max_hp_bonus(index, amount, true)
+		"speed":
+			_add_move_speed_bonus(index, amount)
 		"shield":
 			_add_shield_to_unit(index, amount)
 
 
-func _add_aura_attack(team: int, pos: Vector2, amount: float, global: bool) -> void:
-	for i in range(units.size()):
-		if not _are_allies(int(units[i].get("team", NEUTRAL)), team) or float(units[i].get("hp", 0.0)) <= 0.0:
-			continue
-		if global or pos.distance_to(Vector2(units[i]["pos"])) <= SKILL_AURA_RADIUS:
-			units[i]["attack"] = maxf(0.0, float(units[i].get("attack", 0.0)) + amount)
-			_show_unit_value_feedback(i, "attack", amount)
-
-
+## One-shot selection helpers retained for regression and capture tooling.
+## They persist a snapshot bonus and are never called by the timed refresh loop.
 func _add_aura_speed(team: int, pos: Vector2, mult: float, global: bool) -> void:
+	if is_equal_approx(mult, 1.0):
+		return
 	for i in range(units.size()):
 		if not _are_allies(int(units[i].get("team", NEUTRAL)), team) or float(units[i].get("hp", 0.0)) <= 0.0:
 			continue
 		if global or pos.distance_to(Vector2(units[i]["pos"])) <= SKILL_AURA_RADIUS:
-			var speed_before = float(units[i].get("speed", 0.0))
-			units[i]["speed"] = speed_before * mult
+			var persistent_battle_speed = (
+				float(units[i].get("base_speed", units[i].get("speed", 0.0)))
+				+ float(units[i].get("speed_bonus", 0.0))
+			)
+			var display_amount = persistent_battle_speed * (mult - 1.0) / maxf(0.001, UNIT_MOVE_SPEED_MULT)
+			_add_move_speed_bonus(i, display_amount)
 
 
 func _add_aura_speed_flat(team: int, pos: Vector2, amount: float, global: bool) -> void:
-	var battle_amount = amount * UNIT_MOVE_SPEED_MULT
 	for i in range(units.size()):
 		if not _are_allies(int(units[i].get("team", NEUTRAL)), team) or float(units[i].get("hp", 0.0)) <= 0.0:
 			continue
 		if global or pos.distance_to(Vector2(units[i]["pos"])) <= SKILL_AURA_RADIUS:
-			units[i]["speed"] = float(units[i].get("speed", 0.0)) + battle_amount
+			_add_move_speed_bonus(i, amount)
 
 
 func _stun_enemy_units_in_radius(team: int, pos: Vector2, radius: float, seconds: float) -> void:
@@ -4915,7 +4943,7 @@ func _multiplayer_base_key(team: int) -> Vector2i:
 
 func _original_multiplayer_base_team(key: Vector2i) -> int:
 	for team in room_base_keys.keys():
-		if room_base_keys[team] == key:
+		if room_base_keys[team] == key:	
 			return int(team)
 	return NEUTRAL
 

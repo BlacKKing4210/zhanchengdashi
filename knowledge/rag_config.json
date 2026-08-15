@@ -1,9 +1,9 @@
 {
   "schema_version": 1,
   "index_path": "knowledge/index/project-rag.sqlite3",
-  "gate_receipt_path": "tmp/rag/receipts/rag-gate.json",
-  "task_receipt_dir": "tmp/rag/receipts/tasks",
-  "context_dir": "tmp/rag/context",
+  "gate_receipt_path": "temp/rag/receipts/rag-gate.json",
+  "task_receipt_dir": "temp/rag/receipts/tasks",
+  "context_dir": "temp/rag/context",
   "chunking": {
     "target_chars": 1600,
     "overlap_chars": 240,
