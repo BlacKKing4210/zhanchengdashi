@@ -280,6 +280,10 @@ var online_room_active = false
 var online_room_is_host = false
 var online_room_can_start = false
 var online_room_ready = false
+var online_room_revision = 0
+var online_room_pending_action = ""
+var online_room_pending_revision = -1
+var online_room_pending_confirmed = false
 var online_room_join_code = ""
 var online_room_slots = []
 var online_match_id = ""
@@ -1052,9 +1056,15 @@ func _ensure_online_room_connection() -> bool:
 
 
 func _online_player_name() -> String:
+	if online_room_service != null:
+		var account_value = online_room_service.get("current_account_name")
+		if typeof(account_value) == TYPE_STRING:
+			var account_name = String(account_value).strip_edges()
+			if not account_name.is_empty():
+				return account_name
 	var profile = _player_profile()
 	var player_name = String(profile.get("name", "")).strip_edges()
-	return player_name if player_name != "" else "玩家"
+	return player_name if not player_name.is_empty() and player_name != "玩家" else "未命名玩家"
 
 
 func _on_online_server_connected(host: String, port: int, _peer_id: int) -> void:
@@ -1082,6 +1092,8 @@ func _on_online_server_disconnected() -> void:
 
 
 func _on_online_operation_completed(operation: String, result: Dictionary) -> void:
+	if operation == online_room_pending_action:
+		online_room_pending_confirmed = true
 	match operation:
 		"register_account":
 			_toast("账号注册成功，正在登录")
@@ -1123,6 +1135,8 @@ func _on_online_operation_completed(operation: String, result: Dictionary) -> vo
 
 
 func _on_online_operation_failed(operation: String, error: String) -> void:
+	if operation == online_room_pending_action:
+		_clear_online_room_pending_action()
 	if operation in ["register_account", "login_account"]:
 		_clear_pending_account_auth()
 	if operation in ["list_accounts", "switch_account", "create_new_account"]:
@@ -1188,6 +1202,10 @@ func _online_error_message(operation: String, error: String) -> String:
 func _on_online_room_snapshot(snapshot: Dictionary) -> void:
 	if not bool(snapshot.get("ok", false)):
 		return
+	var incoming_revision = int(snapshot.get("revision", online_room_revision))
+	if online_room_pending_confirmed and incoming_revision > online_room_pending_revision:
+		_clear_online_room_pending_action()
+	online_room_revision = maxi(online_room_revision, incoming_revision)
 	online_room_active = true
 	_release_online_room_code_focus()
 	room_invite_code = String(snapshot.get("room_code", ""))
@@ -1208,7 +1226,7 @@ func _on_online_room_snapshot(snapshot: Dictionary) -> void:
 		if String(slot.get("kind", "")) != "human":
 			continue
 		var team = int(slot.get("team_id", NEUTRAL))
-		room_human_teams[team] = String(slot.get("display_name", "玩家%d" % team))
+		room_human_teams[team] = _room_human_display_name(slot)
 		if bool(slot.get("is_local", false)):
 			online_room_ready = bool(slot.get("ready", false))
 	if screen != SCREEN_BATTLE:
@@ -1227,6 +1245,8 @@ func _reset_online_room_state() -> void:
 	online_room_is_host = false
 	online_room_can_start = false
 	online_room_ready = false
+	online_room_revision = 0
+	_clear_online_room_pending_action()
 	online_room_slots.clear()
 	room_invite_code = ""
 	room_human_teams.clear()
@@ -1236,6 +1256,7 @@ func _reset_online_room_state() -> void:
 
 
 func _on_online_match_started(match_data: Dictionary) -> void:
+	_clear_online_room_pending_action()
 	var match_id = String(match_data.get("match_id", ""))
 	var map_id = String(match_data.get("map_id", ""))
 	if match_id == "" or map_id == "":
@@ -1683,7 +1704,7 @@ func room_accept_invite(player_name: String, side: String = "A", slot_index: int
 		var team = first_team + index
 		if room_human_teams.has(team):
 			continue
-		room_human_teams[team] = player_name.strip_edges() if player_name.strip_edges() != "" else "玩家%d" % team
+		room_human_teams[team] = player_name.strip_edges() if player_name.strip_edges() != "" else "未命名玩家"
 		room_pending_invites.erase(team)
 		GameAudio.play_sfx("room_join")
 		_toast("%s 已加入%s方" % [String(room_human_teams[team]), "我" if first_team == 1 else "对"])
@@ -1714,6 +1735,42 @@ func _room_can_start() -> bool:
 		if not room_human_teams.has(team):
 			return false
 	return true
+
+
+func _room_primary_action_state() -> Dictionary:
+	if online_room_is_host:
+		return {
+			"label": "启动中…" if online_room_pending_action == "start_room" else "开始",
+			"enabled": online_room_pending_action.is_empty() and _room_can_start(),
+			"operation": "start_room",
+		}
+	return {
+		"label": "同步中…" if online_room_pending_action == "set_ready" else ("取消准备" if online_room_ready else "准备"),
+		"enabled": online_room_pending_action.is_empty(),
+		"operation": "set_ready",
+	}
+
+
+func _begin_online_room_action(operation: String) -> void:
+	online_room_pending_action = operation
+	online_room_pending_revision = online_room_revision
+	online_room_pending_confirmed = false
+	queue_redraw()
+
+
+func _clear_online_room_pending_action() -> void:
+	online_room_pending_action = ""
+	online_room_pending_revision = -1
+	online_room_pending_confirmed = false
+	queue_redraw()
+
+
+func _room_start_block_message() -> String:
+	for team in room_active_team_ids:
+		var slot = _online_slot_for_team(int(team))
+		if String(slot.get("kind", "empty")) == "empty":
+			return "玩家未满，可等待加入或开启随机玩家补位"
+	return "等待其他真人玩家准备"
 
 
 func _start_lobby_multiplayer_match() -> void:
@@ -5234,7 +5291,7 @@ func _result_player_entry(team: int, placement: int, player_name: String, is_loc
 	return {
 		"team": team,
 		"placement": maxi(1, placement),
-		"name": player_name if player_name.strip_edges() != "" else "玩家%d" % team,
+		"name": player_name if player_name.strip_edges() != "" else "未命名玩家",
 		"is_local": is_local,
 		"old_rank_display": String(old_rank.get("display", RankingRules.display_for_key_and_stars(String(old_rank.get("key", "bronze")), int(old_rank.get("stars", 1))))),
 		"new_rank_display": String(new_rank.get("display", RankingRules.display_for_key_and_stars(String(new_rank.get("key", "bronze")), int(new_rank.get("stars", 1))))),
@@ -5741,12 +5798,21 @@ func _handle_room_tap(pos: Vector2) -> void:
 			"fill_with_ai": not room_fill_with_ai,
 		})
 		return
-	if _room_ready_rect().has_point(pos):
-		online_room_service.call("set_ready", not online_room_ready)
-		return
-	if _room_start_rect().has_point(pos):
+	if _room_primary_action_rect().has_point(pos):
+		if not online_room_pending_action.is_empty():
+			return
 		if online_room_is_host:
-			online_room_service.call("start_room")
+			if not _room_can_start():
+				_toast(_room_start_block_message())
+				return
+			if bool(online_room_service.call("start_room")):
+				_begin_online_room_action("start_room")
+				GameAudio.play_sfx("ui_click")
+			return
+		if bool(online_room_service.call("set_ready", not online_room_ready)):
+			_begin_online_room_action("set_ready")
+			GameAudio.play_sfx("ui_click")
+		return
 
 
 func _ensure_deck_valid() -> void:
@@ -6388,12 +6454,9 @@ func _draw_room_screen() -> void:
 	draw_circle(Vector2(knob_x, toggle_rect.get_center().y), 13, Color.WHITE)
 	draw_circle(Vector2(knob_x, toggle_rect.get_center().y), 13, COLOR_LINE, false, 2)
 
-	_cta(_room_ready_rect(), "取消准备" if online_room_ready else "准备", true)
 	_cta(_room_leave_rect(), "离开房间", false)
-	_draw_text_center("随机地图池：%dV%d 专属 5 张 · 每人 30-100 格" % [room_players_per_side, room_players_per_side], Rect2(48, 966, 624, 28), 18, Color.WHITE)
-	var start_label = "开始 %dV%d" % [room_players_per_side, room_players_per_side]
-	var waiting_label = "等待所有真人准备" if online_room_is_host else "等待房主开始"
-	_cta(_room_start_rect(), start_label if _room_can_start() else waiting_label, _room_can_start())
+	var action = _room_primary_action_state()
+	_cta(_room_primary_action_rect(), String(action["label"]), bool(action["enabled"]))
 
 
 func _draw_online_room_entry() -> void:
@@ -6456,13 +6519,15 @@ func _draw_room_slot(rect: Rect2, team: int, active: bool) -> void:
 		if kind == "human":
 			var ready = bool(slot.get("ready", false))
 			fill = Color(0.35, 0.72, 0.40) if ready else Color(0.90, 0.65, 0.18)
-			title = "%d号 · %s" % [team, String(slot.get("display_name", "玩家"))]
+			title = "%d号 · %s" % [team, _room_human_display_name(slot)]
 			var tags = []
-			if bool(slot.get("is_host", false)):
+			var is_host = bool(slot.get("is_host", false))
+			if is_host:
 				tags.append("房主")
 			if bool(slot.get("is_local", false)):
 				tags.append("本机")
-			tags.append("已准备" if ready else "未准备")
+			if not is_host:
+				tags.append("已准备" if ready else "未准备")
 			detail = " · ".join(tags)
 		elif kind == "ai":
 			fill = Color(0.30, 0.52, 0.78)
@@ -6499,6 +6564,11 @@ func _online_slot_for_team(team: int) -> Dictionary:
 		if typeof(slot_value) == TYPE_DICTIONARY and int(slot_value.get("team_id", NEUTRAL)) == team:
 			return slot_value
 	return {}
+
+
+func _room_human_display_name(slot: Dictionary) -> String:
+	var display_name = String(slot.get("display_name", "")).strip_edges()
+	return display_name if not display_name.is_empty() else "未命名玩家"
 
 
 func _draw_lobby_deck_animals(area: Rect2) -> void:
@@ -8418,16 +8488,12 @@ func _room_ai_fill_rect() -> Rect2:
 	return Rect2(48, 824, 624, 62)
 
 
-func _room_ready_rect() -> Rect2:
+func _room_leave_rect() -> Rect2:
 	return Rect2(48, 900, 300, 54)
 
 
-func _room_leave_rect() -> Rect2:
+func _room_primary_action_rect() -> Rect2:
 	return Rect2(372, 900, 300, 54)
-
-
-func _room_start_rect() -> Rect2:
-	return Rect2(150, 1000, 420, 72)
 
 
 func _gacha_draw_rect() -> Rect2:

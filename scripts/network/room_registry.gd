@@ -64,12 +64,14 @@ func create_room(
 		"revision": 1,
 		"next_join_order": 2,
 	}
-	room["slots"][1] = _human_participant(
+	var host_participant = _human_participant(
 		peer_id,
 		RoomProtocol.normalized_player_name(String(player_name_value)),
 		1,
 		player_rank_value
 	)
+	host_participant["ready"] = true
+	room["slots"][1] = host_participant
 	_rooms[room_code] = room
 	_peer_rooms[peer_id] = room_code
 	_peer_teams[peer_id] = 1
@@ -311,14 +313,15 @@ func set_ready(peer_id_value: Variant, ready_value: Variant) -> Dictionary:
 	var room: Dictionary = context["room"]
 	var team_id = int(_peer_teams[peer_id])
 	var participant: Dictionary = room["slots"][team_id]
-	participant["ready"] = bool(ready_value)
+	var resolved_ready = true if peer_id == int(room["host_peer_id"]) else bool(ready_value)
+	participant["ready"] = resolved_ready
 	_touch_room(room)
 	room_changed.emit(String(room["room_code"]))
 	return RoomProtocol.success({
 		"action": "ready_changed",
 		"room_code": String(room["room_code"]),
 		"team_id": team_id,
-		"ready": bool(ready_value),
+		"ready": resolved_ready,
 		"affected_peer_ids": _human_peer_ids(room),
 	})
 
@@ -333,7 +336,11 @@ func start_room(peer_id_value: Variant) -> Dictionary:
 		if not slots.has(team_id):
 			return RoomProtocol.failure("room_not_full")
 		var participant: Dictionary = slots[team_id]
-		if String(participant["kind"]) == "human" and not bool(participant["ready"]):
+		if (
+			String(participant["kind"]) == "human"
+			and int(participant["peer_id"]) != int(room["host_peer_id"])
+			and not bool(participant["ready"])
+		):
 			return RoomProtocol.failure("players_not_ready")
 	_randomize_active_slots(room)
 	room["status"] = RoomProtocol.RUNNING_STATUS
@@ -628,7 +635,7 @@ func _ai_rank_key_for_room(room: Dictionary) -> String:
 func _takeover_ai_participant(human: Dictionary) -> Dictionary:
 	var rank_key = String(human.get("rank_key", "bronze"))
 	var participant = _ai_participant({}, rank_key)
-	var original_name = String(human.get("display_name", "玩家")).strip_edges()
+	var original_name = String(human.get("display_name", "未命名玩家")).strip_edges()
 	participant["display_name"] = original_name if not original_name.is_empty() else String(participant["display_name"])
 	participant["rank_key"] = rank_key
 	participant["rank_stars"] = maxi(1, int(human.get("rank_stars", 1)))
@@ -695,9 +702,11 @@ func _reconcile_ai_slots(room: Dictionary) -> void:
 
 
 func _reset_human_ready(room: Dictionary) -> void:
-	for participant in room["slots"].values():
+	var host_peer_id = int(room["host_peer_id"])
+	for participant_value in room["slots"].values():
+		var participant: Dictionary = participant_value
 		if String(participant["kind"]) == "human":
-			participant["ready"] = false
+			participant["ready"] = int(participant["peer_id"]) == host_peer_id
 
 
 func _human_peer_ids(room: Dictionary) -> Array:
@@ -745,7 +754,11 @@ func _is_full_and_ready(room: Dictionary) -> bool:
 		if not slots.has(team_id):
 			return false
 		var participant: Dictionary = slots[team_id]
-		if String(participant["kind"]) == "human" and not bool(participant["ready"]):
+		if (
+			String(participant["kind"]) == "human"
+			and int(participant["peer_id"]) != int(room["host_peer_id"])
+			and not bool(participant["ready"])
+		):
 			return false
 	return true
 

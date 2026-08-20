@@ -14,6 +14,7 @@ ZC_ACCOUNT_DESIGN_DOCX,docs/PLAYER_ACCOUNT_AND_SERVER_PROFILE_DESIGN_v1.5.docx,d
 ZC_ACCOUNT_SWITCHING_DOCX,docs/ACCOUNT_SWITCHING_DESIGN.docx,design,approved,active,2026-07-18,design_owner,GLOBAL;F-ZC-AUTH-001,account;switching;login;create-profile,2026-07-18,,project,,
 ZC_PLAYER_ACCOUNT_STORE,scripts/server/player_account_store.gd,code,supporting,active,current,engineering_owner,GLOBAL;F-ZC-AUTH-001,account;password;hash;session;persistence,2026-08-12,,project,,
 ZC_ONLINE_ROOM_GD,scripts/network/online_room.gd,code,supporting,active,current,engineering_owner,GLOBAL;F-ZC-AUTH-001;F-ZC-001,account;login;rpc;session;network,2026-08-12,,project,,
+ZC_INTERNET_ROOM_NETWORKING,docs/INTERNET_ROOM_NETWORKING.md,design,approved,active,v1.7,engineering_owner,GLOBAL;F-ZC-AUTH-001;F-ZC-001;ONLINE-ROOM-UI,online-room;ready;start;account-display-name;ui,2026-08-20,,project,,
 ZC_SERVER_MAIN,scripts/server/server_main.gd,code,supporting,active,current,engineering_owner,F-ZC-AUTH-001;F-ZC-ADMIN-001,dedicated-server;startup;shutdown;readiness,2026-08-14,,project,,
 ZC_DEDICATED_SHUTDOWN_CONTROL,scripts/server/dedicated_shutdown_control.gd,code,supporting,active,current,engineering_owner,F-ZC-AUTH-001;F-ZC-ADMIN-001,shutdown;systemd;lifecycle-lock;fail-closed,2026-08-14,,project,,
 ZC_DEDICATED_SHUTDOWN_QA,tests/test_dedicated_shutdown_control.gd,qa,supporting,active,current,qa_owner,F-ZC-AUTH-001;F-ZC-ADMIN-001,shutdown;token;restart;lifecycle-lock,2026-08-14,,project,,

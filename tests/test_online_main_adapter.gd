@@ -9,11 +9,34 @@ var failures = 0
 var app: Node
 
 
+class FakeOnlineRoomService extends Node:
+	var current_account_name = "橘猫队长"
+	var ready_requests = []
+	var start_requests = 0
+	var leave_requests = 0
+
+
+	func set_ready(value: bool) -> bool:
+		ready_requests.append(value)
+		return true
+
+
+	func start_room() -> bool:
+		start_requests += 1
+		return true
+
+
+	func leave_room() -> bool:
+		leave_requests += 1
+		return true
+
+
 func _ready() -> void:
 	app = MainApp.new()
 	add_child(app)
 	await get_tree().process_frame
 	_test_room_layout_targets()
+	_test_contextual_room_action_path()
 	_test_legacy_server_profile_without_rank_mirrors()
 	_test_room_snapshot_and_match_bridge()
 	_test_side_b_authority_receives_victory()
@@ -33,16 +56,60 @@ func _test_room_layout_targets() -> void:
 	_expect_false(create_rect.intersects(code_rect), "create and join-code targets do not overlap")
 	_expect_false(code_rect.intersects(join_rect), "code input and join button remain distinct")
 	_expect_false(fill_rect.intersects(retry_rect), "AI preference and reconnect targets do not overlap")
-	var ready_rect: Rect2 = app.call("_room_ready_rect")
 	var leave_rect: Rect2 = app.call("_room_leave_rect")
-	var start_rect: Rect2 = app.call("_room_start_rect")
-	_expect_false(ready_rect.intersects(leave_rect), "ready and leave targets remain distinct")
-	_expect_false(ready_rect.intersects(start_rect), "ready target does not cover the start button")
-	_expect_false(leave_rect.intersects(start_rect), "leave target does not cover the start button")
+	var action_rect: Rect2 = app.call("_room_primary_action_rect")
+	_expect_false(leave_rect.intersects(action_rect), "leave and contextual action targets remain distinct")
+	_expect_true(leave_rect.position.x < action_rect.position.x, "leave stays on the left and ready/start stays on the right")
+	_expect_equal(leave_rect.position.y, action_rect.position.y, "room actions share one row")
+	_expect_false(app.has_method("_room_start_rect"), "separate start target is removed")
 	var account_switch_rect: Rect2 = app.call("_account_switch_rect")
 	var account_bind_rect: Rect2 = app.call("_account_bind_rect")
 	_expect_false(account_switch_rect.intersects(account_bind_rect), "account switch and bind targets remain distinct")
-	_expect_true(start_rect.end.y < 1138.0, "internet room actions stay above bottom navigation")
+	_expect_true(action_rect.end.y < 1138.0, "internet room actions stay above bottom navigation")
+
+
+func _test_contextual_room_action_path() -> void:
+	var original_service = app.get("online_room_service")
+	var fake_service = FakeOnlineRoomService.new()
+	app.add_child(fake_service)
+	app.set("online_room_service", fake_service)
+	app.call("_on_online_room_snapshot", _room_snapshot_for_guest(10, false))
+	_expect_equal(String(app.call("_online_player_name")), "橘猫队长", "room requests prefer the authenticated account name")
+
+	var guest_action: Dictionary = app.call("_room_primary_action_state")
+	_expect_equal(String(guest_action.get("label", "")), "准备", "guest sees ready in the right action slot")
+	_expect_true(bool(guest_action.get("enabled", false)), "guest ready action begins enabled")
+	app.call("_handle_room_tap", (app.call("_room_primary_action_rect") as Rect2).get_center())
+	_expect_equal(fake_service.ready_requests, [true], "real room action hit target dispatches ready")
+	guest_action = app.call("_room_primary_action_state")
+	_expect_equal(String(guest_action.get("label", "")), "同步中…", "ready click shows immediate pending feedback")
+	_expect_false(bool(guest_action.get("enabled", true)), "pending ready cannot be double-submitted")
+
+	app.call("_on_online_operation_completed", "set_ready", {"ready": true})
+	app.call("_on_online_room_snapshot", _room_snapshot_for_guest(11, true))
+	guest_action = app.call("_room_primary_action_state")
+	_expect_equal(String(guest_action.get("label", "")), "取消准备", "authoritative ready snapshot enables cancel-ready")
+	app.call("_handle_room_tap", (app.call("_room_primary_action_rect") as Rect2).get_center())
+	_expect_equal(fake_service.ready_requests, [true, false], "same right action slot dispatches cancel-ready")
+	app.call("_on_online_operation_completed", "set_ready", {"ready": false})
+	app.call("_on_online_room_snapshot", _room_snapshot_for_guest(12, false))
+
+	app.set("online_room_is_host", true)
+	app.set("online_room_can_start", false)
+	var host_action: Dictionary = app.call("_room_primary_action_state")
+	_expect_equal(String(host_action.get("label", "")), "开始", "host sees start instead of ready")
+	_expect_false(bool(host_action.get("enabled", true)), "host start remains gated until guests are ready")
+	app.call("_handle_room_tap", (app.call("_room_primary_action_rect") as Rect2).get_center())
+	_expect_equal(fake_service.start_requests, 0, "disabled host start does not dispatch")
+	app.set("online_room_can_start", true)
+	app.call("_handle_room_tap", (app.call("_room_primary_action_rect") as Rect2).get_center())
+	_expect_equal(fake_service.start_requests, 1, "enabled host action dispatches start")
+	app.call("_handle_room_tap", (app.call("_room_leave_rect") as Rect2).get_center())
+	_expect_equal(fake_service.leave_requests, 1, "left action dispatches leave even while start is pending")
+
+	app.set("online_room_service", original_service)
+	fake_service.queue_free()
+	app.call("_reset_online_room_state")
 
 
 func _test_legacy_server_profile_without_rank_mirrors() -> void:
@@ -70,8 +137,8 @@ func _test_room_snapshot_and_match_bridge() -> void:
 	app.call("_on_online_room_snapshot", room_snapshot)
 	_expect_true(bool(app.get("online_room_active")), "authoritative room snapshot activates internet room state")
 	_expect_equal(int(app.get("local_team_id")), 4, "guest uses its server-assigned team")
-	_expect_equal(String((app.get("room_human_teams") as Dictionary).get(1, "")), "房主", "host slot comes from server snapshot")
-	_expect_equal(String((app.get("room_human_teams") as Dictionary).get(4, "")), "访客", "guest slot comes from server snapshot")
+	_expect_equal(String((app.get("room_human_teams") as Dictionary).get(1, "")), "橘猫队长", "host account name comes from server snapshot")
+	_expect_equal(String((app.get("room_human_teams") as Dictionary).get(4, "")), "夜航星", "guest account name comes from server snapshot")
 
 	app.call("_on_online_match_started", {
 		"match_id": "123456-1",
@@ -173,7 +240,7 @@ func _first_unlockable_team_tile(team: int) -> Vector2i:
 	return MultiplayerRules.INVALID_KEY
 
 
-func _room_snapshot_for_guest() -> Dictionary:
+func _room_snapshot_for_guest(revision: int = 1, guest_ready: bool = true) -> Dictionary:
 	return {
 		"ok": true,
 		"room_code": "123456",
@@ -182,12 +249,13 @@ func _room_snapshot_for_guest() -> Dictionary:
 		"fill_with_ai": false,
 		"is_host": false,
 		"can_start": false,
+		"revision": revision,
 		"local_team_id": 4,
 		"slots": [
-			{"team_id": 1, "kind": "human", "display_name": "房主", "ready": true, "is_local": false, "is_host": true},
+			{"team_id": 1, "kind": "human", "display_name": "橘猫队长", "ready": true, "is_local": false, "is_host": true},
 			{"team_id": 2, "kind": "empty", "display_name": "", "ready": false, "is_local": false, "is_host": false},
 			{"team_id": 3, "kind": "empty", "display_name": "", "ready": false, "is_local": false, "is_host": false},
-			{"team_id": 4, "kind": "human", "display_name": "访客", "ready": true, "is_local": true, "is_host": false},
+			{"team_id": 4, "kind": "human", "display_name": "夜航星", "ready": guest_ready, "is_local": true, "is_host": false},
 			{"team_id": 5, "kind": "empty", "display_name": "", "ready": false, "is_local": false, "is_host": false},
 			{"team_id": 6, "kind": "empty", "display_name": "", "ready": false, "is_local": false, "is_host": false},
 		],

@@ -70,11 +70,11 @@ func _run_test() -> void:
 	for team_id in [1, 2, 3, 4, 5, 6]:
 		_expect_true(assigned_teams.has(team_id), "3V3 assigns team slot %d" % team_id)
 
-	for client in clients:
-		client.call("set_ready", true)
+	for index in range(1, clients.size()):
+		clients[index].call("set_ready", true)
 	_expect_true(
 		await _wait_until(func(): return bool((host.get("current_room_snapshot") as Dictionary).get("can_start", false))),
-		"six ready humans make the room startable"
+		"five ready guests make the room startable without a host ready action"
 	)
 	host.call("start_room")
 	_expect_true(
@@ -98,8 +98,11 @@ func _run_test() -> void:
 		await _wait_until(func(): return received_command_teams.size() == 5),
 		"commands from all five guests reach the authority"
 	)
-	for team_id in [2, 3, 4, 5, 6]:
-		_expect_true(received_command_teams.has(team_id), "server authenticates command team %d" % team_id)
+	var host_team = int((host.get("current_match") as Dictionary).get("local_team_id", 0))
+	for team_id in [1, 2, 3, 4, 5, 6]:
+		if team_id == host_team:
+			continue
+		_expect_true(received_command_teams.has(team_id), "server authenticates guest command team %d" % team_id)
 
 	for index in range(1, clients.size()):
 		clients[index].authority_snapshot_received.connect(_on_guest_snapshot.bind(clients[index]))

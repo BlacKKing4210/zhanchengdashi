@@ -675,12 +675,13 @@ func _rpc_request_create_room(
 		return
 	var sender = multiplayer.get_remote_sender_id()
 	var safe_options = _sanitize_room_options(options, clampi(players_per_side, 1, 3))
+	var player_rank = _server_rank_profile(sender)
 	var result = _registry_call("create_room", [
 		sender,
-		_sanitize_player_name(player_name, sender),
+		_server_player_display_name(player_rank, player_name, sender),
 		int(safe_options["players_per_side"]),
 		bool(safe_options["fill_with_ai"]),
-		_server_rank_profile(sender),
+		player_rank,
 	])
 	if not bool(result.get("ok", false)):
 		_send_operation_result(sender, "create_room", result)
@@ -700,11 +701,12 @@ func _rpc_request_join_room(room_code: String, player_name: String) -> void:
 	if not _accept_server_request():
 		return
 	var sender = multiplayer.get_remote_sender_id()
+	var player_rank = _server_rank_profile(sender)
 	var result = _registry_call("join_room", [
 		sender,
 		_sanitize_room_code(room_code),
-		_sanitize_player_name(player_name, sender),
-		_server_rank_profile(sender),
+		_server_player_display_name(player_rank, player_name, sender),
+		player_rank,
 	])
 	if not bool(result.get("ok", false)):
 		_send_operation_result(sender, "join_room", result)
@@ -1266,12 +1268,23 @@ func _server_rank_profile(peer_id: int) -> Dictionary:
 		return {}
 	return {
 		"user_id": String((result as Dictionary).get("user_id", "")),
+		"account": String((result as Dictionary).get("account", "")),
 		"rank_key": String((profile as Dictionary).get("rank_key", "bronze")),
 		"rank_stars": maxi(1, int((profile as Dictionary).get("rank_stars", 1))),
 		"elo": maxi(0, int((profile as Dictionary).get("elo", 1000))),
 		"deck": ((profile as Dictionary).get("deck", []) as Array).duplicate() if typeof((profile as Dictionary).get("deck", [])) == TYPE_ARRAY else [],
 		"card_levels": ((profile as Dictionary).get("card_levels", {}) as Dictionary).duplicate(true) if typeof((profile as Dictionary).get("card_levels", {})) == TYPE_DICTIONARY else {},
 	}
+
+
+func _server_player_display_name(player_rank: Dictionary, requested_name: String, peer_id: int) -> String:
+	var account_name = String(player_rank.get("account", "")).strip_edges()
+	if not account_name.is_empty():
+		return _sanitize_player_name(account_name, peer_id)
+	var fallback_name = _sanitize_player_name(requested_name, peer_id)
+	if fallback_name == "玩家" or _is_generated_player_placeholder(fallback_name):
+		return "未命名玩家"
+	return fallback_name
 
 
 func _registry_call(method: String, arguments: Array) -> Dictionary:
@@ -1604,10 +1617,17 @@ func _server_start_failed(error: Error, message: String) -> Error:
 	return error
 
 
-func _sanitize_player_name(value: String, peer_id: int) -> String:
+func _sanitize_player_name(value: String, _peer_id: int) -> String:
 	var result = value.strip_edges().replace("\n", " ").replace("\r", " ").replace("\t", " ")
 	result = result.left(MAX_PLAYER_NAME_LENGTH)
-	return result if not result.is_empty() else "玩家%d" % maxi(1, peer_id)
+	return result if not result.is_empty() else "未命名玩家"
+
+
+func _is_generated_player_placeholder(value: String) -> bool:
+	if not value.begins_with("玩家"):
+		return false
+	var suffix = value.trim_prefix("玩家")
+	return not suffix.is_empty() and suffix.is_valid_int()
 
 
 func _sanitize_room_code(value: String) -> String:

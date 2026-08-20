@@ -69,6 +69,10 @@ func _run_loopback_test() -> void:
 		await _wait_until(func(): return not String(host.get("current_user_id")).is_empty() and not String(guest.get("current_user_id")).is_empty() and not String(recovered.get("current_user_id")).is_empty()),
 		"first connection and stale-token recovery automatically create and log in device accounts"
 	)
+	_expect_true(
+		not String(host.get("current_account_name")).is_empty() and not String(guest.get("current_account_name")).is_empty(),
+		"authenticated clients expose account names for room display"
+	)
 	var recovered_credentials = _read_device_credentials("recovered")
 	_expect_equal(
 		String(recovered_credentials.get("installation_id", "")),
@@ -152,6 +156,12 @@ func _run_loopback_test() -> void:
 	)
 	for slot_value in (host.get("current_room_snapshot") as Dictionary).get("slots", []):
 		if typeof(slot_value) == TYPE_DICTIONARY and String((slot_value as Dictionary).get("kind", "")) == "human":
+			var display_name = String((slot_value as Dictionary).get("display_name", ""))
+			_expect_true(
+				display_name in [String(host.get("current_account_name")), String(guest.get("current_account_name"))],
+				"server publishes an authenticated account name for every human slot"
+			)
+			_expect_false(display_name in ["房主", "访客"], "client-supplied role placeholders cannot replace account names")
 			_expect_true(String((slot_value as Dictionary).get("rank_key", "")).length() > 0, "room snapshot includes each human player's rank tier")
 			_expect_true(int((slot_value as Dictionary).get("rank_stars", 0)) > 0, "room snapshot includes each human player's rank stars")
 			_expect_true(typeof((slot_value as Dictionary).get("deck", null)) == TYPE_ARRAY, "room snapshot includes each human player's deck")
@@ -167,11 +177,20 @@ func _run_loopback_test() -> void:
 		"server derives remote sender id and rejects guest host operations"
 	)
 
-	host.call("set_ready", true)
 	guest.call("set_ready", true)
 	_expect_true(
-		await _wait_until(func(): return bool((host.get("current_room_snapshot") as Dictionary).get("can_start", false))),
-		"ready changes are reliably synchronized"
+		await _wait_until(func(): return bool((host.get("current_room_snapshot") as Dictionary).get("can_start", false)) and _local_slot_ready(guest)),
+		"guest ready is reliably synchronized and enables the host start gate"
+	)
+	guest.call("set_ready", false)
+	_expect_true(
+		await _wait_until(func(): return not bool((host.get("current_room_snapshot") as Dictionary).get("can_start", true)) and not _local_slot_ready(guest)),
+		"guest can cancel ready through the same reliable RPC"
+	)
+	guest.call("set_ready", true)
+	_expect_true(
+		await _wait_until(func(): return bool((host.get("current_room_snapshot") as Dictionary).get("can_start", false)) and _local_slot_ready(guest)),
+		"guest can ready again after cancellation"
 	)
 	host.call("start_room")
 	_expect_true(
@@ -254,10 +273,9 @@ func _test_ai_filled_room_size(players_per_side: int) -> void:
 		await _wait_until(func(): return int((host.get("current_room_snapshot") as Dictionary).get("capacity", 0)) == players_per_side * 2),
 		"%dV%d room is created through the transport" % [players_per_side, players_per_side]
 	)
-	host.call("set_ready", true)
 	_expect_true(
 		await _wait_until(func(): return bool((host.get("current_room_snapshot") as Dictionary).get("can_start", false))),
-		"%dV%d AI-filled room becomes startable" % [players_per_side, players_per_side]
+		"%dV%d AI-filled room is immediately startable for its host" % [players_per_side, players_per_side]
 	)
 	host.call("start_room")
 	_expect_true(
@@ -274,6 +292,17 @@ func _test_ai_filled_room_size(players_per_side: int) -> void:
 		await _wait_until(func(): return (host.get("current_room_snapshot") as Dictionary).is_empty()),
 		"%dV%d room closes cleanly" % [players_per_side, players_per_side]
 	)
+
+
+func _local_slot_ready(endpoint: Node) -> bool:
+	var snapshot: Dictionary = endpoint.get("current_room_snapshot")
+	for slot_value in snapshot.get("slots", []):
+		if typeof(slot_value) != TYPE_DICTIONARY:
+			continue
+		var slot: Dictionary = slot_value
+		if bool(slot.get("is_local", false)):
+			return bool(slot.get("ready", false))
+	return false
 
 
 func _create_endpoint_scope(scope_name: String) -> Node:
