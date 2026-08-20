@@ -14,15 +14,18 @@ class FakeOnlineRoomService extends Node:
 	var ready_requests = []
 	var start_requests = 0
 	var leave_requests = 0
+	var request_log = []
 
 
 	func set_ready(value: bool) -> bool:
 		ready_requests.append(value)
+		request_log.append("set_ready:%s" % str(value))
 		return true
 
 
 	func start_room() -> bool:
 		start_requests += 1
+		request_log.append("start_room")
 		return true
 
 
@@ -37,6 +40,7 @@ func _ready() -> void:
 	await get_tree().process_frame
 	_test_room_layout_targets()
 	_test_contextual_room_action_path()
+	_test_legacy_three_vs_three_host_ready_path()
 	_test_legacy_server_profile_without_rank_mirrors()
 	_test_room_snapshot_and_match_bridge()
 	_test_side_b_authority_receives_victory()
@@ -94,18 +98,52 @@ func _test_contextual_room_action_path() -> void:
 	app.call("_on_online_operation_completed", "set_ready", {"ready": false})
 	app.call("_on_online_room_snapshot", _room_snapshot_for_guest(12, false))
 
-	app.set("online_room_is_host", true)
-	app.set("online_room_can_start", false)
+	app.call("_on_online_room_snapshot", _room_snapshot_for_host(13, false))
 	var host_action: Dictionary = app.call("_room_primary_action_state")
 	_expect_equal(String(host_action.get("label", "")), "开始", "host sees start instead of ready")
 	_expect_false(bool(host_action.get("enabled", true)), "host start remains gated until guests are ready")
 	app.call("_handle_room_tap", (app.call("_room_primary_action_rect") as Rect2).get_center())
 	_expect_equal(fake_service.start_requests, 0, "disabled host start does not dispatch")
-	app.set("online_room_can_start", true)
+	app.call("_on_online_room_snapshot", _room_snapshot_for_host(14, true))
 	app.call("_handle_room_tap", (app.call("_room_primary_action_rect") as Rect2).get_center())
 	_expect_equal(fake_service.start_requests, 1, "enabled host action dispatches start")
+	_expect_equal(fake_service.ready_requests, [true, false], "current server host path does not send a redundant ready request")
 	app.call("_handle_room_tap", (app.call("_room_leave_rect") as Rect2).get_center())
 	_expect_equal(fake_service.leave_requests, 1, "left action dispatches leave even while start is pending")
+
+	app.set("online_room_service", original_service)
+	fake_service.queue_free()
+	app.call("_reset_online_room_state")
+
+
+func _test_legacy_three_vs_three_host_ready_path() -> void:
+	var original_service = app.get("online_room_service")
+	var fake_service = FakeOnlineRoomService.new()
+	app.add_child(fake_service)
+	app.set("online_room_service", fake_service)
+
+	app.call("_on_online_room_snapshot", _legacy_three_vs_three_host_snapshot(20, 5))
+	var host_action: Dictionary = app.call("_room_primary_action_state")
+	_expect_false(bool(host_action.get("enabled", true)), "legacy 3v3 snapshot remains gated while a guest is not ready")
+
+	app.call("_on_online_room_snapshot", _legacy_three_vs_three_host_snapshot(21, 0, 2))
+	host_action = app.call("_room_primary_action_state")
+	_expect_false(bool(host_action.get("enabled", true)), "legacy 3v3 snapshot remains gated while an active slot is empty")
+
+	var ready_snapshot = _legacy_three_vs_three_host_snapshot(22)
+	app.call("_on_online_room_snapshot", ready_snapshot)
+	var host_slot: Dictionary = app.call("_online_slot_for_team", 4)
+	_expect_false(bool(host_slot.get("ready", true)), "legacy server fixture reports the host as not ready")
+	_expect_true(bool(app.call("_room_slot_ready_for_display", host_slot)), "host is displayed as ready regardless of the legacy ready field")
+	_expect_true(bool(app.call("_online_room_snapshot_can_start_without_host_ready")), "five ready guests satisfy the compatibility start gate")
+	host_action = app.call("_room_primary_action_state")
+	_expect_equal(String(host_action.get("label", "")), "开始", "legacy 3v3 host still sees the start action")
+	_expect_true(bool(host_action.get("enabled", false)), "legacy 3v3 host can click start when all five guests are ready")
+
+	app.call("_handle_room_tap", (app.call("_room_primary_action_rect") as Rect2).get_center())
+	_expect_equal(fake_service.ready_requests, [true], "legacy host click sends one compatibility ready request")
+	_expect_equal(fake_service.start_requests, 1, "legacy host click sends one start request")
+	_expect_equal(fake_service.request_log, ["set_ready:true", "start_room"], "legacy host compatibility requests are sent ready-first on the ordered control channel")
 
 	app.set("online_room_service", original_service)
 	fake_service.queue_free()
@@ -259,6 +297,65 @@ func _room_snapshot_for_guest(revision: int = 1, guest_ready: bool = true) -> Di
 			{"team_id": 5, "kind": "empty", "display_name": "", "ready": false, "is_local": false, "is_host": false},
 			{"team_id": 6, "kind": "empty", "display_name": "", "ready": false, "is_local": false, "is_host": false},
 		],
+	}
+
+
+func _room_snapshot_for_host(revision: int, guest_ready: bool) -> Dictionary:
+	return {
+		"ok": true,
+		"room_code": "123456",
+		"status": "lobby",
+		"players_per_side": 1,
+		"fill_with_ai": false,
+		"is_host": true,
+		"can_start": guest_ready,
+		"revision": revision,
+		"local_team_id": 1,
+		"slots": [
+			{"team_id": 1, "kind": "human", "display_name": "橘猫队长", "ready": true, "is_local": true, "is_host": true},
+			{"team_id": 2, "kind": "empty", "display_name": "", "ready": false, "is_local": false, "is_host": false},
+			{"team_id": 3, "kind": "empty", "display_name": "", "ready": false, "is_local": false, "is_host": false},
+			{"team_id": 4, "kind": "human", "display_name": "夜航星", "ready": guest_ready, "is_local": false, "is_host": false},
+			{"team_id": 5, "kind": "empty", "display_name": "", "ready": false, "is_local": false, "is_host": false},
+			{"team_id": 6, "kind": "empty", "display_name": "", "ready": false, "is_local": false, "is_host": false},
+		],
+	}
+
+
+func _legacy_three_vs_three_host_snapshot(revision: int, unready_team: int = 0, empty_team: int = 0) -> Dictionary:
+	var slots = []
+	var names = {
+		1: "薄荷汽水",
+		2: "猫尾草",
+		3: "月湾渔火",
+		4: "未命名玩家",
+		5: "晨雾旅人",
+		6: "青柠苏打",
+	}
+	for team in range(1, 7):
+		if team == empty_team:
+			slots.append({"team_id": team, "kind": "empty", "display_name": "", "ready": false, "is_local": false, "is_host": false})
+			continue
+		var is_host = team == 4
+		slots.append({
+			"team_id": team,
+			"kind": "human",
+			"display_name": String(names[team]),
+			"ready": false if is_host else team != unready_team,
+			"is_local": is_host,
+			"is_host": is_host,
+		})
+	return {
+		"ok": true,
+		"room_code": "677189",
+		"status": "lobby",
+		"players_per_side": 3,
+		"fill_with_ai": false,
+		"is_host": true,
+		"can_start": false,
+		"revision": revision,
+		"local_team_id": 4,
+		"slots": slots,
 	}
 
 

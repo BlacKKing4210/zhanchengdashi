@@ -1728,13 +1728,47 @@ func _copy_room_invite(team: int) -> void:
 
 func _room_can_start() -> bool:
 	if online_room_active:
-		return online_room_is_host and online_room_can_start
+		return online_room_is_host and (
+			online_room_can_start
+			or _online_room_snapshot_can_start_without_host_ready()
+		)
 	if room_fill_with_ai:
 		return true
 	for team in room_active_team_ids:
 		if not room_human_teams.has(team):
 			return false
 	return true
+
+
+func _online_room_snapshot_can_start_without_host_ready() -> bool:
+	if not online_room_active or not online_room_is_host:
+		return false
+	var found_host = false
+	for team_value in room_active_team_ids:
+		var team = int(team_value)
+		var slot = _online_slot_for_team(team)
+		var kind = String(slot.get("kind", "empty"))
+		if kind == "empty":
+			return false
+		if kind == "human":
+			var is_host_slot = bool(slot.get("is_host", false)) or team == local_team_id
+			if is_host_slot:
+				found_host = true
+			elif not bool(slot.get("ready", false)):
+				return false
+		elif kind != "ai":
+			return false
+	return found_host
+
+
+func _online_room_host_ready_sync_needed() -> bool:
+	if not online_room_active or not online_room_is_host:
+		return false
+	var host_slot = _online_slot_for_team(local_team_id)
+	return (
+		String(host_slot.get("kind", "empty")) == "human"
+		and not bool(host_slot.get("ready", false))
+	)
 
 
 func _room_primary_action_state() -> Dictionary:
@@ -5805,6 +5839,10 @@ func _handle_room_tap(pos: Vector2) -> void:
 			if not _room_can_start():
 				_toast(_room_start_block_message())
 				return
+			if _online_room_host_ready_sync_needed():
+				if not bool(online_room_service.call("set_ready", true)):
+					_toast("房主准备状态同步失败，请重试")
+					return
 			if bool(online_room_service.call("start_room")):
 				_begin_online_room_action("start_room")
 				GameAudio.play_sfx("ui_click")
@@ -6517,11 +6555,11 @@ func _draw_room_slot(rect: Rect2, team: int, active: bool) -> void:
 		var slot = _online_slot_for_team(team)
 		var kind = String(slot.get("kind", "empty"))
 		if kind == "human":
-			var ready = bool(slot.get("ready", false))
+			var is_host = bool(slot.get("is_host", false))
+			var ready = _room_slot_ready_for_display(slot)
 			fill = Color(0.35, 0.72, 0.40) if ready else Color(0.90, 0.65, 0.18)
 			title = "%d号 · %s" % [team, _room_human_display_name(slot)]
 			var tags = []
-			var is_host = bool(slot.get("is_host", false))
 			if is_host:
 				tags.append("房主")
 			if bool(slot.get("is_local", false)):
@@ -6564,6 +6602,10 @@ func _online_slot_for_team(team: int) -> Dictionary:
 		if typeof(slot_value) == TYPE_DICTIONARY and int(slot_value.get("team_id", NEUTRAL)) == team:
 			return slot_value
 	return {}
+
+
+func _room_slot_ready_for_display(slot: Dictionary) -> bool:
+	return bool(slot.get("is_host", false)) or bool(slot.get("ready", false))
 
 
 func _room_human_display_name(slot: Dictionary) -> String:
