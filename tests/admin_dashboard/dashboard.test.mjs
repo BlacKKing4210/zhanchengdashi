@@ -1,14 +1,26 @@
 import assert from "node:assert/strict";
+import { execFile } from "node:child_process";
 import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import test from "node:test";
+import { fileURLToPath } from "node:url";
+import { promisify } from "node:util";
 import { sanitizeAccountSnapshot } from "../../tools/admin_dashboard/lib/account_snapshot.mjs";
 import { hashPassword, LoginRateLimiter, verifyPassword } from "../../tools/admin_dashboard/lib/auth.mjs";
-import { enqueueGrantCommand, prepareGrantCommand } from "../../tools/admin_dashboard/lib/resource_grants.mjs";
+import {
+  commandFromGrantPreview,
+  createGrantPreview,
+  enqueueGrantCommand,
+  GRANT_PREVIEW_TTL_MS,
+  prepareGrantCommand,
+} from "../../tools/admin_dashboard/lib/resource_grants.mjs";
 import { sanitizeDashboardSnapshot } from "../../tools/admin_dashboard/lib/snapshot.mjs";
 import { DashboardState, SESSION_IDLE_MS } from "../../tools/admin_dashboard/lib/state_store.mjs";
-import { buildRuntimeConfig, createDashboardServer } from "../../tools/admin_dashboard/server.mjs";
+import { buildRuntimeConfig, createDashboardServer, isEntrypointPath, resetOwnerPassword, runCli } from "../../tools/admin_dashboard/server.mjs";
+
+const execFileAsync = promisify(execFile);
+const PROJECT_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 
 async function temporaryDirectory(testContext) {
   const directory = await fs.mkdtemp(path.join(os.tmpdir(), "jungle-dashboard-test-"));
@@ -19,6 +31,25 @@ async function temporaryDirectory(testContext) {
 function cookiePair(response) {
   return String(response.headers.get("set-cookie") ?? "").split(";")[0];
 }
+
+test("CLI entrypoint remains active when server.mjs is invoked through a current-release symlink", async (context) => {
+  const workspaceTemporaryRoot = path.join(PROJECT_ROOT, "temp", "qa", "admin-dashboard-entrypoint-tests");
+  await fs.mkdir(workspaceTemporaryRoot, { recursive: true });
+  const directory = await fs.mkdtemp(path.join(workspaceTemporaryRoot, "case-"));
+  context.after(async () => fs.rm(directory, { recursive: true, force: true }));
+  const releaseDirectory = path.join(PROJECT_ROOT, "tools", "admin_dashboard");
+  const currentDirectory = path.join(directory, "current");
+  await fs.symlink(releaseDirectory, currentDirectory, process.platform === "win32" ? "junction" : "dir");
+  const linkedEntrypoint = path.join(currentDirectory, "server.mjs");
+
+  assert.equal(isEntrypointPath(linkedEntrypoint), true);
+  const { stdout, stderr } = await execFileAsync(process.execPath, [linkedEntrypoint, "--help"], {
+    encoding: "utf8",
+    timeout: 5_000,
+  });
+  assert.match(stdout, /Usage:/);
+  assert.equal(stderr, "");
+});
 
 async function jsonRequest(baseUrl, pathname, options = {}) {
   const response = await fetch(`${baseUrl}${pathname}`, {
@@ -58,6 +89,32 @@ test("dashboard state has no default account and only permits one local owner bo
   await assert.rejects(
     () => state.initializeOwner("owner-two", "Owner password two 123"),
     (error) => error.code === "owner_initialization_closed",
+  );
+});
+
+test("offline Owner password rotation is audited, revokes sessions and refuses password arguments", async (context) => {
+  const directory = await temporaryDirectory(context);
+  const state = await DashboardState.open(directory);
+  const oldPassword = "Owner password before rotation 123";
+  const newPassword = "Owner password after rotation 456";
+  await state.initializeOwner("owner-one", oldPassword);
+  const login = await state.authenticate("owner-one", oldPassword);
+  assert.equal(login.ok, true);
+
+  const rotated = await resetOwnerPassword(state, "owner-one", newPassword, newPassword);
+  assert.equal(rotated.user.role, "owner");
+  assert.equal(rotated.revoked_sessions, 1);
+  assert.equal(await state.sessionForToken(login.session_token), null);
+  assert.equal((await state.authenticate("owner-one", oldPassword)).ok, false);
+  assert.equal((await state.authenticate("owner-one", newPassword)).ok, true);
+  const auditText = JSON.stringify(await state.readAudit());
+  assert.match(auditText, /admin_updated/);
+  assert.match(auditText, /password_rotated=true/);
+  assert.doesNotMatch(auditText, new RegExp(newPassword));
+
+  await assert.rejects(
+    () => runCli(["reset-owner-password", "--state-dir", directory, "--username", "owner-one", `--password=${newPassword}`]),
+    /unknown option: --password/,
   );
 });
 
@@ -337,7 +394,7 @@ test("account snapshot sanitizer exposes saved decks and resources without crede
   assert.doesNotMatch(serialized, /fieldmouse|must-not-leak|password_hash|installation_id|session_token/);
 });
 
-test("primary resource grant contract freezes explicit targets and retains legacy compatibility", () => {
+test("resource grant contracts require exact confirmations and an auditable reason", () => {
   const accountSnapshot = {
     availability: "ready",
     accounts: [{ user_id: "U-ONE" }, { user_id: "U-TWO" }],
@@ -372,18 +429,259 @@ test("primary resource grant contract freezes explicit targets and retains legac
     }),
     (error) => error.code === "all_confirmation_required",
   );
-  const legacy = prepareGrantCommand({
+  assert.throws(
+    () => prepareGrantCommand({
+      actor: "owner-one",
+      accountSnapshot,
+      body: {
+        scope: "target",
+        target_user_id: "U-ONE",
+        grants: [{ resource: "gacha_tickets", amount: 3 }],
+        reason: "定向补发",
+        confirmation: "WRONG",
+        idempotency_key: "33333333-3333-4333-8333-333333333333",
+      },
+    }),
+    (error) => error.code === "target_confirmation_required",
+  );
+  assert.throws(
+    () => prepareGrantCommand({
+      actor: "owner-one",
+      accountSnapshot,
+      body: {
+        scope: "target",
+        target_user_id: "U-ONE",
+        grants: [{ resource: "gacha_tickets", amount: 3 }],
+        reason: "",
+        confirmation: "SEND",
+        idempotency_key: "33333333-3333-4333-8333-333333333333",
+      },
+    }),
+    (error) => error.code === "invalid_reason",
+  );
+  for (const invalidReason of ["abc", "x".repeat(201), `${"x".repeat(200)} `]) {
+    assert.throws(
+      () => prepareGrantCommand({
+        actor: "owner-one",
+        accountSnapshot,
+        body: {
+          scope: "target",
+          target_user_id: "U-ONE",
+          grants: [{ resource: "gacha_tickets", amount: 3 }],
+          reason: invalidReason,
+          confirmation: "SEND",
+          idempotency_key: "33333333-3333-4333-8333-333333333333",
+        },
+      }),
+      (error) => error.code === "invalid_reason",
+    );
+  }
+});
+
+test("signed resource grant previews reject stale, tampered, cross-session and expired contracts", () => {
+  const secret = Buffer.alloc(32, 7);
+  const accountSnapshot = {
+    availability: "ready",
+    accounts: [{ user_id: "U-ONE" }, { user_id: "U-TWO" }],
+  };
+  const body = {
+    target: { kind: "all" },
+    grant: { type: "gacha_tickets", amount: 3 },
+    reason: "全服测试补发",
+    idempotency_key: "77777777-7777-4777-8777-777777777777",
+  };
+  const preview = createGrantPreview({
+    body,
+    accountSnapshot,
+    actor: "owner-one",
+    sessionId: "session-one",
+    secret,
+    now: 1_700_000_000_000,
+  });
+  assert.equal(preview.target_count, 2);
+  for (const invalidBody of [
+    { ...body, unexpected: true },
+    { ...body, target: { kind: "all", unexpected: true } },
+    { ...body, target: { kind: "all", user_id: "U-ONE" } },
+    { ...body, grant: { ...body.grant, unexpected: true } },
+    { ...body, grant: { ...body.grant, card_id: "rabbit" } },
+  ]) {
+    assert.throws(
+      () => createGrantPreview({
+        body: invalidBody,
+        accountSnapshot,
+        actor: "owner-one",
+        sessionId: "session-one",
+        secret,
+        now: 1_700_000_000_000,
+      }),
+      (error) => error.code === "invalid_grant_request",
+    );
+  }
+  const command = commandFromGrantPreview({
+    body: {
+      preview_token: preview.preview_token,
+      idempotency_key: body.idempotency_key,
+      confirmation: "SEND TO ALL",
+    },
+    accountSnapshot,
+    actor: "owner-one",
+    sessionId: "session-one",
+    secret,
+    now: 1_700_000_001_000,
+  });
+  assert.deepEqual(command.target_user_ids, ["U-ONE", "U-TWO"]);
+  assert.throws(
+    () => commandFromGrantPreview({
+      body: { preview_token: preview.preview_token, confirmation: "SEND TO ALL", unexpected_field: true },
+      accountSnapshot,
+      actor: "owner-one",
+      sessionId: "session-one",
+      secret,
+      now: 1_700_000_001_000,
+    }),
+    (error) => error.code === "invalid_preview_request",
+  );
+  assert.throws(
+    () => commandFromGrantPreview({
+      body: { preview_token: preview.preview_token, confirmation: "SEND TO ALL" },
+      accountSnapshot: { availability: "ready", accounts: [{ user_id: "U-ONE" }, { user_id: "U-THREE" }] },
+      actor: "owner-one",
+      sessionId: "session-one",
+      secret,
+      now: 1_700_000_001_000,
+    }),
+    (error) => error.status === 409 && error.code === "preview_stale",
+  );
+  const tokenParts = preview.preview_token.split(".");
+  const tamperedPayload = `${tokenParts[0]}.${tokenParts[1].slice(0, -2)}aa.${tokenParts[2]}`;
+  assert.throws(
+    () => commandFromGrantPreview({
+      body: { preview_token: tamperedPayload, confirmation: "SEND TO ALL" },
+      accountSnapshot,
+      actor: "owner-one",
+      sessionId: "session-one",
+      secret,
+      now: 1_700_000_001_000,
+    }),
+    (error) => error.code === "invalid_preview_token",
+  );
+  assert.throws(
+    () => commandFromGrantPreview({
+      body: { preview_token: preview.preview_token, confirmation: "SEND TO ALL" },
+      accountSnapshot,
+      actor: "owner-one",
+      sessionId: "session-two",
+      secret,
+      now: 1_700_000_001_000,
+    }),
+    (error) => error.status === 403 && error.code === "preview_session_mismatch",
+  );
+  assert.throws(
+    () => commandFromGrantPreview({
+      body: { preview_token: preview.preview_token, confirmation: "SEND TO ALL" },
+      accountSnapshot,
+      actor: "owner-one",
+      sessionId: "session-one",
+      secret,
+      now: 1_700_000_000_000 + GRANT_PREVIEW_TTL_MS + 1,
+    }),
+    (error) => error.status === 409 && error.code === "preview_expired",
+  );
+});
+
+test("enqueue reconciles terminal receipts that appear before or after pending publication", async (context) => {
+  const directory = await temporaryDirectory(context);
+  const accountSnapshot = { availability: "ready", accounts: [{ user_id: "U-ONE" }] };
+  for (const [index, hookName] of ["afterPreflight", "afterPendingWrite"].entries()) {
+    const commandRoot = path.join(directory, `commands-${index}`);
+    await Promise.all(["pending", "processed", "failed"].map((bucket) => fs.mkdir(path.join(commandRoot, bucket), { recursive: true })));
+    const id = index === 0
+      ? "99999999-9999-4999-8999-999999999991"
+      : "99999999-9999-4999-8999-999999999992";
+    const command = prepareGrantCommand({
+      actor: "owner-one",
+      accountSnapshot,
+      body: {
+        target: { kind: "user", user_id: "U-ONE" },
+        grant: { type: "gacha_tickets", amount: 2 },
+        reason: "竞态补发验证",
+        confirmation: "SEND",
+        idempotency_key: id,
+      },
+    });
+    const terminal = { ...command, status: "processed", processed_at_unix: command.created_at_unix + 1 };
+    const result = await enqueueGrantCommand(commandRoot, command, {
+      [hookName]: async () => {
+        await fs.writeFile(path.join(commandRoot, "processed", `${id}.json`), `${JSON.stringify(terminal)}\n`);
+      },
+    });
+    assert.equal(result.command.status, "processed");
+    await assert.rejects(
+      () => fs.stat(path.join(commandRoot, "pending", `${id}.json`)),
+      (error) => error.code === "ENOENT",
+    );
+    assert.equal((await fs.readdir(path.join(commandRoot, "processed"))).length, 1);
+  }
+
+  const conflictRoot = path.join(directory, "commands-conflict");
+  await Promise.all(["pending", "processed", "failed"].map((bucket) => fs.mkdir(path.join(conflictRoot, bucket), { recursive: true })));
+  const conflictId = "99999999-9999-4999-8999-999999999993";
+  const conflictCommand = prepareGrantCommand({
     actor: "owner-one",
     accountSnapshot,
     body: {
-      scope: "target",
-      target_user_id: "U-ONE",
-      grants: [{ resource: "gacha_tickets", amount: 3 }],
-      idempotency_key: "33333333-3333-4333-8333-333333333333",
+      target: { kind: "user", user_id: "U-ONE" },
+      grant: { type: "gacha_tickets", amount: 2 },
+      reason: "冲突终态验证",
+      confirmation: "SEND",
+      idempotency_key: conflictId,
     },
   });
-  assert.equal(legacy.reason, "legacy_request");
-  assert.deepEqual(legacy.target_user_ids, ["U-ONE"]);
+  await assert.rejects(
+    () => enqueueGrantCommand(conflictRoot, conflictCommand, {
+      afterPendingWrite: async () => {
+        await Promise.all(["processed", "failed"].map((bucket) => fs.writeFile(
+          path.join(conflictRoot, bucket, `${conflictId}.json`),
+          `${JSON.stringify({ ...conflictCommand, status: bucket })}\n`,
+        )));
+      },
+    }),
+    (error) => error.code === "terminal_state_conflict",
+  );
+  await assert.rejects(
+    () => fs.stat(path.join(conflictRoot, "pending", `${conflictId}.json`)),
+    (error) => error.code === "ENOENT",
+  );
+  const quarantined = (await fs.readdir(path.join(conflictRoot, "pending"))).filter((name) => name.endsWith(".json.disabled"));
+  assert.equal(quarantined.length, 1);
+  assert.match(await fs.readFile(path.join(conflictRoot, "pending", quarantined[0]), "utf8"), new RegExp(conflictId));
+
+  const preexistingRoot = path.join(directory, "commands-preexisting");
+  await Promise.all(["pending", "processed", "failed"].map((bucket) => fs.mkdir(path.join(preexistingRoot, bucket), { recursive: true })));
+  const preexistingId = "99999999-9999-4999-8999-999999999994";
+  const preexistingCommand = prepareGrantCommand({
+    actor: "owner-one",
+    accountSnapshot,
+    body: {
+      target: { kind: "user", user_id: "U-ONE" },
+      grant: { type: "gacha_tickets", amount: 2 },
+      reason: "预存终态验证",
+      confirmation: "SEND",
+      idempotency_key: preexistingId,
+    },
+  });
+  await Promise.all([
+    fs.writeFile(path.join(preexistingRoot, "pending", `${preexistingId}.json`), `${JSON.stringify(preexistingCommand)}\n`),
+    fs.writeFile(path.join(preexistingRoot, "processed", `${preexistingId}.json`), `${JSON.stringify({ ...preexistingCommand, status: "processed" })}\n`),
+  ]);
+  const preexistingResult = await enqueueGrantCommand(preexistingRoot, preexistingCommand);
+  assert.equal(preexistingResult.idempotent, true);
+  assert.equal(preexistingResult.command.status, "processed");
+  await assert.rejects(
+    () => fs.stat(path.join(preexistingRoot, "pending", `${preexistingId}.json`)),
+    (error) => error.code === "ENOENT",
+  );
 });
 
 test("concurrent enqueue rejects a different payload that reuses the same idempotency key", async (context) => {
@@ -393,7 +691,7 @@ test("concurrent enqueue rejects a different payload that reuses the same idempo
   const baseBody = {
     target: { kind: "user", user_id: "U-ONE" },
     reason: "并发补发",
-    confirmation: "CONFIRM",
+    confirmation: "SEND",
     idempotency_key: "66666666-6666-4666-8666-666666666666",
   };
   const first = prepareGrantCommand({
@@ -472,11 +770,9 @@ test("resource grant API requires owner reauthentication and atomically enqueues
     target: { kind: "user", user_id: "U-ONE" },
     grant: { type: "gacha_tickets", amount: 5 },
     reason: "客服补发",
-    confirmation: "CONFIRM",
-    password: "Owner password one 123",
     idempotency_key: "44444444-4444-4444-8444-444444444444",
   };
-  const analystAttempt = await jsonRequest(baseUrl, "/api/resource-grants", {
+  const analystAttempt = await jsonRequest(baseUrl, "/api/resource-grants/preview", {
     method: "POST",
     headers: { Cookie: analystCookie, Origin: baseUrl, "X-CSRF-Token": analystCsrf, "Content-Type": "application/json" },
     body: JSON.stringify(requestBody),
@@ -484,19 +780,42 @@ test("resource grant API requires owner reauthentication and atomically enqueues
   assert.equal(analystAttempt.response.status, 403);
   assert.equal(analystAttempt.body.error, "owner_required");
 
+  const preview = await jsonRequest(baseUrl, "/api/resource-grants/preview", {
+    method: "POST",
+    headers: { Cookie: ownerCookie, Origin: baseUrl, "X-CSRF-Token": ownerCsrf, "Content-Type": "application/json" },
+    body: JSON.stringify(requestBody),
+  });
+  assert.equal(preview.response.status, 201, JSON.stringify(preview.body));
+  assert.equal(preview.body.preview.target_count, 1);
+  assert.equal(preview.body.preview.idempotency_key, requestBody.idempotency_key);
+  const submissionBody = {
+    preview_token: preview.body.preview.preview_token,
+    idempotency_key: requestBody.idempotency_key,
+    confirmation: "SEND",
+    password: "Owner password one 123",
+  };
+
   const wrongPassword = await jsonRequest(baseUrl, "/api/resource-grants", {
     method: "POST",
     headers: { Cookie: ownerCookie, Origin: baseUrl, "X-CSRF-Token": ownerCsrf, "Content-Type": "application/json" },
-    body: JSON.stringify({ ...requestBody, password: "wrong owner password" }),
+    body: JSON.stringify({ ...submissionBody, password: "wrong owner password" }),
   });
   assert.equal(wrongPassword.response.status, 401);
   assert.equal(wrongPassword.body.error, "owner_reauthentication_failed");
   await assert.rejects(() => fs.stat(path.join(commandRoot, "pending", `${requestBody.idempotency_key}.json`)), (error) => error.code === "ENOENT");
 
+  const wrongConfirmation = await jsonRequest(baseUrl, "/api/resource-grants", {
+    method: "POST",
+    headers: { Cookie: ownerCookie, Origin: baseUrl, "X-CSRF-Token": ownerCsrf, "Content-Type": "application/json" },
+    body: JSON.stringify({ ...submissionBody, confirmation: "WRONG" }),
+  });
+  assert.equal(wrongConfirmation.response.status, 400);
+  assert.equal(wrongConfirmation.body.error, "target_confirmation_required");
+
   const created = await jsonRequest(baseUrl, "/api/resource-grants", {
     method: "POST",
     headers: { Cookie: ownerCookie, Origin: baseUrl, "X-CSRF-Token": ownerCsrf, "Content-Type": "application/json" },
-    body: JSON.stringify(requestBody),
+    body: JSON.stringify(submissionBody),
   });
   assert.equal(created.response.status, 202, JSON.stringify(created.body));
   assert.equal(created.body.command.command_id, requestBody.idempotency_key);
@@ -505,44 +824,78 @@ test("resource grant API requires owner reauthentication and atomically enqueues
   const queuedRaw = await fs.readFile(path.join(commandRoot, "pending", `${requestBody.idempotency_key}.json`), "utf8");
   assert.match(queuedRaw, /客服补发/);
   assert.doesNotMatch(queuedRaw, /Owner password one 123|owner_password|"password"/);
+  await fs.mkdir(path.join(commandRoot, "processed"), { recursive: true });
+  await fs.writeFile(
+    path.join(commandRoot, "processed", `${requestBody.idempotency_key}.json`),
+    `${JSON.stringify({ ...JSON.parse(queuedRaw), status: "processed", processed_at_unix: 1_700_000_002 })}\n`,
+  );
 
   const retry = await jsonRequest(baseUrl, "/api/resource-grants", {
     method: "POST",
     headers: { Cookie: ownerCookie, Origin: baseUrl, "X-CSRF-Token": ownerCsrf, "Content-Type": "application/json" },
-    body: JSON.stringify(requestBody),
+    body: JSON.stringify(submissionBody),
   });
   assert.equal(retry.response.status, 200);
   assert.equal(retry.body.idempotent, true);
-  assert.equal((await fs.readdir(path.join(commandRoot, "pending"))).filter((name) => name.endsWith(".json")).length, 1);
+  assert.equal(retry.body.command.status, "processed");
+  assert.equal((await fs.readdir(path.join(commandRoot, "pending"))).filter((name) => name.endsWith(".json")).length, 0);
 
-  const amountConflict = await jsonRequest(baseUrl, "/api/resource-grants", {
+  const amountConflictPreview = await jsonRequest(baseUrl, "/api/resource-grants/preview", {
     method: "POST",
     headers: { Cookie: ownerCookie, Origin: baseUrl, "X-CSRF-Token": ownerCsrf, "Content-Type": "application/json" },
     body: JSON.stringify({ ...requestBody, grant: { type: "gacha_tickets", amount: 6 } }),
   });
+  assert.equal(amountConflictPreview.response.status, 201);
+  const amountConflict = await jsonRequest(baseUrl, "/api/resource-grants", {
+    method: "POST",
+    headers: { Cookie: ownerCookie, Origin: baseUrl, "X-CSRF-Token": ownerCsrf, "Content-Type": "application/json" },
+    body: JSON.stringify({
+      ...submissionBody,
+      preview_token: amountConflictPreview.body.preview.preview_token,
+    }),
+  });
   assert.equal(amountConflict.response.status, 409);
   assert.equal(amountConflict.body.error, "idempotency_conflict");
-  const targetConflict = await jsonRequest(baseUrl, "/api/resource-grants", {
+  const targetConflictPreview = await jsonRequest(baseUrl, "/api/resource-grants/preview", {
     method: "POST",
     headers: { Cookie: ownerCookie, Origin: baseUrl, "X-CSRF-Token": ownerCsrf, "Content-Type": "application/json" },
     body: JSON.stringify({ ...requestBody, target: { kind: "user", user_id: "U-TWO" } }),
   });
+  assert.equal(targetConflictPreview.response.status, 201);
+  const targetConflict = await jsonRequest(baseUrl, "/api/resource-grants", {
+    method: "POST",
+    headers: { Cookie: ownerCookie, Origin: baseUrl, "X-CSRF-Token": ownerCsrf, "Content-Type": "application/json" },
+    body: JSON.stringify({
+      ...submissionBody,
+      preview_token: targetConflictPreview.body.preview.preview_token,
+    }),
+  });
   assert.equal(targetConflict.response.status, 409);
   assert.equal(targetConflict.body.error, "idempotency_conflict");
-  assert.equal((await fs.readdir(path.join(commandRoot, "pending"))).filter((name) => name.endsWith(".json")).length, 1);
+  assert.equal((await fs.readdir(path.join(commandRoot, "pending"))).filter((name) => name.endsWith(".json")).length, 0);
 
   const allBody = {
     target: { kind: "all" },
     grant: { type: "card_copies", card_id: "rabbit", amount: 2 },
     reason: "全服活动补偿",
-    confirmation: "SEND TO ALL",
-    password: "Owner password one 123",
     idempotency_key: "55555555-5555-4555-8555-555555555555",
   };
-  const allCreated = await jsonRequest(baseUrl, "/api/resource-grants", {
+  const allPreview = await jsonRequest(baseUrl, "/api/resource-grants/preview", {
     method: "POST",
     headers: { Cookie: ownerCookie, Origin: baseUrl, "X-CSRF-Token": ownerCsrf, "Content-Type": "application/json" },
     body: JSON.stringify(allBody),
+  });
+  assert.equal(allPreview.response.status, 201);
+  assert.equal(allPreview.body.preview.target_count, 2);
+  const allCreated = await jsonRequest(baseUrl, "/api/resource-grants", {
+    method: "POST",
+    headers: { Cookie: ownerCookie, Origin: baseUrl, "X-CSRF-Token": ownerCsrf, "Content-Type": "application/json" },
+    body: JSON.stringify({
+      preview_token: allPreview.body.preview.preview_token,
+      idempotency_key: allBody.idempotency_key,
+      confirmation: "SEND TO ALL",
+      password: "Owner password one 123",
+    }),
   });
   assert.equal(allCreated.response.status, 202);
   assert.deepEqual(allCreated.body.command.target_user_ids, ["U-ONE", "U-TWO"]);
@@ -554,10 +907,296 @@ test("resource grant API requires owner reauthentication and atomically enqueues
   assert.equal(ownerList.body.command, null);
   assert.equal(ownerList.body.entries.length, 2);
 
+  const auditFailureBody = {
+    target: { kind: "user", user_id: "U-TWO" },
+    grant: { type: "gacha_tickets", amount: 1 },
+    reason: "审计失败回归",
+    idempotency_key: "88888888-8888-4888-8888-888888888888",
+  };
+  const auditFailurePreview = await jsonRequest(baseUrl, "/api/resource-grants/preview", {
+    method: "POST",
+    headers: { Cookie: ownerCookie, Origin: baseUrl, "X-CSRF-Token": ownerCsrf, "Content-Type": "application/json" },
+    body: JSON.stringify(auditFailureBody),
+  });
+  assert.equal(auditFailurePreview.response.status, 201);
+  const appendAudit = state.appendAudit.bind(state);
+  state.appendAudit = async () => {
+    throw new Error("simulated grant audit failure");
+  };
+  const auditFailure = await jsonRequest(baseUrl, "/api/resource-grants", {
+    method: "POST",
+    headers: { Cookie: ownerCookie, Origin: baseUrl, "X-CSRF-Token": ownerCsrf, "Content-Type": "application/json" },
+    body: JSON.stringify({
+      preview_token: auditFailurePreview.body.preview.preview_token,
+      idempotency_key: auditFailureBody.idempotency_key,
+      confirmation: "SEND",
+      password: "Owner password one 123",
+    }),
+  });
+  state.appendAudit = appendAudit;
+  assert.equal(auditFailure.response.status, 500);
+  await assert.rejects(
+    () => fs.stat(path.join(commandRoot, "pending", `${auditFailureBody.idempotency_key}.json`)),
+    (error) => error.code === "ENOENT",
+  );
+
   const auditText = JSON.stringify(await state.readAudit(200));
   assert.match(auditText, /grant_enqueue_authorized/);
   assert.match(auditText, /客服补发/);
   assert.doesNotMatch(auditText, /Owner password one 123/);
+  assert.doesNotMatch(auditText, /SEND|preview_token/);
+  assert.doesNotMatch(auditText, new RegExp(preview.body.preview.preview_token.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
+});
+
+test("audit outbox replays once after restart even when JSONL already contains the event id", async (context) => {
+  const directory = await temporaryDirectory(context);
+  const state = await DashboardState.open(directory);
+  await state.initializeOwner("owner-one", "Owner password one 123");
+  state._flushAuditOutboxUnsafe = async () => {
+    throw new Error("simulated crash after atomic state save");
+  };
+  const created = await state.createUserAudited({
+    username: "analyst-one",
+    password: "Analyst password one 123",
+    role: "analyst",
+  }, { actor: "owner-one", ip: "127.0.0.1" });
+  assert.equal(created.audit_pending, true);
+  const persisted = JSON.parse(await fs.readFile(state.statePath, "utf8"));
+  const outboxEntry = persisted.audit_outbox[created.audit_id];
+  assert.equal(outboxEntry.event, "admin_created");
+  await fs.appendFile(state.auditPath, `${JSON.stringify(outboxEntry)}\n`, "utf8");
+
+  const reopened = await DashboardState.open(directory);
+  assert.deepEqual(reopened.auditStatus(), { pending: 0, integrity_degraded: false, degraded: false });
+  assert.equal((await reopened.listUsers()).some((user) => user.username === "analyst-one"), true);
+  const lines = (await fs.readFile(reopened.auditPath, "utf8")).trim().split("\n").map((line) => JSON.parse(line));
+  assert.equal(lines.filter((entry) => entry.id === created.audit_id).length, 1);
+});
+
+test("owner initialization persists a complete non-secret audit outbox record before JSONL projection", async (context) => {
+  const directory = await temporaryDirectory(context);
+  const state = await DashboardState.open(directory);
+  state._flushAuditOutboxUnsafe = async () => {
+    throw new Error("simulated owner audit projection failure");
+  };
+  const initialized = await state.initializeOwnerAudited("owner-one", "Owner password one 123", { source: "local_cli" });
+  assert.equal(initialized.audit_pending, true);
+  assert.equal((await state.listUsers())[0].role, "owner");
+  const persisted = JSON.parse(await fs.readFile(state.statePath, "utf8"));
+  const outboxEntry = persisted.audit_outbox[initialized.audit_id];
+  assert.equal(outboxEntry.event, "owner_initialized");
+  assert.match(outboxEntry.detail, /before=absent;after=role:owner,status:active;source=local_cli/);
+  assert.doesNotMatch(JSON.stringify(outboxEntry), /Owner password one 123/);
+
+  const reopened = await DashboardState.open(directory);
+  assert.equal((await reopened.listUsers())[0].username, "owner-one");
+  assert.deepEqual(reopened.auditStatus(), { pending: 0, integrity_degraded: false, degraded: false });
+  const ownerEvents = (await reopened.readAudit(20)).filter((entry) => entry.event === "owner_initialized");
+  assert.equal(ownerEvents.length, 1);
+  assert.equal(ownerEvents[0].id, initialized.audit_id);
+});
+
+test("audit flush preserves a damaged trailing fragment and appends new events as independently valid lines", async (context) => {
+  const directory = await temporaryDirectory(context);
+  const state = await DashboardState.open(directory);
+  await state.initializeOwner("owner-one", "Owner password one 123");
+  const flushAuditOutbox = state._flushAuditOutboxUnsafe.bind(state);
+  state._flushAuditOutboxUnsafe = async () => {
+    throw new Error("simulated pending audit projection");
+  };
+  const created = await state.createUserAudited({
+    username: "analyst-one",
+    password: "Analyst password one 123",
+    role: "analyst",
+  }, { actor: "owner-one", ip: "127.0.0.1" });
+  assert.equal(created.audit_pending, true);
+  const damagedTail = "{\"id\":\"damaged-tail\"";
+  await fs.appendFile(state.auditPath, damagedTail, "utf8");
+  state._flushAuditOutboxUnsafe = flushAuditOutbox;
+  await state.flushAuditOutbox();
+
+  assert.deepEqual(state.auditStatus(), { pending: 0, integrity_degraded: true, degraded: true });
+  const raw = await fs.readFile(state.auditPath, "utf8");
+  assert.match(raw, new RegExp(`${damagedTail.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\n`));
+  const validLines = raw.split("\n").flatMap((line) => {
+    try {
+      return line ? [JSON.parse(line)] : [];
+    } catch {
+      return [];
+    }
+  });
+  assert.equal(validLines.filter((entry) => entry.id === created.audit_id).length, 1);
+  const reopened = await DashboardState.open(directory);
+  assert.equal(reopened.auditStatus().integrity_degraded, true);
+  assert.equal((await reopened.readAudit(50)).filter((entry) => entry.id === created.audit_id).length, 1);
+});
+
+test("audit outbox is retained when post-append readback cannot confirm the event id", async (context) => {
+  const directory = await temporaryDirectory(context);
+  const state = await DashboardState.open(directory);
+  await state.initializeOwner("owner-one", "Owner password one 123");
+  const inspectAuditFile = state._inspectAuditFile.bind(state);
+  let inspections = 0;
+  state._inspectAuditFile = async () => {
+    const inspection = await inspectAuditFile();
+    inspections += 1;
+    return inspections >= 2 ? { ...inspection, idCounts: new Map() } : inspection;
+  };
+  const created = await state.createUserAudited({
+    username: "analyst-one",
+    password: "Analyst password one 123",
+    role: "analyst",
+  }, { actor: "owner-one", ip: "127.0.0.1" });
+  assert.equal(created.audit_pending, true);
+  assert.equal(state.auditStatus().pending, 1);
+  const persisted = JSON.parse(await fs.readFile(state.statePath, "utf8"));
+  assert.equal(Object.hasOwn(persisted.audit_outbox, created.audit_id), true);
+
+  state._inspectAuditFile = inspectAuditFile;
+  await state.flushAuditOutbox();
+  assert.equal(state.auditStatus().pending, 0);
+  const auditLines = (await fs.readFile(state.auditPath, "utf8")).trim().split("\n").map((line) => JSON.parse(line));
+  assert.equal(auditLines.filter((entry) => entry.id === created.audit_id).length, 1);
+});
+
+test("dangerous administrator mutations retain complete atomic audit outbox records when JSONL flush fails", async (context) => {
+  const directory = await temporaryDirectory(context);
+  const snapshotPath = path.join(directory, "dashboard_snapshot.json");
+  await fs.writeFile(snapshotPath, JSON.stringify({ generated_at_unix: 1_700_000_000, overview: {}, animals: [] }));
+  const stateDirectory = path.join(directory, "state");
+  const state = await DashboardState.open(stateDirectory);
+  await state.initializeOwner("owner-one", "Owner password one 123");
+  await state.createUser({ username: "analyst-one", password: "Analyst password one 123", role: "analyst" });
+  const app = await createDashboardServer({ host: "127.0.0.1", port: 0, snapshotPath, stateDirectory, state });
+  context.after(() => app.close());
+  const address = await app.listen();
+  const baseUrl = `http://127.0.0.1:${address.port}`;
+  const ownerLogin = await jsonRequest(baseUrl, "/api/auth/login", {
+    method: "POST",
+    headers: { Origin: baseUrl, "Content-Type": "application/json" },
+    body: JSON.stringify({ username: "owner-one", password: "Owner password one 123" }),
+  });
+  const analystLogin = await jsonRequest(baseUrl, "/api/auth/login", {
+    method: "POST",
+    headers: { Origin: baseUrl, "Content-Type": "application/json" },
+    body: JSON.stringify({ username: "analyst-one", password: "Analyst password one 123" }),
+  });
+  const ownerCookie = cookiePair(ownerLogin.response);
+  const ownerCsrf = ownerLogin.body.csrf_token;
+  const analystCookie = cookiePair(analystLogin.response);
+  const flushAuditOutbox = state._flushAuditOutboxUnsafe.bind(state);
+  state._flushAuditOutboxUnsafe = async () => {
+    throw new Error("simulated JSONL flush failure");
+  };
+
+  const create = await jsonRequest(baseUrl, "/api/admins", {
+    method: "POST",
+    headers: { Cookie: ownerCookie, Origin: baseUrl, "X-CSRF-Token": ownerCsrf, "Content-Type": "application/json" },
+    body: JSON.stringify({ username: "analyst-two", password: "Analyst password two 123", role: "analyst" }),
+  });
+  assert.equal(create.response.status, 201);
+  assert.equal(create.body.audit_pending, true);
+  assert.equal((await state.listUsers()).some((user) => user.username === "analyst-two"), true);
+
+  const update = await jsonRequest(baseUrl, "/api/admins/analyst-one", {
+    method: "PATCH",
+    headers: { Cookie: ownerCookie, Origin: baseUrl, "X-CSRF-Token": ownerCsrf, "Content-Type": "application/json" },
+    body: JSON.stringify({ status: "disabled" }),
+  });
+  assert.equal(update.response.status, 200);
+  assert.equal(update.body.audit_pending, true);
+  assert.equal((await state.listUsers()).find((user) => user.username === "analyst-one")?.status, "disabled");
+
+  const analystTwoLogin = await jsonRequest(baseUrl, "/api/auth/login", {
+    method: "POST",
+    headers: { Origin: baseUrl, "Content-Type": "application/json" },
+    body: JSON.stringify({ username: "analyst-two", password: "Analyst password two 123" }),
+  });
+  const analystTwoCookie = cookiePair(analystTwoLogin.response);
+
+  const revoke = await jsonRequest(baseUrl, "/api/admins/analyst-two/revoke-sessions", {
+    method: "POST",
+    headers: { Cookie: ownerCookie, Origin: baseUrl, "X-CSRF-Token": ownerCsrf, "Content-Type": "application/json" },
+    body: JSON.stringify({}),
+  });
+  assert.equal(revoke.response.status, 200);
+  assert.equal(revoke.body.audit_pending, true);
+  const revokedAnalyst = await jsonRequest(baseUrl, "/api/dashboard", { headers: { Cookie: analystTwoCookie } });
+  assert.equal(revokedAnalyst.response.status, 401);
+  const disabledAnalyst = await jsonRequest(baseUrl, "/api/dashboard", { headers: { Cookie: analystCookie } });
+  assert.equal(disabledAnalyst.response.status, 401);
+
+  const persisted = JSON.parse(await fs.readFile(state.statePath, "utf8"));
+  const outboxEntries = Object.values(persisted.audit_outbox);
+  assert.deepEqual(outboxEntries.map((entry) => entry.event).sort(), ["admin_created", "admin_updated", "login_success", "sessions_revoked"].sort());
+  const serializedOutbox = JSON.stringify(outboxEntries);
+  assert.match(serializedOutbox, /before=absent;after=role:analyst,status:active/);
+  assert.match(serializedOutbox, /before=role:analyst,status:active;after=role:analyst,status:disabled/);
+  assert.match(serializedOutbox, /sessions_revoked=1/);
+  assert.doesNotMatch(serializedOutbox, /Analyst password|Owner password/);
+  assert.equal(state.auditStatus().degraded, true);
+  const visiblePendingAudit = (await state.readAudit(200)).filter((entry) => entry.pending);
+  assert.equal(visiblePendingAudit.length, 4);
+  assert.equal(visiblePendingAudit.every((entry) => entry.id), true);
+  assert.equal(visiblePendingAudit.filter((entry) => entry.event !== "login_success").every((entry) => entry.detail), true);
+
+  const readiness = await jsonRequest(baseUrl, "/api/readiness");
+  assert.equal(readiness.response.status, 503);
+  assert.equal(readiness.body.audit_outbox.ready, false);
+
+  state._flushAuditOutboxUnsafe = flushAuditOutbox;
+  await state.flushAuditOutbox();
+  assert.deepEqual(state.auditStatus(), { pending: 0, integrity_degraded: false, degraded: false });
+  const completed = (await state.readAudit(200)).filter((entry) => ["admin_created", "admin_updated", "sessions_revoked"].includes(entry.event));
+  assert.equal(completed.length, 3);
+  assert.equal(new Set(completed.map((entry) => entry.id)).size, 3);
+});
+
+test("health reports liveness separately from data readiness without claiming an executor heartbeat", async (context) => {
+  const directory = await temporaryDirectory(context);
+  const snapshotPath = path.join(directory, "dashboard_snapshot.json");
+  const accountSnapshotPath = path.join(directory, "admin_accounts_snapshot.json");
+  const commandRoot = path.join(directory, "admin_commands");
+  await fs.writeFile(snapshotPath, JSON.stringify({ generated_at_unix: 1_700_000_000, overview: {}, animals: [] }));
+  const app = await createDashboardServer({
+    host: "127.0.0.1",
+    port: 0,
+    snapshotPath,
+    accountSnapshotPath,
+    commandRoot,
+    stateDirectory: path.join(directory, "state"),
+  });
+  context.after(() => app.close());
+  const address = await app.listen();
+  const baseUrl = `http://127.0.0.1:${address.port}`;
+  const health = await jsonRequest(baseUrl, "/api/health");
+  assert.equal(health.response.status, 200);
+  assert.equal(health.body.ok, true);
+  assert.equal(health.body.live, true);
+  assert.equal(health.body.ready, false);
+  assert.equal(health.body.data.fresh, false);
+  assert.equal(health.body.command_storage.ready, false);
+  assert.equal(health.body.active_owner.ready, false);
+  assert.deepEqual(health.body.executor, { observed: false, status: "not_observed" });
+  const readiness = await jsonRequest(baseUrl, "/api/readiness");
+  assert.equal(readiness.response.status, 503);
+  assert.equal(readiness.body.ok, false);
+  assert.equal(readiness.body.data.available, false);
+
+  const nowUnix = Math.floor(Date.now() / 1000);
+  await fs.writeFile(snapshotPath, JSON.stringify({ generated_at_unix: nowUnix, overview: {}, animals: [] }));
+  await fs.writeFile(accountSnapshotPath, JSON.stringify({ generated_at_unix: nowUnix, accounts: [{ user_id: "U-READY" }] }));
+  await Promise.all(["pending", "processed", "failed"].map((bucket) => fs.mkdir(path.join(commandRoot, bucket), { recursive: true })));
+  await app.state.initializeOwner("owner-one", "Owner password one 123");
+  const executorBlocked = await jsonRequest(baseUrl, "/api/readiness");
+  assert.equal(executorBlocked.response.status, 503);
+  assert.equal(executorBlocked.body.data.available, true);
+  assert.equal(executorBlocked.body.data.fresh, true);
+  assert.equal(executorBlocked.body.command_storage.ready, true);
+  assert.equal(executorBlocked.body.active_owner.ready, true);
+  assert.equal(executorBlocked.body.audit_outbox.ready, true);
+  assert.deepEqual(executorBlocked.body.executor, { observed: false, status: "not_observed" });
+  assert.equal(executorBlocked.body.ready, false);
 });
 
 test("server configuration rejects a public cleartext binding", async (context) => {

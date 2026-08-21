@@ -1,0 +1,248 @@
+#!/usr/bin/env bash
+# Renew a Let's Encrypt short-lived IP lineage with pinned Certbot 5.7.0, or
+# deploy the lineage as a root-owned pair. The renew mode only calls Certbot;
+# Certbot's saved deploy-hook calls deploy mode, which never calls Certbot and
+# therefore cannot recurse. This helper never edits or reloads nginx.
+set -Eeuo pipefail
+
+MODE="${1:-renew}"
+CONFIG_FILE="${JUNGLELAW_CERT_CONFIG_FILE:-/etc/junglelaw-admin-dashboard/cert-renew.env}"
+TLS_DIRECTORY='/etc/junglelaw-admin-dashboard/tls'
+TLS_GROUP='junglelaw-admin'
+DASHBOARD_SERVICE='junglelaw-admin-dashboard.service'
+
+fail() {
+	printf 'FAIL: %s\n' "$*" >&2
+	exit 1
+}
+
+require_command() {
+	command -v "$1" >/dev/null 2>&1 || fail "missing command: $1"
+}
+
+read_required_setting() {
+	local key="$1"
+	local line
+	line="$(grep -E "^[[:space:]]*${key}=" "${CONFIG_FILE}" | tail -n 1 || true)"
+	[[ -n "${line}" ]] || fail "missing ${key} in ${CONFIG_FILE}"
+	line="${line#*=}"
+	line="${line%$'\r'}"
+	[[ -n "${line}" ]] || fail "empty ${key} in ${CONFIG_FILE}"
+	[[ "${line}" != *'<'* && "${line}" != *'>'* ]] || fail "placeholder remains in ${key}"
+	[[ "${line}" != *$'\n'* && "${line}" != *$'\t'* ]] || fail "control character in ${key}"
+	printf '%s' "${line}"
+}
+
+certificate_fingerprint() {
+	openssl x509 -in "$1" -noout -fingerprint -sha256 | sed 's/^[^=]*=//'
+}
+
+validate_pair() {
+	local private_key="$1"
+	local full_chain="$2"
+	local expected_ip="$3"
+	local key_public_hash
+	local cert_public_hash
+	[[ -s "${private_key}" ]] || fail "private key is missing or empty: ${private_key}"
+	[[ -s "${full_chain}" ]] || fail "certificate chain is missing or empty: ${full_chain}"
+	openssl pkey -in "${private_key}" -noout >/dev/null \
+		|| fail "private key cannot be parsed: ${private_key}"
+	openssl x509 -in "${full_chain}" -noout -checkend 86400 \
+		|| fail 'certificate is invalid or expires within 24 hours'
+	openssl x509 -in "${full_chain}" -noout -ext subjectAltName \
+		| grep -Fq "IP Address:${expected_ip}" \
+		|| fail "certificate SAN does not contain IP address ${expected_ip}"
+	key_public_hash="$(openssl pkey -in "${private_key}" -pubout 2>/dev/null | openssl dgst -sha256)"
+	cert_public_hash="$(openssl x509 -in "${full_chain}" -pubkey -noout | openssl dgst -sha256)"
+	[[ "${key_public_hash}" == "${cert_public_hash}" ]] || fail 'certificate and private key do not match'
+}
+
+restore_previous_pair() {
+	local temporary_directory="$1"
+	local had_previous_pair="$2"
+	if [[ "${had_previous_pair}" == '1' ]]; then
+		install -o root -g "${TLS_GROUP}" -m 0640 \
+			"${temporary_directory}/old-privkey.pem" \
+			"${temporary_directory}/restore-privkey.pem"
+		install -o root -g "${TLS_GROUP}" -m 0640 \
+			"${temporary_directory}/old-fullchain.pem" \
+			"${temporary_directory}/restore-fullchain.pem"
+		mv -f -- "${temporary_directory}/restore-privkey.pem" "${TLS_DIRECTORY}/privkey.pem"
+		mv -f -- "${temporary_directory}/restore-fullchain.pem" "${TLS_DIRECTORY}/fullchain.pem"
+	else
+		rm -f -- "${TLS_DIRECTORY}/privkey.pem" "${TLS_DIRECTORY}/fullchain.pem"
+	fi
+}
+
+[[ "${EUID}" -eq 0 ]] || fail 'run as root'
+[[ "${MODE}" == 'renew' || "${MODE}" == 'initial' || "${MODE}" == 'deploy' ]] \
+	|| fail 'usage: junglelaw-admin-dashboard-cert-renew [renew|initial|deploy]'
+[[ -f "${CONFIG_FILE}" ]] || fail "configuration file not found: ${CONFIG_FILE}"
+
+for required_command in chmod chown curl getent grep install mktemp mv openssl python3 realpath rm sed stat systemctl tail tr; do
+	require_command "${required_command}"
+done
+[[ "$(stat -c '%U:%G' "${CONFIG_FILE}")" == 'root:root' ]] \
+	|| fail 'certificate renewal configuration must be owned by root:root'
+[[ "$(stat -c '%a' "${CONFIG_FILE}")" == '600' ]] \
+	|| fail 'certificate renewal configuration mode must be 0600'
+
+CERT_IP="$(read_required_setting JUNGLELAW_CERT_IP)"
+CERT_WEBROOT="$(read_required_setting JUNGLELAW_CERT_WEBROOT)"
+CERT_NAME="$(read_required_setting JUNGLELAW_CERT_NAME)"
+CERTBOT_BIN="$(read_required_setting JUNGLELAW_CERTBOT_BIN)"
+CERTBOT_PYTHON_BIN="$(read_required_setting JUNGLELAW_CERTBOT_PYTHON_BIN)"
+HEALTH_PORT="$(read_required_setting JUNGLELAW_CERT_HEALTH_PORT)"
+
+[[ "${CERTBOT_BIN}" == /* && -x "${CERTBOT_BIN}" ]] \
+	|| fail "Certbot executable is not an absolute executable path: ${CERTBOT_BIN}"
+[[ "${CERTBOT_BIN}" =~ ^/[A-Za-z0-9._/-]+$ ]] \
+	|| fail 'Certbot path contains characters unsafe for EnvironmentFile'
+[[ "${CERTBOT_PYTHON_BIN}" == /* && -x "${CERTBOT_PYTHON_BIN}" ]] \
+	|| fail "Certbot Python is not an absolute executable path: ${CERTBOT_PYTHON_BIN}"
+[[ "${CERTBOT_PYTHON_BIN}" =~ ^/[A-Za-z0-9._/-]+$ ]] \
+	|| fail 'Certbot Python path contains characters unsafe for EnvironmentFile'
+[[ "${CERT_WEBROOT}" == /* && -d "${CERT_WEBROOT}" ]] \
+	|| fail "ACME webroot is not an absolute existing directory: ${CERT_WEBROOT}"
+CERT_WEBROOT="$(realpath -e -- "${CERT_WEBROOT}")"
+[[ "${CERT_WEBROOT}" != '/' ]] || fail 'ACME webroot must not be /'
+[[ "${CERT_NAME}" =~ ^[A-Za-z0-9._-]+$ ]] || fail 'invalid certificate lineage name'
+[[ "${HEALTH_PORT}" =~ ^[0-9]+$ ]] || fail 'health port must be numeric'
+(( HEALTH_PORT == 443 || (HEALTH_PORT >= 1024 && HEALTH_PORT <= 65535) )) \
+	|| fail 'health port must be 443 or between 1024 and 65535'
+if ! python3 - "${CERT_IP}" <<'PY'
+import ipaddress
+import sys
+
+try:
+    value = ipaddress.ip_address(sys.argv[1])
+except ValueError:
+    raise SystemExit(1)
+if value.version != 4 or not value.is_global:
+    raise SystemExit(1)
+PY
+then
+	fail 'JUNGLELAW_CERT_IP must be a public IPv4 address'
+fi
+
+if ! "${CERTBOT_PYTHON_BIN}" -c 'import sys; raise SystemExit(0 if sys.version_info >= (3, 10) else 1)'; then
+	fail 'Certbot virtual environment must use Python 3.10 or newer'
+fi
+CERTBOT_VERSION_OUTPUT="$("${CERTBOT_BIN}" --version 2>&1)" \
+	|| fail 'unable to query Certbot version'
+if ! python3 - "${CERTBOT_VERSION_OUTPUT}" <<'PY'
+import re
+import sys
+
+match = re.search(r"([0-9]+)\.([0-9]+)(?:\.([0-9]+))?", sys.argv[1])
+if not match:
+    raise SystemExit(1)
+version = tuple(int(part or 0) for part in match.groups())
+raise SystemExit(0 if version == (5, 7, 0) else 1)
+PY
+then
+	fail "Certbot must be pinned to 5.7.0 (found: ${CERTBOT_VERSION_OUTPUT})"
+fi
+
+if [[ "${MODE}" == 'renew' ]]; then
+	systemctl is-active --quiet "${DASHBOARD_SERVICE}" \
+		|| fail 'dashboard must already be active before a renewal deployment'
+	# The root-owned Certbot directory deploy-hook wrapper invokes this helper
+	# in deploy mode only for the approved lineage. renew never calls deploy
+	# directly and deploy never calls Certbot.
+	"${CERTBOT_BIN}" renew --quiet --cert-name "${CERT_NAME}"
+	exit 0
+fi
+
+LINEAGE_DIRECTORY="/etc/letsencrypt/live/${CERT_NAME}"
+if [[ "${MODE}" == 'deploy' ]]; then
+	[[ -n "${RENEWED_LINEAGE:-}" ]] || fail 'deploy mode requires RENEWED_LINEAGE from Certbot'
+	[[ -d "${RENEWED_LINEAGE}" ]] || fail 'RENEWED_LINEAGE is not an existing directory'
+	[[ "$(realpath -e -- "${RENEWED_LINEAGE}")" == "$(realpath -e -- "${LINEAGE_DIRECTORY}")" ]] \
+		|| fail 'RENEWED_LINEAGE does not match the approved certificate lineage'
+	printf '%s\n' "${RENEWED_DOMAINS:-}" | tr ' ' '\n' | grep -Fxq "${CERT_IP}" \
+		|| fail 'RENEWED_DOMAINS does not contain the approved public IP'
+fi
+SOURCE_KEY="${LINEAGE_DIRECTORY}/privkey.pem"
+SOURCE_CERT="${LINEAGE_DIRECTORY}/fullchain.pem"
+validate_pair "${SOURCE_KEY}" "${SOURCE_CERT}" "${CERT_IP}"
+
+if [[ -f "${TLS_DIRECTORY}/privkey.pem" || -f "${TLS_DIRECTORY}/fullchain.pem" ]]; then
+	[[ -f "${TLS_DIRECTORY}/privkey.pem" && -f "${TLS_DIRECTORY}/fullchain.pem" ]] \
+		|| fail 'deployed TLS pair is incomplete; refusing to overwrite it'
+	[[ "$(stat -c '%U:%G' "${TLS_DIRECTORY}/privkey.pem")" == "root:${TLS_GROUP}" ]] \
+		|| fail 'deployed TLS private key owner/group is invalid'
+	[[ "$(stat -c '%U:%G' "${TLS_DIRECTORY}/fullchain.pem")" == "root:${TLS_GROUP}" ]] \
+		|| fail 'deployed TLS full chain owner/group is invalid'
+	[[ "$(stat -c '%a' "${TLS_DIRECTORY}/privkey.pem")" == '640' ]] \
+		|| fail 'deployed TLS private key mode must be 0640'
+	[[ "$(stat -c '%a' "${TLS_DIRECTORY}/fullchain.pem")" == '640' ]] \
+		|| fail 'deployed TLS full chain mode must be 0640'
+	validate_pair "${TLS_DIRECTORY}/privkey.pem" "${TLS_DIRECTORY}/fullchain.pem" "${CERT_IP}"
+	if [[ "$(certificate_fingerprint "${SOURCE_CERT}")" == "$(certificate_fingerprint "${TLS_DIRECTORY}/fullchain.pem")" ]]; then
+		printf '%s\n' 'Certificate lineage is unchanged; dashboard restart is not required.'
+		exit 0
+	fi
+fi
+
+getent group "${TLS_GROUP}" >/dev/null 2>&1 || fail "missing group: ${TLS_GROUP}"
+install -d -o root -g "${TLS_GROUP}" -m 0750 "${TLS_DIRECTORY}"
+TEMPORARY_DIRECTORY="$(mktemp -d "${TLS_DIRECTORY}/.renew.XXXXXXXX")"
+case "${TEMPORARY_DIRECTORY}" in
+	"${TLS_DIRECTORY}"/.renew.*) ;;
+	*) fail "unsafe temporary directory: ${TEMPORARY_DIRECTORY}" ;;
+esac
+chmod 0700 "${TEMPORARY_DIRECTORY}"
+cleanup() {
+	case "${TEMPORARY_DIRECTORY}" in
+		"${TLS_DIRECTORY}"/.renew.*) rm -rf -- "${TEMPORARY_DIRECTORY}" ;;
+		*) printf 'refusing to remove unexpected temporary directory: %s\n' "${TEMPORARY_DIRECTORY}" >&2 ;;
+	esac
+}
+trap cleanup EXIT
+
+HAD_PREVIOUS_PAIR=0
+if [[ -f "${TLS_DIRECTORY}/privkey.pem" && -f "${TLS_DIRECTORY}/fullchain.pem" ]]; then
+	HAD_PREVIOUS_PAIR=1
+	install -o root -g "${TLS_GROUP}" -m 0640 \
+		"${TLS_DIRECTORY}/privkey.pem" "${TEMPORARY_DIRECTORY}/old-privkey.pem"
+	install -o root -g "${TLS_GROUP}" -m 0640 \
+		"${TLS_DIRECTORY}/fullchain.pem" "${TEMPORARY_DIRECTORY}/old-fullchain.pem"
+fi
+install -o root -g "${TLS_GROUP}" -m 0640 "${SOURCE_KEY}" "${TEMPORARY_DIRECTORY}/new-privkey.pem"
+install -o root -g "${TLS_GROUP}" -m 0640 "${SOURCE_CERT}" "${TEMPORARY_DIRECTORY}/new-fullchain.pem"
+validate_pair "${TEMPORARY_DIRECTORY}/new-privkey.pem" "${TEMPORARY_DIRECTORY}/new-fullchain.pem" "${CERT_IP}"
+
+if ! mv -f -- "${TEMPORARY_DIRECTORY}/new-privkey.pem" "${TLS_DIRECTORY}/privkey.pem"; then
+	fail 'unable to commit new TLS private key; previous pair remains in place'
+fi
+if ! mv -f -- "${TEMPORARY_DIRECTORY}/new-fullchain.pem" "${TLS_DIRECTORY}/fullchain.pem"; then
+	restore_previous_pair "${TEMPORARY_DIRECTORY}" "${HAD_PREVIOUS_PAIR}"
+	fail 'unable to commit new TLS full chain; previous pair restored'
+fi
+if ! chown root:"${TLS_GROUP}" "${TLS_DIRECTORY}/privkey.pem" "${TLS_DIRECTORY}/fullchain.pem" \
+	|| ! chmod 0640 "${TLS_DIRECTORY}/privkey.pem" "${TLS_DIRECTORY}/fullchain.pem"; then
+	restore_previous_pair "${TEMPORARY_DIRECTORY}" "${HAD_PREVIOUS_PAIR}"
+	fail 'unable to enforce TLS pair ownership/mode; previous pair restored'
+fi
+
+if ! systemctl is-active --quiet "${DASHBOARD_SERVICE}"; then
+	printf '%s\n' 'Certificate pair staged while the dashboard is inactive. Complete activation and HTTPS health acceptance before enabling the timer.'
+	exit 0
+fi
+
+if ! systemctl restart "${DASHBOARD_SERVICE}"; then
+	restore_previous_pair "${TEMPORARY_DIRECTORY}" "${HAD_PREVIOUS_PAIR}"
+	systemctl restart "${DASHBOARD_SERVICE}" >/dev/null 2>&1 || true
+	fail 'dashboard restart with the new certificate failed; previous pair restored'
+fi
+if ! curl --fail --silent --show-error --max-time 15 \
+	--connect-to "${CERT_IP}:${HEALTH_PORT}:127.0.0.1:${HEALTH_PORT}" \
+	--output /dev/null "https://${CERT_IP}:${HEALTH_PORT}/api/health"; then
+	restore_previous_pair "${TEMPORARY_DIRECTORY}" "${HAD_PREVIOUS_PAIR}"
+	systemctl restart "${DASHBOARD_SERVICE}" >/dev/null 2>&1 || true
+	fail 'certificate-verified dashboard health check failed; previous pair restored'
+fi
+
+printf 'Certificate deployed and dashboard health verified: %s\n' \
+	"$(certificate_fingerprint "${TLS_DIRECTORY}/fullchain.pem")"

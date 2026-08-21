@@ -1,0 +1,65 @@
+[Unit]
+Description=Jungle Law private admin dashboard (direct TLS)
+Documentation=file:/opt/junglelaw-admin/current/deploy/linux/ADMIN_DASHBOARD_DEPLOYMENT.md
+Wants=network-online.target
+After=network-online.target
+ConditionPathIsDirectory=/opt/junglelaw-admin/current/tools/admin_dashboard
+
+[Service]
+Type=simple
+User=junglelaw-admin
+Group=junglelaw-admin
+SupplementaryGroups=junglelaw-admin-read junglelaw-admin-command
+WorkingDirectory=/opt/junglelaw-admin/current/tools/admin_dashboard
+Environment=NODE_ENV=production
+EnvironmentFile=/etc/junglelaw-admin-dashboard/dashboard.env
+StateDirectory=junglelaw-admin-dashboard
+StateDirectoryMode=0700
+
+ExecStartPre=/usr/bin/test -x /usr/bin/node
+ExecStartPre=/usr/bin/test -r /opt/junglelaw-admin/current/tools/admin_dashboard/server.mjs
+ExecStartPre=/usr/bin/test -r ${ZHANCHENG_DASHBOARD_SNAPSHOT_PATH}
+ExecStartPre=/usr/bin/test -r ${ZHANCHENG_DASHBOARD_ACCOUNT_SNAPSHOT_PATH}
+ExecStartPre=/usr/bin/test -r ${ZHANCHENG_DASHBOARD_TLS_KEY_PATH}
+ExecStartPre=/usr/bin/test -r ${ZHANCHENG_DASHBOARD_TLS_CERT_PATH}
+ExecStartPre=/usr/bin/test -d ${ZHANCHENG_DASHBOARD_COMMAND_ROOT}/pending
+ExecStartPre=/usr/bin/test -d ${ZHANCHENG_DASHBOARD_COMMAND_ROOT}/processed
+ExecStartPre=/usr/bin/test -d ${ZHANCHENG_DASHBOARD_COMMAND_ROOT}/failed
+ExecStart=/usr/bin/node /opt/junglelaw-admin/current/tools/admin_dashboard/server.mjs serve
+
+Restart=on-failure
+RestartSec=5
+TimeoutStopSec=20
+KillSignal=SIGTERM
+UMask=0007
+
+NoNewPrivileges=true
+PrivateDevices=true
+PrivateTmp=true
+ProtectControlGroups=true
+ProtectHome=true
+ProtectKernelModules=true
+ProtectKernelTunables=true
+ProtectSystem=strict
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+RestrictNamespaces=true
+RestrictRealtime=true
+LockPersonality=true
+SystemCallArchitectures=native
+CapabilityBoundingSet=
+AmbientCapabilities=
+
+ReadOnlyPaths=/opt/junglelaw-admin/current
+ReadOnlyPaths=/var/lib/junglelaw/admin_exports
+ReadOnlyPaths=/var/lib/junglelaw/admin_commands/processed
+ReadOnlyPaths=/var/lib/junglelaw/admin_commands/failed
+ReadOnlyPaths=/etc/junglelaw-admin-dashboard/tls
+ReadWritePaths=/var/lib/junglelaw-admin-dashboard
+ReadWritePaths=/var/lib/junglelaw/admin_commands/pending
+
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=junglelaw-admin-dashboard
+
+[Install]
+WantedBy=multi-user.target

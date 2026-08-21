@@ -1,6 +1,6 @@
 schema_version: 1
 scope_id: SCOPE-001
-updated_on: "2026-08-14"
+updated_on: "2026-08-21"
 purpose: authoritative active priorities task ownership and shared write locks
 
 authority:
@@ -154,9 +154,125 @@ active_modules:
     read_only_receipt: docs/receipts/REQ-20260814-AUTO-ACCOUNT-250-HEALTH-RULE-READ-ONLY-001.md
     completion_receipt: docs/receipts/REQ-20260814-AUTO-ACCOUNT-250-HEALTH-RULE-CLOSE-002.md
     blockers: [production_auth_transport, production_password_kdf, aliyun_profile, android_device_acceptance]
+  - task_id: REQ-20260820-ADMIN-DASHBOARD-ALIYUN-PUBLIC-007
+    feature_id: F-ZC-ADMIN-001
+    version: v1.1.3-aliyun-public-staging
+    phase: completion
+    domain: cross_domain
+    owner: codex-primary
+    status: COMPLETE
+    started_on: "2026-08-20"
+    release_status: STAGING_PUBLIC_DEPLOYED_ACCEPTED
+    resumed_on: "2026-08-21"
+    completed_on: "2026-08-22"
+    deployed_endpoint: https://106.15.61.103/
+    deployed_node_release: JungleLaw-admin-dashboard-v1.1.3-aliyun-public-rc11
+    deployed_linux_release: v1.1.3-local-linux-rc1
+    fingerprint: CFCAF2B2BA040359DD6F8842A2C743338A3FAD9A690F4F47D296211D17B37AF3
+    rag_gate_receipt: temp/rag/receipts/rag-gate.json
+    rag_task_receipt: temp/rag/receipts/tasks/REQ-20260820-ADMIN-DASHBOARD-ALIYUN-PUBLIC-007.json
+    control_intake: temp/control/REQ-20260820-ADMIN-DASHBOARD-ALIYUN-PUBLIC-007.json
+    read_only_receipt: docs/receipts/F-ZC-ADMIN-001-ALIYUN-PUBLIC-READ-ONLY-007.md
+    completion_receipt: docs/receipts/F-ZC-ADMIN-001-ALIYUN-PUBLIC-CLOSE-008.md
+  - task_id: REQ-20260821-FOX-SEQUENCE-FALLBACK-001
+    feature_id: F-ZC-ANIMAL-ANIMATION-001
+    version: v1.0.0-fox-sequence-fallback
+    phase: completion
+    domain: cross_domain
+    owner: codex-primary
+    status: COMPLETE
+    started_on: "2026-08-21"
+    release_status: LOCAL_IMPLEMENTATION_COMPLETE
+    completed_on: "2026-08-21"
+    fingerprint: 313B7D0C098B04698B86F6F170F35E0E5F6540F897A77E2394A39A23A207B01D
+    rag_gate_receipt: temp/rag/receipts/rag-gate.json
+    rag_task_receipt: temp/rag/receipts/tasks/REQ-20260821-FOX-SEQUENCE-FALLBACK-001.json
+    control_intake: temp/control/REQ-20260821-FOX-SEQUENCE-FALLBACK-001.json
+    read_only_receipt: docs/receipts/REQ-20260821-FOX-SEQUENCE-FALLBACK-READ-ONLY-001.md
+    completion_receipt: docs/receipts/REQ-20260821-FOX-SEQUENCE-FALLBACK-CLOSE-002.md
 queued_modules: []
 
 shared_locks:
+  admin_dashboard_aliyun_public_20260820:
+    task_id: REQ-20260820-ADMIN-DASHBOARD-ALIYUN-PUBLIC-007
+    owner: codex-primary
+    status: RELEASED
+    released_on: "2026-08-22"
+    release_reason: staging_public_deployment_external_login_and_restart_acceptance_complete
+    write_set:
+      - production/deployment/aliyun-profile.yaml
+      - docs/active_scope.yaml
+      - docs/receipts/F-ZC-ADMIN-001-ALIYUN-PUBLIC-READ-ONLY-007.md
+      - docs/receipts/F-ZC-ADMIN-001-ALIYUN-PUBLIC-CLOSE-008.md
+      - knowledge/knowledge_manifest.csv
+      - tools/admin_dashboard/package.json
+      - tools/admin_dashboard/lib/account_snapshot.mjs
+      - tools/admin_dashboard/lib/resource_grants.mjs
+      - tools/admin_dashboard/lib/state_store.mjs
+      - tools/admin_dashboard/server.mjs
+      - tools/admin_dashboard/public/app.js
+      - tests/admin_dashboard/dashboard.test.mjs
+      - tools/package_admin_dashboard.ps1
+      - deploy/linux/ADMIN_DASHBOARD_DEPLOYMENT.md
+      - deploy/linux/admin_dashboard_preflight.sh
+      - deploy/linux/junglelaw-admin-dashboard.env.example
+      - deploy/linux/junglelaw-admin-dashboard.service.example
+      - deploy/linux/junglelaw-admin-dashboard-public-443.conf.example
+      - deploy/linux/install_junglelaw_admin_dashboard.sh
+      - deploy/linux/junglelaw-admin-dashboard-cert-renew
+      - deploy/linux/junglelaw-admin-dashboard-cert-renew.service.example
+      - deploy/linux/junglelaw-admin-dashboard-cert-renew.timer.example
+      - deploy/linux/test_junglelaw_admin_dashboard_deploy.sh
+      - build/admin-dashboard/JungleLaw-admin-dashboard-v1.1.3-aliyun-public-rc1.zip
+      - build/admin-dashboard/JungleLaw-admin-dashboard-v1.1.3-aliyun-public-rc1.manifest.json
+      - build/admin-dashboard/JungleLaw-admin-dashboard-v1.1.3-aliyun-public-rc2.zip
+      - build/admin-dashboard/JungleLaw-admin-dashboard-v1.1.3-aliyun-public-rc2.manifest.json
+      - build/admin-dashboard/JungleLaw-admin-dashboard-v1.1.3-aliyun-public-rc3.zip
+      - build/admin-dashboard/JungleLaw-admin-dashboard-v1.1.3-aliyun-public-rc3.manifest.json
+      - build/admin-dashboard/JungleLaw-admin-dashboard-v1.1.3-aliyun-public-rc4.zip
+      - build/admin-dashboard/JungleLaw-admin-dashboard-v1.1.3-aliyun-public-rc4.manifest.json
+      - build/admin-dashboard/JungleLaw-admin-dashboard-v1.1.3-aliyun-public-rc5.zip
+      - build/admin-dashboard/JungleLaw-admin-dashboard-v1.1.3-aliyun-public-rc5.manifest.json
+      - build/admin-dashboard/JungleLaw-admin-dashboard-v1.1.3-aliyun-public-rc6.zip
+      - build/admin-dashboard/JungleLaw-admin-dashboard-v1.1.3-aliyun-public-rc6.manifest.json
+      - build/admin-dashboard/JungleLaw-admin-dashboard-v1.1.3-aliyun-public-rc7.zip
+      - build/admin-dashboard/JungleLaw-admin-dashboard-v1.1.3-aliyun-public-rc7.manifest.json
+      - build/admin-dashboard/JungleLaw-admin-dashboard-v1.1.3-aliyun-public-rc8.zip
+      - build/admin-dashboard/JungleLaw-admin-dashboard-v1.1.3-aliyun-public-rc8.manifest.json
+      - build/admin-dashboard/JungleLaw-admin-dashboard-v1.1.3-aliyun-public-rc9.zip
+      - build/admin-dashboard/JungleLaw-admin-dashboard-v1.1.3-aliyun-public-rc9.manifest.json
+      - build/admin-dashboard/JungleLaw-admin-dashboard-v1.1.3-aliyun-public-rc10.zip
+      - build/admin-dashboard/JungleLaw-admin-dashboard-v1.1.3-aliyun-public-rc10.manifest.json
+      - build/admin-dashboard/JungleLaw-admin-dashboard-v1.1.3-aliyun-public-rc11.zip
+      - build/admin-dashboard/JungleLaw-admin-dashboard-v1.1.3-aliyun-public-rc11.manifest.json
+    remote_target: OpenClaw-ejrr
+    remote_environment: staging
+    remote_scope: junglelaw_only
+    evidence_root: temp/qa/F-ZC-ADMIN-001/aliyun-public-20260820
+  fox_sequence_fallback_20260821:
+    task_id: REQ-20260821-FOX-SEQUENCE-FALLBACK-001
+    owner: codex-primary
+    status: RELEASED
+    released_on: "2026-08-21"
+    release_reason: implementation_and_validation_complete
+    write_set:
+      - docs/active_scope.yaml
+      - knowledge/knowledge_manifest.csv
+      - docs/FOX_SEQUENCE_ANIMATION_AND_GENERIC_FALLBACK_DESIGN_v1.0.docx
+      - docs/receipts/REQ-20260821-FOX-SEQUENCE-FALLBACK-READ-ONLY-001.md
+      - docs/receipts/REQ-20260821-FOX-SEQUENCE-FALLBACK-CLOSE-002.md
+      - tools/build_fox_sequence_animation_docx.py
+      - tools/ingest_fox_sequence_frames.py
+      - assets/animal_sequences/manifest.json
+      - assets/animal_sequences/fox/
+      - scripts/app/systems/unit_sequence_animation.gd
+      - scripts/app/systems/unit_sequence_animation.gd.uid
+      - scripts/app/main.gd
+      - tests/test_unit_sequence_animation.gd
+      - tests/test_unit_sequence_animation.tscn
+      - tests/capture_unit_sequence_animation.gd
+      - tests/capture_unit_sequence_animation.tscn
+    evidence_root: temp/qa/F-ZC-ANIMAL-ANIMATION-001/fox-sequence-fallback
   auto_account_250_health_rule_20260814:
     task_id: REQ-20260814-AUTO-ACCOUNT-250-HEALTH-RULE
     owner: codex-primary

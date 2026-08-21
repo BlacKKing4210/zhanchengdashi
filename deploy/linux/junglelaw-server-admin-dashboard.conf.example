@@ -1,0 +1,18 @@
+# Install as:
+# /etc/systemd/system/junglelaw-server.service.d/admin-dashboard.conf
+#
+# This drop-in keeps the base dedicated-server unit unchanged while routing
+# sanitized admin exports and resource-grant commands through shared, setgid
+# directories prepared according to ADMIN_DASHBOARD_DEPLOYMENT.md.
+[Service]
+SupplementaryGroups=junglelaw-admin-read junglelaw-admin-command
+UMask=0007
+Environment=ZHANCHENG_DASHBOARD_SNAPSHOT_PATH=/var/lib/junglelaw/admin_exports/dashboard_snapshot.json
+Environment=ZHANCHENG_DASHBOARD_ACCOUNT_SNAPSHOT_PATH=/var/lib/junglelaw/admin_exports/admin_accounts_snapshot.json
+Environment=ZHANCHENG_DASHBOARD_COMMAND_ROOT=/var/lib/junglelaw/admin_commands
+ExecStartPre=/usr/bin/test -d /var/lib/junglelaw/admin_exports
+ExecStartPre=/usr/bin/test -d /var/lib/junglelaw/admin_commands/pending
+ExecStartPre=/usr/bin/test -d /var/lib/junglelaw/admin_commands/processed
+ExecStartPre=/usr/bin/test -d /var/lib/junglelaw/admin_commands/failed
+ReadWritePaths=/var/lib/junglelaw/admin_exports
+ReadWritePaths=/var/lib/junglelaw/admin_commands

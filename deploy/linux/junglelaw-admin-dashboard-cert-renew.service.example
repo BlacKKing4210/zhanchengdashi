@@ -1,0 +1,44 @@
+[Unit]
+Description=Renew and atomically deploy the Jungle Law admin IP certificate
+Documentation=file:/opt/junglelaw-admin/current/deploy/linux/ADMIN_DASHBOARD_DEPLOYMENT.md
+Wants=network-online.target
+After=network-online.target junglelaw-admin-dashboard.service
+ConditionPathExists=/etc/junglelaw-admin-dashboard/cert-renew.env
+ConditionPathIsDirectory=/etc/junglelaw-admin-dashboard/tls
+
+[Service]
+Type=oneshot
+User=root
+Group=root
+EnvironmentFile=/etc/junglelaw-admin-dashboard/cert-renew.env
+ExecStart=/usr/local/libexec/junglelaw-admin-dashboard-cert-renew renew
+TimeoutStartSec=20min
+UMask=0077
+
+NoNewPrivileges=true
+PrivateDevices=true
+PrivateTmp=true
+ProtectControlGroups=true
+ProtectHome=true
+ProtectKernelModules=true
+ProtectKernelTunables=true
+ProtectSystem=full
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+RestrictNamespaces=true
+RestrictRealtime=true
+LockPersonality=true
+SystemCallArchitectures=native
+CapabilityBoundingSet=
+AmbientCapabilities=
+
+ReadOnlyPaths=/opt/junglelaw-admin/current
+ReadOnlyPaths=/etc/junglelaw-admin-dashboard/cert-renew.env
+ReadWritePaths=/etc/letsencrypt
+ReadWritePaths=/var/lib/letsencrypt
+ReadWritePaths=/var/log/letsencrypt
+ReadWritePaths=/etc/junglelaw-admin-dashboard/tls
+ReadWritePaths=/JUNGLELAW_CERT_WEBROOT_MUST_BE_REPLACED
+
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=junglelaw-admin-dashboard-cert-renew

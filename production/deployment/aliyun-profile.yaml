@@ -3,12 +3,12 @@ provider: alibaba_cloud
 placement_policy: remote_only
 
 ownership:
-  producer: pending
-  deployment_owner: pending
+  producer: workspace_owner_user
+  deployment_owner: codex_current_task_under_explicit_user_authorization
 
 environments:
   staging:
-    readiness: not_ready
+    readiness: deployed_staging_public_accepted_with_declared_data_and_executor_observability_limits
     cloud_service: alibaba_cloud_simple_application_server_swas
     instance:
       id: 5753aa004b904138a06cc5437df6a468
@@ -16,11 +16,15 @@ environments:
       hostname: iZuf6h2p4ec532poqdbp8kZ
       public_ipv4: 106.15.61.103
       private_ipv4: 172.24.58.230
-    ssh_alias: pending
+    ssh_alias: junglelaw-aliyun-staging
     region: cn-shanghai
-    host_role: shared_multi_project_host_staging_candidate_not_approved
+    host_role: shared_multi_project_host_staging_approved_for_junglelaw_overlay_only
     operating_system: "Alibaba Cloud Linux 3.2104 U12.3 x86_64"
     domains: []
+    public_endpoints:
+      - url: https://106.15.61.103/
+        purpose: junglelaw_admin_dashboard
+        approval_state: deployed_external_https_and_owner_login_accepted_2026-08-22
     ports:
       - protocol: tcp
         port: 22
@@ -30,6 +34,22 @@ environments:
         port: 80
         service: nginx
         observed_state: active
+      - protocol: tcp
+        port: 8443
+        service: junglelaw_admin_dashboard_direct_tls
+        bind_address: 0.0.0.0
+        source_cidr: 0.0.0.0/0
+        approval_state: user_approved_public_staging_only
+        security_gates: tls_valid_login_required_rate_limit_required
+        observed_state: predeployment_probe_listener_reached_but_external_probe_timed_out_2026-08-20_not_selected_currently_no_listener_2026-08-21
+      - protocol: tcp
+        port: 443
+        service: junglelaw_admin_dashboard_direct_tls_fallback
+        bind_address: 0.0.0.0
+        source_cidr: 0.0.0.0/0
+        approval_state: approved_fallback_condition_satisfied_and_selected
+        security_gates: exact_systemd_dropin_cap_net_bind_service_only_and_valid_tls
+        observed_state: listening_external_trusted_tls_root_health_login_and_restart_passed_2026-08-22
       - protocol: udp
         port: 24567
         service: junglelaw
@@ -45,26 +65,40 @@ environments:
       - path: /var/lib/junglelaw
         observed_state: present
       - purpose: admin_dashboard
-        path: pending
-        observed_state: missing
-    release_root: pending
+        path: /opt/junglelaw-admin
+        observed_state: present_current_points_to_JungleLaw-admin-dashboard-v1.1.3-aliyun-public-rc11
+      - purpose: admin_dashboard_state
+        path: /var/lib/junglelaw-admin-dashboard
+        observed_state: present_root_managed_service_private
+      - purpose: admin_dashboard_configuration
+        path: /etc/junglelaw-admin-dashboard
+        observed_state: present_tls_and_nonsecret_runtime_configuration
+    release_root: /opt/junglelaw-admin/releases
     dependencies:
-      - "Node.js 24.14.0"
+      - "Node.js exactly 24.14.0 at /usr/bin/node"
+      - "immutable admin release root must be root:root 0755 after copying from the root-only upload staging directory, and server.mjs syntax/help must pass as junglelaw-admin"
+      - "server.mjs CLI entrypoint identity must compare canonical realpaths so systemd and init-owner work through /opt/junglelaw-admin/current"
       - "npm 11.9.0"
       - "systemd 239"
       - "nginx active on TCP 80 only"
+      - "Python 3.11.13 venv at /opt/junglelaw-admin-certbot/venv and Certbot exactly 5.7.0 observed 2026-08-21"
+      - "POSIX ACL tooling /usr/bin/getfacl and /usr/bin/setfacl observed present; getfacl is 2.2.53 and numeric receipts must use supported -n rather than unsupported --numeric-names; junglelaw-admin may receive only --x on /var/lib/junglelaw and must not join the junglelaw group"
+      - "prepare must receive the read-only observed Fisher and nginx unit names; their unit/PID/start-time/executable/config/listener fingerprints must remain byte-identical across the transaction"
     data_readiness:
-      account_authority: "observed version 2; 24 account records; 21 non-empty saved decks; latest update 2026-08-14T03:30:35Z; migration to version 3 not yet deployed"
-      dashboard_snapshot: "observed version 1 generated 2026-07-23T06:18:28Z; 60 animal rows; zero matches, placement samples, leaderboard rows, recent matches, and top decks"
-      match_analytics: "observed version 1 with placement aggregation version 0; 60 animal records; zero players and zero placement samples"
+      account_authority: "deployed version 3; 29 account records; 15 installations; zero admin grant receipts; authority hash unchanged across final game restart"
+      dashboard_snapshot: "deployed admin projection version 2 generated 2026-08-21T16:59:35Z; 60 animal rows; zero matches, placement samples, leaderboard rows, and top decks"
+      account_snapshot: "deployed version 1 generated 2026-08-21T16:59:35Z; 29 sanitized account rows; 26 non-empty current decks"
+      match_analytics: "deployed version 2; 60 animal records; zero players and zero placement samples"
       balance_decision_status: "not_ready: current authoritative analytics contain no match or placement evidence"
-    tls_and_reverse_proxy: "not_ready: no domain and no TLS; nginx currently serves TCP 80 only"
+    tls_and_reverse_proxy: "deployed: Node.js terminates TLS directly on public IPv4 106.15.61.103:443 as non-root junglelaw-admin with only CAP_NET_BIND_SERVICE; environment runtime port and certificate health port both equal 443; production Let's Encrypt shortlived lineage junglelaw-admin-ip has SAN 106.15.61.103, issuer YE2, expires 2026-08-28T05:37:38Z, and is atomically projected root:junglelaw-admin 0640; Certbot 5.7.0 timer is active/enabled twice daily with randomized delay; nginx TCP 80 was not edited, reloaded, or restarted"
     health_checks:
       - "not_ready: systemd is degraded because kdump failed"
-      - "pending: admin dashboard health endpoint is unavailable before deployment"
-    backup_plan: "not_ready: snapshot quota is 3/3; no deletion or replacement is authorized"
-    rollback_plan: "not_ready: admin dashboard is not deployed and no free snapshot slot is available"
-    monitoring: "pending: admin dashboard monitoring and alert ownership are not defined"
+      - "passed: external certificate-verified GET https://106.15.61.103/api/health without insecure TLS bypass returned HTTP 200, ok=true and live=true"
+      - "passed: external root HTTP 200; wrong password HTTP 401; tian owner login and post-admin/game-restart login succeeded"
+      - "declared limitation: /api/readiness remains 503 because executor heartbeat is not independently observed; snapshot, account projection, command storage, active owner and audit outbox are ready"
+    backup_plan: "executed: root-only receipt /var/backups/junglelaw-admin-dashboard/admin-dashboard-predeploy-JungleLaw-admin-dashboard-v1.1.3-aliyun-public-rc11-20260821T165506Z; 191872369 bytes; payload.tar.sha256 and receipt.sha256 passed; full canonical server state, ACL/xattr, admin auth/audit, protected TLS, queues, game/admin components, active/enabled baselines and shared-host fingerprints recorded; isolated restore drill passed; Alibaba Cloud snapshot quota remains 3/3 and no snapshot was deleted"
+    rollback_plan: "ready and evidence-bound but not executed after successful acceptance: exact RC11 receipt, exact backup ID and --authorize-state-directory-quarantine are mandatory; old immutable releases and receipt are retained; canonical server state may only be moved to root-only quarantine and never deleted; prepare restore drill and receipt checks passed"
+    monitoring: "junglelaw-admin-dashboard.service active/running/enabled with NRestarts=0; certificate renewal timer active/enabled and next check 2026-08-22T08:29:45+08:00; external health/login and journal checks passed; independent executor heartbeat and external alert routing remain declared post-staging observability work"
   production:
     ssh_alias: null
     region: null
@@ -89,3 +123,7 @@ secrets:
 authorization:
   staging_remote_writes: true
   production_remote_writes: false
+  staging_scope: OpenClaw-ejrr_junglelaw_only
+  explicit_user_confirmation: "fulfilled_2026-08-22_public_link_delivered_after_external_login_and_restart_acceptance"
+  state_directory_quarantine_restore: true
+  destructive_state_deletion: false

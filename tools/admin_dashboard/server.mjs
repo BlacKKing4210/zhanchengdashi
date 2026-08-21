@@ -1,3 +1,5 @@
+import crypto from "node:crypto";
+import { constants as fsConstants, realpathSync } from "node:fs";
 import fs from "node:fs/promises";
 import http from "node:http";
 import https from "node:https";
@@ -9,6 +11,9 @@ import {
   AuthError,
   LoginRateLimiter,
   normalizeUsername,
+  validatePassword,
+  validateRole,
+  validateStatus,
 } from "./lib/auth.mjs";
 import {
   HttpError,
@@ -25,11 +30,12 @@ import {
 } from "./lib/http_utils.mjs";
 import { readAccountSnapshot, resolveAccountSnapshotPath } from "./lib/account_snapshot.mjs";
 import {
+  commandFromGrantPreview,
+  createGrantPreview,
   enqueueGrantCommand,
   findGrantEntry,
   grantPayloadMatches,
   GrantError,
-  prepareGrantCommand,
   readGrantEntries,
   resolveCommandRoot,
 } from "./lib/resource_grants.mjs";
@@ -39,6 +45,7 @@ import { DashboardState, SESSION_ABSOLUTE_MS, StateError } from "./lib/state_sto
 const MODULE_DIRECTORY = path.dirname(fileURLToPath(import.meta.url));
 const PUBLIC_DIRECTORY = path.join(MODULE_DIRECTORY, "public");
 const SESSION_COOKIE_NAME = "jungle_admin_session";
+const SNAPSHOT_MAX_AGE_SECONDS = 5 * 60;
 
 const STATIC_FILES = new Map([
   ["/", { file: "index.html", type: "text/html; charset=utf-8" }],
@@ -144,6 +151,28 @@ function decodedTarget(pathname, suffix) {
   }
 }
 
+function snapshotIsFresh(snapshot, nowUnix = Math.floor(Date.now() / 1000)) {
+  const generatedAt = Number(snapshot?.generated_at_unix);
+  return snapshot?.availability === "ready"
+    && Number.isFinite(generatedAt)
+    && generatedAt > 0
+    && generatedAt <= nowUnix + 60
+    && nowUnix - generatedAt <= SNAPSHOT_MAX_AGE_SECONDS;
+}
+
+async function commandStorageIsReady(commandRoot) {
+  try {
+    await Promise.all([
+      fs.access(path.join(commandRoot, "pending"), fsConstants.R_OK | fsConstants.W_OK),
+      fs.access(path.join(commandRoot, "processed"), fsConstants.R_OK),
+      fs.access(path.join(commandRoot, "failed"), fsConstants.R_OK),
+    ]);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 function requireTrustedOrigin(req, config) {
   if (!hasTrustedOrigin(req, Boolean(config.tls))) {
     throw new HttpError(403, "origin_rejected");
@@ -165,6 +194,7 @@ export async function createDashboardServer(overrides = {}) {
   const state = overrides.state ?? await DashboardState.open(config.stateDirectory);
   const limiter = overrides.limiter ?? new LoginRateLimiter();
   const reauthLimiter = overrides.reauthLimiter ?? new LoginRateLimiter({ limit: 5, windowMs: 15 * 60 * 1000 });
+  const previewSecret = overrides.previewSecret ?? crypto.randomBytes(32);
   const tlsOptions = config.tls ? {
     key: await fs.readFile(config.tls.keyPath),
     cert: await fs.readFile(config.tls.certPath),
@@ -210,16 +240,57 @@ export async function createDashboardServer(overrides = {}) {
     const ip = clientIp(req);
     applySecurityHeaders(res, { tlsEnabled: Boolean(config.tls), api: true });
 
-    if (method === "GET" && pathname === "/api/health") {
+    if (method === "GET" && (pathname === "/api/health" || pathname === "/api/readiness")) {
       const [dashboard, accounts] = await Promise.all([
         readDashboardSnapshot(config.snapshotPath),
         readAccountSnapshot(config.accountSnapshotPath),
       ]);
-      sendJson(res, 200, {
-        ok: dashboard.availability === "ready" && accounts.availability === "ready",
+      const [users, commandStorageReady] = await Promise.all([
+        state.listUsers(),
+        commandStorageIsReady(config.commandRoot),
+      ]);
+      const dataAvailable = dashboard.availability === "ready" && accounts.availability === "ready";
+      const dataFresh = snapshotIsFresh(dashboard) && snapshotIsFresh(accounts);
+      const activeOwnerReady = users.some((user) => user.role === "owner" && user.status === "active");
+      const auditReady = !state.auditStatus().degraded;
+      // No authoritative executor heartbeat contract exists yet. Readiness is
+      // intentionally false until a real game-server heartbeat is implemented.
+      const executorReady = false;
+      const ready = dataAvailable && dataFresh && commandStorageReady && activeOwnerReady && auditReady && executorReady;
+      const payload = {
+        ok: pathname === "/api/health" ? true : ready,
+        live: true,
+        ready,
         availability: dashboard.availability,
         accounts_availability: accounts.availability,
-      });
+        data: {
+          available: dataAvailable,
+          fresh: dataFresh,
+          dashboard: {
+            availability: dashboard.availability,
+            generated_at_unix: dashboard.generated_at_unix ?? 0,
+          },
+          accounts: {
+            availability: accounts.availability,
+            generated_at_unix: accounts.generated_at_unix ?? 0,
+          },
+          max_age_seconds: SNAPSHOT_MAX_AGE_SECONDS,
+        },
+        command_storage: {
+          ready: commandStorageReady,
+        },
+        active_owner: {
+          ready: activeOwnerReady,
+        },
+        audit_outbox: {
+          ready: auditReady,
+        },
+        executor: {
+          observed: false,
+          status: "not_observed",
+        },
+      };
+      sendJson(res, pathname === "/api/readiness" && !ready ? 503 : 200, payload);
       return;
     }
 
@@ -301,11 +372,36 @@ export async function createDashboardServer(overrides = {}) {
       return;
     }
 
+    if (method === "POST" && pathname === "/api/resource-grants/preview") {
+      const session = await requireSession(req);
+      requireOwner(session);
+      requireCsrf(req, session);
+      const body = await readJsonBody(req);
+      const accounts = await readAccountSnapshot(config.accountSnapshotPath);
+      const preview = createGrantPreview({
+        body,
+        accountSnapshot: accounts,
+        actor: session.user.username,
+        sessionId: session.session_hash,
+        secret: previewSecret,
+      });
+      sendJson(res, 201, { preview });
+      return;
+    }
+
     if (method === "POST" && pathname === "/api/resource-grants") {
       const session = await requireSession(req);
       requireOwner(session);
       requireCsrf(req, session);
       const body = await readJsonBody(req);
+      const accounts = await readAccountSnapshot(config.accountSnapshotPath);
+      const command = commandFromGrantPreview({
+        body,
+        accountSnapshot: accounts,
+        actor: session.user.username,
+        sessionId: session.session_hash,
+        secret: previewSecret,
+      });
       const admission = reauthLimiter.admit(ip, session.user.username);
       if (!admission.allowed) {
         await appendAuditSafe({ event: "grant_reauth_rate_limited", actor: session.user.username, ip });
@@ -323,8 +419,6 @@ export async function createDashboardServer(overrides = {}) {
         await appendAuditSafe({ event: "grant_reauth_failed", actor: session.user.username, ip });
         throw new HttpError(401, "owner_reauthentication_failed");
       }
-      const accounts = await readAccountSnapshot(config.accountSnapshotPath);
-      const command = prepareGrantCommand({ body, accountSnapshot: accounts, actor: session.user.username });
       const existing = await findGrantEntry(config.commandRoot, command.command_id);
       if (existing) {
         if (!grantPayloadMatches(existing, command)) {
@@ -368,13 +462,15 @@ export async function createDashboardServer(overrides = {}) {
       requireOwner(session);
       requireCsrf(req, session);
       const body = await readJsonBody(req);
-      const user = await state.createUser({
-        username: body.username,
+      const created = await state.createUserAudited({
+        username: normalizeUsername(body.username),
         password: body.password,
-        role: body.role,
+        role: validateRole(body.role),
+      }, {
+        actor: session.user.username,
+        ip,
       });
-      await appendAuditSafe({ event: "admin_created", actor: session.user.username, target: user.username, ip, detail: user.role });
-      sendJson(res, 201, { user });
+      sendJson(res, 201, created);
       return;
     }
 
@@ -388,11 +484,26 @@ export async function createDashboardServer(overrides = {}) {
       }
       const body = await readJsonBody(req);
       const patch = {};
-      if (Object.hasOwn(body, "role")) patch.role = body.role;
-      if (Object.hasOwn(body, "status")) patch.status = body.status;
-      if (Object.hasOwn(body, "password")) patch.password = body.password;
-      const updated = await state.updateUser(target, patch);
-      await appendAuditSafe({ event: "admin_updated", actor: session.user.username, target: updated.user.username, ip, detail: `${updated.user.role}/${updated.user.status}` });
+      const changedFields = [];
+      if (Object.hasOwn(body, "role")) {
+        patch.role = validateRole(body.role);
+        changedFields.push("role");
+      }
+      if (Object.hasOwn(body, "status")) {
+        patch.status = validateStatus(body.status);
+        changedFields.push("status");
+      }
+      if (Object.hasOwn(body, "password")) {
+        validatePassword(body.password);
+        patch.password = body.password;
+        changedFields.push("password");
+      }
+      if (changedFields.length === 0) throw new StateError("invalid_user_patch");
+      const normalizedTarget = normalizeUsername(target);
+      const updated = await state.updateUserAudited(normalizedTarget, patch, {
+        actor: session.user.username,
+        ip,
+      });
       sendJson(res, 200, updated);
       return;
     }
@@ -405,9 +516,12 @@ export async function createDashboardServer(overrides = {}) {
       if (!target || target.includes("/")) {
         throw new HttpError(404, "not_found");
       }
-      const revoked = await state.revokeSessionsFor(target);
-      await appendAuditSafe({ event: "sessions_revoked", actor: session.user.username, target, ip, detail: String(revoked) });
-      sendJson(res, 200, { revoked_sessions: revoked });
+      const normalizedTarget = normalizeUsername(target);
+      const revoked = await state.revokeSessionsForAudited(normalizedTarget, {
+        actor: session.user.username,
+        ip,
+      });
+      sendJson(res, 200, revoked);
       return;
     }
 
@@ -481,6 +595,7 @@ export async function createDashboardServer(overrides = {}) {
 function parseCommandLine(argumentsList) {
   const options = {};
   const positionals = [];
+  const valueOptions = new Set(["state-dir", "host", "port", "tls-key", "tls-cert", "username", "account-snapshot", "command-root"]);
   for (let index = 0; index < argumentsList.length; index += 1) {
     const value = argumentsList[index];
     if (!value.startsWith("--")) {
@@ -492,25 +607,33 @@ function parseCommandLine(argumentsList) {
       throw new Error("invalid option");
     }
     if (inlineValue !== undefined) {
+      if (!valueOptions.has(name)) {
+        throw new Error(`unknown option: --${name}`);
+      }
       options[name] = inlineValue;
       continue;
     }
-    if (["state-dir", "host", "port", "tls-key", "tls-cert", "username", "account-snapshot", "command-root"].includes(name)) {
+    if (valueOptions.has(name)) {
       index += 1;
       if (index >= argumentsList.length) {
         throw new Error(`missing value for --${name}`);
       }
       options[name] = argumentsList[index];
-    } else {
+    } else if (name === "help") {
       options[name] = true;
+    } else {
+      throw new Error(`unknown option: --${name}`);
     }
+  }
+  if (positionals.length > 1) {
+    throw new Error(`unexpected positional argument: ${positionals[1]}`);
   }
   return { command: positionals[0] ?? "serve", options };
 }
 
 async function promptLine(prompt) {
   if (!process.stdin.isTTY) {
-    throw new Error("owner initialization requires an interactive local terminal");
+    throw new Error("owner credential command requires an interactive local terminal");
   }
   process.stdout.write(prompt);
   return new Promise((resolve, reject) => {
@@ -543,7 +666,7 @@ async function promptLine(prompt) {
 
 async function promptHidden(prompt) {
   if (!process.stdin.isTTY || typeof process.stdin.setRawMode !== "function") {
-    throw new Error("owner initialization requires an interactive local terminal");
+    throw new Error("owner credential command requires an interactive local terminal");
   }
   process.stdout.write(prompt);
   const wasRaw = process.stdin.isRaw;
@@ -597,9 +720,25 @@ function cliOverrides(options) {
 function printUsage() {
   console.log("Usage:");
   console.log("  node server.mjs init-owner [--state-dir <directory>] [--username <name>]");
+  console.log("  node server.mjs reset-owner-password [--state-dir <directory>] [--username <name>]");
   console.log("  ZHANCHENG_DASHBOARD_SNAPSHOT_PATH=<.../dashboard_snapshot.json> node server.mjs [--host 127.0.0.1] [--port 24568]");
   console.log("  Optional: ZHANCHENG_DASHBOARD_ACCOUNT_SNAPSHOT_PATH=<.../admin_accounts_snapshot.json>");
   console.log("            ZHANCHENG_DASHBOARD_COMMAND_ROOT=<.../admin_commands>");
+}
+
+export async function resetOwnerPassword(state, usernameInput, password, confirmation) {
+  const username = normalizeUsername(usernameInput);
+  if (password !== confirmation) {
+    throw new Error("password confirmation does not match");
+  }
+  const current = (await state.listUsers()).find((user) => user.username === username);
+  if (!current) {
+    throw new StateError("user_not_found");
+  }
+  if (current.role !== "owner") {
+    throw new StateError("owner_required");
+  }
+  return state.updateUserAudited(username, { password }, { actor: "local_cli", ip: "local_tty" });
 }
 
 export async function runCli(argumentsList = process.argv.slice(2)) {
@@ -617,9 +756,20 @@ export async function runCli(argumentsList = process.argv.slice(2)) {
     if (password !== confirmation) {
       throw new Error("password confirmation does not match");
     }
-    const user = await state.initializeOwner(username, password);
-    await state.appendAudit({ event: "owner_initialized", actor: user.username, detail: "local_cli" });
-    console.log(`Owner '${user.username}' initialized in ${stateDirectory}.`);
+    const initialized = await state.initializeOwnerAudited(username, password, { source: "local_cli" });
+    const auditState = initialized.audit_pending ? " Audit JSONL projection is pending; readiness is degraded." : "";
+    console.log(`Owner '${initialized.user.username}' initialized in ${stateDirectory}.${auditState}`);
+    return 0;
+  }
+  if (command === "reset-owner-password") {
+    const stateDirectory = path.resolve(options["state-dir"] ?? process.env.ZHANCHENG_DASHBOARD_STATE_DIR ?? defaultStateDirectory());
+    const state = await DashboardState.open(stateDirectory);
+    const username = options.username ?? await promptLine("Owner username: ");
+    const password = await promptHidden("New owner password (min 12 chars): ");
+    const confirmation = await promptHidden("Confirm new owner password: ");
+    const updated = await resetOwnerPassword(state, username, password, confirmation);
+    const auditState = updated.audit_pending ? " Audit JSONL projection is pending; readiness is degraded." : "";
+    console.log(`Owner '${updated.user.username}' password rotated and ${updated.revoked_sessions} session(s) revoked.${auditState}`);
     return 0;
   }
   if (command !== "serve") {
@@ -641,7 +791,16 @@ export async function runCli(argumentsList = process.argv.slice(2)) {
   return new Promise(() => {});
 }
 
-const isEntrypoint = process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url);
+export function isEntrypointPath(candidatePath) {
+  if (!candidatePath) return false;
+  try {
+    return realpathSync(candidatePath) === realpathSync(fileURLToPath(import.meta.url));
+  } catch {
+    return false;
+  }
+}
+
+const isEntrypoint = isEntrypointPath(process.argv[1]);
 if (isEntrypoint) {
   runCli().catch((error) => {
     console.error(`Dashboard startup failed: ${error.message}`);

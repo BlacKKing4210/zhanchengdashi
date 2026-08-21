@@ -1,0 +1,14 @@
+[Unit]
+Description=Daily renewal check for the Jungle Law short-lived IP certificate
+Documentation=file:/opt/junglelaw-admin/current/deploy/linux/ADMIN_DASHBOARD_DEPLOYMENT.md
+
+[Timer]
+OnCalendar=*-*-* 00:00:00 UTC
+OnCalendar=*-*-* 12:00:00 UTC
+RandomizedDelaySec=1h
+AccuracySec=5min
+Persistent=true
+Unit=junglelaw-admin-dashboard-cert-renew.service
+
+[Install]
+WantedBy=timers.target

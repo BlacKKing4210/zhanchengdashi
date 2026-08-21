@@ -119,6 +119,12 @@ function apiErrorMessage(code) {
     owner_reauthentication_failed: "重新认证失败，请核对当前 Owner 密码。",
     grant_reauth_rate_limited: "重新认证尝试过于频繁，请稍后再试。",
     all_confirmation_required: "全服二次确认文本必须准确等于 SEND TO ALL。",
+    target_confirmation_required: "指定账号二次确认文本必须准确等于 SEND。",
+    invalid_preview_token: "预览凭证无效，请返回并重新生成预览。",
+    invalid_preview_request: "提交内容与服务器预览不一致，请返回并重新生成预览。",
+    preview_expired: "服务器预览已过期，请返回并重新生成预览。",
+    preview_stale: "目标账号集合已变化，请刷新账号投影并重新生成预览。",
+    preview_session_mismatch: "预览不属于当前登录会话，请重新登录并生成预览。",
     target_not_found: "指定账号不在最新账号投影中，请刷新后重新预览。",
     no_target_accounts: "最新账号投影中没有可发放目标。",
     invalid_idempotency_key: "幂等键无效，请返回并重新生成预览。",
@@ -127,6 +133,9 @@ function apiErrorMessage(code) {
     invalid_reason: "请填写可审计的发放原因。",
     unsupported_resource: "资源类型不受支持。",
     idempotency_conflict: "该幂等键已用于不同指令，请重新预览。",
+    terminal_state_conflict: "该指令同时存在冲突的终态回执，已停止提交，请联系运维核对。",
+    invalid_terminal_entry: "该指令的终态回执无效，已停止提交，请联系运维核对。",
+    command_reconciliation_failed: "指令状态竞态未能安全收敛，已停止提交，请联系运维核对。",
     command_write_failed: "指令未能安全写入命令目录，请联系运维。",
   };
   return messages[code] || "操作未完成，请检查输入后重试。";
@@ -620,10 +629,6 @@ function validateGrantDraft(draft) {
   return "";
 }
 
-function grantTargetCount(draft) {
-  return draft?.target.kind === "all" ? normalizeList(state.accounts?.accounts).length : 1;
-}
-
 function grantDescription(draft) {
   if (!draft) return "—";
   const rawGrant = draft.grant || draft.grants?.[0] || {};
@@ -636,13 +641,13 @@ function grantDescription(draft) {
 function renderGrantPreview(pane) {
   if (!state.grantPreview) return;
   const draft = state.grantPreview.draft;
-  const targetCount = grantTargetCount(draft);
+  const targetCount = state.grantPreview.targetCount;
   const preview = element("section", { className: "panel grant-preview", attrs: { "aria-labelledby": "grant-preview-heading" } });
   preview.append(element("p", { className: "step-label", text: "步骤 2–4 / 4 · 重新认证、二次确认、提交" }), element("h2", { id: "grant-preview-heading", text: "核对不可撤销指令" }));
   preview.append(callout("danger", "提交后不可撤销", "提交只会创建服务器待执行指令，不表示资源已到账。请依据任务状态回执核对执行结果；失败时不要更换幂等键盲目重试。", "alert"));
   const facts = element("dl", { className: "preview-facts" });
   const targetText = draft.target.kind === "all" ? `全部账号（${targetCount} 个）` : `${compactUserId(draft.target.user_id)}（1 个）`;
-  [["目标", targetText], ["资源", grantDescription(draft)], ["原因", draft.reason], ["幂等键", state.grantPreview.idempotencyKey]].forEach(([term, value]) => facts.append(element("dt", { text: term }), element("dd", { text: value })));
+  [["目标", targetText], ["资源", grantDescription(draft)], ["原因", draft.reason], ["幂等键", state.grantPreview.idempotencyKey], ["预览有效至", formatDate(state.grantPreview.expiresAt)]].forEach(([term, value]) => facts.append(element("dt", { text: term }), element("dd", { text: value })));
   preview.append(facts);
   const confirmForm = element("form", { className: "grant-confirm-form" });
   const password = element("input", { type: "password", name: "password", required: true, autocomplete: "current-password", placeholder: "当前 Owner 密码" });
@@ -676,10 +681,10 @@ function renderGrantPreview(pane) {
         method: "POST",
         mutation: true,
         body: JSON.stringify({
-          ...draft,
           confirmation: confirmation.value,
           password: password.value,
           idempotency_key: state.grantPreview.idempotencyKey,
+          preview_token: state.grantPreview.previewToken,
         }),
       });
       password.value = "";
@@ -781,8 +786,9 @@ function renderGrants() {
   targetKind.addEventListener("change", updateConditionalFields);
   grantType.addEventListener("change", updateConditionalFields);
   updateConditionalFields();
-  form.addEventListener("submit", (event) => {
+  form.addEventListener("submit", async (event) => {
     event.preventDefault();
+    error.textContent = "";
     const draft = buildGrantDraft(form);
     const message = validateGrantDraft(draft);
     if (message) {
@@ -790,10 +796,34 @@ function renderGrants() {
       error.focus?.();
       return;
     }
-    state.grantDraft = draft;
-    state.grantPreview = { draft, idempotencyKey: generateIdempotencyKey() };
-    renderActiveTab();
-    announce(`预览已生成，目标 ${grantTargetCount(draft)} 个账号。`);
+    const idempotencyKey = generateIdempotencyKey();
+    preview.disabled = true;
+    try {
+      const payload = await request("/api/resource-grants/preview", {
+        method: "POST",
+        mutation: true,
+        body: JSON.stringify({ ...draft, idempotency_key: idempotencyKey }),
+      });
+      const contract = payload.preview;
+      if (!contract?.preview_token || contract.idempotency_key !== idempotencyKey) {
+        throw Object.assign(new Error("invalid preview response"), { code: "invalid_preview_token" });
+      }
+      state.grantDraft = draft;
+      state.grantPreview = {
+        draft,
+        idempotencyKey,
+        previewToken: contract.preview_token,
+        expiresAt: contract.expires_at_unix,
+        targetCount: contract.target_count,
+      };
+      renderActiveTab();
+      announce(`服务器预览已生成，冻结目标 ${contract.target_count} 个账号。`);
+    } catch (requestError) {
+      error.textContent = apiErrorMessage(requestError.code);
+      error.focus?.();
+    } finally {
+      preview.disabled = false;
+    }
   });
   const content = element("div", { className: "grant-layout" });
   content.append(form);
@@ -878,7 +908,7 @@ function renderTasks() {
     const rawTime = Number(entry.at || 0);
     const auditTime = rawTime > 100000000000 ? Math.floor(rawTime / 1000) : rawTime;
     item.append(
-      element("strong", { text: entry.event || "audit" }),
+      element("strong", { text: `${entry.event || "audit"}${entry.pending ? "（outbox 待重放）" : ""}` }),
       document.createTextNode(` · ${entry.actor || "系统"} → ${entry.target || "-"} · ${formatDate(auditTime)}`),
     );
     if (entry.detail) item.append(document.createElement("br"), document.createTextNode(entry.detail));
@@ -920,10 +950,14 @@ async function updateUser(username, patch, description) {
   const confirmed = await nativeConfirmDialog({ title: "确认管理员危险操作", description, confirmText: "确认并执行" });
   if (!confirmed) return;
   try {
-    await request(`/api/admins/${encodeURIComponent(username)}`, { method: "PATCH", mutation: true, body: JSON.stringify(patch) });
+    const outcome = await request(`/api/admins/${encodeURIComponent(username)}`, { method: "PATCH", mutation: true, body: JSON.stringify(patch) });
     await loadManagement(true);
     renderActiveTab();
-    announce(`管理员 ${username} 已更新。`);
+    const message = outcome.audit_pending
+      ? `管理员 ${username} 已更新；完整审计已进入持久 outbox，但日志投影待重放，系统当前未就绪。`
+      : `管理员 ${username} 已更新。`;
+    announce(message);
+    if (outcome.audit_pending) window.alert(message);
   } catch (error) {
     announce(apiErrorMessage(error.code));
     window.alert(apiErrorMessage(error.code));
@@ -934,10 +968,14 @@ async function revokeSessions(username) {
   const confirmed = await nativeConfirmDialog({ title: "撤销全部会话？", description: `这会立即使 ${username} 的全部现有登录会话失效，且不可撤销。`, confirmText: "撤销全部会话" });
   if (!confirmed) return;
   try {
-    await request(`/api/admins/${encodeURIComponent(username)}/revoke-sessions`, { method: "POST", mutation: true, body: JSON.stringify({}) });
+    const outcome = await request(`/api/admins/${encodeURIComponent(username)}/revoke-sessions`, { method: "POST", mutation: true, body: JSON.stringify({}) });
     await loadManagement(true);
     renderActiveTab();
-    announce(`${username} 的全部会话已撤销。`);
+    const message = outcome.audit_pending
+      ? `${username} 的全部会话已撤销；完整审计已进入持久 outbox，但日志投影待重放，系统当前未就绪。`
+      : `${username} 的全部会话已撤销。`;
+    announce(message);
+    if (outcome.audit_pending) window.alert(message);
   } catch (error) {
     window.alert(apiErrorMessage(error.code));
   }
@@ -974,12 +1012,16 @@ function renderPermissions() {
     if (!confirmed) return;
     submit.disabled = true;
     try {
-      await request("/api/admins", { method: "POST", mutation: true, body: JSON.stringify({ username: username.value, password: password.value, role: role.value }) });
+      const outcome = await request("/api/admins", { method: "POST", mutation: true, body: JSON.stringify({ username: username.value, password: password.value, role: role.value }) });
       password.value = "";
       username.value = "";
       await loadManagement(true);
       renderActiveTab();
-      announce("管理员账号已创建。");
+      const message = outcome.audit_pending
+        ? "管理员账号已创建；完整审计已进入持久 outbox，但日志投影待重放，系统当前未就绪。"
+        : "管理员账号已创建。";
+      announce(message);
+      if (outcome.audit_pending) window.alert(message);
     } catch (requestError) {
       password.value = "";
       error.textContent = apiErrorMessage(requestError.code);

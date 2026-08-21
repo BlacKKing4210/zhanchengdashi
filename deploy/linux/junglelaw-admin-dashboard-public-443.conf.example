@@ -1,0 +1,7 @@
+# Optional staging-only drop-in. Install only after the profile records an
+# explicit TCP 443 decision and a public reachability probe. The base unit must
+# keep an empty capability set and the environment template remains on 8443.
+[Service]
+Environment=ZHANCHENG_DASHBOARD_PORT=443
+CapabilityBoundingSet=CAP_NET_BIND_SERVICE
+AmbientCapabilities=CAP_NET_BIND_SERVICE
