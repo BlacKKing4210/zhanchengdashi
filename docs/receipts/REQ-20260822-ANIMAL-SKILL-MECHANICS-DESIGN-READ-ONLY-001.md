@@ -1,0 +1,29 @@
+# F-ZC-001 动物技能机制设计只读回执
+
+- request_id: `REQ-20260822-ANIMAL-SKILL-MECHANICS-DESIGN-001`
+- document_sub_id: `F-ZC-ANIMAL-SKILLS-001`
+- document_class: `REVIEW_ONLY`
+- implementation_authority: `false`
+- owner: `codex-primary`
+- primary_skill: `game-feature-design-docs`
+- design_filter: `lean-game-design-director`
+- objective: 以当前 60 只动物为基线，形成涵盖战吼、亡语及其他必要触发机制的原创技能提案，明确每只动物的机制定位、队伍职责、连携、反制和调参旋钮。
+- non_goals: 不修改 `config/tables/cards.csv`、`runtime/config/cards.json`、GDScript、场景、UI、音频、服务端或构建；不复制炉石卡名、规则原文、数值、美术或身份。
+- output_path: `outputs/019ff0ec-63ef-7f01-8d36-9be00ae2a670/`
+- configuration_authority: `config/tables/cards.csv`（本任务只读）
+- runtime_baseline: `docs/CURRENT_GAME_DESIGN.md`、`docs/ANIMAL_SKILL_IMPLEMENTATION_AUDIT.md`（本任务只读）
+- reference_only: `outputs/019ff0ec-63ef-7f01-8d36-9be00ae2a670/hearthstone_card_reference_2026-08-13.xlsx`
+- baseline_sha256_cards: `93D09D8CA28C58358A6E8E3D80858CB3B83C095195087694942BBD7F75C9E510`
+- baseline_sha256_design: `4DEE894FC7963F7E5ADDFAA10C42F85507BFDFF00303BD6CFD20EE50380A286D`
+- baseline_sha256_skill_audit: `8A8289A4B39266DB99A8731D89EBCC935BD07EA4790661DA3836AC01C087F6A4`
+- baseline_sha256_hearthstone_reference: `80A4DD355ED9BD13BB11B6164E3BFF6CAAE372248E5F78E1FA52F4BEF2E87AF3`
+- allowed_write_set: 本回执、指定输出目录中的 1 份 DOCX 与 1 份 XLSX、任务本地 QA 临时文件。
+- acceptance: 60 只动物逐一覆盖；战吼、亡语等机制定义完整；动物生态匹配理由可直观说明；至少形成多套跨动物组合与明确反制；所有数值为提案或待调；DOCX 与 XLSX 内容一致；DOCX 逐页 PNG 检查、XLSX 全页签可视检查通过。
+- evidence: RAG gate/task receipt、源文件哈希、60 行覆盖检查、机制/品质/定位分布检查、重复与缺失检查、文档与工作簿渲染检查。
+- close_condition: 设计包达到“方向可评审”，仍保留 `NOT AUTHORIZED FOR IMPLEMENTATION`、实现前升级清单与制作人待确认项。
+- reusable_method_candidate: `none`
+- control_status: `READY / L1 direct_execute / design_owner`
+- task_fingerprint: `4A5E7D592B86A7878AD304C5CCD723724CFBBCEB32AF1480F716380E59AF8102`
+- duplicate_task_ids: `none`
+- conflicting_task_ids: `none`
+- recorded_before_write: `true`
