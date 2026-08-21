@@ -9,6 +9,7 @@ const RankAIDecks = preload("res://scripts/app/systems/rank_ai_decks.gd")
 const PlayerNameLibrary = preload("res://scripts/core/player_name_library.gd")
 const RankMirrorRules = preload("res://scripts/app/systems/rank_mirror_rules.gd")
 const UnitMotionFeedback = preload("res://scripts/app/systems/unit_motion_feedback.gd")
+const UnitSequenceAnimation = preload("res://scripts/app/systems/unit_sequence_animation.gd")
 const DeckService = preload("res://scripts/foundation/deck/deck_service.gd")
 const GachaService = preload("res://scripts/foundation/gacha/gacha_service.gd")
 const PageRouter = preload("res://scripts/foundation/ui/page_router.gd")
@@ -7313,6 +7314,7 @@ func _draw_shape(points: Array, fill: Color, line: Color, width: float) -> void:
 func _draw_unit(unit: Dictionary) -> void:
 	var world_pos = Vector2(unit["pos"])
 	var card = _unit_card(unit)
+	var card_id = String(card.get("id", ""))
 	var visual_scale = _animal_rarity_visual_scale(card)
 	var art_visual_scale = _battle_animal_art_visual_scale(card)
 	var camera_zoom = _battle_camera_zoom()
@@ -7326,13 +7328,25 @@ func _draw_unit(unit: Dictionary) -> void:
 		selection_color.a = 0.94
 		draw_circle(selection_center, maxf(28.0, 30.0 * visual_scale), selection_color, false, 2.4, true)
 	draw_circle(pos + Vector2(0, 14), 17.0 * visual_scale * camera_zoom, Color(0, 0, 0, 0.18))
+	var texture = _card_texture(card)
+	var pose = UnitMotionFeedback.pose(unit)
+	var bottom_padding_ratio = _animal_art_bottom_padding_ratio(card)
+	var source_rect = Rect2()
+	var sequence_sample = UnitSequenceAnimation.sample_for_unit(card_id, unit, Time.get_ticks_msec() * 0.001)
+	if not sequence_sample.is_empty():
+		texture = sequence_sample["texture"]
+		source_rect = sequence_sample["source_rect"]
+		bottom_padding_ratio = float(sequence_sample["bottom_padding_ratio"])
+		if String(sequence_sample.get("embedded_motion", "")) != "":
+			pose = {"offset": Vector2.ZERO, "scale": Vector2.ONE, "rotation": 0.0}
 	_draw_animal_texture_at_foot(
-		_card_texture(card),
+		texture,
 		pos + Vector2(0, 14),
 		Vector2(44, 44),
-		UnitMotionFeedback.pose(unit),
+		pose,
 		art_visual_scale,
-		_animal_art_bottom_padding_ratio(card)
+		bottom_padding_ratio,
+		source_rect
 	)
 	var pct = clampf(float(unit["hp"]) / float(unit["max_hp"]), 0.0, 1.0)
 	_draw_compact_bar(Rect2(pos + Vector2(-18, 20), Vector2(36, 6)), pct, _team_health_color(team))
@@ -7381,12 +7395,16 @@ func _animal_texture_foot_rect(size: Vector2, bottom_padding_ratio: float = 0.0)
 	return Rect2(Vector2(-size.x * 0.5, -size.y + padding), size)
 
 
-func _draw_animal_texture_at_foot(texture: Texture2D, foot: Vector2, size: Vector2, pose: Dictionary, visual_scale: float = 1.0, bottom_padding_ratio: float = 0.0) -> void:
+func _draw_animal_texture_at_foot(texture: Texture2D, foot: Vector2, size: Vector2, pose: Dictionary, visual_scale: float = 1.0, bottom_padding_ratio: float = 0.0, source_rect: Rect2 = Rect2()) -> void:
 	var offset = Vector2(pose.get("offset", Vector2.ZERO))
 	var draw_scale = _animal_texture_draw_scale(pose, visual_scale)
 	var rotation = float(pose.get("rotation", 0.0))
 	draw_set_transform(canvas_offset + (foot + offset) * canvas_scale, rotation, draw_scale * canvas_scale)
-	draw_texture_rect(texture, _animal_texture_foot_rect(size, bottom_padding_ratio), false)
+	var draw_rect = _animal_texture_foot_rect(size, bottom_padding_ratio)
+	if source_rect.size.x > 0.0 and source_rect.size.y > 0.0:
+		draw_texture_rect_region(texture, draw_rect, source_rect)
+	else:
+		draw_texture_rect(texture, draw_rect, false)
 	draw_set_transform(canvas_offset, 0.0, Vector2(canvas_scale, canvas_scale))
 
 
@@ -7558,12 +7576,26 @@ func _draw_effect(effect: Dictionary) -> void:
 		if dead_card.is_empty():
 			return
 		var dead_pos = _world_to_canvas(Vector2(effect.get("pos", Vector2.ZERO)))
+		var dead_texture = _card_texture(dead_card)
+		var dead_bottom_padding = _animal_art_bottom_padding_ratio(dead_card)
+		var dead_source_rect = Rect2()
+		var dead_sample = UnitSequenceAnimation.idle_sample(
+			String(dead_card.get("id", "")),
+			0.0,
+			int(effect.get("unit_id", 0))
+		)
+		if not dead_sample.is_empty():
+			dead_texture = dead_sample["texture"]
+			dead_bottom_padding = float(dead_sample["bottom_padding_ratio"])
+			dead_source_rect = dead_sample["source_rect"]
 		_draw_animal_texture_at_foot(
-			_card_texture(dead_card),
+			dead_texture,
 			dead_pos + Vector2(0, 14),
 			Vector2(44, 44),
 			UnitMotionFeedback.death_pose(effect),
-			_battle_animal_art_visual_scale(dead_card)
+			_battle_animal_art_visual_scale(dead_card),
+			dead_bottom_padding,
+			dead_source_rect
 		)
 		return
 	if kind == "card_popup":

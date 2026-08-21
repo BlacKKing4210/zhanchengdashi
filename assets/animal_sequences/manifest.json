@@ -1,0 +1,121 @@
+{
+  "animals": {
+    "fox": {
+      "actions": {
+        "attack": {
+          "frames": [
+            "res://assets/animal_sequences/fox/attack/frame_001.png",
+            "res://assets/animal_sequences/fox/attack/frame_002.png",
+            "res://assets/animal_sequences/fox/attack/frame_003.png",
+            "res://assets/animal_sequences/fox/attack/frame_004.png",
+            "res://assets/animal_sequences/fox/attack/frame_005.png",
+            "res://assets/animal_sequences/fox/attack/frame_006.png",
+            "res://assets/animal_sequences/fox/attack/frame_007.png",
+            "res://assets/animal_sequences/fox/attack/frame_008.png",
+            "res://assets/animal_sequences/fox/attack/frame_009.png",
+            "res://assets/animal_sequences/fox/attack/frame_010.png"
+          ],
+          "mode": "motion_progress"
+        },
+        "idle": {
+          "fps": 10.0,
+          "frames": [
+            "res://assets/animal_sequences/fox/idle/frame_001.png",
+            "res://assets/animal_sequences/fox/idle/frame_002.png",
+            "res://assets/animal_sequences/fox/idle/frame_003.png",
+            "res://assets/animal_sequences/fox/idle/frame_004.png",
+            "res://assets/animal_sequences/fox/idle/frame_005.png",
+            "res://assets/animal_sequences/fox/idle/frame_006.png",
+            "res://assets/animal_sequences/fox/idle/frame_007.png",
+            "res://assets/animal_sequences/fox/idle/frame_008.png",
+            "res://assets/animal_sequences/fox/idle/frame_009.png",
+            "res://assets/animal_sequences/fox/idle/frame_010.png",
+            "res://assets/animal_sequences/fox/idle/frame_011.png",
+            "res://assets/animal_sequences/fox/idle/frame_012.png",
+            "res://assets/animal_sequences/fox/idle/frame_013.png"
+          ],
+          "mode": "loop"
+        },
+        "move": {
+          "fps": 15.0,
+          "frames": [
+            "res://assets/animal_sequences/fox/move/frame_001.png",
+            "res://assets/animal_sequences/fox/move/frame_002.png",
+            "res://assets/animal_sequences/fox/move/frame_003.png",
+            "res://assets/animal_sequences/fox/move/frame_004.png",
+            "res://assets/animal_sequences/fox/move/frame_005.png",
+            "res://assets/animal_sequences/fox/move/frame_006.png",
+            "res://assets/animal_sequences/fox/move/frame_007.png",
+            "res://assets/animal_sequences/fox/move/frame_008.png",
+            "res://assets/animal_sequences/fox/move/frame_009.png",
+            "res://assets/animal_sequences/fox/move/frame_010.png",
+            "res://assets/animal_sequences/fox/move/frame_011.png",
+            "res://assets/animal_sequences/fox/move/frame_012.png",
+            "res://assets/animal_sequences/fox/move/frame_013.png",
+            "res://assets/animal_sequences/fox/move/frame_014.png",
+            "res://assets/animal_sequences/fox/move/frame_015.png"
+          ],
+          "mode": "loop"
+        }
+      },
+      "bottom_padding_ratio": 0.1951219512195122,
+      "frame_sha256": {
+        "res://assets/animal_sequences/fox/attack/frame_001.png": "ab17832c9eff33c1ffedd1fd71456deaacfc4fb512be2f92bd94aa702eaaedf0",
+        "res://assets/animal_sequences/fox/attack/frame_002.png": "9b088fe96a5ea214845764d0e7f28df31d0192a222f01d53107d67dd38e6dda5",
+        "res://assets/animal_sequences/fox/attack/frame_003.png": "08a19a63e60f7bb40efa440725f15026dd19f69ee42effed0f843e1a8a940f99",
+        "res://assets/animal_sequences/fox/attack/frame_004.png": "836178087f8c53a0d4e74e9cf19927da3c2494ee0edd53ad8f6e173998f56056",
+        "res://assets/animal_sequences/fox/attack/frame_005.png": "a4fc39ed0be5040788b13fc78d9c63815747c15b179e4e58350c14cd650de888",
+        "res://assets/animal_sequences/fox/attack/frame_006.png": "ee033d1a478df25b773dac32e8f3d72d52e347d2934f1a80ee02f6d9526dd0ad",
+        "res://assets/animal_sequences/fox/attack/frame_007.png": "ee033d1a478df25b773dac32e8f3d72d52e347d2934f1a80ee02f6d9526dd0ad",
+        "res://assets/animal_sequences/fox/attack/frame_008.png": "9ca64db24d7ac12311a69bf21eab3819a897844518fb11b3f6e541d13eacc3b6",
+        "res://assets/animal_sequences/fox/attack/frame_009.png": "6771ec6b63e7d4bb08358bf4c4c5ac7fc0b5ea35f9aeb93f54553ad4eda4d86b",
+        "res://assets/animal_sequences/fox/attack/frame_010.png": "c08ea460473e09516df3ae7957e8bfa4c62de31028fdb607dd0fda2373086ed7",
+        "res://assets/animal_sequences/fox/idle/frame_001.png": "8bfb5a854edd6d53696d8f9c86b18033e5a25166e78dd5ebbbb7e129d591088c",
+        "res://assets/animal_sequences/fox/idle/frame_002.png": "09a15f5821530969981e4c1a4da6009e366fafefd84140ec11b4425f8ceeae35",
+        "res://assets/animal_sequences/fox/idle/frame_003.png": "bbac7165c3ddb947db3f2d7e5a89f5b047527894c7d5e64fd285febf35ce82fd",
+        "res://assets/animal_sequences/fox/idle/frame_004.png": "322003a2d54310cba07ae70be874f0aceda3427d41a908f23b1bab6cdfa70f8c",
+        "res://assets/animal_sequences/fox/idle/frame_005.png": "5718744acdfb98faed0445375f6a6b8e0e539112c2f958c77a332cb755932b32",
+        "res://assets/animal_sequences/fox/idle/frame_006.png": "214cf52c7dfdddb1d4106105495b745db58e1beecd027705f12e3587c9ba84c7",
+        "res://assets/animal_sequences/fox/idle/frame_007.png": "6558c1282cac87fba69f91eb5e3f500b137ff37cfb835277a0b6d4f9bcc09fe6",
+        "res://assets/animal_sequences/fox/idle/frame_008.png": "743f93f94f68434b4ba3857860fce5597dceb83b66fdc1df44cd6dcf42aed252",
+        "res://assets/animal_sequences/fox/idle/frame_009.png": "67c245c7d30d5277fdc82b7180ffc38e46620ff5af0817634a358dda4c2476b5",
+        "res://assets/animal_sequences/fox/idle/frame_010.png": "8eb4bce931e34e46505ea4d1a486f5b2150ab2cbb5a2e7b83c62448466b06538",
+        "res://assets/animal_sequences/fox/idle/frame_011.png": "d192b92d3a75ac67dcfd347f22344005d59616f43c02bb525399be8c90657f8f",
+        "res://assets/animal_sequences/fox/idle/frame_012.png": "611d9ab65d0a364bc3f9420b8cbba0efc10909a68e0339227cb0a083f2402ca1",
+        "res://assets/animal_sequences/fox/idle/frame_013.png": "fbb9fac1720e4759340c3458d62e90b552697f99bba8fcd13ff374eff4048984",
+        "res://assets/animal_sequences/fox/move/frame_001.png": "6243049bb51c7ceb6fa6f4ce1053e626946a31e96a8eda6ef0eddc2bde886dd7",
+        "res://assets/animal_sequences/fox/move/frame_002.png": "9f5bfc65ea513f3177ba14b39757be328e5edd4f2e2c18644bd085e6c0df95f5",
+        "res://assets/animal_sequences/fox/move/frame_003.png": "0dbb0a2ba50124bc3f3bd772096a6f819f102cf9199b14416475ccfec3965f9c",
+        "res://assets/animal_sequences/fox/move/frame_004.png": "74e630cfb0c4c60a9c8350a5267c7802492c925c338b20d483b18dc7a8ec90be",
+        "res://assets/animal_sequences/fox/move/frame_005.png": "87acf0e4adf8b00efe1078fed36129f4c3eb286a90d07fa77ce6897dac4bd495",
+        "res://assets/animal_sequences/fox/move/frame_006.png": "b7cda643ba22965e480e809c499a2bbd37acb2cb7c1ac52648d0dd7889886186",
+        "res://assets/animal_sequences/fox/move/frame_007.png": "beb5a0c9ab3066b99e1c1e2a4a3ddbb2c86372f376553e44c04647b0a810f7ed",
+        "res://assets/animal_sequences/fox/move/frame_008.png": "d1be1d76e939e4fb6769fc30e2f79f3445d4a64294053438ae7f222926843a6c",
+        "res://assets/animal_sequences/fox/move/frame_009.png": "a93aefe89c3397d7cc05162e980841418fcb00045ed3f849d5925a555fab1598",
+        "res://assets/animal_sequences/fox/move/frame_010.png": "27e901c16c114f4bd89be69460677aad51f94e8e02b3d8e922ce4aad524f76af",
+        "res://assets/animal_sequences/fox/move/frame_011.png": "62130d3a5826ee3902449944ac226f6e13047d41828faba97d7f297627180f15",
+        "res://assets/animal_sequences/fox/move/frame_012.png": "b5a652df03d8b80bcf8acacc9ba2e176d4a7b099d722a066eb0d6c68784863a7",
+        "res://assets/animal_sequences/fox/move/frame_013.png": "2b743526ec317610aa21df79b93fd50ea5293a829924b4a23b7a181b95c5541e",
+        "res://assets/animal_sequences/fox/move/frame_014.png": "ec23c1397833458853629d2e4369de5a4dc54760cae13389fde9f91cbc83fe49",
+        "res://assets/animal_sequences/fox/move/frame_015.png": "5e798846e396f0775417d5cbdd6bd6247ad10d8029c053e1d5478aeee60e5746"
+      },
+      "frame_size": [
+        836,
+        480
+      ],
+      "source_rect": [
+        230,
+        50,
+        410,
+        410
+      ]
+    }
+  },
+  "source": {
+    "archive_name": "狐狸远程.zip",
+    "archive_sha256": "3235d0961681105b7f0f31a924c5bd4f255f6eb3de435a1e04e857973501c0b6",
+    "archive_size": 3454652,
+    "rights_status": "user_supplied_for_project_integration_public_release_review_required"
+  },
+  "version": 1
+}
