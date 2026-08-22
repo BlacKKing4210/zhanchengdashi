@@ -1,5 +1,7 @@
 extends RefCounted
 
+const BattleAnalyticsContract = preload("res://scripts/shared/battle_analytics_contract.gd")
+
 ## Dedicated-server-owned, privacy-safe analytics projection for completed matches.
 ##
 ## This store deliberately accepts only the server-frozen roster and sanitized
@@ -70,6 +72,8 @@ func begin_match(match_value: Variant, roster_value: Variant, animal_card_ids_va
 	var roster = _normalize_roster(roster_value, animal_catalog)
 	var record = {
 		"match_id": match_id,
+		"battle_type": BattleAnalyticsContract.normalize_battle_type(source_match.get("battle_type", BattleAnalyticsContract.LEGACY_UNKNOWN)),
+		"analytics_authority": BattleAnalyticsContract.normalize_authority(source_match.get("analytics_authority", BattleAnalyticsContract.LEGACY_SERVER_RECORDED)),
 		"room_code": _safe_identifier(source_match.get("room_code", ""), MAX_ROOM_CODE_LENGTH),
 		"map_id": _safe_identifier(source_match.get("map_id", ""), MAX_MAP_ID_LENGTH),
 		"started_at_unix": maxi(0, int(source_match.get("started_at_unix", now))),
@@ -237,18 +241,20 @@ func dashboard_snapshot() -> Dictionary:
 	)
 
 	return {
-		"version": 2,
+		"version": 3,
 		"generated_at_unix": generated_at_unix,
 		"overview": {
 			"matches": _completed_match_count(),
 			"players": leaderboard.size(),
 			"active_24h": active_player_count,
 			"season": "",
-			"source": "server_recorded_host_authority_full_human_online",
+			"source": "all_completed_authenticated_battles_by_type",
 		},
+		"battle_types": _dashboard_battle_types(),
 		"leaderboard": leaderboard,
 		"top_decks": top_decks,
 		"animals": animals,
+		"animals_by_battle_type": _dashboard_animals_by_battle_type(),
 		"recent_matches": _dashboard_recent_matches(),
 	}
 
@@ -594,6 +600,128 @@ func _completed_match_count() -> int:
 	return completed_matches
 
 
+func _dashboard_battle_types() -> Array:
+	var counts = {}
+	var authorities = {}
+	for match_id_value in data["matches"]:
+		if typeof(data["matches"][match_id_value]) != TYPE_DICTIONARY:
+			continue
+		var record: Dictionary = data["matches"][match_id_value]
+		if String(record.get("state", "")) != "finalized" or bool(record.get("result_incomplete", false)):
+			continue
+		var battle_type = BattleAnalyticsContract.normalize_battle_type(record.get("battle_type", BattleAnalyticsContract.LEGACY_UNKNOWN))
+		var authority = BattleAnalyticsContract.normalize_authority(record.get("analytics_authority", BattleAnalyticsContract.LEGACY_SERVER_RECORDED))
+		counts[battle_type] = int(counts.get(battle_type, 0)) + 1
+		var type_authorities: Dictionary = (authorities.get(battle_type, {}) as Dictionary).duplicate(true)
+		type_authorities[authority] = int(type_authorities.get(authority, 0)) + 1
+		authorities[battle_type] = type_authorities
+	var rows = []
+	for battle_type in BattleAnalyticsContract.BATTLE_TYPES:
+		if int(counts.get(battle_type, 0)) <= 0:
+			continue
+		rows.append({
+			"battle_type": battle_type,
+			"matches": int(counts[battle_type]),
+			"authorities": (authorities.get(battle_type, {}) as Dictionary).duplicate(true),
+		})
+	return rows
+
+
+func _battle_type_animal_aggregates() -> Dictionary:
+	var aggregates = {}
+	var player_results = {}
+	for match_id_value in data["matches"]:
+		if typeof(data["matches"][match_id_value]) != TYPE_DICTIONARY:
+			continue
+		var match_record: Dictionary = data["matches"][match_id_value]
+		if String(match_record.get("state", "")) != "finalized" or bool(match_record.get("result_incomplete", false)):
+			continue
+		var battle_type = BattleAnalyticsContract.normalize_battle_type(match_record.get("battle_type", BattleAnalyticsContract.LEGACY_UNKNOWN))
+		var by_card: Dictionary = (aggregates.get(battle_type, {}) as Dictionary).duplicate(true)
+		var result_value = match_record.get("result", {})
+		if typeof(result_value) != TYPE_DICTIONARY:
+			continue
+		var result: Dictionary = result_value
+		var outcomes: Dictionary = result.get("team_outcomes", {}) if typeof(result.get("team_outcomes", {})) == TYPE_DICTIONARY else {}
+		var placements: Dictionary = result.get("placements_by_team", {}) if typeof(result.get("placements_by_team", {})) == TYPE_DICTIONARY else {}
+		for player_value in match_record.get("players", []):
+			if typeof(player_value) != TYPE_DICTIONARY:
+				continue
+			var player: Dictionary = player_value
+			var team_id = int(player.get("team_id", 0))
+			var outcome = _safe_outcome(outcomes.get(team_id, outcomes.get(str(team_id), "")))
+			if outcome.is_empty():
+				continue
+			player_results[battle_type] = int(player_results.get(battle_type, 0)) + 1
+			var placement_context = _placement_context(team_id, outcome, outcomes, placements)
+			for card_id_value in player.get("animal_deck", []):
+				var card_id = String(card_id_value)
+				if card_id.is_empty():
+					continue
+				var catalog_record: Dictionary = data["animals"].get(card_id, {})
+				var animal_record: Dictionary = (by_card.get(card_id, _empty_animal_record(card_id, String(catalog_record.get("name", card_id)))) as Dictionary).duplicate(true)
+				animal_record["appearances"] = int(animal_record.get("appearances", 0)) + 1
+				animal_record[outcome + "s"] = int(animal_record.get(outcome + "s", 0)) + 1
+				_apply_placement_fields(animal_record, placement_context)
+				by_card[card_id] = animal_record
+		aggregates[battle_type] = by_card
+	return {"animals": aggregates, "player_results": player_results}
+
+
+func _dashboard_animals_by_battle_type() -> Dictionary:
+	var aggregate_result = _battle_type_animal_aggregates()
+	var aggregates: Dictionary = aggregate_result.get("animals", {})
+	var player_results: Dictionary = aggregate_result.get("player_results", {})
+	var catalog: Dictionary = data["animals"]
+	var result = {}
+	for type_row_value in _dashboard_battle_types():
+		if typeof(type_row_value) != TYPE_DICTIONARY:
+			continue
+		var battle_type = BattleAnalyticsContract.normalize_battle_type((type_row_value as Dictionary).get("battle_type", BattleAnalyticsContract.LEGACY_UNKNOWN))
+		var by_card: Dictionary = aggregates.get(battle_type, {})
+		var denominator = maxi(0, int(player_results.get(battle_type, 0)))
+		var rows = []
+		for card_id_value in catalog:
+			if typeof(catalog[card_id_value]) != TYPE_DICTIONARY:
+				continue
+			var card_id = String(card_id_value)
+			var catalog_record: Dictionary = catalog[card_id_value]
+			var animal: Dictionary = (by_card.get(card_id, _empty_animal_record(card_id, String(catalog_record.get("name", card_id)))) as Dictionary).duplicate(true)
+			var appearances = maxi(0, int(animal.get("appearances", 0)))
+			var placement_samples = maxi(0, int(animal.get("placement_samples", 0)))
+			var wins = maxi(0, int(animal.get("wins", 0)))
+			var animal_row = {
+				"battle_type": battle_type,
+				"card_id": card_id,
+				"name": _safe_animal_name(catalog_record.get("name", ""), card_id),
+				"games": appearances,
+				"appearances": appearances,
+				"wins": wins,
+				"losses": maxi(0, int(animal.get("losses", 0))),
+				"draws": maxi(0, int(animal.get("draws", 0))),
+				"win_rate": float(wins) / float(appearances) if appearances > 0 else null,
+				"pick_rate": float(appearances) / float(denominator) if denominator > 0 else null,
+				"placement_samples": placement_samples,
+				"placement_sum": float(animal.get("placement_sum", 0.0)),
+				"average_placement": float(animal.get("placement_sum", 0.0)) / float(placement_samples) if placement_samples > 0 else null,
+				"placement_score_sum": float(animal.get("placement_score_sum", 0.0)),
+				"average_placement_score": float(animal.get("placement_score_sum", 0.0)) / float(placement_samples) if placement_samples > 0 else null,
+				"placement_field_size_sum": maxi(0, int(animal.get("placement_field_size_sum", 0))),
+				"average_field_size": float(animal.get("placement_field_size_sum", 0)) / float(placement_samples) if placement_samples > 0 else null,
+				"balance_scope": "single_battle_type_review_only",
+				"placement_scope": "retained_finalized_match_backfill_plus_new_matches",
+			}
+			animal_row.merge(_balance_review_signal(wins, appearances, animal_row.get("average_placement_score", null), placement_samples), true)
+			rows.append(animal_row)
+		rows.sort_custom(func(a: Dictionary, b: Dictionary) -> bool:
+			if int(a.get("appearances", 0)) != int(b.get("appearances", 0)):
+				return int(a.get("appearances", 0)) > int(b.get("appearances", 0))
+			return String(a.get("card_id", "")) < String(b.get("card_id", ""))
+		)
+		result[battle_type] = rows
+	return result
+
+
 func _dashboard_player(player: Dictionary) -> Dictionary:
 	var matches = maxi(0, int(player.get("matches", 0)))
 	var wins = maxi(0, int(player.get("wins", 0)))
@@ -649,6 +777,8 @@ func _dashboard_recent_matches() -> Array:
 			})
 		result.append({
 			"match_id": String(record.get("match_id", match_id)),
+			"battle_type": BattleAnalyticsContract.normalize_battle_type(record.get("battle_type", BattleAnalyticsContract.LEGACY_UNKNOWN)),
+			"analytics_authority": BattleAnalyticsContract.normalize_authority(record.get("analytics_authority", BattleAnalyticsContract.LEGACY_SERVER_RECORDED)),
 			"room_code": String(record.get("room_code", "")),
 			"map_id": String(record.get("map_id", "")),
 			"started_at_unix": maxi(0, int(record.get("started_at_unix", 0))),
@@ -764,7 +894,7 @@ func _empty_animal_record(card_id: String, name: String = "") -> Dictionary:
 func _ensure_shape() -> void:
 	if typeof(data) != TYPE_DICTIONARY:
 		data = {}
-	data["version"] = 2
+	data["version"] = 3
 	if not data.has("matches") or typeof(data["matches"]) != TYPE_DICTIONARY:
 		data["matches"] = {}
 	if not data.has("match_order") or typeof(data["match_order"]) != TYPE_ARRAY:
@@ -775,6 +905,13 @@ func _ensure_shape() -> void:
 		data["animals"] = {}
 	if not data.has("placement_aggregation_version"):
 		data["placement_aggregation_version"] = 0
+	for match_id_value in data["matches"]:
+		if typeof(data["matches"][match_id_value]) != TYPE_DICTIONARY:
+			continue
+		var match_record: Dictionary = data["matches"][match_id_value]
+		match_record["battle_type"] = BattleAnalyticsContract.normalize_battle_type(match_record.get("battle_type", BattleAnalyticsContract.LEGACY_UNKNOWN))
+		match_record["analytics_authority"] = BattleAnalyticsContract.normalize_authority(match_record.get("analytics_authority", BattleAnalyticsContract.LEGACY_SERVER_RECORDED))
+		data["matches"][match_id_value] = match_record
 
 
 func _load() -> void:

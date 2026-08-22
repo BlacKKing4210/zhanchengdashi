@@ -174,6 +174,38 @@ active_modules:
     control_intake: temp/control/REQ-20260820-ADMIN-DASHBOARD-ALIYUN-PUBLIC-007.json
     read_only_receipt: docs/receipts/F-ZC-ADMIN-001-ALIYUN-PUBLIC-READ-ONLY-007.md
     completion_receipt: docs/receipts/F-ZC-ADMIN-001-ALIYUN-PUBLIC-CLOSE-008.md
+  - task_id: REQ-20260822-ADMIN-DASHBOARD-V1.2-METRICS-GRANTS
+    feature_id: F-ZC-ADMIN-001
+    version: v1.2.0-aliyun-staging
+    phase: completion
+    domain: cross_domain
+    owner: codex-primary
+    status: COMPLETE
+    started_on: "2026-08-22"
+    release_status: STAGING_PUBLIC_DEPLOYED_ACCEPTED_WITH_DECLARED_LOGIN_AND_LIVE_GRANT_LIMITS
+    paused_on: "2026-08-22"
+    resumed_on: "2026-08-22"
+    completed_on: "2026-08-22"
+    remote_write_status: COMPLETE
+    remote_target: OpenClaw-ejrr
+    remote_environment: staging
+    deployed_endpoint: https://106.15.61.103/
+    deployed_node_release: JungleLaw-admin-dashboard-v1.2.0-aliyun-staging-rc2
+    deployed_node_zip_sha256: E99CAEEC5B928FDB15AEB18AE975060ECF06919D2410BEA82D8DE1627008268B
+    deployed_linux_release: v1.2.0-local-linux-rc1
+    deployed_linux_archive_sha256: CB94723498D7E7A175304686F5CA72B0CF66745482A5DC89D9CB1D15D5F20267
+    deployed_linux_elf_sha256: 7F11BC743A3573C8F9EAB7ECF6AADD65C74E7C8720DE80F7FA03ACC8BF1F2B94
+    backup_receipt: /var/backups/junglelaw-admin-dashboard/admin-dashboard-predeploy-JungleLaw-admin-dashboard-v1.2.0-aliyun-staging-rc2-20260822T153210Z
+    executor_smoke: PASS_NO_PLAYER_MUTATION_INVALID_TARGET
+    initial_rc1_result: FAILED_EXCLUDED_BEFORE_REMOTE_MUTATION_NODE_MANIFEST_VERSION_CONSTANT
+    fingerprint: 4DA745429297FCC5FD8F86EF860EEA5D293621B02599CED5E69046DB8629C15A
+    rag_gate_receipt: temp/rag/receipts/rag-gate.json
+    rag_task_receipt: temp/rag/receipts/tasks/REQ-20260822-ADMIN-DASHBOARD-V1.2-METRICS-GRANTS.json
+    control_intake: temp/control/REQ-20260822-ADMIN-DASHBOARD-V1.2-METRICS-GRANTS.json
+    read_only_receipt: docs/receipts/F-ZC-ADMIN-001-V1.2-READ-ONLY-009.md
+    pause_receipt: docs/receipts/F-ZC-ADMIN-001-V1.2-WAITING-USER-AUTH-010.md
+    completion_receipt: docs/receipts/F-ZC-ADMIN-001-V1.2-CLOSE-011.md
+    blockers: []
   - task_id: REQ-20260822-BATTLE-INFO-TARGET-LOCK-001
     feature_id: F-ZC-001
     version: v1.1.0-battle-info-target-lock
@@ -227,6 +259,56 @@ shared_locks:
       - tests/capture_battle_card_ui.gd
       - tools/build_rendering_performance_docx.py
     evidence_root: temp/qa/F-ZC-001/battle-info-target-lock-20260822
+  admin_dashboard_v1_2_metrics_grants_20260822:
+    task_id: REQ-20260822-ADMIN-DASHBOARD-V1.2-METRICS-GRANTS
+    owner: codex-primary
+    status: RELEASED
+    acquired_on: "2026-08-22"
+    hold_reason: producer_resumed_v1_2_implementation_and_openclaw_staging_completion
+    released_on: "2026-08-22"
+    release_reason: v1_2_staging_deployed_external_health_restart_persistence_and_rollback_readiness_accepted
+    write_set:
+      - docs/ADMIN_ANALYTICS_DASHBOARD_DESIGN.docx
+      - docs/ADMIN_ANALYTICS_DASHBOARD_DESIGN.md
+      - docs/CURRENT_GAME_DESIGN.md
+      - docs/active_scope.yaml
+      - docs/receipts/F-ZC-ADMIN-001-V1.2-READ-ONLY-009.md
+      - docs/receipts/F-ZC-ADMIN-001-V1.2-WAITING-USER-AUTH-010.md
+      - docs/receipts/F-ZC-ADMIN-001-V1.2-CLOSE-011.md
+      - knowledge/knowledge_manifest.csv
+      - production/deployment/aliyun-profile.yaml
+      - scripts/server/match_analytics_store.gd
+      - scripts/server/player_account_store.gd
+      - scripts/network/online_room.gd
+      - scripts/app/main.gd
+      - scripts/shared/battle_analytics_contract.gd
+      - scripts/shared/battle_analytics_contract.gd.uid
+      - tests/test_match_analytics_store.gd
+      - tests/test_online_room_analytics.gd
+      - tests/test_admin_backend_features.gd
+      - tests/test_all_battle_analytics.gd
+      - tests/test_all_battle_analytics.tscn
+      - tools/admin_dashboard/package.json
+      - tools/admin_dashboard/lib/account_snapshot.mjs
+      - tools/admin_dashboard/lib/resource_grants.mjs
+      - tools/admin_dashboard/lib/snapshot.mjs
+      - tools/admin_dashboard/lib/state_store.mjs
+      - tools/admin_dashboard/server.mjs
+      - tools/admin_dashboard/public/app.js
+      - tools/admin_dashboard/public/styles.css
+      - tests/admin_dashboard/dashboard.test.mjs
+      - tools/build_admin_analytics_dashboard_docx.py
+      - tools/package_admin_dashboard.ps1
+      - tools/admin_dashboard/README.md
+      - deploy/linux/ADMIN_DASHBOARD_DEPLOYMENT.md
+      - deploy/linux/install_junglelaw_admin_dashboard.sh
+      - deploy/linux/test_junglelaw_admin_dashboard_deploy.sh
+      - build/admin-dashboard/
+      - build/linux/
+    remote_target: OpenClaw-ejrr
+    remote_environment: staging
+    remote_scope: junglelaw_only
+    evidence_root: temp/qa/F-ZC-ADMIN-001/v1.2-metrics-grants-20260822
   admin_dashboard_aliyun_public_20260820:
     task_id: REQ-20260820-ADMIN-DASHBOARD-ALIYUN-PUBLIC-007
     owner: codex-primary

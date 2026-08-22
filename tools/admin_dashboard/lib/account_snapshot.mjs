@@ -8,6 +8,7 @@ const MAX_MIRRORS_PER_RANK = 15;
 const CARD_ID_PATTERN = /^[A-Za-z0-9_.:-]{1,64}$/;
 const USER_ID_PATTERN = /^[A-Za-z0-9_.:-]{1,80}$/;
 const RANK_KEY_PATTERN = /^[a-z0-9_-]{1,24}$/;
+const RANK_ORDER = new Map(["bronze", "silver", "gold", "platinum", "diamond", "star", "king"].map((rank, index) => [rank, index]));
 
 function text(value, maxLength = 64) {
   return typeof value === "string"
@@ -57,6 +58,17 @@ function safeCardDictionary(value, minimum, maximum) {
   for (const [rawCardId, rawAmount] of Object.entries(value).slice(0, MAX_CARDS)) {
     const cardId = safeCardId(rawCardId);
     if (cardId) result[cardId] = integer(rawAmount, minimum, minimum, maximum);
+  }
+  return result;
+}
+
+function sanitizeCardNames(value) {
+  const result = {};
+  if (!value || typeof value !== "object" || Array.isArray(value)) return result;
+  for (const [rawCardId, rawName] of Object.entries(value).slice(0, MAX_CARDS)) {
+    const cardId = safeCardId(rawCardId);
+    const name = text(rawName, 48);
+    if (cardId && name) result[cardId] = name;
   }
   return result;
 }
@@ -126,7 +138,7 @@ function sanitizeAccount(value) {
 }
 
 export function emptyAccountSnapshot(reason = "empty") {
-  return { availability: reason, generated_at_unix: 0, accounts: [] };
+  return { availability: reason, generated_at_unix: 0, card_names: {}, accounts: [] };
 }
 
 export function sanitizeAccountSnapshot(source) {
@@ -141,10 +153,18 @@ export function sanitizeAccountSnapshot(source) {
     seen.add(account.user_id);
     accounts.push(account);
   }
-  accounts.sort((left, right) => left.user_id.localeCompare(right.user_id));
+  accounts.sort((left, right) => {
+    const leftRank = RANK_ORDER.get(left.rank.rank_key) ?? -1;
+    const rightRank = RANK_ORDER.get(right.rank.rank_key) ?? -1;
+    return rightRank - leftRank
+      || right.rank.rank_stars - left.rank.rank_stars
+      || right.rank.elo - left.rank.elo
+      || left.user_id.localeCompare(right.user_id);
+  });
   return {
     availability: "ready",
     generated_at_unix: integer(source.generated_at_unix, 0, 0, 4_102_444_800),
+    card_names: sanitizeCardNames(source.card_names),
     accounts,
   };
 }

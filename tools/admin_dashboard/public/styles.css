@@ -863,6 +863,23 @@ tbody tr:last-child td { border-bottom: 0; }
   gap: 8px;
 }
 
+.battle-type-filter {
+  display: grid;
+  grid-template-columns: minmax(260px, 520px);
+}
+
+.all-accounts-table { max-height: calc(100dvh - var(--header-height) - 230px); }
+.deck-list-table td:nth-child(4) {
+  min-width: 420px;
+  white-space: normal;
+}
+
+.compact-action {
+  min-height: 38px;
+  padding: 7px 11px;
+  white-space: nowrap;
+}
+
 .accounts-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(330px, 1fr));
@@ -990,6 +1007,11 @@ tbody tr:last-child td { border-bottom: 0; }
   border-radius: var(--radius-md);
   background: rgba(29, 99, 76, 0.14);
 }
+
+.command-receipt h2,
+.command-receipt p { margin: 0 0 6px; }
+.command-receipt.receipt-warning { border-color: rgba(243, 198, 117, 0.48); background: rgba(125, 83, 19, 0.14); }
+.command-receipt.receipt-danger { border-color: rgba(255, 155, 155, 0.5); background: rgba(125, 35, 35, 0.14); }
 
 .confirm-dialog {
   width: min(520px, calc(100% - 28px));
@@ -1232,6 +1254,7 @@ tbody tr:last-child td { border-bottom: 0; }
   }
 
   .pagination { justify-content: space-between; }
+  .deck-list-table td:nth-child(4) { min-width: 0; }
 }
 
 @media (max-width: 430px) {

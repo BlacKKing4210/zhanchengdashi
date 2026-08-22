@@ -9,6 +9,8 @@ const MAX_RECENT_MATCHES = 100;
 const MAX_MATCH_PLAYERS = 6;
 const CARD_ID_PATTERN = /^[A-Za-z0-9_.:-]{1,64}$/;
 const RANK_KEY_PATTERN = /^[a-z0-9_-]{1,24}$/;
+const BATTLE_TYPES = new Set(["classic_ranked_ai", "multiplayer_1v1", "multiplayer_2v2", "multiplayer_3v3", "free_for_all_6", "legacy_unknown"]);
+const ANALYTICS_AUTHORITIES = new Set(["server_authoritative", "authenticated_client_reported", "legacy_server_recorded"]);
 
 function integer(value, fallback = 0, minimum = 0, maximum = 1_000_000_000) {
   const parsed = Number(value);
@@ -54,6 +56,16 @@ function safeCardId(value) {
 function safeRankKey(value) {
   const rankKey = text(value, 24).toLowerCase();
   return RANK_KEY_PATTERN.test(rankKey) ? rankKey : "unknown";
+}
+
+function safeBattleType(value) {
+  const battleType = text(value, 32).toLowerCase();
+  return BATTLE_TYPES.has(battleType) ? battleType : "legacy_unknown";
+}
+
+function safeAnalyticsAuthority(value) {
+  const authority = text(value, 40).toLowerCase();
+  return ANALYTICS_AUTHORITIES.has(authority) ? authority : "legacy_server_recorded";
 }
 
 function safeDeck(value) {
@@ -116,7 +128,9 @@ export function emptyDashboard(reason = "empty") {
     },
     leaderboard: [],
     top_decks: [],
+    battle_types: [],
     animals: [],
+    animals_by_battle_type: {},
     recent_matches: [],
   };
 }
@@ -200,6 +214,7 @@ function sanitizeAnimal(value) {
   return {
     card_id: cardId,
     name: text(value.name, 48) || cardId,
+    battle_type: safeBattleType(value.battle_type),
     ...counts,
     win_rate: winRate(value.win_rate, counts),
     pick_rate: Number.isFinite(Number(value.pick_rate)) ? ratio(value.pick_rate, 0) : null,
@@ -267,6 +282,8 @@ function sanitizeRecentMatch(value) {
   return {
     match_id: matchId,
     map_id: text(value.map_id, 64),
+    battle_type: safeBattleType(value.battle_type),
+    analytics_authority: safeAnalyticsAuthority(value.analytics_authority),
     started_at_unix: integer(value.started_at_unix, 0, 0, 4_102_444_800),
     finalized_at_unix: integer(value.finalized_at_unix, 0, 0, 4_102_444_800),
     state: ["active", "finalized"].includes(text(value.state, 16)) ? text(value.state, 16) : "unknown",
@@ -274,6 +291,20 @@ function sanitizeRecentMatch(value) {
     team_outcomes: sanitizeTeamOutcomes(value.team_outcomes),
     players: rawPlayers.slice(0, MAX_MATCH_PLAYERS).map(sanitizeRecentPlayer).filter(Boolean),
   };
+}
+
+function sanitizeBattleType(value) {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return null;
+  const battleType = safeBattleType(value.battle_type);
+  const authorities = {};
+  const rawAuthorities = value.authorities && typeof value.authorities === "object" && !Array.isArray(value.authorities)
+    ? value.authorities
+    : {};
+  for (const [rawAuthority, rawCount] of Object.entries(rawAuthorities)) {
+    const authority = safeAnalyticsAuthority(rawAuthority);
+    authorities[authority] = integer(rawCount, 0);
+  }
+  return { battle_type: battleType, matches: integer(value.matches, 0), authorities };
 }
 
 export function sanitizeDashboardSnapshot(source) {
@@ -301,6 +332,22 @@ export function sanitizeDashboardSnapshot(source) {
     .map(sanitizeAnimal)
     .filter(Boolean)
     .sort((left, right) => Number(right.win_rate ?? -1) - Number(left.win_rate ?? -1) || right.games - left.games || left.card_id.localeCompare(right.card_id));
+  const battleTypes = (Array.isArray(source.battle_types) ? source.battle_types : [])
+    .map(sanitizeBattleType)
+    .filter(Boolean);
+  const animalsByBattleType = {};
+  const rawAnimalsByType = source.animals_by_battle_type && typeof source.animals_by_battle_type === "object" && !Array.isArray(source.animals_by_battle_type)
+    ? source.animals_by_battle_type
+    : {};
+  for (const [rawBattleType, rawRows] of Object.entries(rawAnimalsByType)) {
+    const battleType = safeBattleType(rawBattleType);
+    if (!Array.isArray(rawRows) || animalsByBattleType[battleType]) continue;
+    animalsByBattleType[battleType] = rawRows
+      .slice(0, MAX_ANIMAL_ROWS)
+      .map((entry) => sanitizeAnimal({ ...entry, battle_type: battleType }))
+      .filter(Boolean)
+      .sort((left, right) => Number(left.average_placement ?? Number.POSITIVE_INFINITY) - Number(right.average_placement ?? Number.POSITIVE_INFINITY) || right.games - left.games || left.card_id.localeCompare(right.card_id));
+  }
   const recentMatches = (Array.isArray(source.recent_matches) ? source.recent_matches : [])
     .slice(0, MAX_RECENT_MATCHES)
     .map(sanitizeRecentMatch)
@@ -323,7 +370,9 @@ export function sanitizeDashboardSnapshot(source) {
     },
     leaderboard,
     top_decks: topDecks,
+    battle_types: battleTypes,
     animals,
+    animals_by_battle_type: animalsByBattleType,
     recent_matches: recentMatches,
   };
 }

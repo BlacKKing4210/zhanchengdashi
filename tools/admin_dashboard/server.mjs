@@ -402,22 +402,20 @@ export async function createDashboardServer(overrides = {}) {
         sessionId: session.session_hash,
         secret: previewSecret,
       });
-      const admission = reauthLimiter.admit(ip, session.user.username);
-      if (!admission.allowed) {
-        await appendAuditSafe({ event: "grant_reauth_rate_limited", actor: session.user.username, ip });
-        throw new HttpError(429, "grant_reauth_rate_limited", "grant_reauth_rate_limited", {
-          "Retry-After": String(admission.retryAfterSeconds),
-        });
-      }
-      let reauthenticated = false;
-      try {
-        reauthenticated = await state.verifyPasswordForUser(session.user.username, body.password ?? body.owner_password);
-      } finally {
-        reauthLimiter.settle(admission.reservation, { failure: !reauthenticated });
-      }
-      if (!reauthenticated) {
-        await appendAuditSafe({ event: "grant_reauth_failed", actor: session.user.username, ip });
-        throw new HttpError(401, "owner_reauthentication_failed");
+      if (command.scope === "all") {
+        const admission = reauthLimiter.admit(ip, session.user.username);
+        if (!admission.allowed) {
+          throw new HttpError(429, "grant_reauth_rate_limited", "grant_reauth_rate_limited", { "Retry-After": String(admission.retryAfterSeconds) });
+        }
+        let verified = false;
+        try {
+          verified = await state.verifyPasswordForUser(session.user.username, body.password);
+        } catch (error) {
+          reauthLimiter.settle(admission.reservation);
+          throw error;
+        }
+        reauthLimiter.settle(admission.reservation, { failure: !verified });
+        if (!verified) throw new HttpError(401, "owner_reauthentication_failed");
       }
       const existing = await findGrantEntry(config.commandRoot, command.command_id);
       if (existing) {

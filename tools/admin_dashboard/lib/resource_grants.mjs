@@ -397,6 +397,7 @@ export function prepareGrantCommand({ body, accountSnapshot, actor, now = Date.n
     actor: text(actor, 40),
     reason,
     scope,
+    all_confirmation: scope === "all" ? "SEND TO ALL" : "",
     target_user_ids: targetUserIds,
     target_count: targetUserIds.length,
     grants,
@@ -462,7 +463,10 @@ export function commandFromGrantPreview({
   now = Date.now(),
 }) {
   if (!body || typeof body !== "object" || Array.isArray(body)) throw new GrantError(400, "invalid_grant_request");
-  const allowedBodyFields = new Set(["preview_token", "idempotency_key", "confirmation", "password", "owner_password"]);
+  // Individual targets use the already-authenticated Owner session and signed
+  // one-use preview. Broad all-account grants additionally carry password and
+  // explicit text confirmation, which the HTTP layer verifies before enqueue.
+  const allowedBodyFields = new Set(["preview_token", "idempotency_key", "password", "confirmation"]);
   if (Object.keys(body).some((key) => !allowedBodyFields.has(key))) {
     throw new GrantError(400, "invalid_preview_request");
   }
@@ -485,9 +489,13 @@ export function commandFromGrantPreview({
   }
   const scope = text(payload.scope, 16);
   if (!new Set(["target", "all"]).has(scope)) throw new GrantError(400, "invalid_preview_token");
-  const expectedConfirmation = scope === "all" ? "SEND TO ALL" : "SEND";
-  if (body.confirmation !== expectedConfirmation) {
-    throw new GrantError(400, scope === "all" ? "all_confirmation_required" : "target_confirmation_required");
+  if (scope === "all") {
+    if (body.confirmation !== "SEND TO ALL") throw new GrantError(400, "all_confirmation_required");
+    if (typeof body.password !== "string" || body.password.length < 1 || body.password.length > 256) {
+      throw new GrantError(401, "owner_reauthentication_failed");
+    }
+  } else if (Object.hasOwn(body, "password") || Object.hasOwn(body, "confirmation")) {
+    throw new GrantError(400, "invalid_preview_request");
   }
   if (!accountSnapshot || accountSnapshot.availability !== "ready" || !Array.isArray(accountSnapshot.accounts)) {
     throw new GrantError(503, "account_snapshot_unavailable");
@@ -518,6 +526,7 @@ export function commandFromGrantPreview({
     actor: text(actor, 40),
     reason,
     scope,
+    all_confirmation: scope === "all" ? "SEND TO ALL" : "",
     target_user_ids: targetUserIds,
     target_count: targetUserIds.length,
     grants,
@@ -528,7 +537,7 @@ export function commandFromGrantPreview({
 async function writeJsonNoReplace(targetPath, value) {
   await fs.mkdir(path.dirname(targetPath), { recursive: true, mode: 0o700 });
   const tempPath = path.join(path.dirname(targetPath), `.${path.basename(targetPath)}.${process.pid}.${crypto.randomBytes(8).toString("hex")}.tmp`);
-  const handle = await fs.open(tempPath, "wx", 0o600);
+  const handle = await fs.open(tempPath, "wx", 0o660);
   try {
     await handle.writeFile(`${JSON.stringify(value, null, 2)}\n`, "utf8");
     await handle.sync();
@@ -551,7 +560,7 @@ async function writeJsonNoReplace(targetPath, value) {
     // Best effort on platforms that cannot fsync directories.
   }
   try {
-    await fs.chmod(targetPath, 0o600);
+    await fs.chmod(targetPath, 0o660);
   } catch {
     // Windows does not implement POSIX ownership modes.
   }
@@ -625,8 +634,23 @@ export async function readGrantEntries(commandRoot, limit = MAX_LIST_ENTRIES) {
       }
     }
   }
-  entries.sort((left, right) => (right.processed_at_unix || right.created_at_unix) - (left.processed_at_unix || left.created_at_unix)
+  const byCommandId = new Map();
+  for (const entry of entries) {
+    const existing = byCommandId.get(entry.command_id);
+    if (!existing) {
+      byCommandId.set(entry.command_id, entry);
+      continue;
+    }
+    const terminal = new Set(["processed", "failed"]);
+    if (terminal.has(existing.status) && terminal.has(entry.status) && existing.status !== entry.status) {
+      byCommandId.set(entry.command_id, { ...entry, status: "failed", error: "terminal_state_conflict" });
+    } else if (!terminal.has(existing.status) && terminal.has(entry.status)) {
+      byCommandId.set(entry.command_id, entry);
+    }
+  }
+  const uniqueEntries = [...byCommandId.values()];
+  uniqueEntries.sort((left, right) => (right.processed_at_unix || right.created_at_unix) - (left.processed_at_unix || left.created_at_unix)
     || right.created_at_unix - left.created_at_unix
     || left.command_id.localeCompare(right.command_id));
-  return entries.slice(0, Math.max(1, Math.min(MAX_LIST_ENTRIES, Number.parseInt(limit, 10) || MAX_LIST_ENTRIES)));
+  return uniqueEntries.slice(0, Math.max(1, Math.min(MAX_LIST_ENTRIES, Number.parseInt(limit, 10) || MAX_LIST_ENTRIES)));
 }

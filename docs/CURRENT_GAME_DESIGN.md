@@ -225,6 +225,14 @@ deck_power = 所有出战卡牌 card_power 求和
 | 每方初始预归属格 | 36 | `MultiplayerRules.CELLS_PER_PLAYER` |
 | 基地位置 | 每局从 3 套对称出生模板中随机，并严格镜像/旋转 | `classic_base_keys` |
 
+#### 运营统计采集（v1.2）
+
+- 每场具有完整终局、在线认证会话且能够送达阿里云统计端的战斗必须恰好记录一次，并使用受控 `battle_type`：`classic_ranked_ai`、`multiplayer_1v1`、`multiplayer_2v2`、`multiplayer_3v3`、`free_for_all_6`；旧记录缺少可靠类型时只能标 `legacy_unknown`。
+- 在线房间（含 AI 补位）由专用服记录，`analytics_authority=server_authoritative`；不再要求房间必须由满额真人组成，动物样本只使用服务器冻结的已认证真人阵容。
+- 经典段位 AI 与本地六人乱斗在结算时通过当前登录会话提交一次性 report ID；服务器从账号权威档案冻结 user_id、段位和保存阵容，并标 `analytics_authority=authenticated_client_reported`。客户端回报不得冒充服务器权威样本。
+- 总览可合计全部类型，但动物平衡必须能够按单一 `battle_type` 查看样本、平均名次、置信区间与建议；跨模式合计仅供覆盖观察，不直接触发自动改数。
+- 未完成、主动退出、无有效终局、重复 report ID 或离线且从未送达服务器的战斗不得伪造成云端完成事实。
+
 ### 多人出生位置与动物数值反馈
 
 - 多人房间进入战斗前由服务器对全部启用槽位执行一次洗牌；真人与 AI 都参与，房主身份和战斗权威不随出生位置改变。每个客户端从服务器下发的 `local_team_id` 获取本局位置，不能在客户端自行随机。

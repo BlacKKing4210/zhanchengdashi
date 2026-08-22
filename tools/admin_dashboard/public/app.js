@@ -13,8 +13,9 @@ const state = {
   managementLoaded: false,
   activeTab: "overview",
   animalQuery: "",
+  animalBattleType: "all",
   accountQuery: "",
-  accountPage: 1,
+  selectedGrantUserId: "",
   grantDraft: null,
   grantPreview: null,
   grantResult: null,
@@ -22,14 +23,14 @@ const state = {
   loadErrors: {},
 };
 
-const ACCOUNT_PAGE_SIZE = 12;
 const OWNER_TABS = new Set(["grants", "tasks", "permissions"]);
 const TAB_DEFINITIONS = [
   ["overview", "总览"],
   ["animals", "动物平衡"],
-  ["accounts", "阵容库"],
-  ["grants", "Owner 资源发放"],
-  ["tasks", "Owner 任务与审计"],
+  ["roles", "角色"],
+  ["decks", "阵容库"],
+  ["grants", "资源发放"],
+  ["tasks", "发放记录"],
   ["permissions", "Owner 权限"],
 ];
 
@@ -97,8 +98,46 @@ function outcomeLabel(value) {
 function sourceLabel(value) {
   const labels = {
     server_recorded_host_authority_full_human_online: "服务器记录的房主权威对局，仅统计满额真人在线房间。",
+    all_completed_authenticated_battles_by_type: "所有已完成且可归属到已登录账号的战斗均纳入统计，并按战斗类型分别复核。",
   };
   return labels[value] || "服务器生成的脱敏只读统计投影。";
+}
+
+function battleTypeLabel(value) {
+  return ({
+    all: "全部战斗（混合概览）",
+    classic_ranked_ai: "经典排位 AI",
+    multiplayer_1v1: "多人 1v1",
+    multiplayer_2v2: "多人 2v2",
+    multiplayer_3v3: "多人 3v3",
+    free_for_all_6: "六人乱斗",
+    legacy_unknown: "历史未分类",
+  })[value] || value || "历史未分类";
+}
+
+function analyticsAuthorityLabel(value) {
+  return ({
+    server_authoritative: "服务器权威",
+    authenticated_client_reported: "已登录客户端上报",
+    legacy_server_recorded: "历史服务器记录",
+  })[value] || "历史记录";
+}
+
+function rankLabel(value) {
+  return ({ bronze: "青铜", silver: "白银", gold: "黄金", platinum: "铂金", diamond: "钻石", star: "星耀", king: "王者" })[value] || "未定段";
+}
+
+function cardNameMap() {
+  const result = { gold_mine_card: "金矿", defense_watch_tower: "防御塔" };
+  Object.assign(result, state.accounts?.card_names || {});
+  normalizeList(state.dashboard?.animals).forEach((animal) => {
+    if (animal.card_id && animal.name) result[animal.card_id] = animal.name;
+  });
+  return result;
+}
+
+function cardDisplayName(cardId) {
+  return cardNameMap()[cardId] || `未命名卡牌（${cardId}）`;
 }
 
 function apiErrorMessage(code) {
@@ -298,7 +337,12 @@ function renderRecentMatches() {
   matches.slice(0, 8).forEach((match) => {
     const entry = element("article", { className: "recent-match" });
     const summary = element("div", { className: "recent-match-title" });
-    summary.append(element("strong", { text: match.map_id || "在线对局" }), element("span", { className: "muted", text: formatDate(match.finalized_at_unix || match.started_at_unix) }));
+    const identity = element("div");
+    identity.append(
+      element("strong", { text: battleTypeLabel(match.battle_type) }),
+      element("span", { className: "rank-id", text: `${match.map_id || "未标记地图"} · ${analyticsAuthorityLabel(match.analytics_authority)}` }),
+    );
+    summary.append(identity, element("span", { className: "muted", text: formatDate(match.finalized_at_unix || match.started_at_unix) }));
     const players = element("div", { className: "recent-match-players" });
     normalizeList(match.players).forEach((player) => {
       const outcome = match.team_outcomes?.[player.team_id];
@@ -310,7 +354,7 @@ function renderRecentMatches() {
     entry.append(summary, players);
     list.append(entry);
   });
-  return panel("最近对局", list, "已冻结阵容与服务器终局结果");
+  return panel("最近对局", list, "已标记战斗类型、统计权威与终局结果");
 }
 
 function balanceSignalMeta(signal) {
@@ -351,13 +395,33 @@ function confidenceLabel(value) {
 
 function renderAnimals() {
   const pane = createPane("animals", "动物平衡");
-  const allAnimals = normalizeList(state.dashboard?.animals).slice().sort((a, b) => {
+  const completedTypes = normalizeList(state.dashboard?.battle_types).filter((entry) => Number(entry.matches || 0) > 0);
+  const validTypes = new Set(["all", ...completedTypes.map((entry) => entry.battle_type)]);
+  if (!validTypes.has(state.animalBattleType)) state.animalBattleType = "all";
+  const selectedType = state.animalBattleType;
+  const sourceAnimals = selectedType === "all"
+    ? state.dashboard?.animals
+    : state.dashboard?.animals_by_battle_type?.[selectedType];
+  const allAnimals = normalizeList(sourceAnimals).slice().sort((a, b) => {
     const left = toNumber(a.average_placement);
     const right = toNumber(b.average_placement);
     return (left ?? Number.POSITIVE_INFINITY) - (right ?? Number.POSITIVE_INFINITY);
   });
+
+  const typeBar = element("form", { className: "battle-type-filter" });
+  const typeSelect = element("select", { attrs: { "aria-label": "选择战斗统计类型" } });
+  typeSelect.append(new Option("全部战斗（仅作混合概览）", "all"));
+  completedTypes.forEach((entry) => typeSelect.append(new Option(`${battleTypeLabel(entry.battle_type)} · ${formatNumber(entry.matches)} 场`, entry.battle_type)));
+  typeSelect.value = selectedType;
+  typeSelect.addEventListener("change", () => {
+    state.animalBattleType = typeSelect.value;
+    state.animalQuery = "";
+    renderActiveTab();
+  });
+  typeBar.append(labeledControl("战斗类型", typeSelect, "平衡结论应优先在单一战斗类型内比较。"));
+  pane.append(panel("统计分组", typeBar, battleTypeLabel(selectedType)));
   if (!allAnimals.length) {
-    pane.append(panel("动物平均排名", emptyState("暂无完成对局的动物排名样本。")));
+    pane.append(panel("动物平均排名", emptyState(`“${battleTypeLabel(selectedType)}”暂无完成对局的动物排名样本。`)));
     return pane;
   }
   const query = state.animalQuery.trim().toLowerCase();
@@ -371,10 +435,16 @@ function renderAnimals() {
     metric("动物数量", formatNumber(allAnimals.length)),
     metric("需关注", formatNumber(actionable), "以服务端平衡信号为准"),
     metric("最高样本", formatNumber(Math.max(...allAnimals.map((item) => Number(item.placement_samples || 0))))),
-    metric("口径", "平均名次", "名次越小表现越好"),
+    metric("战斗类型", selectedType === "all" ? "混合" : battleTypeLabel(selectedType), "名次越小表现越好"),
   );
   pane.append(metrics);
-  pane.append(callout("info", "调整建议的边界", "此页提供平均名次、标准化名次得分和置信度，帮助策划判断；任何数值调整仍须走配置评审、验证和发布流程，后台不会直接改写游戏配置。"));
+  pane.append(callout(
+    selectedType === "all" ? "warning" : "info",
+    selectedType === "all" ? "混合口径仅供总览" : "单类型平衡复核",
+    selectedType === "all"
+      ? "不同战斗规模不能直接合并得出调整结论。请选择具体战斗类型，再结合平均名次、标准化得分与置信度提出增强或削弱建议。"
+      : `当前仅比较“${battleTypeLabel(selectedType)}”。任何数值调整仍须走配置评审、验证和发布流程，后台不会直接改写游戏配置。`,
+  ));
   const selector = element("aside", { className: "panel animal-index-panel", attrs: { "aria-labelledby": "animal-index-title" } });
   const selectorHeading = element("div", { className: "panel-heading" });
   selectorHeading.append(
@@ -446,7 +516,7 @@ function renderAnimals() {
   const rankingContent = animals.length
     ? dataTable("动物平均排名与平衡信号", columns, rows, { className: "rank-table-scroll", tableClassName: "rank-table" })
     : emptyState("没有匹配的动物；请清除筛选后重试。");
-  const rankingPanel = panel("动物平均排名", rankingContent, `显示 ${animals.length} / ${allAnimals.length} · 按平均名次升序`, { className: "ranking-panel" });
+  const rankingPanel = panel("动物平均排名", rankingContent, `${battleTypeLabel(selectedType)} · 显示 ${animals.length} / ${allAnimals.length} · 按平均名次升序`, { className: "ranking-panel" });
   const rankingsLayout = element("div", { className: "rankings-layout" });
   rankingsLayout.append(selector, rankingPanel);
   pane.append(rankingsLayout);
@@ -499,7 +569,7 @@ function renderDeck(account) {
   const wrapper = element("div", { className: "card-chips" });
   if (!deck.length) wrapper.append(element("span", { className: "muted", text: "未保存阵容" }));
   deck.forEach((cardId) => {
-    const chip = element("span", { className: "card-chip", text: cardId });
+    const chip = element("span", { className: "card-chip", text: cardDisplayName(cardId), title: cardId });
     const level = levels[cardId];
     if (level !== undefined) chip.append(element("b", { text: `Lv.${level}` }));
     wrapper.append(chip);
@@ -526,72 +596,139 @@ function renderRankMirrors(rankMirrors) {
   return wrapper;
 }
 
-function renderAccounts() {
-  const pane = createPane("accounts", "阵容库");
-  if (state.loadErrors.accounts) {
-    pane.append(errorState(state.loadErrors.accounts, () => switchTab("accounts", { force: true })));
-    return pane;
-  }
-  if (!state.accounts) {
-    pane.append(loadingState("正在加载账号阵容投影…"));
-    return pane;
-  }
-  if (state.accounts.availability !== "ready") {
-    pane.append(callout("warning", "账号投影未就绪", "后台不会读取权威账号存档；请由阿里云投影任务生成 admin_accounts_snapshot.json 后重试。", "alert"));
-    return pane;
-  }
-  const accounts = normalizeList(state.accounts.accounts);
+function sortedAccounts() {
+  const rankOrder = new Map(["bronze", "silver", "gold", "platinum", "diamond", "star", "king"].map((rank, index) => [rank, index]));
+  return normalizeList(state.accounts?.accounts).slice().sort((left, right) => {
+    const leftRank = rankOrder.get(left.rank?.rank_key) ?? -1;
+    const rightRank = rankOrder.get(right.rank?.rank_key) ?? -1;
+    return rightRank - leftRank
+      || Number(right.rank?.rank_stars || 0) - Number(left.rank?.rank_stars || 0)
+      || Number(right.rank?.elo || 0) - Number(left.rank?.elo || 0)
+      || String(left.user_id || "").localeCompare(String(right.user_id || ""));
+  });
+}
+
+function filteredAccounts() {
+  const query = state.accountQuery.trim().toLowerCase();
+  return sortedAccounts().filter((account) => !query
+    || String(account.user_id || "").toLowerCase().includes(query)
+    || String(account.masked_account || "").toLowerCase().includes(query));
+}
+
+function accountSearchToolbar(labelText) {
   const toolbar = element("form", { className: "filter-bar", attrs: { role: "search" } });
-  const search = element("input", { type: "search", value: state.accountQuery, placeholder: "搜索脱敏账号或完整 user_id", attrs: { "aria-label": "搜索阵容" } });
+  const search = element("input", { type: "search", value: state.accountQuery, placeholder: "搜索脱敏账号或完整 user_id", attrs: { "aria-label": labelText } });
   const submit = element("button", { className: "secondary", type: "submit", text: "搜索" });
   const reset = element("button", { className: "ghost", type: "button", text: "清除" });
   toolbar.append(search, submit, reset);
   toolbar.addEventListener("submit", (event) => {
     event.preventDefault();
     state.accountQuery = search.value.trim();
-    state.accountPage = 1;
     renderActiveTab();
   });
   reset.addEventListener("click", () => {
     state.accountQuery = "";
-    state.accountPage = 1;
     renderActiveTab();
   });
-  const query = state.accountQuery.toLowerCase();
-  const filtered = accounts.filter((account) => !query || String(account.user_id || "").toLowerCase().includes(query) || String(account.masked_account || "").toLowerCase().includes(query));
-  const pageCount = Math.max(1, Math.ceil(filtered.length / ACCOUNT_PAGE_SIZE));
-  state.accountPage = Math.min(state.accountPage, pageCount);
-  const pageItems = filtered.slice((state.accountPage - 1) * ACCOUNT_PAGE_SIZE, state.accountPage * ACCOUNT_PAGE_SIZE);
-  const summary = element("div", { className: "section-summary" });
-  summary.append(element("p", { text: `共 ${accounts.length} 个保存账号，筛选后 ${filtered.length} 个。投影时间：${formatDate(state.accounts.generated_at_unix)}。` }), tag("只读投影", "good"));
-  pane.append(panel("查找阵容", toolbar, "搜索只在当前投影中执行"), summary);
-  if (!pageItems.length) {
-    pane.append(panel("保存阵容", emptyState("没有匹配的保存阵容。")));
+  return toolbar;
+}
+
+function accountIdentity(account) {
+  const identity = element("span", { className: "rank-name", text: accountDisplayName(account) });
+  identity.append(element("small", { className: "rank-id", text: account.user_id || "—" }));
+  return identity;
+}
+
+function directGrantButton(account) {
+  if (state.session?.role !== "owner") return element("span", { className: "muted", text: "只读" });
+  const button = element("button", { className: "primary compact-action", type: "button", text: "发放资源" });
+  button.addEventListener("click", () => {
+    state.selectedGrantUserId = account.user_id;
+    state.grantDraft = null;
+    state.grantPreview = null;
+    state.grantResult = null;
+    switchTab("grants");
+  });
+  return button;
+}
+
+function renderRoles() {
+  const pane = createPane("roles", "角色");
+  if (state.loadErrors.accounts) {
+    pane.append(errorState(state.loadErrors.accounts, () => switchTab("roles", { force: true })));
     return pane;
   }
-  const grid = element("div", { className: "accounts-grid" });
-  pageItems.forEach((account) => {
-    const card = element("article", { className: "account-card" });
-    const heading = element("div", { className: "account-card-heading" });
-    const title = element("div");
-    title.append(element("h2", { text: accountDisplayName(account) }), element("code", { text: account.user_id || "—" }));
-    heading.append(title, tag(account.rank?.rank_key || account.rank?.key || "未定段", "neutral"));
-    const facts = element("dl", { className: "account-facts" });
-    const rankStars = account.rank?.rank_stars ?? account.rank?.stars ?? "—";
-    [["段位星", rankStars], ["投影更新", formatDate(account.updated_at_unix)]].forEach(([term, value]) => {
-      facts.append(element("dt", { text: term }), element("dd", { text: value }));
-    });
-    card.append(heading, facts, element("h3", { text: "当前阵容" }), renderDeck(account), element("h3", { text: "段位镜像" }), renderRankMirrors(account.rank_mirrors), element("h3", { text: "资源摘要" }), renderResources(account.resources));
-    grid.append(card);
+  if (!state.accounts) {
+    pane.append(loadingState("正在加载全部账号…"));
+    return pane;
+  }
+  if (state.accounts.availability !== "ready") {
+    pane.append(callout("warning", "账号投影未就绪", "后台不会读取权威账号存档；请等待阿里云游戏服生成脱敏账号投影。", "alert"));
+    return pane;
+  }
+  const accounts = sortedAccounts();
+  const filtered = filteredAccounts();
+  const summary = element("div", { className: "section-summary" });
+  summary.append(element("p", { text: `全部 ${accounts.length} 个账号，当前显示 ${filtered.length} 个。投影时间：${formatDate(state.accounts.generated_at_unix)}。` }), tag("完整脱敏账号投影", "good"));
+  pane.append(panel("查找角色", accountSearchToolbar("搜索全部角色账号"), "所有账号均在同一列表中展示"), summary);
+  if (!filtered.length) {
+    pane.append(panel("全部角色", emptyState("没有匹配的账号。")));
+    return pane;
+  }
+  const columns = ["#", "角色账号", "存储段位", "Elo", "抽卡券", "更新时间", "操作"].map((label) => ({ label }));
+  const rows = filtered.map((account) => {
+    const storageIndex = accounts.findIndex((entry) => entry.user_id === account.user_id) + 1;
+    return [
+      element("span", { className: "rank-number", text: `#${storageIndex}` }),
+      accountIdentity(account),
+      `${rankLabel(account.rank?.rank_key)} ${formatNumber(account.rank?.rank_stars)} 星`,
+      formatNumber(account.rank?.elo),
+      formatNumber(account.resources?.gacha_tickets),
+      formatDate(account.updated_at_unix),
+      directGrantButton(account),
+    ];
   });
-  pane.append(grid);
-  const pager = element("nav", { className: "pagination", attrs: { "aria-label": "阵容分页" } });
-  const previous = element("button", { className: "secondary", type: "button", text: "上一页", disabled: state.accountPage <= 1 });
-  const next = element("button", { className: "secondary", type: "button", text: "下一页", disabled: state.accountPage >= pageCount });
-  previous.addEventListener("click", () => { state.accountPage -= 1; renderActiveTab(); focusPageHeading(); });
-  next.addEventListener("click", () => { state.accountPage += 1; renderActiveTab(); focusPageHeading(); });
-  pager.append(previous, element("span", { text: `第 ${state.accountPage} / ${pageCount} 页` }), next);
-  pane.append(pager);
+  pane.append(panel("全部角色", dataTable("全部角色账号", columns, rows, { className: "all-accounts-table", tableClassName: "rank-table" }), "按存储段位、星数和 Elo 排序"));
+  return pane;
+}
+
+function renderDecks() {
+  const pane = createPane("decks", "阵容库");
+  if (state.loadErrors.accounts) {
+    pane.append(errorState(state.loadErrors.accounts, () => switchTab("decks", { force: true })));
+    return pane;
+  }
+  if (!state.accounts) {
+    pane.append(loadingState("正在加载保存阵容…"));
+    return pane;
+  }
+  if (state.accounts.availability !== "ready") {
+    pane.append(callout("warning", "阵容投影未就绪", "请等待阿里云游戏服生成完整保存阵容投影。", "alert"));
+    return pane;
+  }
+  const allAccounts = sortedAccounts();
+  const accounts = allAccounts.filter((account) => normalizeList(account.deck).length > 0);
+  const query = state.accountQuery.trim().toLowerCase();
+  const filtered = accounts.filter((account) => !query
+    || String(account.user_id || "").toLowerCase().includes(query)
+    || String(account.masked_account || "").toLowerCase().includes(query));
+  pane.append(
+    panel("查找阵容", accountSearchToolbar("搜索保存阵容"), "卡牌以配置中的中文名显示"),
+    callout("info", "排行口径", `共 ${accounts.length} 套已保存阵容（账号总数 ${allAccounts.length}）；按存储段位、星数和 Elo 从高到低排列，不按近期胜率重排。`),
+  );
+  const columns = ["存储排名", "角色账号", "存储段位", "阵容卡牌", "段位镜像", "保存时间"].map((label) => ({ label }));
+  const rows = filtered.map((account) => {
+    const storageIndex = accounts.findIndex((entry) => entry.user_id === account.user_id) + 1;
+    return [
+      element("span", { className: "rank-number", text: `#${storageIndex}` }),
+      accountIdentity(account),
+      `${rankLabel(account.rank?.rank_key)} ${formatNumber(account.rank?.rank_stars)} 星 · Elo ${formatNumber(account.rank?.elo)}`,
+      renderDeck(account),
+      renderRankMirrors(account.rank_mirrors),
+      formatDate(account.updated_at_unix),
+    ];
+  });
+  pane.append(panel("保存阵容列表", rows.length ? dataTable("按存储段位排行的全部阵容", columns, rows, { className: "deck-list-table" }) : emptyState("没有匹配的保存阵容。"), `显示 ${filtered.length} / ${accounts.length}`));
   return pane;
 }
 
@@ -633,9 +770,39 @@ function grantDescription(draft) {
   if (!draft) return "—";
   const rawGrant = draft.grant || draft.grants?.[0] || {};
   const type = rawGrant.type || rawGrant.resource;
-  if (type === "card_copies") return `卡牌 ${rawGrant.card_id || "—"} 副本 × ${formatNumber(rawGrant.amount)}`;
+  if (type === "card_copies") return `${cardDisplayName(rawGrant.card_id)}副本 × ${formatNumber(rawGrant.amount)}`;
   if (type === "gacha_tickets") return `抽卡券 × ${formatNumber(rawGrant.amount)}`;
   return "—";
+}
+
+function grantStatusMeta(statusValue) {
+  const status = String(statusValue || "pending").toLowerCase();
+  if (["processed", "applied", "completed", "success"].includes(status)) return { label: "发放成功", kind: "good", terminal: true };
+  if (["failed", "rejected"].includes(status)) return { label: "发放失败", kind: "danger", terminal: true };
+  return { label: "处理中", kind: "warning", terminal: false };
+}
+
+async function waitForGrantTerminal(commandId, attempts = 10) {
+  for (let attempt = 0; attempt < attempts; attempt += 1) {
+    const payload = await request("/api/resource-grants");
+    state.grants = normalizeList(payload.entries);
+    state.grantsLoaded = true;
+    const entry = state.grants.find((item) => String(item.command_id || item.id) === String(commandId));
+    if (entry && grantStatusMeta(entry.status).terminal) return entry;
+    if (attempt + 1 < attempts) await new Promise((resolve) => window.setTimeout(resolve, 500));
+  }
+  return state.grants.find((item) => String(item.command_id || item.id) === String(commandId)) || null;
+}
+
+async function submitTargetGrant(contract, idempotencyKey) {
+  if (contract.scope !== "target") throw Object.assign(new Error("target preview required"), { code: "invalid_preview_request" });
+  const payload = await request("/api/resource-grants", {
+    method: "POST",
+    mutation: true,
+    body: JSON.stringify({ preview_token: contract.preview_token, idempotency_key: idempotencyKey }),
+  });
+  const command = payload.command || payload;
+  return await waitForGrantTerminal(command.command_id || command.id).catch(() => null) || command;
 }
 
 function renderGrantPreview(pane) {
@@ -689,12 +856,12 @@ function renderGrantPreview(pane) {
       });
       password.value = "";
       confirmation.value = "";
-      state.grantResult = payload.command || payload;
+      const command = payload.command || payload;
+      state.grantResult = await waitForGrantTerminal(command.command_id || command.id).catch(() => null) || command;
       state.grantPreview = null;
       state.grantDraft = null;
-      await loadGrantHistory(true).catch(() => {});
       renderActiveTab();
-      announce("资源指令已提交，请核对状态回执。");
+      announce(grantStatusMeta(state.grantResult.status).label);
       document.querySelector("#grant-receipt")?.focus();
     } catch (requestError) {
       password.value = "";
@@ -715,24 +882,21 @@ function renderGrantReceipt() {
   if (!state.grantResult) return null;
   const command = state.grantResult;
   const wrapper = element("div", { id: "grant-receipt", className: "command-receipt", attrs: { tabindex: "-1", role: "status" } });
-  wrapper.append(element("h2", { text: "指令状态回执" }));
-  const facts = element("dl", { className: "preview-facts" });
-  [
-    ["指令 ID", command.command_id || command.id || "—"],
-    ["状态", command.status || "queued"],
-    ["范围", command.target?.kind === "all" || command.scope === "all" ? "全部账号" : "指定账号"],
-    ["资源", grantDescription(command)],
-    ["目标数", command.target_count ?? command.targets ?? "—"],
-    ["原因", command.reason || "—"],
-    ["幂等键", command.idempotency_key || "—"],
-    ["创建时间", formatDate(command.created_at_unix)],
-  ].forEach(([term, value]) => facts.append(element("dt", { text: term }), element("dd", { text: value })));
-  wrapper.append(facts, element("p", { className: "muted", text: "queued / pending 仅代表指令已登记；请到“Owner 任务与审计”查看 applied、failed 或 rejected 等最终状态。" }));
+  const meta = grantStatusMeta(command.status);
+  wrapper.classList.add(`receipt-${meta.kind}`);
+  const target = command.scope === "all"
+    ? `全部 ${formatNumber(command.target_count)} 个账号`
+    : compactUserId(command.target_user_ids?.[0] || command.target?.user_id);
+  wrapper.append(
+    element("h2", { text: meta.label }),
+    element("p", { text: `${target} · ${grantDescription(command)}` }),
+    element("small", { className: "muted", text: `指令 ${compactUserId(command.command_id || command.id)}${meta.terminal ? " · 已收到终态回执" : " · 执行器仍在处理，可稍后刷新"}` }),
+  );
   return wrapper;
 }
 
 function renderGrants() {
-  const pane = createPane("grants", "Owner 资源发放");
+  const pane = createPane("grants", "资源发放");
   const receipt = renderGrantReceipt();
   if (receipt) pane.append(receipt);
   const accountCount = normalizeList(state.accounts?.accounts).length;
@@ -751,11 +915,12 @@ function renderGrants() {
     return pane;
   }
   const form = element("form", { className: "grant-form" });
-  form.append(element("p", { className: "step-label", text: "步骤 1 / 4 · 预览" }), element("h2", { text: "创建资源发放预览" }));
+  form.append(element("p", { className: "step-label", text: "指定账号一次提交 · 全部账号保留强确认" }), element("h2", { text: "发放资源" }));
   const targetKind = element("select", { name: "target_kind" });
   targetKind.append(new Option("指定账号", "user"), new Option(`全部账号（${accountCount} 个）`, "all"));
   const userId = element("select", { name: "user_id", required: true });
   accountOptions(userId);
+  if (state.selectedGrantUserId && normalizeList(state.accounts?.accounts).some((account) => account.user_id === state.selectedGrantUserId)) userId.value = state.selectedGrantUserId;
   const grantType = element("select", { name: "grant_type" });
   grantType.append(new Option("抽卡券", "gacha_tickets"), new Option("卡牌副本", "card_copies"));
   const amount = element("input", { type: "number", name: "amount", required: true, min: "1", max: "100000", step: "1", value: "1" });
@@ -763,7 +928,7 @@ function renderGrants() {
   const cardField = labeledControl("卡牌 ID", cardId, "仅“卡牌副本”需要。必须使用正式配置 ID。");
   const reason = element("textarea", { name: "reason", required: true, placeholder: "填写可审计的业务原因（4–200 字）", attrs: { maxlength: "200", rows: "4" } });
   const error = element("p", { className: "error", attrs: { role: "alert", tabindex: "-1" } });
-  const preview = element("button", { className: "primary", type: "submit", text: "生成预览" });
+  const preview = element("button", { className: "primary", type: "submit", text: "确认发放" });
   form.append(
     labeledControl("目标范围", targetKind),
     labeledControl("指定账号", userId),
@@ -809,19 +974,29 @@ function renderGrants() {
         throw Object.assign(new Error("invalid preview response"), { code: "invalid_preview_token" });
       }
       state.grantDraft = draft;
-      state.grantPreview = {
-        draft,
-        idempotencyKey,
-        previewToken: contract.preview_token,
-        expiresAt: contract.expires_at_unix,
-        targetCount: contract.target_count,
-      };
-      renderActiveTab();
-      announce(`服务器预览已生成，冻结目标 ${contract.target_count} 个账号。`);
+      if (draft.target.kind === "user") {
+        state.grantBusy = true;
+        state.grantResult = await submitTargetGrant(contract, idempotencyKey);
+        state.grantDraft = null;
+        renderActiveTab();
+        announce(grantStatusMeta(state.grantResult.status).label);
+        document.querySelector("#grant-receipt")?.focus();
+      } else {
+        state.grantPreview = {
+          draft,
+          idempotencyKey,
+          previewToken: contract.preview_token,
+          expiresAt: contract.expires_at_unix,
+          targetCount: contract.target_count,
+        };
+        renderActiveTab();
+        announce(`全账号预览已生成，冻结目标 ${contract.target_count} 个账号。`);
+      }
     } catch (requestError) {
       error.textContent = apiErrorMessage(requestError.code);
       error.focus?.();
     } finally {
+      state.grantBusy = false;
       preview.disabled = false;
     }
   });
@@ -831,8 +1006,9 @@ function renderGrants() {
   [
     ["只建指令", "后台只写入受保护命令目录，不直接修改玩家权威存档。"],
     ["幂等保护", "同一预览固定使用一个 idempotency_key，网络重试不得重复发放。"],
-    ["全服确认", "全服发放显示快照目标数，并强制输入 SEND TO ALL。"],
-    ["状态回执", "提交后必须跟踪执行状态与审计记录，不能把 queued 当成到账。"],
+    ["指定账号一次提交", "从角色列表选择账号后，只需填写资源并确认一次；服务器仍冻结目标并校验幂等键。"],
+    ["全服强确认", "全部账号发放仍显示目标数、重新认证并强制输入 SEND TO ALL。"],
+    ["终态回执", "页面会短暂等待执行器；成功或失败只显示一条最终结果，未完成才显示处理中。"],
   ].forEach(([title, description]) => {
     const item = element("article", { className: "guardrail" });
     item.append(element("strong", { text: title }), element("p", { text: description }));
@@ -882,25 +1058,21 @@ function renderTasks() {
     pane.append(loadingState("正在加载资源任务与审计记录…"));
     return pane;
   }
-  const grants = state.grants;
-  const grantColumns = ["指令 ID", "状态", "目标", "资源", "原因", "目标数", "创建者", "创建时间", "错误/备注"].map((label) => ({ label }));
+  const grants = state.grants.slice(0, 30);
+  const grantColumns = ["状态", "目标", "资源", "原因", "完成/创建时间", "备注"].map((label) => ({ label }));
   const grantRows = grants.map((entry) => {
-    const status = String(entry.status || "unknown");
-    const statusKind = ["applied", "processed", "completed", "success"].includes(status) ? "good" : ["failed", "rejected"].includes(status) ? "danger" : "warning";
+    const meta = grantStatusMeta(entry.status);
     const target = entry.target?.kind === "all" || entry.scope === "all" ? "全部账号" : compactUserId(entry.target?.user_id || entry.user_id || entry.target_user_ids?.[0]);
     return [
-      compactUserId(entry.command_id || entry.id),
-      tag(status, statusKind),
+      tag(meta.label, meta.kind),
       target,
       grantDescription(entry),
       entry.reason || "—",
-      formatNumber(entry.target_count),
-      entry.actor || entry.created_by || "—",
-      formatDate(entry.created_at_unix),
-      entry.error || entry.detail || "—",
+      formatDate(entry.processed_at_unix || entry.created_at_unix),
+      entry.error || `指令 ${compactUserId(entry.command_id || entry.id)}`,
     ];
   });
-  pane.append(panel("资源指令任务", grantRows.length ? dataTable("资源指令任务与状态", grantColumns, grantRows) : emptyState("尚无资源发放指令。"), "queued 不等于已到账；以执行器终态为准"));
+  pane.append(panel("资源发放记录", grantRows.length ? dataTable("资源发放终态与处理中记录", grantColumns, grantRows) : emptyState("尚无资源发放记录。"), "同一指令仅显示一条；未完成时显示处理中"));
   const auditList = element("div", { className: "audit-list" });
   if (!state.audit.length) auditList.append(emptyState("尚无权限审计事件。"));
   state.audit.forEach((entry) => {
@@ -1076,7 +1248,8 @@ function renderActiveTab() {
   let pane;
   if (state.activeTab === "overview") pane = renderOverview();
   if (state.activeTab === "animals") pane = renderAnimals();
-  if (state.activeTab === "accounts") pane = renderAccounts();
+  if (state.activeTab === "roles") pane = renderRoles();
+  if (state.activeTab === "decks") pane = renderDecks();
   if (state.activeTab === "grants") pane = renderGrants();
   if (state.activeTab === "tasks") pane = renderTasks();
   if (state.activeTab === "permissions") pane = renderPermissions();
@@ -1094,7 +1267,7 @@ async function switchTab(name, options = {}) {
   state.activeTab = name;
   renderActiveTab();
   try {
-    if (name === "accounts" || name === "grants") await loadAccounts(Boolean(options.force));
+    if (["roles", "decks", "grants"].includes(name)) await loadAccounts(Boolean(options.force));
     if (name === "tasks") await Promise.all([loadGrantHistory(Boolean(options.force)), loadManagement(Boolean(options.force))]);
     if (name === "permissions") await loadManagement(Boolean(options.force));
   } catch {
@@ -1219,6 +1392,9 @@ function clearSensitiveState() {
   state.audit = [];
   state.managementLoaded = false;
   state.animalQuery = "";
+  state.animalBattleType = "all";
+  state.accountQuery = "";
+  state.selectedGrantUserId = "";
   state.grantDraft = null;
   state.grantPreview = null;
   state.grantResult = null;

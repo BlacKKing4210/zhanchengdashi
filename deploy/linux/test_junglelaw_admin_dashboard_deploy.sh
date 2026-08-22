@@ -272,8 +272,8 @@ done
 # the frozen real release tarball, then prove that identity/root and unsafe tar
 # counterexamples fail closed. This prevents a structural grep test from
 # passing while the approved archive itself remains undeployable.
-REAL_GAME_ARCHIVE="${PROJECT_ROOT}/build/linux/JungleLawServer-v1.1.3-local-linux-rc1.tar.gz"
-REAL_GAME_MANIFEST="${PROJECT_ROOT}/build/linux/candidates/v1.1.3-local-linux-rc1/manifest.json"
+REAL_GAME_ARCHIVE="${PROJECT_ROOT}/build/linux/JungleLawServer-v1.2.0-local-linux-rc1.tar.gz"
+REAL_GAME_MANIFEST="${PROJECT_ROOT}/build/linux/candidates/v1.2.0-local-linux-rc1/manifest.json"
 [[ -f "${REAL_GAME_ARCHIVE}" ]] || fail 'frozen real game archive fixture is missing'
 [[ -f "${REAL_GAME_MANIFEST}" ]] || fail 'frozen real game manifest fixture is missing'
 python3 - "${INSTALLER}" "${REAL_GAME_ARCHIVE}" "${REAL_GAME_MANIFEST}" <<'PY'
@@ -432,7 +432,7 @@ with tempfile.TemporaryDirectory(prefix="junglelaw-game-archive-") as temporary:
     write_archive(wrong_artifact_archive, wrong_artifact_bytes)
     run_validator(wrong_artifact_manifest, wrong_artifact_archive, 1, "unexpected game artifact identity")
 
-    wrong_version = "v1.1.3-wrong-version"
+    wrong_version = "v1.2.0-wrong-version"
     wrong_version_manifest = temporary_path / "wrong-version.json"
     wrong_version_bytes = write_manifest(wrong_version_manifest, version=wrong_version)
     wrong_version_archive = temporary_path / "wrong-version.tar.gz"
@@ -595,7 +595,7 @@ class MockHost:
             raise RuntimeError("fail closed before mutation")
         baseline = (dict(self.active), dict(self.enabled), self.components, self.data)
         self.active.update(timer=False, renew=False, admin=False, game=False)
-        self.components = "v1.1.3"
+        self.components = "v1.2.0"
         self.active["game"] = True
         if inject_failure:
             self.quarantine.append(self.data)
@@ -629,7 +629,7 @@ assert host.components == "old" and host.data == "old" and host.active["game"]
 assert host.deleted == [] and host.quarantine
 host.prepare(True)
 host.activate()
-assert host.components == "v1.1.3" and host.active["admin"] and host.active["timer"]
+assert host.components == "v1.2.0" and host.active["admin"] and host.active["timer"]
 host.rollback("exact", True)
 assert host.components == "old" and host.data == "old" and host.active["game"]
 assert not host.active["admin"] and not host.active["timer"] and host.deleted == []

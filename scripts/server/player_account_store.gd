@@ -41,6 +41,7 @@ var installations: Dictionary = {}
 var admin_command_receipts: Dictionary = {}
 var profile_adapter: RefCounted
 var admin_accounts_snapshot_path = ""
+var admin_card_catalog: Dictionary = {}
 var admin_command_root = ""
 var authority_storage_ready = true
 var admin_snapshot_ready = false
@@ -760,10 +761,26 @@ func admin_accounts_snapshot() -> Dictionary:
 		return String(a.get("user_id", "")) < String(b.get("user_id", ""))
 	)
 	return {
-		"version": 1,
+		"version": 2,
 		"generated_at_unix": int(Time.get_unix_time_from_system()),
+		"card_names": admin_card_catalog.duplicate(true),
 		"accounts": rows,
 	}
+
+
+func register_admin_card_catalog(value: Variant) -> Dictionary:
+	if typeof(value) != TYPE_DICTIONARY:
+		return _failure("invalid_card_catalog")
+	var normalized: Dictionary = {}
+	for raw_card_id in value:
+		var card_id = _safe_admin_card_id(raw_card_id)
+		var card_name = _safe_admin_text((value as Dictionary).get(raw_card_id, ""), 48)
+		if not card_id.is_empty() and not card_name.is_empty():
+			normalized[card_id] = card_name
+	admin_card_catalog = normalized
+	if not _write_admin_accounts_snapshot():
+		return _failure("snapshot_write_failed")
+	return _success({"card_count": admin_card_catalog.size()})
 
 
 func process_admin_commands(allowed_card_ids: Array = [], max_commands: int = MAX_ADMIN_COMMANDS_PER_POLL) -> Dictionary:

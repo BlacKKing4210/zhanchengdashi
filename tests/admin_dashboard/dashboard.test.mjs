@@ -182,7 +182,12 @@ test("snapshot sanitizer keeps only dashboard allow-list fields", () => {
   const snapshot = sanitizeDashboardSnapshot({
     generated_at_unix: 1_700_000_000,
     password_hash: "must-not-leak",
-    overview: { matches: 9, players: 2, active_24h: 1, season: "S1", source: "server_recorded_host_authority_full_human_online", account: "must-not-leak" },
+    overview: { matches: 9, players: 2, active_24h: 1, season: "S1", source: "all_completed_authenticated_battles_by_type", account: "must-not-leak" },
+    battle_types: [{
+      battle_type: "classic_ranked_ai",
+      matches: 4,
+      authorities: { authenticated_client_reported: 4, hidden_authority: 99 },
+    }],
     leaderboard: [{
       rank: 1,
       user_id: "U-TEST",
@@ -201,6 +206,7 @@ test("snapshot sanitizer keeps only dashboard allow-list fields", () => {
     animals: [{
       card_id: "rabbit",
       name: "兔子",
+      battle_type: "classic_ranked_ai",
       games: 9,
       wins: 6,
       losses: 3,
@@ -213,9 +219,22 @@ test("snapshot sanitizer keeps only dashboard allow-list fields", () => {
       confidence: { sample_sufficient: false, win_rate_lower: 0.35, win_rate_upper: 0.88, rationale: "样本不足" },
       private_note: "must-not-leak",
     }],
+    animals_by_battle_type: {
+      classic_ranked_ai: [{
+        card_id: "rabbit",
+        name: "兔子",
+        games: 4,
+        wins: 3,
+        losses: 1,
+        placement_samples: 4,
+        placement_sum: 5,
+      }],
+    },
     recent_matches: [{
       match_id: "server-match-1",
       map_id: "1v1_crossroads",
+      battle_type: "multiplayer_1v1",
+      analytics_authority: "server_authoritative",
       state: "finalized",
       finalized_at_unix: 1_700_000_001,
       private_note: "must-not-leak",
@@ -240,8 +259,17 @@ test("snapshot sanitizer keeps only dashboard allow-list fields", () => {
     win_rate_upper: 0.88,
     rationale: "样本不足",
   });
-  assert.equal(snapshot.overview.source, "server_recorded_host_authority_full_human_online");
+  assert.equal(snapshot.overview.source, "all_completed_authenticated_battles_by_type");
+  assert.deepEqual(snapshot.battle_types, [{
+    battle_type: "classic_ranked_ai",
+    matches: 4,
+    authorities: { authenticated_client_reported: 4, legacy_server_recorded: 99 },
+  }]);
+  assert.equal(snapshot.animals[0].battle_type, "classic_ranked_ai");
+  assert.equal(snapshot.animals_by_battle_type.classic_ranked_ai[0].average_placement, 1.25);
   assert.equal(snapshot.recent_matches.length, 1);
+  assert.equal(snapshot.recent_matches[0].battle_type, "multiplayer_1v1");
+  assert.equal(snapshot.recent_matches[0].analytics_authority, "server_authoritative");
   assert.deepEqual(snapshot.recent_matches[0].team_outcomes, { 1: "win", 4: "loss" });
   assert.equal(Object.hasOwn(snapshot.recent_matches[0], "private_note"), false);
   assert.equal(Object.hasOwn(snapshot.recent_matches[0].players[0], "password_hash"), false);
@@ -366,6 +394,7 @@ test("protected HTTP dashboard enforces RBAC, cookies, CSRF/origin and session r
 test("account snapshot sanitizer exposes saved decks and resources without credential material", () => {
   const snapshot = sanitizeAccountSnapshot({
     generated_at_unix: 1_700_000_000,
+    card_names: { rabbit: "兔子", wolf: "狼", "invalid card id": "不应出现" },
     accounts: [{
       user_id: "U-ONE",
       masked_account: "f***e",
@@ -382,14 +411,24 @@ test("account snapshot sanitizer exposes saved decks and resources without crede
         gold: [{ mirror_id: "mirror-1", player_id: "U-MIRROR", deck: ["rabbit"], card_levels: { rabbit: 4 }, password_hash: "must-not-leak" }],
       },
       resources: { gacha_tickets: 19, card_copies: { rabbit: 7, wolf: 2 } },
+    }, {
+      user_id: "U-KING",
+      masked_account: "k***g",
+      profile_revision: 2,
+      deck: ["wolf"],
+      card_levels: { wolf: 5 },
+      rank: { rank_key: "king", rank_stars: 1, elo: 1400 },
+      resources: {},
     }],
   });
   assert.equal(snapshot.availability, "ready");
-  assert.equal(snapshot.accounts.length, 1);
-  assert.deepEqual(snapshot.accounts[0].deck, ["rabbit", "wolf"]);
-  assert.deepEqual(snapshot.accounts[0].card_levels, { rabbit: 4, wolf: 3, reserve_card: 2 });
-  assert.equal(snapshot.accounts[0].resources.gacha_tickets, 19);
-  assert.equal(snapshot.accounts[0].resources.card_copies.rabbit, 7);
+  assert.equal(snapshot.accounts.length, 2);
+  assert.deepEqual(snapshot.card_names, { rabbit: "兔子", wolf: "狼" });
+  assert.deepEqual(snapshot.accounts.map((entry) => entry.user_id), ["U-KING", "U-ONE"]);
+  assert.deepEqual(snapshot.accounts[1].deck, ["rabbit", "wolf"]);
+  assert.deepEqual(snapshot.accounts[1].card_levels, { rabbit: 4, wolf: 3, reserve_card: 2 });
+  assert.equal(snapshot.accounts[1].resources.gacha_tickets, 19);
+  assert.equal(snapshot.accounts[1].resources.card_copies.rabbit, 7);
   const serialized = JSON.stringify(snapshot);
   assert.doesNotMatch(serialized, /fieldmouse|must-not-leak|password_hash|installation_id|session_token/);
 });
@@ -523,6 +562,7 @@ test("signed resource grant previews reject stale, tampered, cross-session and e
       preview_token: preview.preview_token,
       idempotency_key: body.idempotency_key,
       confirmation: "SEND TO ALL",
+      password: "Owner password one 123",
     },
     accountSnapshot,
     actor: "owner-one",
@@ -531,9 +571,25 @@ test("signed resource grant previews reject stale, tampered, cross-session and e
     now: 1_700_000_001_000,
   });
   assert.deepEqual(command.target_user_ids, ["U-ONE", "U-TWO"]);
+  const targetBody = {
+    target: { kind: "user", user_id: "U-ONE" },
+    grant: { type: "gacha_tickets", amount: 1 },
+    reason: "指定账号补发",
+    idempotency_key: "77777777-7777-4777-8777-777777777778",
+  };
+  const targetPreview = createGrantPreview({ body: targetBody, accountSnapshot, actor: "owner-one", sessionId: "session-one", secret, now: 1_700_000_000_000 });
+  const targetCommand = commandFromGrantPreview({
+    body: { preview_token: targetPreview.preview_token, idempotency_key: targetBody.idempotency_key },
+    accountSnapshot,
+    actor: "owner-one",
+    sessionId: "session-one",
+    secret,
+    now: 1_700_000_001_000,
+  });
+  assert.deepEqual(targetCommand.target_user_ids, ["U-ONE"]);
   assert.throws(
     () => commandFromGrantPreview({
-      body: { preview_token: preview.preview_token, confirmation: "SEND TO ALL", unexpected_field: true },
+      body: { preview_token: targetPreview.preview_token, idempotency_key: targetBody.idempotency_key, confirmation: "SEND" },
       accountSnapshot,
       actor: "owner-one",
       sessionId: "session-one",
@@ -544,7 +600,18 @@ test("signed resource grant previews reject stale, tampered, cross-session and e
   );
   assert.throws(
     () => commandFromGrantPreview({
-      body: { preview_token: preview.preview_token, confirmation: "SEND TO ALL" },
+      body: { preview_token: preview.preview_token, confirmation: "SEND TO ALL", password: "Owner password one 123", unexpected_field: true },
+      accountSnapshot,
+      actor: "owner-one",
+      sessionId: "session-one",
+      secret,
+      now: 1_700_000_001_000,
+    }),
+    (error) => error.code === "invalid_preview_request",
+  );
+  assert.throws(
+    () => commandFromGrantPreview({
+      body: { preview_token: preview.preview_token, confirmation: "SEND TO ALL", password: "Owner password one 123" },
       accountSnapshot: { availability: "ready", accounts: [{ user_id: "U-ONE" }, { user_id: "U-THREE" }] },
       actor: "owner-one",
       sessionId: "session-one",
@@ -557,7 +624,7 @@ test("signed resource grant previews reject stale, tampered, cross-session and e
   const tamperedPayload = `${tokenParts[0]}.${tokenParts[1].slice(0, -2)}aa.${tokenParts[2]}`;
   assert.throws(
     () => commandFromGrantPreview({
-      body: { preview_token: tamperedPayload, confirmation: "SEND TO ALL" },
+      body: { preview_token: tamperedPayload, confirmation: "SEND TO ALL", password: "Owner password one 123" },
       accountSnapshot,
       actor: "owner-one",
       sessionId: "session-one",
@@ -568,7 +635,7 @@ test("signed resource grant previews reject stale, tampered, cross-session and e
   );
   assert.throws(
     () => commandFromGrantPreview({
-      body: { preview_token: preview.preview_token, confirmation: "SEND TO ALL" },
+      body: { preview_token: preview.preview_token, confirmation: "SEND TO ALL", password: "Owner password one 123" },
       accountSnapshot,
       actor: "owner-one",
       sessionId: "session-two",
@@ -579,7 +646,7 @@ test("signed resource grant previews reject stale, tampered, cross-session and e
   );
   assert.throws(
     () => commandFromGrantPreview({
-      body: { preview_token: preview.preview_token, confirmation: "SEND TO ALL" },
+      body: { preview_token: preview.preview_token, confirmation: "SEND TO ALL", password: "Owner password one 123" },
       accountSnapshot,
       actor: "owner-one",
       sessionId: "session-one",
@@ -715,7 +782,7 @@ test("concurrent enqueue rejects a different payload that reuses the same idempo
   assert.deepEqual(pending.filter((name) => name.endsWith(".json")), [`${baseBody.idempotency_key}.json`]);
 });
 
-test("resource grant API requires owner reauthentication and atomically enqueues primary commands", async (context) => {
+test("resource grant API submits one-account grants once while broad grants retain reauthentication", async (context) => {
   const directory = await temporaryDirectory(context);
   const snapshotPath = path.join(directory, "dashboard_snapshot.json");
   const accountSnapshotPath = path.join(directory, "admin_accounts_snapshot.json");
@@ -791,26 +858,16 @@ test("resource grant API requires owner reauthentication and atomically enqueues
   const submissionBody = {
     preview_token: preview.body.preview.preview_token,
     idempotency_key: requestBody.idempotency_key,
-    confirmation: "SEND",
-    password: "Owner password one 123",
   };
 
-  const wrongPassword = await jsonRequest(baseUrl, "/api/resource-grants", {
+  const redundantSecondConfirmation = await jsonRequest(baseUrl, "/api/resource-grants", {
     method: "POST",
     headers: { Cookie: ownerCookie, Origin: baseUrl, "X-CSRF-Token": ownerCsrf, "Content-Type": "application/json" },
-    body: JSON.stringify({ ...submissionBody, password: "wrong owner password" }),
+    body: JSON.stringify({ ...submissionBody, confirmation: "SEND", password: "Owner password one 123" }),
   });
-  assert.equal(wrongPassword.response.status, 401);
-  assert.equal(wrongPassword.body.error, "owner_reauthentication_failed");
+  assert.equal(redundantSecondConfirmation.response.status, 400);
+  assert.equal(redundantSecondConfirmation.body.error, "invalid_preview_request");
   await assert.rejects(() => fs.stat(path.join(commandRoot, "pending", `${requestBody.idempotency_key}.json`)), (error) => error.code === "ENOENT");
-
-  const wrongConfirmation = await jsonRequest(baseUrl, "/api/resource-grants", {
-    method: "POST",
-    headers: { Cookie: ownerCookie, Origin: baseUrl, "X-CSRF-Token": ownerCsrf, "Content-Type": "application/json" },
-    body: JSON.stringify({ ...submissionBody, confirmation: "WRONG" }),
-  });
-  assert.equal(wrongConfirmation.response.status, 400);
-  assert.equal(wrongConfirmation.body.error, "target_confirmation_required");
 
   const created = await jsonRequest(baseUrl, "/api/resource-grants", {
     method: "POST",
@@ -887,6 +944,30 @@ test("resource grant API requires owner reauthentication and atomically enqueues
   });
   assert.equal(allPreview.response.status, 201);
   assert.equal(allPreview.body.preview.target_count, 2);
+  const allWrongConfirmation = await jsonRequest(baseUrl, "/api/resource-grants", {
+    method: "POST",
+    headers: { Cookie: ownerCookie, Origin: baseUrl, "X-CSRF-Token": ownerCsrf, "Content-Type": "application/json" },
+    body: JSON.stringify({
+      preview_token: allPreview.body.preview.preview_token,
+      idempotency_key: allBody.idempotency_key,
+      confirmation: "SEND",
+      password: "Owner password one 123",
+    }),
+  });
+  assert.equal(allWrongConfirmation.response.status, 400);
+  assert.equal(allWrongConfirmation.body.error, "all_confirmation_required");
+  const allWrongPassword = await jsonRequest(baseUrl, "/api/resource-grants", {
+    method: "POST",
+    headers: { Cookie: ownerCookie, Origin: baseUrl, "X-CSRF-Token": ownerCsrf, "Content-Type": "application/json" },
+    body: JSON.stringify({
+      preview_token: allPreview.body.preview.preview_token,
+      idempotency_key: allBody.idempotency_key,
+      confirmation: "SEND TO ALL",
+      password: "wrong owner password",
+    }),
+  });
+  assert.equal(allWrongPassword.response.status, 401);
+  assert.equal(allWrongPassword.body.error, "owner_reauthentication_failed");
   const allCreated = await jsonRequest(baseUrl, "/api/resource-grants", {
     method: "POST",
     headers: { Cookie: ownerCookie, Origin: baseUrl, "X-CSRF-Token": ownerCsrf, "Content-Type": "application/json" },
@@ -929,8 +1010,6 @@ test("resource grant API requires owner reauthentication and atomically enqueues
     body: JSON.stringify({
       preview_token: auditFailurePreview.body.preview.preview_token,
       idempotency_key: auditFailureBody.idempotency_key,
-      confirmation: "SEND",
-      password: "Owner password one 123",
     }),
   });
   state.appendAudit = appendAudit;

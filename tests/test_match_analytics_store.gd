@@ -1,6 +1,7 @@
 extends Node
 
 const MatchAnalyticsStore = preload("res://scripts/server/match_analytics_store.gd")
+const BattleAnalyticsContract = preload("res://scripts/shared/battle_analytics_contract.gd")
 const TEST_STORE_PATH = "user://tests/match_analytics_store_test.json"
 const TEST_DASHBOARD_PATH = "user://tests/dashboard_snapshot_test.json"
 
@@ -51,6 +52,8 @@ func _ready() -> void:
 		"match_id": "analytics-match-1",
 		"room_code": "123456",
 		"map_id": "1v1_crossroads",
+		"battle_type": BattleAnalyticsContract.MULTIPLAYER_1V1,
+		"analytics_authority": BattleAnalyticsContract.SERVER_AUTHORITATIVE,
 		"session_token": "must-never-persist",
 	}, roster, animal_ids)
 	_expect(bool(begin.get("ok", false)), "starts a server-owned analytics match")
@@ -98,6 +101,8 @@ func _ready() -> void:
 		"match_id": "analytics-match-2",
 		"room_code": "123457",
 		"map_id": "1v1_plateau",
+		"battle_type": BattleAnalyticsContract.CLASSIC_RANKED_AI,
+		"analytics_authority": BattleAnalyticsContract.AUTHENTICATED_CLIENT_REPORTED,
 	}, [{
 		"user_id": "U-GAMMA",
 		"team_id": 1,
@@ -121,6 +126,8 @@ func _ready() -> void:
 		"match_id": "analytics-match-active",
 		"room_code": "123458",
 		"map_id": "1v1_active",
+		"battle_type": BattleAnalyticsContract.MULTIPLAYER_1V1,
+		"analytics_authority": BattleAnalyticsContract.SERVER_AUTHORITATIVE,
 	}, roster, animal_ids)
 	_expect(bool(active_begin.get("ok", false)), "an active match can be stored without becoming a recent completed result")
 
@@ -142,7 +149,13 @@ func _ready() -> void:
 		_expect(not dashboard_leaderboard.is_empty() and int((dashboard_leaderboard[0] as Dictionary).get("rank", 0)) == 1, "leaderboard emits stable one-based ranks")
 		_expect(not dashboard_top_decks.is_empty() and int((dashboard_top_decks[0] as Dictionary).get("rank", 0)) == 1, "top deck entries retain leaderboard rank")
 		_expect(not dashboard_animals.is_empty() and String((dashboard_animals[0] as Dictionary).get("name", "")) != "", "animal dashboard rows retain server catalog names")
-		_expect(String(overview.get("source", "")) == "server_recorded_host_authority_full_human_online", "dashboard declares the server-recorded match source")
+		_expect(String(overview.get("source", "")) == "all_completed_authenticated_battles_by_type", "dashboard declares the all-completed-battle source")
+		var battle_types: Array = dashboard_value.get("battle_types", [])
+		var animals_by_type: Dictionary = dashboard_value.get("animals_by_battle_type", {})
+		_expect(battle_types.size() == 2, "dashboard marks both completed battle types")
+		_expect(animals_by_type.has(BattleAnalyticsContract.MULTIPLAYER_1V1) and animals_by_type.has(BattleAnalyticsContract.CLASSIC_RANKED_AI), "dashboard exposes isolated animal metrics for every completed battle type")
+		_expect(String((dashboard_recent_matches[0] as Dictionary).get("battle_type", "")) != "", "recent matches retain the controlled battle type")
+		_expect(String((dashboard_recent_matches[0] as Dictionary).get("analytics_authority", "")) != "", "recent matches retain the analytics authority")
 		_expect(not dashboard_recent_matches.is_empty() and typeof((dashboard_recent_matches[0] as Dictionary).get("team_outcomes", {})) == TYPE_DICTIONARY, "recent matches expose only safe frozen participants and terminal outcomes")
 		var recent_matches_complete = true
 		for recent_value in dashboard_recent_matches:

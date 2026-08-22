@@ -33,6 +33,7 @@ const REGISTRY_PATH = "res://scripts/network/room_registry.gd"
 const ACCOUNT_STORE_PATH = "res://scripts/server/player_account_store.gd"
 const MATCH_ANALYTICS_STORE_PATH = "res://scripts/server/match_analytics_store.gd"
 const AccountCredentialRules = preload("res://scripts/shared/account_credential_rules.gd")
+const BattleAnalyticsContract = preload("res://scripts/shared/battle_analytics_contract.gd")
 const DEVICE_CREDENTIAL_PATH = "user://client/device_account.json"
 const MAX_PLAYER_NAME_LENGTH = 24
 const MAX_COMMAND_BYTES = 64 * 1024
@@ -126,6 +127,11 @@ func start_server(
 		return _server_start_failed(ERR_CANT_CREATE, "PlayerAccountStore could not load")
 	if not _account_store.has_method("is_authority_storage_ready") or not bool(_account_store.call("is_authority_storage_ready")):
 		return _server_start_failed(ERR_CANT_OPEN, "PlayerAccountStore authority storage is unavailable")
+	if not _account_store.has_method("register_admin_card_catalog"):
+		return _server_start_failed(ERR_CANT_CREATE, "PlayerAccountStore card catalog projection is unavailable")
+	var account_catalog_result = _account_store.call("register_admin_card_catalog", _server_card_catalog())
+	if typeof(account_catalog_result) != TYPE_DICTIONARY or not bool((account_catalog_result as Dictionary).get("ok", false)):
+		return _server_start_failed(ERR_CANT_CREATE, "PlayerAccountStore could not write the admin card catalog")
 	if _match_analytics_store == null:
 		return _server_start_failed(ERR_CANT_CREATE, "MatchAnalyticsStore could not load")
 	var catalog_result = _match_analytics_store.call("register_animal_catalog", _server_animal_catalog())
@@ -322,6 +328,42 @@ func send_authority_snapshot(snapshot: Dictionary) -> bool:
 		_emit_local_failure("authority_snapshot", "战斗快照过大")
 		return false
 	rpc_id(SERVER_PEER_ID, "_rpc_submit_authority_snapshot", snapshot.duplicate(true))
+	return true
+
+
+func report_completed_local_battle(
+	battle_type: String,
+	map_id: String,
+	outcome: String,
+	placement: int,
+	report_id: String
+) -> bool:
+	if not _require_client_connection("report_local_battle"):
+		return false
+	if _client_session_token.is_empty() or current_user_id.is_empty():
+		_emit_local_failure("report_local_battle", "账号尚未登录")
+		return false
+	var normalized_type = BattleAnalyticsContract.normalize_battle_type(battle_type)
+	var terminal_result = BattleAnalyticsContract.local_terminal_result(normalized_type, outcome, placement)
+	var normalized_report_id = report_id.strip_edges().to_lower()
+	if (
+		not BattleAnalyticsContract.is_client_reportable(normalized_type)
+		or not bool(terminal_result.get("ok", false))
+		or normalized_report_id.length() != 32
+		or not normalized_report_id.is_valid_hex_number(false)
+	):
+		_emit_local_failure("report_local_battle", "战斗统计上报参数无效")
+		return false
+	rpc_id(
+		SERVER_PEER_ID,
+		"_rpc_report_completed_local_battle",
+		_client_session_token,
+		normalized_type,
+		map_id.strip_edges().left(96),
+		String(outcome).strip_edges().to_lower(),
+		placement,
+		normalized_report_id
+	)
 	return true
 
 
@@ -666,6 +708,28 @@ func _rpc_request_save_player_profile(session_token: String, profile: Dictionary
 
 
 @rpc("any_peer", "call_remote", "reliable", 0)
+func _rpc_report_completed_local_battle(
+	session_token: String,
+	battle_type: String,
+	map_id: String,
+	outcome: String,
+	placement: int,
+	report_id: String
+) -> void:
+	if not _accept_server_request():
+		return
+	var sender = multiplayer.get_remote_sender_id()
+	if session_token != String(_server_peer_sessions.get(sender, "")):
+		_send_operation_result(sender, "report_local_battle", _failure("invalid_session"))
+		return
+	_send_operation_result(
+		sender,
+		"report_local_battle",
+		_record_authenticated_client_battle(sender, battle_type, map_id, outcome, placement, report_id)
+	)
+
+
+@rpc("any_peer", "call_remote", "reliable", 0)
 func _rpc_request_create_room(
 	player_name: String,
 	players_per_side: int,
@@ -946,6 +1010,8 @@ func _start_network_match(room_code: String, start_result: Dictionary) -> void:
 		"players_per_side": players_per_side,
 		"match_seed": match_seed,
 		"authority_peer_id": authority_peer_id,
+		"battle_type": BattleAnalyticsContract.multiplayer_type(players_per_side),
+		"analytics_authority": BattleAnalyticsContract.SERVER_AUTHORITATIVE,
 	}
 	var analytics_roster = _server_match_roster(room_code)
 	var expected_human_count = players_per_side * 2
@@ -976,8 +1042,64 @@ func _start_server_match_analytics(match_data: Dictionary, roster: Array) -> Dic
 		"room_code": String(match_data.get("room_code", "")),
 		"map_id": String(match_data.get("map_id", "")),
 		"started_at_unix": int(Time.get_unix_time_from_system()),
+		"battle_type": BattleAnalyticsContract.normalize_battle_type(match_data.get("battle_type", BattleAnalyticsContract.LEGACY_UNKNOWN)),
+		"analytics_authority": BattleAnalyticsContract.SERVER_AUTHORITATIVE,
 	}, roster, _server_animal_catalog())
 	return (result as Dictionary).duplicate(true) if typeof(result) == TYPE_DICTIONARY else _failure("analytics_invalid_result")
+
+
+func _record_authenticated_client_battle(
+	peer_id: int,
+	battle_type_value: Variant,
+	map_id_value: Variant,
+	outcome_value: Variant,
+	placement_value: Variant,
+	report_id_value: Variant
+) -> Dictionary:
+	if _match_analytics_store == null or _account_store == null:
+		return _failure("analytics_unavailable")
+	var session_token = String(_server_peer_sessions.get(peer_id, ""))
+	if session_token.is_empty():
+		return _failure("invalid_session")
+	var battle_type = BattleAnalyticsContract.normalize_battle_type(battle_type_value)
+	if not BattleAnalyticsContract.is_client_reportable(battle_type):
+		return _failure("invalid_battle_type")
+	var report_id = String(report_id_value).strip_edges().to_lower()
+	if report_id.length() != 32 or not report_id.is_valid_hex_number(false):
+		return _failure("invalid_report_id")
+	var terminal_result = BattleAnalyticsContract.local_terminal_result(battle_type, outcome_value, placement_value)
+	if not bool(terminal_result.get("ok", false)):
+		return _failure(String(terminal_result.get("error", "invalid_result")))
+	var profile_result = _account_store.call("profile_for_session", session_token)
+	if typeof(profile_result) != TYPE_DICTIONARY or not bool((profile_result as Dictionary).get("ok", false)):
+		return _failure("invalid_session")
+	var player_profile = _server_rank_profile(peer_id)
+	var user_id = String(player_profile.get("user_id", "")).strip_edges()
+	if user_id.is_empty():
+		return _failure("invalid_session")
+	var account_name = String(player_profile.get("account", "")).strip_edges()
+	var roster = [player_profile.merged({
+		"team_id": 1,
+		"display_name": account_name if not account_name.is_empty() else "未命名玩家",
+	}, true)]
+	var match_id = "client-%s" % (user_id.to_lower() + ":" + report_id).sha256_text()
+	var begin_result = _match_analytics_store.call("begin_match", {
+		"match_id": match_id,
+		"room_code": "",
+		"map_id": String(map_id_value).strip_edges().left(96),
+		"started_at_unix": int(Time.get_unix_time_from_system()),
+		"battle_type": battle_type,
+		"analytics_authority": BattleAnalyticsContract.AUTHENTICATED_CLIENT_REPORTED,
+	}, roster, _server_animal_catalog())
+	if typeof(begin_result) != TYPE_DICTIONARY or not bool((begin_result as Dictionary).get("ok", false)):
+		return (begin_result as Dictionary).duplicate(true) if typeof(begin_result) == TYPE_DICTIONARY else _failure("analytics_invalid_result")
+	var finish_result = _match_analytics_store.call("finalize_match", match_id, terminal_result)
+	if typeof(finish_result) != TYPE_DICTIONARY:
+		return _failure("analytics_invalid_result")
+	var response: Dictionary = (finish_result as Dictionary).duplicate(true)
+	response["battle_type"] = battle_type
+	response["analytics_authority"] = BattleAnalyticsContract.AUTHENTICATED_CLIENT_REPORTED
+	return response
 
 
 func _try_finalize_server_match_analytics(room_code: String, match_data: Dictionary, snapshot: Dictionary) -> void:
@@ -1050,8 +1172,8 @@ func _server_match_roster(room_code: String) -> Array:
 	return (value as Array).duplicate(true) if typeof(value) == TYPE_ARRAY else []
 
 
-func _server_roster_is_valid_for_analytics(roster: Array, expected_human_count: int) -> bool:
-	if roster.size() != expected_human_count:
+func _server_roster_is_valid_for_analytics(roster: Array, _expected_human_count: int) -> bool:
+	if roster.is_empty():
 		return false
 	var seen_user_ids = {}
 	for raw_player in roster:
@@ -1106,6 +1228,25 @@ func _server_animal_catalog() -> Dictionary:
 			continue
 		var card_name = String(card.get("name", card_id)).strip_edges()
 		result[card_id] = card_name if not card_name.is_empty() else card_id
+	return result
+
+
+func _server_card_catalog() -> Dictionary:
+	var config_db = get_node_or_null("/root/ConfigDB")
+	if config_db == null or not config_db.has_method("get_table"):
+		return {}
+	var card_rows = config_db.call("get_table", "cards")
+	if typeof(card_rows) != TYPE_ARRAY:
+		return {}
+	var result: Dictionary = {}
+	for raw_card in card_rows:
+		if typeof(raw_card) != TYPE_DICTIONARY:
+			continue
+		var card: Dictionary = raw_card
+		var card_id = String(card.get("id", "")).strip_edges()
+		var card_name = String(card.get("name", card_id)).strip_edges()
+		if not card_id.is_empty() and not card_name.is_empty():
+			result[card_id] = card_name
 	return result
 
 

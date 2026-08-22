@@ -24,7 +24,7 @@ environments:
     public_endpoints:
       - url: https://106.15.61.103/
         purpose: junglelaw_admin_dashboard
-        approval_state: deployed_external_https_and_owner_login_accepted_2026-08-22
+        approval_state: deployed_v1_2_external_https_and_retained_owner_state_accepted_2026-08-22
     ports:
       - protocol: tcp
         port: 22
@@ -49,7 +49,7 @@ environments:
         source_cidr: 0.0.0.0/0
         approval_state: approved_fallback_condition_satisfied_and_selected
         security_gates: exact_systemd_dropin_cap_net_bind_service_only_and_valid_tls
-        observed_state: listening_external_trusted_tls_root_health_login_and_restart_passed_2026-08-22
+        observed_state: listening_v1_2_external_trusted_tls_root_health_wrong_password_and_restart_passed_2026-08-22
       - protocol: udp
         port: 24567
         service: junglelaw
@@ -66,7 +66,7 @@ environments:
         observed_state: present
       - purpose: admin_dashboard
         path: /opt/junglelaw-admin
-        observed_state: present_current_points_to_JungleLaw-admin-dashboard-v1.1.3-aliyun-public-rc11
+        observed_state: present_current_points_to_JungleLaw-admin-dashboard-v1.2.0-aliyun-staging-rc2
       - purpose: admin_dashboard_state
         path: /var/lib/junglelaw-admin-dashboard
         observed_state: present_root_managed_service_private
@@ -85,20 +85,21 @@ environments:
       - "POSIX ACL tooling /usr/bin/getfacl and /usr/bin/setfacl observed present; getfacl is 2.2.53 and numeric receipts must use supported -n rather than unsupported --numeric-names; junglelaw-admin may receive only --x on /var/lib/junglelaw and must not join the junglelaw group"
       - "prepare must receive the read-only observed Fisher and nginx unit names; their unit/PID/start-time/executable/config/listener fingerprints must remain byte-identical across the transaction"
     data_readiness:
-      account_authority: "deployed version 3; 29 account records; 15 installations; zero admin grant receipts; authority hash unchanged across final game restart"
-      dashboard_snapshot: "deployed admin projection version 2 generated 2026-08-21T16:59:35Z; 60 animal rows; zero matches, placement samples, leaderboard rows, and top decks"
-      account_snapshot: "deployed version 1 generated 2026-08-21T16:59:35Z; 29 sanitized account rows; 26 non-empty current decks"
-      match_analytics: "deployed version 2; 60 animal records; zero players and zero placement samples"
+      account_authority: "deployed version 3; 29 account records; 15 installations; zero successful admin grant receipts; SHA-256 0fbae9b15a51e6aaec523602991333add815cac0d4acde85423c6fc6fe9e2d02 unchanged across no-player executor smoke and final game restart"
+      dashboard_snapshot: "deployed admin projection version 3 generated 2026-08-22T15:32:15Z; source all_completed_authenticated_battles_by_type; 60 animal rows; zero completed matches, placement samples, battle-type rows, leaderboard rows, and top decks"
+      account_snapshot: "deployed version 2 generated 2026-08-22T15:32:15Z; 29 sanitized account rows; 26 non-empty saved decks; 65 Chinese card-name mappings"
+      match_analytics: "deployed version 3; controlled battle type and authority dimensions; 60 animal records; zero players and zero placement samples"
       balance_decision_status: "not_ready: current authoritative analytics contain no match or placement evidence"
     tls_and_reverse_proxy: "deployed: Node.js terminates TLS directly on public IPv4 106.15.61.103:443 as non-root junglelaw-admin with only CAP_NET_BIND_SERVICE; environment runtime port and certificate health port both equal 443; production Let's Encrypt shortlived lineage junglelaw-admin-ip has SAN 106.15.61.103, issuer YE2, expires 2026-08-28T05:37:38Z, and is atomically projected root:junglelaw-admin 0640; Certbot 5.7.0 timer is active/enabled twice daily with randomized delay; nginx TCP 80 was not edited, reloaded, or restarted"
     health_checks:
       - "not_ready: systemd is degraded because kdump failed"
       - "passed: external certificate-verified GET https://106.15.61.103/api/health without insecure TLS bypass returned HTTP 200, ok=true and live=true"
-      - "passed: external root HTTP 200; wrong password HTTP 401; tian owner login and post-admin/game-restart login succeeded"
-      - "declared limitation: /api/readiness remains 503 because executor heartbeat is not independently observed; snapshot, account projection, command storage, active owner and audit outbox are ready"
-    backup_plan: "executed: root-only receipt /var/backups/junglelaw-admin-dashboard/admin-dashboard-predeploy-JungleLaw-admin-dashboard-v1.1.3-aliyun-public-rc11-20260821T165506Z; 191872369 bytes; payload.tar.sha256 and receipt.sha256 passed; full canonical server state, ACL/xattr, admin auth/audit, protected TLS, queues, game/admin components, active/enabled baselines and shared-host fingerprints recorded; isolated restore drill passed; Alibaba Cloud snapshot quota remains 3/3 and no snapshot was deleted"
-    rollback_plan: "ready and evidence-bound but not executed after successful acceptance: exact RC11 receipt, exact backup ID and --authorize-state-directory-quarantine are mandatory; old immutable releases and receipt are retained; canonical server state may only be moved to root-only quarantine and never deleted; prepare restore drill and receipt checks passed"
-    monitoring: "junglelaw-admin-dashboard.service active/running/enabled with NRestarts=0; certificate renewal timer active/enabled and next check 2026-08-22T08:29:45+08:00; external health/login and journal checks passed; independent executor heartbeat and external alert routing remain declared post-staging observability work"
+      - "passed: external root HTTP 200; wrong password HTTP 401; active tian Owner state and its SHA-256 were retained through deployment and final restart; no user secret was re-entered by automation"
+      - "passed: no-player executor smoke moved one nonexistent-target command to failed invalid_target without changing authority; smoke receipt was preserved in root-only quarantine and live pending/processed/failed counts returned to zero"
+      - "declared limitation: /api/readiness remains 503 because the health schema has no executor heartbeat; behavior was observed by the bounded no-player smoke, while snapshot, account projection, command storage, active owner and audit outbox are ready"
+    backup_plan: "executed: root-only receipt /var/backups/junglelaw-admin-dashboard/admin-dashboard-predeploy-JungleLaw-admin-dashboard-v1.2.0-aliyun-staging-rc2-20260822T153210Z; 191889041 bytes; payload.tar.sha256 and receipt.sha256 passed; full canonical server state, ACL/xattr, admin auth/audit, protected TLS, queues, game/admin components, active/enabled baselines and shared-host fingerprints recorded; isolated restore drill passed; old all-account 99-ticket command is separately recoverable at /var/backups/junglelaw-admin-dashboard/manual-pending-quarantine-20260822T144330Z; Alibaba Cloud snapshot quota remains 3/3 and no snapshot was deleted"
+    rollback_plan: "ready and evidence-bound but not executed after successful acceptance: exact v1.2 RC2 receipt, exact backup ID and --authorize-state-directory-quarantine are mandatory; v1.1.3 immutable release and both receipts are retained; canonical server state may only be moved to root-only quarantine and never deleted; prepare restore drill and receipt checks passed"
+    monitoring: "junglelaw-server.service and junglelaw-admin-dashboard.service active/running/enabled with NRestarts=0; certificate renewal timer active/enabled and next check 2026-08-23T08:36:01+08:00; external TLS/root/health/wrong-password and journal checks passed; Fisher PID 9513 and nginx PID 48406 plus their unit/listener fingerprints remained unchanged; independent alert routing remains declared post-staging observability work"
   production:
     ssh_alias: null
     region: null

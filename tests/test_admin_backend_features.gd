@@ -504,6 +504,13 @@ func _close_all_account_stores() -> void:
 
 func _test_account_projection_grants_idempotency_and_cas() -> void:
 	var store = _open_account_store(ACCOUNT_PATH)
+	var catalog_result: Dictionary = store.register_admin_card_catalog({
+		"rabbit": "兔子",
+		"wolf": "狼",
+		"gold_mine_card": "金矿",
+		"defense_watch_tower": "防御塔",
+	})
+	_expect(bool(catalog_result.get("ok", false)) and int(catalog_result.get("card_count", 0)) == 4, "admin account projection registers the complete Chinese card catalog")
 	var first_registration: Dictionary = store.register_account("FieldMouse", "safe-pass-1936")
 	var second_registration: Dictionary = store.register_account("RiverWolf", "safe-pass-2048")
 	_expect(bool(first_registration.get("ok", false)) and bool(second_registration.get("ok", false)), "two target accounts are registered")
@@ -531,6 +538,7 @@ func _test_account_projection_grants_idempotency_and_cas() -> void:
 	var snapshot_text = _read_text(ACCOUNT_SNAPSHOT_PATH)
 	var snapshot = JSON.parse_string(snapshot_text)
 	_expect(typeof(snapshot) == TYPE_DICTIONARY and (snapshot.get("accounts", []) as Array).size() == 2, "account snapshot contains every saved account")
+	_expect(String((snapshot.get("card_names", {}) as Dictionary).get("rabbit", "")) == "兔子", "account snapshot exposes Chinese card names without exposing account credentials")
 	_expect(not snapshot_text.contains("FieldMouse") and not snapshot_text.contains("RiverWolf"), "account snapshot masks login names")
 	_expect(not snapshot_text.contains("password_hash") and not snapshot_text.contains("salt") and not snapshot_text.contains("installations") and not snapshot_text.contains("sessions"), "account snapshot excludes credentials, installations, and sessions")
 	var first_snapshot_row = _row_by_id(snapshot.get("accounts", []), "user_id", first_user_id)

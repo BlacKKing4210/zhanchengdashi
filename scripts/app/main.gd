@@ -14,6 +14,7 @@ const DeckService = preload("res://scripts/foundation/deck/deck_service.gd")
 const GachaService = preload("res://scripts/foundation/gacha/gacha_service.gd")
 const PageRouter = preload("res://scripts/foundation/ui/page_router.gd")
 const MainPageLayout = preload("res://scripts/foundation/ui/main_page_layout.gd")
+const BattleAnalyticsContract = preload("res://scripts/shared/battle_analytics_contract.gd")
 
 const DESIGN_SIZE = Vector2(720.0, 1280.0)
 const HEX_SIZE = 43.0
@@ -296,6 +297,8 @@ var online_snapshot_sequence = 0
 var online_last_received_sequence = -1
 var online_command_sequence = 0
 var online_last_command_sequences = {}
+var local_battle_report_id = ""
+var local_battle_report_submitted = false
 var local_team_id = PLAYER
 var classic_map_id = ""
 var classic_map_name = ""
@@ -2377,6 +2380,8 @@ func _reset_battle() -> void:
 	income_timer = INCOME_INTERVAL
 	enemy_timer = ENEMY_FIRST_UNLOCK_DELAY
 	game_over = false
+	local_battle_report_id = Crypto.new().generate_random_bytes(16).hex_encode()
+	local_battle_report_submitted = false
 	pause_open = false
 	battle_reward_given = false
 	last_battle_reward_tickets = 0
@@ -5098,6 +5103,12 @@ func _finish_battle(text: String, play_audio: bool = true) -> void:
 	if play_audio:
 		GameAudio.play_result("victory" if text == "胜利" else "defeat")
 	_apply_rank_result(text == "胜利")
+	_report_completed_battle(
+		BattleAnalyticsContract.CLASSIC_RANKED_AI,
+		classic_map_id,
+		"win" if text == "胜利" else "loss",
+		1 if text == "胜利" else 2
+	)
 	_rebuild_result_player_entries()
 	if not battle_reward_given:
 		battle_reward_given = true
@@ -5261,6 +5272,13 @@ func _finish_multiplayer_battle(outcome: String, play_audio: bool = true) -> voi
 	pause_open = false
 	if play_audio:
 		GameAudio.play_result("victory" if local_outcome == "win" else ("draw" if local_outcome == "draw" else "defeat"))
+	if not _is_online_match_active():
+		_report_completed_battle(
+			BattleAnalyticsContract.multiplayer_type(room_players_per_side),
+			room_map_id,
+			local_outcome,
+			multiplayer_placement
+		)
 	var reward = _room_result_rewards(local_outcome)
 	last_multiplayer_star_delta = int(reward.get("star_delta", -1))
 	last_battle_reward_tickets = int(reward.get("gacha_tickets", 1))
@@ -5284,6 +5302,13 @@ func _finish_multiplayer_free_for_all(placement: int, play_audio: bool = true) -
 	pause_open = false
 	if play_audio:
 		GameAudio.play_result("victory" if multiplayer_placement == 1 else "defeat")
+	if not _is_online_match_active():
+		_report_completed_battle(
+			BattleAnalyticsContract.FREE_FOR_ALL_6,
+			room_map_id,
+			"win" if multiplayer_placement == 1 else "loss",
+			multiplayer_placement
+		)
 	var reward = MultiplayerRules.placement_rewards(multiplayer_placement)
 	last_multiplayer_star_delta = int(reward.get("star_delta", -1))
 	last_battle_reward_tickets = int(reward.get("gacha_tickets", 1))
@@ -5302,6 +5327,28 @@ func _room_result_rewards(outcome: String) -> Dictionary:
 	if outcome == "draw":
 		return {"star_delta": 0, "gacha_tickets": 2}
 	return {"star_delta": -1, "gacha_tickets": 1}
+
+
+func _report_completed_battle(
+	battle_type: String,
+	map_id: String,
+	outcome: String,
+	placement: int
+) -> void:
+	if local_battle_report_submitted or local_battle_report_id.is_empty():
+		return
+	if online_room_service == null or not bool(online_room_service.call("is_connected_to_server")):
+		return
+	if not online_room_service.has_method("report_completed_local_battle"):
+		return
+	local_battle_report_submitted = bool(online_room_service.call(
+		"report_completed_local_battle",
+		battle_type,
+		map_id,
+		outcome,
+		placement,
+		local_battle_report_id
+	))
 
 
 func _apply_multiplayer_rank_result(outcome: String, star_delta: int) -> void:

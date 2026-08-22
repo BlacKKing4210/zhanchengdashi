@@ -37,8 +37,8 @@ func _ready() -> void:
 		bool(transport.call("_server_roster_is_valid_for_analytics", [
 			{"user_id": "U-ONE", "team_id": 1},
 			{"user_id": "U-TWO", "team_id": 4},
-		], 2)),
-		"a full roster with unique authenticated users is eligible for analytics"
+		], 6)),
+		"authenticated humans remain eligible when the rest of a room is filled by AI"
 	)
 	_expect(
 		not bool(transport.call("_server_roster_is_valid_for_analytics", [

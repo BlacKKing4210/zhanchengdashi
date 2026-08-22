@@ -235,13 +235,13 @@ test "$(readlink -f "${ADMIN_CURRENT_LINK}")" = "${ADMIN_RELEASE_TARGET}"
 bash '<absolute-verified-extracted-release>/deploy/linux/install_junglelaw_admin_dashboard.sh' prepare \
   --release-version '<approved-version>' \
   --release-source '<absolute-verified-extracted-release>' \
-  --node-archive '<absolute-approved-v1.1.3-runtime-only.zip>' \
-  --node-manifest '<absolute-approved-v1.1.3-runtime-only.manifest.json>' \
-  --expected-node-sha256 '<approved-v1.1.3-node-zip-sha256>' \
-  --game-release-source '<absolute-verified-v1.1.3-game-bundle-directory>' \
-  --game-archive '<absolute-JungleLawServer-v1.1.3-local-linux-rc1.tar.gz>' \
-  --expected-game-archive-sha256 88C3B339FB1933A8B648E1C73B938B86A87B1AC5058A44F7B7138BE039ED3B0D \
-  --expected-game-sha256 6D8768B5953EBCEFB5A5B5BFFA6A398CAAD056F1C506F80E9F01D2EF6948C14B \
+  --node-archive '<absolute-approved-v1.2.0-runtime.zip>' \
+  --node-manifest '<absolute-approved-v1.2.0-runtime.manifest.json>' \
+  --expected-node-sha256 '<approved-v1.2.0-node-zip-sha256>' \
+  --game-release-source '<absolute-verified-v1.2.0-game-bundle-directory>' \
+  --game-archive '<absolute-JungleLawServer-v1.2.0-local-linux-rc1.tar.gz>' \
+  --expected-game-archive-sha256 '<approved-v1.2.0-game-archive-sha256>' \
+  --expected-game-sha256 7F11BC743A3573C8F9EAB7ECF6AADD65C74E7C8720DE80F7FA03ACC8BF1F2B94 \
   --backup-root /var/backups/junglelaw-admin-dashboard \
   --authority-path '<read-only-baseline-resolved-player_accounts.json>' \
   --acme-webroot '<read-only-baseline-resolved-existing-nginx-webroot>' \
@@ -252,9 +252,9 @@ bash '<absolute-verified-extracted-release>/deploy/linux/install_junglelaw_admin
   --authorize-state-directory-quarantine
 ```
 
-helper 必须从已验签 Node release 自己的 `deploy/linux` 目录运行；执行中的 overlay 与 `--release-source/deploy/linux` canonical 路径不相同就拒绝。Node ZIP 的整体哈希、ZIP 内每个文件、外部 manifest 和解压目录必须四方一致。游戏 ELF、基础 unit、stop helper 和后台 drop-in 则全部来自已验签的 v1.1.3 游戏服 bundle；drop-in 必须命中 `12D08A7B47816517BEEE46EF1C0D939D49F796D692425A1F9E23709D5E3B0BF1`，不得从 Node overlay 混装。
+helper 必须从已验签 Node release 自己的 `deploy/linux` 目录运行；执行中的 overlay 与 `--release-source/deploy/linux` canonical 路径不相同就拒绝。Node ZIP 的整体哈希、ZIP 内每个文件、外部 manifest 和解压目录必须四方一致。游戏 ELF、基础 unit、stop helper 和后台 drop-in 则全部来自已验签的 v1.2.0 游戏服 bundle；drop-in 必须命中 `12D08A7B47816517BEEE46EF1C0D939D49F796D692425A1F9E23709D5E3B0BF1`，不得从 Node overlay 混装。
 
-`prepare` 记录 game/dashboard/cert timer 的 active 与 enabled 基线以及 cert-renew active 基线；按 cert timer → cert-renew → 后台的顺序停止后第一次检查 `pending`，再停止游戏服并第二次检查 `pending`，随后创建一致性备份。它再原子安装 v1.1.3 游戏 ELF/unit/stop helper/drop-in、Node release、续期 helper/timer、端口 drop-in 和无秘密环境文件；新游戏服只启动一次。`--authorize-state-directory-quarantine` 是失败自动恢复的强制门禁：只有已校验的 exact receipt 可把当前完整状态目录移动到 root-only quarantine，绝不删除。它不会初始化 Owner、不会签发证书、不会开放云防火墙、不会改 nginx，也不会启动后台。
+`prepare` 记录 game/dashboard/cert timer 的 active 与 enabled 基线以及 cert-renew active 基线；按 cert timer → cert-renew → 后台的顺序停止后第一次检查 `pending`，再停止游戏服并第二次检查 `pending`，随后创建一致性备份。它再原子安装 v1.2.0 游戏 ELF/unit/stop helper/drop-in、Node release、续期 helper/timer、端口 drop-in 和无秘密环境文件；新游戏服只启动一次。`--authorize-state-directory-quarantine` 是失败自动恢复的强制门禁：只有已校验的 exact receipt 可把当前完整状态目录移动到 root-only quarantine，绝不删除。它不会初始化 Owner、不会签发证书、不会开放云防火墙、不会改 nginx，也不会启动后台。
 
 `prepare` 成功后，先用已固定为 Certbot `5.7.0` 的虚拟环境签发正式短期 IPv4 证书。测试 lineage `junglelaw-admin-ip-staging` 只能证明 HTTP-01 通路，证书标记为 `TEST_CERT`，不得复制到后台或计入 HTTPS 验收。正式签发必须使用生产 ACME endpoint、`shortlived` 必需 profile、现有 nginx webroot 和独立 lineage `junglelaw-admin-ip`；不得使用 `--staging`、`--test-cert`、`--dry-run`、`--no-verify-ssl` 或任何 TLS 绕过参数：
 
@@ -358,7 +358,7 @@ Let's Encrypt IP 证书约 6 天有效，不能再使用“剩余 7 天”门禁
 4. **公网访问**：独立公网网络可打开登录页并完成登录；阿里云安全组/SWAS 防火墙与主机防火墙只新增本项目批准的 TCP 443 `0.0.0.0/0`，不得放宽 SSH、UDP 游戏端口或同机其他服务。保存变更前后规则证据。
 5. **登录与权限**：Owner 可登录；错误密码被拒绝并触发限速；Analyst 无法执行 Owner 操作；cookie、CSRF 和 Origin 防护与自动测试一致。
 6. **数据读取**：动物平均名次、平衡提示、全部脱敏阵容可见；后台进程没有读取 `player_accounts.json` 的权限。
-7. **资源发放**：使用专门 staging 测试账号执行一次指定账号发放和一次经二次确认的全体发放；记录命令 ID，验证 `pending -> processed`、数量、目标范围、审计日志和重复提交幂等。不得使用真实生产玩家做演练。
+7. **资源发放**：仅在存在明确标识的 staging 测试账号时执行一次指定账号发放；记录命令 ID，验证 `pending -> processed`、数量、目标范围、审计日志和重复提交幂等。全账号发放只做非变更合同检查（Owner 密码复验与精确 `SEND TO ALL`），不得向真实玩家批量发放。
 8. **持久化**：记录 Owner 登录、审计条目和测试命令 ID；重启后台服务后再次登录并核对数据不丢失；重启游戏服务后确认命令不会重复消费。
 9. **服务级持久化**：只重启 JungleLaw 游戏服和后台服务，确认二者恢复、TLS/健康正常、账号状态和幂等记录保持一致。OpenClaw-ejrr 是共享主机，本次授权禁止主机 reboot，不能影响 Fisher/OpenClaw。
 10. **日志与监控**：journal、健康告警、证书到期/续期失败告警、磁盘告警、失败命令告警可到达 profile 记录的责任人，日志中没有密码、token、cookie、私钥或完整账号数据；`systemctl list-timers` 显示续期 timer 的最近/下次触发。
@@ -372,7 +372,7 @@ Let's Encrypt IP 证书约 6 天有效，不能再使用“剩余 7 天”门禁
 
 ```bash
 ADMIN_CHECK_IP='106.15.61.103'
-ADMIN_CHECK_PORT='8443'
+ADMIN_CHECK_PORT='443'
 systemctl show junglelaw-admin-dashboard.service \
   --property=ActiveState,SubState,ExecMainStatus,NRestarts
 systemctl show junglelaw-admin-dashboard-cert-renew.timer \
@@ -392,7 +392,7 @@ curl --fail --silent --show-error \
 
 持久化/重启检查使用一个专门 staging Owner 和测试玩家：
 
-1. 登录后记录一个既有审计条目 ID，并提交一个唯一资源命令 ID，等待其进入 `processed`。
+1. 登录后记录一个既有审计条目 ID；仅当存在明确 staging 测试玩家时，提交一个指定账号的唯一资源命令 ID并等待其进入 `processed`。
 2. 记录三个命令目录清单及 `dashboard_admin_state.json` 的 SHA-256，不输出文件内容。
 3. 在批准维护窗口执行 `systemctl restart junglelaw-admin-dashboard.service`，重跑服务、TLS、健康和外部登录检查；确认同一 Owner、审计 ID、命令 ID 仍可见。
 4. 重启游戏服务，确认该命令 ID 不会再次增加资源，且不会重新出现在 `pending`。
