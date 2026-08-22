@@ -24,6 +24,8 @@ func _ready() -> void:
 	app.call("_reset_battle")
 	_setup_units()
 	_test_unit_index_cache_safety()
+	_test_unit_sticky_target_contract()
+	_test_tower_sticky_target_contract()
 	app.call("_reset_battle")
 	_setup_units()
 	_run_benchmark()
@@ -47,6 +49,156 @@ func _test_unit_index_cache_safety() -> void:
 	app.set("units", units)
 	_expect_equal(int(app.call("_unit_index_by_id", 900001)), units.size() - 1, "new unit falls back and enters cache")
 	_expect_equal(int(app.call("_unit_index_by_id", -1)), -1, "invalid ID exits early")
+
+
+func _test_unit_sticky_target_contract() -> void:
+	app.call("_reset_battle")
+	var player_base: Vector2i = app.call("_battle_base_key", BoardRules.PLAYER)
+	var enemy_base: Vector2i = app.call("_battle_base_key", BoardRules.ENEMY)
+	app.call("_spawn_unit", BoardRules.PLAYER, player_base, "rabbit", false, 0, {"skill_triggers_enabled": false})
+	app.call("_spawn_unit", BoardRules.ENEMY, enemy_base, "rabbit", false, 0, {"skill_triggers_enabled": false})
+	app.call("_spawn_unit", BoardRules.ENEMY, enemy_base, "rabbit", false, 0, {"skill_triggers_enabled": false})
+	var units: Array = app.get("units")
+	_expect_equal(units.size(), 3, "sticky unit-target setup")
+	if units.size() != 3:
+		return
+	var origin = Vector2(10000.0, 10000.0)
+	var attacker: Dictionary = units[0]
+	attacker["pos"] = origin
+	attacker["range"] = 160.0
+	attacker["cooldown"] = 9999.0
+	var first_target: Dictionary = units[1]
+	first_target["pos"] = origin + Vector2(80.0, 0.0)
+	first_target["hp"] = 999.0
+	first_target["max_hp"] = 999.0
+	var second_target: Dictionary = units[2]
+	second_target["pos"] = origin + Vector2(120.0, 0.0)
+	second_target["hp"] = 999.0
+	second_target["max_hp"] = 999.0
+	units[0] = attacker
+	units[1] = first_target
+	units[2] = second_target
+	app.set("units", units)
+	var first_target_id = int(first_target.get("id", -1))
+	var second_target_id = int(second_target.get("id", -1))
+	var acquired: Dictionary = app.call("_nearest_attack_target_in_range", attacker)
+	_expect_equal(_target_unit_id(acquired), first_target_id, "unit initially acquires the nearest target")
+	attacker = app.call("_lock_unit_attack_target", attacker, acquired)
+	units = app.get("units")
+	units[0] = attacker
+	second_target = units[2]
+	second_target["pos"] = origin + Vector2(20.0, 0.0)
+	units[2] = second_target
+	app.set("units", units)
+	var locked: Dictionary = app.call("_locked_unit_attack_target", units[0])
+	_expect_equal(_target_unit_id(locked), first_target_id, "unit keeps its live in-range target when a closer target appears")
+
+	units = app.get("units")
+	first_target = units[1]
+	first_target["pos"] = origin + Vector2(240.0, 0.0)
+	units[1] = first_target
+	app.set("units", units)
+	locked = app.call("_locked_unit_attack_target", units[0])
+	_expect_true(locked.is_empty(), "unit releases a target after it leaves attack range")
+	attacker = app.call("_clear_unit_attack_target", units[0])
+	acquired = app.call("_nearest_attack_target_in_range", attacker)
+	_expect_equal(_target_unit_id(acquired), second_target_id, "unit reacquires after the previous target leaves range")
+	attacker = app.call("_lock_unit_attack_target", attacker, acquired)
+	units = app.get("units")
+	units[0] = attacker
+	second_target = units[2]
+	second_target["hp"] = 0.0
+	units[2] = second_target
+	first_target = units[1]
+	first_target["pos"] = origin + Vector2(80.0, 0.0)
+	units[1] = first_target
+	app.set("units", units)
+	locked = app.call("_locked_unit_attack_target", units[0])
+	_expect_true(locked.is_empty(), "unit releases a dead target")
+	attacker = app.call("_clear_unit_attack_target", units[0])
+	acquired = app.call("_nearest_attack_target_in_range", attacker)
+	_expect_equal(_target_unit_id(acquired), first_target_id, "unit reacquires only after the locked target dies")
+
+
+func _test_tower_sticky_target_contract() -> void:
+	app.call("_reset_battle")
+	var tower_key: Vector2i = app.call("_battle_base_key", BoardRules.PLAYER)
+	var tiles: Dictionary = app.get("tiles")
+	var tower_tile: Dictionary = (tiles.get(tower_key, {}) as Dictionary).duplicate(true)
+	tower_tile["building"] = "tower"
+	tower_tile["team"] = BoardRules.PLAYER
+	tower_tile["hp"] = 999.0
+	tower_tile["site_card"] = ""
+	tiles[tower_key] = tower_tile
+	app.set("tiles", tiles)
+	var enemy_base: Vector2i = app.call("_battle_base_key", BoardRules.ENEMY)
+	app.call("_spawn_unit", BoardRules.ENEMY, enemy_base, "rabbit", false, 0, {"skill_triggers_enabled": false})
+	app.call("_spawn_unit", BoardRules.ENEMY, enemy_base, "rabbit", false, 0, {"skill_triggers_enabled": false})
+	var units: Array = app.get("units")
+	_expect_equal(units.size(), 2, "sticky tower-target setup")
+	if units.size() != 2:
+		return
+	var center: Vector2 = app.call("_hex_center", tower_key)
+	var first_target: Dictionary = units[0]
+	first_target["pos"] = center + Vector2(60.0, 0.0)
+	first_target["hp"] = 999.0
+	first_target["max_hp"] = 999.0
+	var second_target: Dictionary = units[1]
+	second_target["pos"] = center + Vector2(110.0, 0.0)
+	second_target["hp"] = 999.0
+	second_target["max_hp"] = 999.0
+	units[0] = first_target
+	units[1] = second_target
+	app.set("units", units)
+	var first_target_id = int(first_target.get("id", -1))
+	var second_target_id = int(second_target.get("id", -1))
+	app.call("_tower_attack", tower_key, BoardRules.PLAYER)
+	_expect_equal(_tower_locked_unit_id(tower_key), first_target_id, "tower initially acquires the nearest target")
+
+	units = app.get("units")
+	second_target = units[1]
+	second_target["pos"] = center + Vector2(20.0, 0.0)
+	units[1] = second_target
+	app.set("units", units)
+	app.call("_tower_attack", tower_key, BoardRules.PLAYER)
+	_expect_equal(_tower_locked_unit_id(tower_key), first_target_id, "tower keeps its live in-range target when a closer target appears")
+
+	units = app.get("units")
+	first_target = units[0]
+	first_target["pos"] = center + Vector2(600.0, 0.0)
+	units[0] = first_target
+	app.set("units", units)
+	app.call("_tower_attack", tower_key, BoardRules.PLAYER)
+	_expect_equal(_tower_locked_unit_id(tower_key), second_target_id, "tower retargets after the previous target leaves range")
+
+	units = app.get("units")
+	second_target = units[1]
+	second_target["hp"] = 0.0
+	units[1] = second_target
+	first_target = units[0]
+	first_target["pos"] = center + Vector2(60.0, 0.0)
+	units[0] = first_target
+	app.set("units", units)
+	app.call("_tower_attack", tower_key, BoardRules.PLAYER)
+	_expect_equal(_tower_locked_unit_id(tower_key), first_target_id, "tower retargets after the locked target dies")
+
+
+func _target_unit_id(target: Dictionary) -> int:
+	if String(target.get("kind", "")) != "unit":
+		return -1
+	var units: Array = app.get("units")
+	var index = int(target.get("index", -1))
+	if index < 0 or index >= units.size():
+		return -1
+	return int((units[index] as Dictionary).get("id", -1))
+
+
+func _tower_locked_unit_id(tower_key: Vector2i) -> int:
+	var locks: Dictionary = app.get("tower_target_locks")
+	var lock_value = locks.get(tower_key, {})
+	if typeof(lock_value) != TYPE_DICTIONARY:
+		return -1
+	return int((lock_value as Dictionary).get("unit_id", -1))
 
 
 func _run_benchmark() -> void:
@@ -109,6 +261,12 @@ func _expect_equal(actual: int, expected: int, label: String) -> void:
 	if actual == expected:
 		return
 	_fail("%s: expected %d, got %d" % [label, expected, actual])
+
+
+func _expect_true(value: bool, label: String) -> void:
+	if value:
+		return
+	_fail("%s: expected true" % label)
 
 
 func _fail(message: String) -> void:

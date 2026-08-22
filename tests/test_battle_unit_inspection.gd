@@ -18,6 +18,7 @@ func _ready() -> void:
 	_test_invalid_selection_clears_after_unit_disappears()
 	_test_status_and_empty_skill_contracts()
 	_test_animal_card_range_is_part_of_skill_text()
+	_test_battle_summary_title_contract()
 	_test_building_card_preview_contract()
 	if failures == 0:
 		print("Battle unit inspection tests passed.")
@@ -185,6 +186,28 @@ func _test_animal_card_range_is_part_of_skill_text() -> void:
 	_expect_equal(String(app.call("_card_ui_skill_text", sparrow)), "远程", "ranged animal with no authored skill shows range in the skill area")
 	_expect_true(String(app.call("_card_ui_skill_text", parrot)).begins_with("远程 · "), "ranged animal prefixes its authored skill with range")
 	_expect_true(String(app.call("_card_ui_skill_text", eagle)).begins_with("超远程 · "), "ultra-ranged animal prefixes its authored skill with range")
+
+
+func _test_battle_summary_title_contract() -> void:
+	var units: Array = _reset_with_animals()
+	if units.is_empty():
+		return
+	var unit: Dictionary = units[0]
+	var card: Dictionary = app.call("_card_by_id", String(unit.get("card", "rabbit")))
+	var animal_name = String(card.get("name", ""))
+	var rarity_label = String(app.call("_rarity_label", String(card.get("rarity", "common"))))
+	var selected_title = String(app.call("_unit_card_summary_title", unit, card))
+	var camp_title = String(app.call("_building_animal_card_summary_title", card, int(unit.get("team", BoardRules.PLAYER))))
+	_expect_equal(_substring_count(selected_title, animal_name), 1, "selected-animal summary shows the animal name exactly once")
+	_expect_true(not selected_title.contains(rarity_label), "selected-animal summary omits the rarity label")
+	_expect_equal(_substring_count(camp_title, animal_name), 1, "camp-animal summary shows the animal name exactly once")
+	_expect_true(not camp_title.contains(rarity_label), "camp-animal summary omits the rarity label")
+
+
+func _substring_count(text: String, needle: String) -> int:
+	if needle == "":
+		return 0
+	return text.split(needle).size() - 1
 
 
 func _test_building_card_preview_contract() -> void:

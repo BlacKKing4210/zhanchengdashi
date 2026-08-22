@@ -208,6 +208,7 @@ const NAV_ITEMS = [
 var tiles = {}
 var units = []
 var unit_index_cache = {}
+var tower_target_locks = {}
 var effects = []
 var cards = []
 var deck = []
@@ -2366,6 +2367,7 @@ func _reset_battle() -> void:
 	selected_unit_id = -1
 	_clear_building_card_preview(true)
 	combat_building_keys.clear()
+	tower_target_locks.clear()
 	gold = STARTING_GOLD
 	enemy_gold = STARTING_GOLD
 	if battle_mode == BATTLE_MODE_MULTIPLAYER:
@@ -3287,6 +3289,68 @@ func _tower_attack(key: Vector2i, team: int) -> void:
 		var stats = _card_stats_for_team(tower_card, team)
 		damage = float(stats["attack"])
 		attack_range = float(stats["attack_range"])
+	var target = _locked_tower_attack_target(key, team, attack_range) if building == "tower" else {}
+	if target.is_empty():
+		if building == "tower":
+			tower_target_locks.erase(key)
+		target = _nearest_tower_attack_target(key, team, attack_range, building == "tower")
+		if building == "tower":
+			_lock_tower_attack_target(key, target)
+	if String(target.get("kind", "")) == "unit":
+		var target_index = int(target.get("index", -1))
+		if target_index < 0 or target_index >= units.size():
+			return
+		_play_world_sfx("tower_attack", center, team, -3.0)
+		_projectile(center, Vector2(target.get("pos", units[target_index].get("pos", center))), team)
+		_damage_unit(target_index, damage, -1, team if battle_mode == BATTLE_MODE_MULTIPLAYER else NEUTRAL)
+	elif String(target.get("kind", "")) == "building":
+		var target_key: Vector2i = target.get("key", MultiplayerRules.INVALID_KEY)
+		if target_key == MultiplayerRules.INVALID_KEY:
+			return
+		_play_world_sfx("tower_attack", center, team, -3.0)
+		_projectile(center, _hex_center(target_key), team)
+		_damage_tile(target_key, team, damage)
+
+
+func _locked_tower_attack_target(key: Vector2i, team: int, attack_range: float) -> Dictionary:
+	var lock_value = tower_target_locks.get(key, {})
+	if typeof(lock_value) != TYPE_DICTIONARY:
+		return {}
+	var lock: Dictionary = lock_value
+	var center = _hex_center(key)
+	match String(lock.get("kind", "")):
+		"unit":
+			var target_index = _unit_index_by_id(int(lock.get("unit_id", -1)))
+			if target_index < 0:
+				return {}
+			var target_unit: Dictionary = units[target_index]
+			if float(target_unit.get("hp", 0.0)) <= 0.0 or _are_allies(int(target_unit.get("team", NEUTRAL)), team):
+				return {}
+			var target_pos = Vector2(target_unit.get("pos", Vector2.ZERO))
+			if center.distance_to(target_pos) > attack_range:
+				return {}
+			return {
+				"kind": "unit",
+				"index": target_index,
+				"pos": target_pos,
+			}
+		"building":
+			var target_key: Vector2i = lock.get("key", MultiplayerRules.INVALID_KEY)
+			if not _is_enemy_building_target_valid(target_key, team):
+				return {}
+			var target_pos = _hex_center(target_key)
+			if center.distance_to(target_pos) > attack_range:
+				return {}
+			return {
+				"kind": "building",
+				"key": target_key,
+				"pos": target_pos,
+			}
+	return {}
+
+
+func _nearest_tower_attack_target(key: Vector2i, team: int, attack_range: float, include_buildings: bool) -> Dictionary:
+	var center = _hex_center(key)
 	var best_index = -1
 	var best_key = Vector2i(-99, -99)
 	var best_kind = ""
@@ -3295,12 +3359,12 @@ func _tower_attack(key: Vector2i, team: int) -> void:
 		if _are_allies(int(units[i]["team"]), team) or float(units[i]["hp"]) <= 0.0:
 			continue
 		var distance = center.distance_to(Vector2(units[i]["pos"]))
-		if distance < attack_range and distance < best_distance:
+		if distance <= attack_range and distance < best_distance:
 			best_distance = distance
 			best_index = i
 			best_key = Vector2i(-99, -99)
 			best_kind = "unit"
-	if building == "tower":
+	if include_buildings:
 		var target_keys = tiles.keys()
 		if battle_mode == BATTLE_MODE_MULTIPLAYER:
 			var search_radius = ceili(attack_range / (HEX_SIZE * 1.5)) + 1
@@ -3313,19 +3377,45 @@ func _tower_attack(key: Vector2i, team: int) -> void:
 			if String(target_tile.get("building", "")) == "" or float(target_tile.get("hp", 0.0)) <= 0.0:
 				continue
 			var distance = center.distance_to(_hex_center(target_key))
-			if distance < attack_range and distance < best_distance:
+			if distance <= attack_range and distance < best_distance:
 				best_distance = distance
 				best_index = -1
 				best_key = target_key
 				best_kind = "building"
 	if best_kind == "unit" and best_index >= 0:
-		_play_world_sfx("tower_attack", center, team, -3.0)
-		_projectile(center, Vector2(units[best_index]["pos"]), team)
-		_damage_unit(best_index, damage, -1, team if battle_mode == BATTLE_MODE_MULTIPLAYER else NEUTRAL)
+		return {
+			"kind": "unit",
+			"index": best_index,
+			"pos": Vector2(units[best_index].get("pos", center)),
+		}
 	elif best_kind == "building" and best_key.x != -99:
-		_play_world_sfx("tower_attack", center, team, -3.0)
-		_projectile(center, _hex_center(best_key), team)
-		_damage_tile(best_key, team, damage)
+		return {
+			"kind": "building",
+			"key": best_key,
+			"pos": _hex_center(best_key),
+		}
+	return {}
+
+
+func _lock_tower_attack_target(key: Vector2i, target: Dictionary) -> void:
+	var kind = String(target.get("kind", ""))
+	if kind == "unit":
+		var target_index = int(target.get("index", -1))
+		if target_index >= 0 and target_index < units.size():
+			tower_target_locks[key] = {
+				"kind": "unit",
+				"unit_id": int(units[target_index].get("id", -1)),
+			}
+			return
+	elif kind == "building":
+		var target_key: Vector2i = target.get("key", MultiplayerRules.INVALID_KEY)
+		if target_key != MultiplayerRules.INVALID_KEY:
+			tower_target_locks[key] = {
+				"kind": "building",
+				"key": target_key,
+			}
+			return
+	tower_target_locks.erase(key)
 
 
 func _damage_unit(index: int, damage: float, source_index: int = -1, source_team: int = NEUTRAL, trigger_reactive: bool = true) -> bool:
@@ -3377,6 +3467,7 @@ func _damage_tile(key: Vector2i, attacker: int, damage: float) -> bool:
 		return false
 	tile["hp"] = float(tile["hp"]) - damage
 	if float(tile["hp"]) <= 0.0:
+		tower_target_locks.erase(key)
 		_play_world_sfx("building_break", _hex_center(key), attacker, -2.0)
 		if String(tile["building"]) == "base":
 			var base_result_audio_played = false
@@ -3559,6 +3650,8 @@ func _is_enemy_building_target_valid(key: Vector2i, team: int) -> bool:
 
 func _locked_unit_attack_target(unit: Dictionary) -> Dictionary:
 	var team = int(unit.get("team", NEUTRAL))
+	var unit_pos = Vector2(unit.get("pos", Vector2.ZERO))
+	var attack_range = maxf(0.0, float(unit.get("range", 0.0)))
 	match String(unit.get("attack_target_kind", "")):
 		"unit":
 			var target_index = _unit_index_by_id(int(unit.get("attack_target_unit_id", -1)))
@@ -3568,6 +3661,8 @@ func _locked_unit_attack_target(unit: Dictionary) -> Dictionary:
 			if float(target_unit.get("hp", 0.0)) <= 0.0 or _are_allies(int(target_unit.get("team", NEUTRAL)), team):
 				return {}
 			var target_pos = Vector2(target_unit.get("pos", Vector2.ZERO))
+			if unit_pos.distance_to(target_pos) > attack_range:
+				return {}
 			return {
 				"kind": "unit",
 				"index": target_index,
@@ -3578,10 +3673,13 @@ func _locked_unit_attack_target(unit: Dictionary) -> Dictionary:
 			var key: Vector2i = unit.get("attack_target_key", MultiplayerRules.INVALID_KEY)
 			if not _is_enemy_building_target_valid(key, team):
 				return {}
+			var target_pos = _hex_center(key)
+			if unit_pos.distance_to(target_pos) > attack_range:
+				return {}
 			return {
 				"kind": "building",
 				"key": key,
-				"pos": _hex_center(key),
+				"pos": target_pos,
 				"tile": key,
 			}
 	return {}
@@ -7784,20 +7882,14 @@ func _draw_selected_unit_card_panel(rect: Rect2) -> bool:
 	if card.is_empty():
 		return false
 	var card_rect = Rect2(rect.position + Vector2(18, 10), Vector2(92, 98))
-	_draw_card(card_rect, card, true, false)
+	_draw_card(card_rect, card, true, false, false)
 	_draw_unit_card_summary(Rect2(rect.position + Vector2(128, 14), Vector2(512, 88)), unit, card)
 	return true
 
 
 func _draw_unit_card_summary(rect: Rect2, unit: Dictionary, card: Dictionary) -> void:
 	var team = int(unit.get("team", NEUTRAL))
-	var card_id = String(card.get("id", ""))
-	var title = "%s · %s %s Lv.%d" % [
-		_unit_owner_label(team),
-		_rarity_label(String(card.get("rarity", "common"))),
-		String(card.get("name", "动物")),
-		_card_level_for_team(card_id, team),
-	]
+	var title = _unit_card_summary_title(unit, card)
 	var status_text = _unit_status_text(unit)
 	var team_color = _team_color(team)
 	draw_circle(rect.position + Vector2(7, 14), 6.0, team_color)
@@ -7810,6 +7902,16 @@ func _draw_unit_card_summary(rect: Rect2, unit: Dictionary, card: Dictionary) ->
 	var skill_text = _card_ui_skill_text(card)
 	if skill_text != "":
 		_draw_text_fit("技能：" + skill_text, Rect2(rect.position + Vector2(0, 62), Vector2(rect.size.x, 24)), 17, Color(0.78, 0.86, 1.0))
+
+
+func _unit_card_summary_title(unit: Dictionary, card: Dictionary) -> String:
+	var team = int(unit.get("team", NEUTRAL))
+	var card_id = String(card.get("id", ""))
+	return "%s · %s Lv.%d" % [
+		_unit_owner_label(team),
+		String(card.get("name", "动物")),
+		_card_level_for_team(card_id, team),
+	]
 
 
 func _unit_owner_label(team: int) -> String:
@@ -7847,25 +7949,30 @@ func _draw_selected_building_card_panel(rect: Rect2) -> bool:
 	if card.is_empty() or _card_kind(card) != CARD_KIND_ANIMAL:
 		return false
 	var card_rect = Rect2(rect.position + Vector2(18, 10), Vector2(92, 98))
-	_draw_card(card_rect, card, true, false)
+	_draw_card(card_rect, card, true, false, false)
 	_draw_building_animal_card_summary(Rect2(rect.position + Vector2(128, 14), Vector2(512, 88)), card, selected_building_card_team)
 	return true
 
 
 func _draw_building_animal_card_summary(rect: Rect2, card: Dictionary, team: int) -> void:
-	var card_id = String(card.get("id", ""))
 	var stats = _card_stats_for_team(card, team)
-	var title = String(card.get("name", "动物"))
-	var level = _card_level_for_team(card_id, team)
 	var team_color = _team_color(team)
 	draw_circle(rect.position + Vector2(7, 14), 6.0, team_color)
 	draw_circle(rect.position + Vector2(7, 14), 6.0, COLOR_LINE, false, 1.0)
-	_draw_text_fit("%s  %s Lv.%d" % [_rarity_label(String(card.get("rarity", "common"))), title, level], Rect2(rect.position + Vector2(18, 0), Vector2(rect.size.x - 18, 28)), 23, Color.WHITE)
+	_draw_text_fit(_building_animal_card_summary_title(card, team), Rect2(rect.position + Vector2(18, 0), Vector2(rect.size.x - 18, 28)), 23, Color.WHITE)
 	_draw_detail_stat_icon_value(rect.position + Vector2(0, 31), "attack", str(int(stats["attack"])), COLOR_ORANGE, Color(0.84, 0.88, 1.0), 66.0)
 	_draw_detail_stat_icon_value(rect.position + Vector2(102, 31), "hp", str(int(stats["max_hp"])), COLOR_RED, Color(0.84, 0.88, 1.0), 88.0)
 	var skill_text = _card_ui_skill_text(card)
 	if skill_text != "":
 		_draw_text_fit("技能：" + skill_text, Rect2(rect.position + Vector2(0, 62), Vector2(rect.size.x, 24)), 17, Color(0.78, 0.86, 1.0))
+
+
+func _building_animal_card_summary_title(card: Dictionary, team: int) -> String:
+	var card_id = String(card.get("id", ""))
+	return "%s Lv.%d" % [
+		String(card.get("name", "动物")),
+		_card_level_for_team(card_id, team),
+	]
 
 
 func _draw_pause_button() -> void:
@@ -7941,7 +8048,7 @@ func _draw_result_player_row(rect: Rect2, entry: Dictionary, is_local: bool) -> 
 	_draw_text_right("%s星" % delta_text, Rect2(rect.end.x - 82, rect.position.y + rect.size.y * 0.5 - 13, 68, 26), 19, delta_color)
 
 
-func _draw_card(rect: Rect2, card: Dictionary, selected: bool, show_collection_state: bool = true) -> void:
+func _draw_card(rect: Rect2, card: Dictionary, selected: bool, show_collection_state: bool = true, show_name: bool = true) -> void:
 	if card.is_empty():
 		_box(rect, Color(0.35, 0.36, 0.40), COLOR_LINE, 4)
 		_draw_text_center("空", rect, 18, Color.WHITE)
@@ -7956,10 +8063,12 @@ func _draw_card(rect: Rect2, card: Dictionary, selected: bool, show_collection_s
 	var name_rect = Rect2(rect.position + Vector2(8, rect.size.y - 48), Vector2(rect.size.x - 16, 22))
 	var progress_rect = Rect2(rect.position + Vector2(12, rect.size.y - 22), Vector2(rect.size.x - 24, 14))
 	var art_top = rect.position.y + 12.0
-	var art_bottom = name_rect.position.y - 5.0
+	var art_bottom = name_rect.position.y - 5.0 if show_name else rect.end.y - 8.0
 	var art_size = minf(rect.size.x - 30.0, maxf(44.0, art_bottom - art_top))
 	var art_rect = Rect2(Vector2(rect.position.x + (rect.size.x - art_size) * 0.5, art_top), Vector2(art_size, art_size))
 	_draw_animal_art_in_rect(card, art_rect, tint)
+	if not show_name:
+		return
 	_box(name_rect, Color(0, 0, 0, 0.30), Color(1, 1, 1, 0.18), 1)
 	if not show_collection_state:
 		_draw_text_center(String(card.get("name", "")), name_rect, 15, Color.WHITE)

@@ -8,7 +8,7 @@ var output_dir = ""
 
 
 func _ready() -> void:
-	output_dir = ProjectSettings.globalize_path("res://output/qa/F-ZC-001-battle-card-voice")
+	output_dir = ProjectSettings.globalize_path("res://temp/qa/F-ZC-001/battle-info-target-lock-20260822/runtime")
 	var make_dir_error = DirAccess.make_dir_recursive_absolute(output_dir)
 	if make_dir_error != OK:
 		push_error("Unable to create visual QA output: %s" % error_string(make_dir_error))
@@ -24,23 +24,19 @@ func _ready() -> void:
 	app.call("_layout", get_viewport().get_visible_rect().size)
 	app.call("_show_building_card_preview", {
 		"building": "hall",
-		"site_card": "eagle",
+		"site_card": "mouse",
 		"team": BoardRules.PLAYER,
 	})
 	app.set_process(false)
-	await _capture("battle_camp_animal_card.png")
+	await _capture("battle_camp_animal_info_v11.png")
 
 	app.call("_clear_building_card_preview", true)
 	var player_base: Vector2i = app.call("_battle_base_key", BoardRules.PLAYER)
-	app.call("_spawn_unit", BoardRules.PLAYER, player_base, "eagle")
+	app.call("_spawn_unit", BoardRules.PLAYER, player_base, "mouse")
 	var units: Array = app.get("units")
 	if not units.is_empty():
 		app.set("selected_unit_id", int((units.back() as Dictionary).get("id", -1)))
-	await _capture("battle_selected_animal_card.png")
-
-	app.set("screen", "deck")
-	app.set("selected_card_id", "eagle")
-	await _capture("deck_animal_card_detail.png")
+	await _capture("battle_selected_animal_info_v11.png")
 
 	print("VISUAL_QA_CAPTURE_PASS: %s" % output_dir)
 	app.queue_free()

@@ -13,7 +13,7 @@ from docx.shared import Inches, Pt, RGBColor
 
 ROOT = Path(__file__).resolve().parents[1]
 TEMPLATE = Path(r"C:\Users\76398\.codex\skills\game-feature-design-docs\assets\general-feature-design-template.docx")
-OUTPUT = ROOT / "docs" / "RENDERING_CLARITY_AND_BATTLE_PERFORMANCE_DESIGN_v1.0.docx"
+OUTPUT = ROOT / "docs" / "RENDERING_CLARITY_AND_BATTLE_PERFORMANCE_DESIGN_v1.1.docx"
 
 INK = "172033"
 BLUE = "2E74B5"
@@ -152,7 +152,7 @@ def style_document(doc: Document) -> None:
     set_run_font(header.runs[0], 8.5, color=GRAY)
     footer = section.footer.paragraphs[0]
     footer.alignment = WD_ALIGN_PARAGRAPH.RIGHT
-    footer.text = "v1.0｜2026-08-14｜IMPLEMENTATION_CONTRACT"
+    footer.text = "v1.1｜2026-08-22｜IMPLEMENTATION_CONTRACT"
     set_run_font(footer.runs[0], 8.5, color=GRAY)
 
 
@@ -173,7 +173,7 @@ def add_title_page(doc: Document) -> None:
             ["文档类型", "IMPLEMENTATION_CONTRACT｜MATERIAL"],
             ["请求编号", "REQ-20260814-RENDER-CLARITY-BATTLE-PERF"],
             ["功能编号", "F-ZC-001"],
-            ["版本 / 日期", "v1.0 / 2026-08-14"],
+            ["版本 / 日期", "v1.1 / 2026-08-22"],
             ["负责人", "制作人：用户｜工程负责人：codex-primary"],
             ["目标平台", "Android 竖屏；Windows 开发验证"],
             ["正式目标", "1080×1920；540×960 作为低分辨率兼容验证"],
@@ -240,7 +240,10 @@ def build_document() -> Document:
     add_table(
         doc,
         ["版本", "日期", "变更", "状态"],
-        [["v1.0", "2026-08-14", "建立清晰度、分辨率与战斗性能实施合同", "制作人已提出实施"]],
+        [
+            ["v1.1", "2026-08-22", "补充战斗信息去重、动物与防御塔持续锁敌合同", "制作人已提出实施"],
+            ["v1.0", "2026-08-14", "建立清晰度、分辨率与战斗性能实施合同", "已完成本地实施"],
+        ],
         [0.8, 1.1, 3.7, 0.95],
     )
 
@@ -249,6 +252,7 @@ def build_document() -> Document:
     add_bullet(doc, "标题、资源数字、按钮文字、底部导航文字在 540×960 与 1080×1920 实际视口上均按原生像素字号绘制，显著减少模糊边缘。")
     add_bullet(doc, "UI 细线与边框使用 2D 像素对齐，保持现有视觉层级和触摸命中范围。")
     add_bullet(doc, "72 单位锁定目标场景下，减少平方级重复查询与单位循环内部的重复建筑索引重建，降低模拟慢帧。")
+    add_bullet(doc, "战斗动物信息只保留一处动物名且不显示品质文字；动物和防御塔仅在目标死亡、失效或离开射程后重新选敌。")
     doc.add_heading("2.2 次要目标", level=2)
     add_bullet(doc, "建立可重复的双分辨率截图和固定单位数基准，后续每次改 UI 或战斗规则都能复测。")
     add_bullet(doc, "在不增加 2K/4K 固定离屏渲染开销的前提下，提高有效清晰度。")
@@ -261,6 +265,7 @@ def build_document() -> Document:
     add_number(doc, "每次绘制时把文字矩形映射到当前实际视口，按 scale 后的整数像素字号生成字形，并在绘制后恢复原变换。")
     add_number(doc, "项目维持 1080×1920 竖屏目标；540×960 屏幕直接生成匹配该屏幕的字形，不先生成 720 基准字形再缩小。")
     add_number(doc, "战斗每个模拟更新先生成单位 ID 索引和建筑目标索引，后续单位复用；锁定目标查询优先 O(1) 命中。")
+    add_number(doc, "动物和防御塔首次选中目标后保存稳定锁定；距离/技能偏好只用于获取新目标，不能抢走仍然有效的当前目标。")
     add_number(doc, "自动化同时输出双分辨率截图、清晰度结构断言以及 72 单位 median/p95 基准。")
 
     doc.add_heading("4. 系统框架", level=1)
@@ -273,6 +278,7 @@ def build_document() -> Document:
             ["文字渲染", "逻辑 rect、字号、当前 draw transform", "映射到屏幕像素，字号取 max(1, round(size×scale))", "清晰字形；绘制后恢复世界/页面变换"],
             ["UI 几何", "现有 draw_rect / draw_line", "启用 2D transform/vertex pixel snap", "细边框减少半像素抖动"],
             ["战斗索引", "units、tiles", "每模拟更新构建一次索引", "锁定目标查询 O(1)，建筑键只重建一次"],
+            ["持续锁敌", "稳定单位 ID / 建筑地块键", "先验证当前锁定；仅失效时扫描并重选", "近目标或高偏好目标不得抢走有效锁定"],
             ["QA", "固定场景与同一 Godot 4.6.2", "双截图 + 72 单位计时", "可复现输出，不用肉眼主观替代数据"],
         ],
         [1.0, 1.35, 2.6, 1.75],
@@ -332,7 +338,12 @@ def build_document() -> Document:
     add_bullet(doc, "每次 _update_units 开始时重建 unit_id → index；命中时校验数组范围和 ID，一旦不一致立即线性回退并修复缓存。")
     add_bullet(doc, "死亡单位在本帧末尾压缩后再次重建缓存；本帧追加单位不会破坏已有下标，首次查询可安全回退。")
     add_bullet(doc, "combat_building_keys 在每次单位更新开始时生成一次；_ensure_unit_navigation_target 不再为每个无目标单位重复生成。")
-    doc.add_heading("8.3 状态与边界矩阵", level=2)
+    doc.add_heading("8.3 动物与防御塔持续锁敌", level=2)
+    add_bullet(doc, "动物以 attack_target_unit_id 或 attack_target_key 保存当前攻击目标。只要目标存活、敌对且距离不大于动物当前射程，后续更新直接复用，不执行候选扫描。")
+    add_bullet(doc, "防御塔以自身地块为缓存键，以稳定单位 ID 或建筑地块键保存当前目标。每次攻击先验证缓存；有效时直接攻击，避免重复遍历全体单位和建筑。")
+    add_bullet(doc, "目标死亡/摧毁、阵营关系失效或距离大于当前射程时，锁定立即失效；本次更新按原有距离和技能偏好获取新目标。")
+    add_bullet(doc, "有效锁定期间，即使另一目标更近、血量更低或更符合技能偏好也不得切换；范围外动物继续不作为推进追逐目标。")
+    doc.add_heading("8.4 状态与边界矩阵", level=2)
     add_table(
         doc,
         ["状态", "预期行为", "失败保护"],
@@ -342,6 +353,9 @@ def build_document() -> Document:
             ["更长竖屏", "统一 scale，剩余区域用全屏背景填充", "canvas_offset 居中"],
             ["单位新增", "缓存未含新 ID 时线性回退并写回", "禁止返回错误下标"],
             ["单位死亡压缩", "压缩后立即重建缓存", "选中单位失效检查继续执行"],
+            ["锁定目标仍在射程", "继续攻击同一目标", "不扫描、不因新候选变近而切换"],
+            ["锁定目标离开射程", "清除锁定并重选范围内目标", "无候选则继续原推进逻辑"],
+            ["防御塔目标死亡", "下次攻击重新选敌", "稳定 ID 防止数组压缩误伤其它单位"],
             ["无建筑目标", "建筑键为空，单位保持安全状态", "不重复全图扫描"],
         ],
         [1.25, 3.1, 2.25],
@@ -354,6 +368,7 @@ def build_document() -> Document:
     add_bullet(doc, "标题和主 CTA：保持字号、颜色、矩形和对齐方式；只改变字形生成分辨率。")
     add_bullet(doc, "资源条和底部导航：保持图标、数值槽、边框宽度与触摸区域；启用像素对齐。")
     add_bullet(doc, "战斗棋盘与单位：保持镜头 1.30、动物 35% 集成缩放和血条位置；本任务不改变单位视觉大小。")
+    add_bullet(doc, "战斗动物信息：右侧摘要仅显示一次动物名和等级，不显示品质文字；左侧缩略卡保留卡面与品质配色，但不再重复绘制名字。")
     add_bullet(doc, "文字截断：继续使用现有省略号规则；屏幕字号取整不能导致逻辑宽度重新排版。")
 
     doc.add_heading("10. 相关需求", level=1)
@@ -389,6 +404,9 @@ def build_document() -> Document:
             ["RC-04", "变换恢复", "世界地块费用文字与页面文字位置正确，无漂移或缩放串扰"],
             ["BP-01", "72 单位性能", "同机同脚本 optimized p95 < 4.0 ms，且不劣于 baseline"],
             ["BP-02", "战斗规则回归", "经典战斗、单位检查、动物技能、多人目标相关测试无新增失败"],
+            ["BP-03", "动物持续锁敌", "近目标不能抢锁；当前目标死亡或离开射程后才切换"],
+            ["BP-04", "防御塔持续锁敌", "有效锁定直接复用；死亡或离开射程后按原规则重选"],
+            ["UI-01", "战斗动物信息", "运行时截图中动物名只出现一次，摘要无品质文字"],
             ["QA-01", "代码质量", "GDScript 缩进检查、项目解析、staged-tree 验证通过"],
             ["QA-02", "移动端边界", "无真机证据时状态明确为 Android device acceptance pending"],
         ],
@@ -399,7 +417,7 @@ def build_document() -> Document:
         doc,
         ["事项", "当前状态", "责任 / 下一步"],
         [
-            ["制作人视觉确认", "待运行时双分辨率截图", "制作人检查文字与 UI 清晰度"],
+            ["制作人视觉确认", "待运行时战斗信息截图", "制作人检查名字去重、品质文字移除与信息可读性"],
             ["Android 真机流畅度", "Pending", "新包在代表性手机上记录帧时间后关闭"],
             ["Penpot 页面更新", "N/A", "本任务锁定 UE，不改页面结构"],
         ],
@@ -407,9 +425,9 @@ def build_document() -> Document:
     )
 
     doc.core_properties.title = "渲染清晰度与战斗性能优化"
-    doc.core_properties.subject = "移动端竖屏有效分辨率、原生像素文字与 72 单位战斗性能技术合同"
+    doc.core_properties.subject = "移动端竖屏清晰度、战斗信息去重、持续锁敌与 72 单位性能技术合同"
     doc.core_properties.author = "Codex Game Studio"
-    doc.core_properties.keywords = "Godot, Android, UI clarity, native pixels, battle performance"
+    doc.core_properties.keywords = "Godot, Android, UI clarity, native pixels, battle performance, sticky targeting"
     return doc
 
 
