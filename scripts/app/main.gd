@@ -15,6 +15,8 @@ const GachaService = preload("res://scripts/foundation/gacha/gacha_service.gd")
 const PageRouter = preload("res://scripts/foundation/ui/page_router.gd")
 const MainPageLayout = preload("res://scripts/foundation/ui/main_page_layout.gd")
 const BattleAnalyticsContract = preload("res://scripts/shared/battle_analytics_contract.gd")
+const GmResourceRules = preload("res://scripts/app/systems/gm_resource_rules.gd")
+const RuntimeGmPanel = preload("res://scripts/app/ui/runtime_gm_panel.gd")
 
 const DESIGN_SIZE = Vector2(720.0, 1280.0)
 const HEX_SIZE = 43.0
@@ -356,6 +358,9 @@ var board_pointer_started_in_view = false
 var board_pointer_start = Vector2.ZERO
 var board_pointer_last = Vector2.ZERO
 var board_pointer_distance = 0.0
+var gm_panel = null
+var gm_panel_paused_battle = false
+var gm_previous_pause_open = false
 
 var font: Font
 var texture_cache = {}
@@ -390,12 +395,16 @@ func _ready() -> void:
 
 func _notification(what: int) -> void:
 	if what == NOTIFICATION_APPLICATION_FOCUS_OUT or what == NOTIFICATION_APPLICATION_PAUSED:
+		_close_gm_panel()
 		_clear_all_account_password_memory()
 		_release_account_field_focus()
 
 
 func _process(delta: float) -> void:
 	ui_time += delta
+	if _is_gm_panel_open() and _is_online_match_active():
+		_close_gm_panel()
+		_toast("互联网对战已开始，GM 面板已关闭")
 	if toast_timer > 0.0:
 		toast_timer -= delta
 	if detail_pulse_timer > 0.0:
@@ -431,6 +440,17 @@ func _process(delta: float) -> void:
 
 
 func _input(event: InputEvent) -> void:
+	if event is InputEventKey and event.pressed and not event.echo:
+		if event.keycode == KEY_F2 or event.physical_keycode == KEY_F2:
+			if _toggle_gm_panel():
+				get_viewport().set_input_as_handled()
+			return
+		if event.keycode == KEY_ESCAPE and _is_gm_panel_open():
+			_close_gm_panel()
+			get_viewport().set_input_as_handled()
+			return
+	if _is_gm_panel_open():
+		return
 	var pointer_position = Vector2.ZERO
 	var pressed = false
 	if event is InputEventMouseButton:
@@ -452,6 +472,8 @@ func _input(event: InputEvent) -> void:
 
 
 func _unhandled_input(event: InputEvent) -> void:
+	if _is_gm_panel_open():
+		return
 	if screen == SCREEN_ROOM and _handle_online_room_keyboard(event):
 		return
 	if _handle_result_scroll_input(event):
@@ -490,6 +512,124 @@ func _unhandled_input(event: InputEvent) -> void:
 		elif event.keycode == KEY_ESCAPE and screen == SCREEN_BATTLE:
 			pause_open = not pause_open
 			GameAudio.set_paused_mix(pause_open)
+
+
+func _gm_debug_available() -> bool:
+	return OS.is_debug_build()
+
+
+func _toggle_gm_panel() -> bool:
+	if not _gm_debug_available():
+		return false
+	if _is_gm_panel_open():
+		_close_gm_panel()
+		return true
+	if _is_online_match_active():
+		_toast("互联网对战期间禁止打开 GM 面板")
+		return true
+	var panel = _ensure_gm_panel()
+	if panel == null:
+		return false
+	if screen == SCREEN_BATTLE:
+		gm_panel_paused_battle = true
+		gm_previous_pause_open = pause_open
+		pause_open = true
+		GameAudio.set_paused_mix(true)
+	panel.call("show_panel", _gm_context())
+	return true
+
+
+func _ensure_gm_panel():
+	if not _gm_debug_available():
+		return null
+	if is_instance_valid(gm_panel):
+		return gm_panel
+	gm_panel = RuntimeGmPanel.new()
+	gm_panel.name = "RuntimeGmPanel"
+	gm_panel.connect("resource_change_requested", Callable(self, "_on_gm_resource_change_requested"))
+	gm_panel.connect("panel_closed", Callable(self, "_on_gm_panel_closed"))
+	add_child(gm_panel)
+	return gm_panel
+
+
+func _close_gm_panel() -> void:
+	if not is_instance_valid(gm_panel) or not bool(gm_panel.call("is_panel_open")):
+		return
+	gm_panel.call("hide_panel")
+
+
+func _is_gm_panel_open() -> bool:
+	return is_instance_valid(gm_panel) and bool(gm_panel.call("is_panel_open"))
+
+
+func _on_gm_panel_closed() -> void:
+	if gm_panel_paused_battle:
+		pause_open = gm_previous_pause_open
+		GameAudio.set_paused_mix(pause_open)
+	gm_panel_paused_battle = false
+	gm_previous_pause_open = false
+
+
+func _gm_context() -> Dictionary:
+	var card_entries = []
+	for card_value in cards:
+		if typeof(card_value) != TYPE_DICTIONARY:
+			continue
+		var card: Dictionary = card_value
+		var card_id = String(card.get("id", ""))
+		if card_id.is_empty():
+			continue
+		card_entries.append({"id": card_id, "name": String(card.get("name", card_id))})
+	return {
+		"debug_build": _gm_debug_available(),
+		"online_match_active": _is_online_match_active(),
+		"logged_in": not OnlineRoom.current_user_id.is_empty(),
+		"classic_battle_active": screen == SCREEN_BATTLE and battle_mode == BATTLE_MODE_CLASSIC,
+		"resources": {
+			GmResourceRules.RESOURCE_BATTLE_GOLD: gold,
+			GmResourceRules.RESOURCE_GACHA_TICKETS: gacha_tickets,
+		},
+		"card_counts": card_counts.duplicate(true),
+		"card_levels": card_levels.duplicate(true),
+		"cards": card_entries,
+	}
+
+
+func _gm_current_value(resource_id: String, card_id: String) -> int:
+	match resource_id:
+		GmResourceRules.RESOURCE_BATTLE_GOLD:
+			return gold
+		GmResourceRules.RESOURCE_GACHA_TICKETS:
+			return gacha_tickets
+		GmResourceRules.RESOURCE_CARD_COUNT:
+			return _card_total_count(card_id)
+		GmResourceRules.RESOURCE_CARD_LEVEL:
+			return _card_level(card_id)
+	return 0
+
+
+func _on_gm_resource_change_requested(resource_id: String, operation_id: String, amount_text: String, card_id: String) -> void:
+	if not is_instance_valid(gm_panel):
+		return
+	var current_value = _gm_current_value(resource_id, card_id)
+	var result = GmResourceRules.evaluate(resource_id, operation_id, amount_text, current_value, _gm_context(), card_id)
+	if not bool(result.get("ok", false)):
+		gm_panel.call("show_result", String(result.get("message", "GM 操作失败")), false)
+		return
+	var next_value = int(result.get("next_value", current_value))
+	match resource_id:
+		GmResourceRules.RESOURCE_BATTLE_GOLD:
+			gold = next_value
+		GmResourceRules.RESOURCE_GACHA_TICKETS:
+			gacha_tickets = next_value
+		GmResourceRules.RESOURCE_CARD_COUNT:
+			card_counts[card_id] = next_value
+		GmResourceRules.RESOURCE_CARD_LEVEL:
+			card_levels[card_id] = next_value
+	gm_panel.call("set_context", _gm_context())
+	gm_panel.call("show_result", String(result.get("message", "GM 操作成功")), true)
+	_toast(String(result.get("message", "GM 操作成功")))
+	queue_redraw()
 
 
 func _restart_battle() -> void:

@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://tests/test_gm_resource_rules.gd" id="1_rules"]
+
+[node name="GmResourceRulesTest" type="Node"]
+script = ExtResource("1_rules")
