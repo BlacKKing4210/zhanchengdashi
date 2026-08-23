@@ -566,11 +566,46 @@ func _test_account_projection_grants_idempotency_and_cas() -> void:
 	_expect(int(((((second_login.get("profile", {}) as Dictionary).get("card_counts", {})) as Dictionary).get("rabbit", 0))) == 3, "second account receives all-account card copies")
 	_expect(FileAccess.file_exists(store.admin_command_root.path_join("processed").path_join("%s.json" % all_command_id)), "processed command writes an authoritative receipt")
 
+	var third_registration: Dictionary = store.register_account("StoneOtter", "safe-pass-4096")
+	_expect(bool(third_registration.get("ok", false)), "third account is registered for a proper selected subset")
+	var third_user_id = String(third_registration.get("user_id", ""))
+	var third_before_selected: Dictionary = store.login("StoneOtter", "safe-pass-4096")
+	var third_tickets_before = int((third_before_selected.get("profile", {}) as Dictionary).get("gacha_tickets", 0))
+	var second_tickets_before = int((second_login.get("profile", {}) as Dictionary).get("gacha_tickets", 0))
+	var selected_command_id = "33333333-3333-4333-8333-333333333333"
+	_expect(_write_command(store, selected_command_id, "selected", [third_user_id, first_user_id], [{"resource": "gacha_tickets", "amount": 7}], "多玩家客服补发", ""), "selected grant freezes two explicit players in one command")
+	var selected_result: Dictionary = store.process_admin_commands(["rabbit", "wolf"])
+	_expect(int(selected_result.get("processed", 0)) == 1, "selected grant is processed as one command")
+	var first_after_selected: Dictionary = store.profile_for_session(first_token)
+	var third_login: Dictionary = store.login("StoneOtter", "safe-pass-4096")
+	var second_after_selected: Dictionary = store.login("RiverWolf", "safe-pass-2048")
+	_expect(int((first_after_selected.get("profile", {}) as Dictionary).get("gacha_tickets", 0)) == 31, "first selected player receives tickets")
+	_expect(int((third_login.get("profile", {}) as Dictionary).get("gacha_tickets", 0)) == third_tickets_before + 7, "third selected player receives tickets")
+	_expect(int((second_after_selected.get("profile", {}) as Dictionary).get("gacha_tickets", 0)) == second_tickets_before, "unselected player is unchanged")
+	var selected_receipt = JSON.parse_string(_read_text(store.admin_command_root.path_join("processed").path_join("%s.json" % selected_command_id)))
+	_expect(typeof(selected_receipt) == TYPE_DICTIONARY and String(selected_receipt.get("scope", "")) == "selected", "selected command writes one selected receipt")
+	_expect((selected_receipt.get("target_user_ids", []) as Array).size() == 2 and (selected_receipt.get("accounts", []) as Array).size() == 2, "selected receipt covers exactly the two frozen players")
+	_expect(_write_command(store, selected_command_id, "selected", [first_user_id, third_user_id], [{"resource": "gacha_tickets", "amount": 7}], "多玩家客服补发", ""), "selected command replay is queued")
+	var selected_replay: Dictionary = store.process_admin_commands(["rabbit", "wolf"])
+	_expect(int(selected_replay.get("idempotent", 0)) == 1, "selected command replay is idempotent")
+	_expect(int((store.profile_for_session(first_token).get("profile", {}) as Dictionary).get("gacha_tickets", 0)) == 31, "selected replay never credits twice")
+
+	var selected_all_id = "44444444-4444-4444-8444-444444444444"
+	_expect(_write_command(store, selected_all_id, "selected", [first_user_id, second_user_id, third_user_id], [{"resource": "gacha_tickets", "amount": 1}], "错误范围回归", ""), "selected-all bypass attempt is queued")
+	var selected_all_result: Dictionary = store.process_admin_commands(["rabbit", "wolf"])
+	_expect(int(selected_all_result.get("failed", 0)) == 1, "selected scope cannot cover every current account")
+	_expect(int((store.profile_for_session(first_token).get("profile", {}) as Dictionary).get("gacha_tickets", 0)) == 31, "selected-all rejection leaves every account unchanged")
+	var incomplete_all_id = "55555555-5555-4555-8555-555555555555"
+	_expect(_write_command(store, incomplete_all_id, "all", [first_user_id, second_user_id], [{"resource": "gacha_tickets", "amount": 1}], "错误全服回归", "SEND TO ALL"), "incomplete all-account command is queued")
+	var incomplete_all_result: Dictionary = store.process_admin_commands(["rabbit", "wolf"])
+	_expect(int(incomplete_all_result.get("failed", 0)) == 1, "all scope must freeze every current account")
+	_expect(int((store.profile_for_session(first_token).get("profile", {}) as Dictionary).get("gacha_tickets", 0)) == 31, "incomplete all rejection leaves every account unchanged")
+
 	stale_profile["_profile_revision"] = stale_revision
 	stale_profile["gacha_tickets"] = 1
 	var conflict: Dictionary = store.save_profile(first_token, stale_profile)
 	_expect(bool(conflict.get("ok", false)) and bool(conflict.get("conflict", false)), "stale client save returns a successful conflict")
-	_expect(int((conflict.get("profile", {}) as Dictionary).get("gacha_tickets", 0)) == 24, "CAS conflict returns the latest resource-bearing profile")
+	_expect(int((conflict.get("profile", {}) as Dictionary).get("gacha_tickets", 0)) == 31, "CAS conflict returns the latest resource-bearing profile")
 	_expect(int(conflict.get("profile_revision", 0)) > stale_revision, "CAS conflict returns the latest revision")
 
 	_expect(_close_account_store(store), "grant authority owner explicitly closes before restart")
@@ -585,6 +620,8 @@ func _test_account_projection_grants_idempotency_and_cas() -> void:
 
 
 func _write_command(store: RefCounted, command_id: String, scope: String, target_user_ids: Array, grants: Array, reason: String, all_confirmation: String) -> bool:
+	var normalized_target_user_ids = target_user_ids.duplicate()
+	normalized_target_user_ids.sort()
 	var command = {
 		"version": 1,
 		"command_id": command_id,
@@ -594,8 +631,8 @@ func _write_command(store: RefCounted, command_id: String, scope: String, target
 		"reason": reason,
 		"scope": scope,
 		"all_confirmation": all_confirmation,
-		"target_user_ids": target_user_ids,
-		"target_count": target_user_ids.size(),
+		"target_user_ids": normalized_target_user_ids,
+		"target_count": normalized_target_user_ids.size(),
 		"grants": grants,
 		"created_at_unix": int(Time.get_unix_time_from_system()),
 	}

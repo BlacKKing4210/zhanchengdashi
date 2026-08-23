@@ -517,6 +517,98 @@ test("resource grant contracts require exact confirmations and an auditable reas
   }
 });
 
+test("selected resource grants freeze 2 to 500 unique players in one signed command", () => {
+  const secret = Buffer.alloc(32, 11);
+  const accountSnapshot = {
+    availability: "ready",
+    accounts: [{ user_id: "U-ONE" }, { user_id: "U-TWO" }, { user_id: "U-THREE" }],
+  };
+  const body = {
+    target: { kind: "selected", user_ids: ["U-TWO", "U-ONE"] },
+    grant: { type: "gacha_tickets", amount: 4 },
+    reason: "多玩家客服补发",
+    idempotency_key: "12121212-1212-4212-8212-121212121212",
+  };
+  const preview = createGrantPreview({
+    body,
+    accountSnapshot,
+    actor: "owner-one",
+    sessionId: "session-selected",
+    secret,
+    now: 1_700_000_000_000,
+  });
+  assert.equal(preview.scope, "selected");
+  assert.equal(preview.target_count, 2);
+  assert.deepEqual(preview.target_user_ids, ["U-ONE", "U-TWO"]);
+  const command = commandFromGrantPreview({
+    body: { preview_token: preview.preview_token, idempotency_key: body.idempotency_key },
+    accountSnapshot,
+    actor: "owner-one",
+    sessionId: "session-selected",
+    secret,
+    now: 1_700_000_001_000,
+  });
+  assert.equal(command.scope, "selected");
+  assert.equal(command.target_count, 2);
+  assert.deepEqual(command.target_user_ids, ["U-ONE", "U-TWO"]);
+  assert.throws(
+    () => commandFromGrantPreview({
+      body: { preview_token: preview.preview_token, idempotency_key: body.idempotency_key, confirmation: "SEND", password: "must-not-be-accepted" },
+      accountSnapshot,
+      actor: "owner-one",
+      sessionId: "session-selected",
+      secret,
+      now: 1_700_000_001_000,
+    }),
+    (error) => error.code === "invalid_preview_request",
+  );
+  assert.throws(
+    () => createGrantPreview({
+      body: { ...body, target: { kind: "selected", user_ids: ["U-ONE", "U-ONE"] } },
+      accountSnapshot,
+      actor: "owner-one",
+      sessionId: "session-selected",
+      secret,
+      now: 1_700_000_000_000,
+    }),
+    (error) => error.code === "duplicate_target",
+  );
+  assert.throws(
+    () => createGrantPreview({
+      body: { ...body, target: { kind: "selected", user_ids: ["U-ONE", "U-TWO", "U-THREE"] } },
+      accountSnapshot,
+      actor: "owner-one",
+      sessionId: "session-selected",
+      secret,
+      now: 1_700_000_000_000,
+    }),
+    (error) => error.code === "all_scope_required",
+  );
+  assert.throws(
+    () => commandFromGrantPreview({
+      body: { preview_token: preview.preview_token, idempotency_key: body.idempotency_key },
+      accountSnapshot: { availability: "ready", accounts: [{ user_id: "U-ONE" }, { user_id: "U-TWO" }] },
+      actor: "owner-one",
+      sessionId: "session-selected",
+      secret,
+      now: 1_700_000_001_000,
+    }),
+    (error) => error.status === 409 && error.code === "all_scope_required",
+  );
+  const largeAccounts = Array.from({ length: 501 }, (_, index) => ({ user_id: `U-${String(index).padStart(3, "0")}` }));
+  assert.throws(
+    () => createGrantPreview({
+      body: { ...body, target: { kind: "selected", user_ids: largeAccounts.map((entry) => entry.user_id) } },
+      accountSnapshot: { availability: "ready", accounts: [...largeAccounts, { user_id: "U-EXTRA" }] },
+      actor: "owner-one",
+      sessionId: "session-selected",
+      secret,
+      now: 1_700_000_000_000,
+    }),
+    (error) => error.code === "selected_target_limit",
+  );
+});
+
 test("signed resource grant previews reject stale, tampered, cross-session and expired contracts", () => {
   const secret = Buffer.alloc(32, 7);
   const accountSnapshot = {
@@ -793,6 +885,7 @@ test("resource grant API submits one-account grants once while broad grants reta
     generated_at_unix: 1_700_000_001,
     accounts: [
       { user_id: "U-ONE", masked_account: "o***e", deck: ["rabbit"], card_levels: { rabbit: 2 }, rank: {}, resources: {} },
+      { user_id: "U-THREE", masked_account: "t***e", deck: ["rabbit", "wolf"], card_levels: { rabbit: 1, wolf: 1 }, rank: {}, resources: {} },
       { user_id: "U-TWO", masked_account: "t***o", deck: ["wolf"], card_levels: { wolf: 3 }, rank: {}, resources: {} },
     ],
   }));
@@ -831,7 +924,7 @@ test("resource grant API submits one-account grants once while broad grants reta
   const accounts = await jsonRequest(baseUrl, "/api/accounts", { headers: { Cookie: analystCookie } });
   assert.equal(accounts.response.status, 200);
   assert.equal(accounts.body.availability, "ready");
-  assert.deepEqual(accounts.body.accounts.map((entry) => entry.user_id), ["U-ONE", "U-TWO"]);
+  assert.deepEqual(accounts.body.accounts.map((entry) => entry.user_id), ["U-ONE", "U-THREE", "U-TWO"]);
 
   const requestBody = {
     target: { kind: "user", user_id: "U-ONE" },
@@ -931,6 +1024,35 @@ test("resource grant API submits one-account grants once while broad grants reta
   assert.equal(targetConflict.body.error, "idempotency_conflict");
   assert.equal((await fs.readdir(path.join(commandRoot, "pending"))).filter((name) => name.endsWith(".json")).length, 0);
 
+  const selectedBody = {
+    target: { kind: "selected", user_ids: ["U-TWO", "U-ONE"] },
+    grant: { type: "gacha_tickets", amount: 7 },
+    reason: "多玩家客服补发",
+    idempotency_key: "56565656-5656-4656-8656-565656565656",
+  };
+  const selectedPreview = await jsonRequest(baseUrl, "/api/resource-grants/preview", {
+    method: "POST",
+    headers: { Cookie: ownerCookie, Origin: baseUrl, "X-CSRF-Token": ownerCsrf, "Content-Type": "application/json" },
+    body: JSON.stringify(selectedBody),
+  });
+  assert.equal(selectedPreview.response.status, 201, JSON.stringify(selectedPreview.body));
+  assert.equal(selectedPreview.body.preview.scope, "selected");
+  assert.equal(selectedPreview.body.preview.target_count, 2);
+  assert.deepEqual(selectedPreview.body.preview.target_user_ids, ["U-ONE", "U-TWO"]);
+  const selectedCreated = await jsonRequest(baseUrl, "/api/resource-grants", {
+    method: "POST",
+    headers: { Cookie: ownerCookie, Origin: baseUrl, "X-CSRF-Token": ownerCsrf, "Content-Type": "application/json" },
+    body: JSON.stringify({
+      preview_token: selectedPreview.body.preview.preview_token,
+      idempotency_key: selectedBody.idempotency_key,
+    }),
+  });
+  assert.equal(selectedCreated.response.status, 202, JSON.stringify(selectedCreated.body));
+  assert.equal(selectedCreated.body.command.scope, "selected");
+  assert.deepEqual(selectedCreated.body.command.target_user_ids, ["U-ONE", "U-TWO"]);
+  assert.equal(selectedCreated.body.command.target_count, 2);
+  assert.equal((await fs.readdir(path.join(commandRoot, "pending"))).filter((name) => name.endsWith(".json")).length, 1);
+
   const allBody = {
     target: { kind: "all" },
     grant: { type: "card_copies", card_id: "rabbit", amount: 2 },
@@ -943,7 +1065,7 @@ test("resource grant API submits one-account grants once while broad grants reta
     body: JSON.stringify(allBody),
   });
   assert.equal(allPreview.response.status, 201);
-  assert.equal(allPreview.body.preview.target_count, 2);
+  assert.equal(allPreview.body.preview.target_count, 3);
   const allWrongConfirmation = await jsonRequest(baseUrl, "/api/resource-grants", {
     method: "POST",
     headers: { Cookie: ownerCookie, Origin: baseUrl, "X-CSRF-Token": ownerCsrf, "Content-Type": "application/json" },
@@ -979,14 +1101,14 @@ test("resource grant API submits one-account grants once while broad grants reta
     }),
   });
   assert.equal(allCreated.response.status, 202);
-  assert.deepEqual(allCreated.body.command.target_user_ids, ["U-ONE", "U-TWO"]);
+  assert.deepEqual(allCreated.body.command.target_user_ids, ["U-ONE", "U-THREE", "U-TWO"]);
 
   const analystList = await jsonRequest(baseUrl, "/api/resource-grants", { headers: { Cookie: analystCookie } });
   assert.equal(analystList.response.status, 403);
   const ownerList = await jsonRequest(baseUrl, "/api/resource-grants", { headers: { Cookie: ownerCookie } });
   assert.equal(ownerList.response.status, 200);
   assert.equal(ownerList.body.command, null);
-  assert.equal(ownerList.body.entries.length, 2);
+  assert.equal(ownerList.body.entries.length, 3);
 
   const auditFailureBody = {
     target: { kind: "user", user_id: "U-TWO" },
@@ -1022,9 +1144,26 @@ test("resource grant API submits one-account grants once while broad grants reta
   const auditText = JSON.stringify(await state.readAudit(200));
   assert.match(auditText, /grant_enqueue_authorized/);
   assert.match(auditText, /客服补发/);
+  assert.match(auditText, /selected:2/);
   assert.doesNotMatch(auditText, /Owner password one 123/);
   assert.doesNotMatch(auditText, /SEND|preview_token/);
   assert.doesNotMatch(auditText, new RegExp(preview.body.preview.preview_token.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
+});
+
+test("resource page contract exposes player data and persistent multi-selection controls", async () => {
+  const appSource = await fs.readFile(path.join(PROJECT_ROOT, "tools", "admin_dashboard", "public", "app.js"), "utf8");
+  const styleSource = await fs.readFile(path.join(PROJECT_ROOT, "tools", "admin_dashboard", "public", "styles.css"), "utf8");
+  for (const label of ["完整玩家 ID", "脱敏账号", "段位 / Elo", "阵容卡数", "抽卡券", "卡牌总份数", "更新时间", "Revision"]) {
+    assert.match(appSource, new RegExp(label.replace("/", "\\/")));
+  }
+  assert.match(appSource, /selectedGrantUserIds: new Set\(\)/);
+  assert.match(appSource, /全选当前结果/);
+  assert.match(appSource, /清空选择/);
+  assert.match(appSource, /\{ kind: "selected", user_ids: selectedIds \}/);
+  assert.doesNotMatch(appSource, /name: "target_kind"/);
+  assert.match(styleSource, /\.grant-player-table/);
+  assert.match(styleSource, /tbody tr\.is-selected/);
+  assert.match(styleSource, /\.grant-checkbox input\[type="checkbox"\]/);
 });
 
 test("audit outbox replays once after restart even when JSONL already contains the event id", async (context) => {

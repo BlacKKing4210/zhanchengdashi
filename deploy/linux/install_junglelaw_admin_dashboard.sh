@@ -31,10 +31,10 @@ CERT_NAME='junglelaw-admin-ip'
 CERTBOT_BIN='/opt/junglelaw-admin-certbot/venv/bin/certbot'
 CERTBOT_PYTHON_BIN='/opt/junglelaw-admin-certbot/venv/bin/python'
 NODE_BIN='/usr/bin/node'
-APPROVED_GAME_ARTIFACT_ID='JungleLawServer-v1.2.0-local-linux-rc1'
-APPROVED_GAME_VERSION='v1.2.0-local-linux-rc1'
-APPROVED_GAME_ARCHIVE_SHA256='CB94723498D7E7A175304686F5CA72B0CF66745482A5DC89D9CB1D15D5F20267'
-APPROVED_GAME_SHA256='7F11BC743A3573C8F9EAB7ECF6AADD65C74E7C8720DE80F7FA03ACC8BF1F2B94'
+APPROVED_GAME_ARTIFACT_ID='JungleLawServer-v1.3.0-local-linux-rc1'
+APPROVED_GAME_VERSION='v1.3.0-local-linux-rc1'
+APPROVED_GAME_ARCHIVE_SHA256='626819F8ED906B8BE9832B4240BB416DFACC02DE0DC72EFB977C84FC8CEE0B87'
+APPROVED_GAME_SHA256='5318144037F2F81A962C22510AB2764557ECA289534BC043B023789495E376F1'
 APPROVED_GAME_UNIT_SHA256='79B72AA23785DCE2C2C551A2AC26D835BB4C89FB7B1E0392396B3CE568E24BD6'
 APPROVED_GAME_STOP_HELPER_SHA256='043881EB11D44BA582A3EBEB669FB755E63B77C90E52F4C5F6277EE548A401A9'
 APPROVED_GAME_DROPIN_SHA256='12D08A7B47816517BEEE46EF1C0D939D49F796D692425A1F9E23709D5E3B0BF1'
@@ -68,10 +68,10 @@ Usage:
     --release-version VERSION --release-source ABSOLUTE_DIR \
     --node-archive ABSOLUTE_RUNTIME_ZIP --node-manifest ABSOLUTE_MANIFEST_JSON \
     --expected-node-sha256 APPROVED_RUNTIME_ZIP_SHA256 \
-    --game-release-source ABSOLUTE_VERIFIED_V1_2_0_DIR \
-    --game-archive ABSOLUTE_V1_2_0_TAR_GZ \
-    --expected-game-archive-sha256 CB94723498D7E7A175304686F5CA72B0CF66745482A5DC89D9CB1D15D5F20267 \
-    --expected-game-sha256 7F11BC743A3573C8F9EAB7ECF6AADD65C74E7C8720DE80F7FA03ACC8BF1F2B94 \
+    --game-release-source ABSOLUTE_VERIFIED_V1_3_0_DIR \
+    --game-archive ABSOLUTE_V1_3_0_TAR_GZ \
+    --expected-game-archive-sha256 626819F8ED906B8BE9832B4240BB416DFACC02DE0DC72EFB977C84FC8CEE0B87 \
+    --expected-game-sha256 5318144037F2F81A962C22510AB2764557ECA289534BC043B023789495E376F1 \
     --backup-root ABSOLUTE_DIR --authority-path ABSOLUTE_PLAYER_ACCOUNTS_JSON \
     --acme-webroot ABSOLUTE_EXISTING_NGINX_WEBROOT --public-ip PUBLIC_IPV4 \
     --dashboard-port 8443|443 \
@@ -612,8 +612,8 @@ if manifest.get("schema_version") != 1:
 artifact = manifest.get("artifact", {})
 if artifact.get("name") != release_version:
     raise SystemExit("release-version does not match Node manifest artifact name")
-if artifact.get("version") != "1.2.0":
-    raise SystemExit("Node manifest is not version 1.2.0")
+if artifact.get("version") != "1.3.0":
+    raise SystemExit("Node manifest is not version 1.3.0")
 if artifact.get("file") != Path(archive_path).name:
     raise SystemExit("Node manifest archive filename mismatch")
 if str(artifact.get("sha256", "")).upper() != expected_archive_hash:
@@ -698,9 +698,9 @@ validate_game_release_source() {
 		|| fail 'expected game archive SHA-256 is malformed'
 	EXPECTED_GAME_ARCHIVE_SHA256="${EXPECTED_GAME_ARCHIVE_SHA256^^}"
 	[[ "${EXPECTED_GAME_ARCHIVE_SHA256}" == "${APPROVED_GAME_ARCHIVE_SHA256}" ]] \
-		|| fail 'expected game archive SHA-256 does not identify the approved v1.2.0 bundle'
+		|| fail 'expected game archive SHA-256 does not identify the approved v1.3.0 bundle'
 	[[ "$(sha256sum "${GAME_ARCHIVE}" | awk '{print toupper($1)}')" == "${APPROVED_GAME_ARCHIVE_SHA256}" ]] \
-		|| fail 'game archive SHA-256 does not match the approved v1.2.0 bundle'
+		|| fail 'game archive SHA-256 does not match the approved v1.3.0 bundle'
 	[[ "${GAME_RELEASE_SOURCE}" == /* && -d "${GAME_RELEASE_SOURCE}" ]] \
 		|| fail 'game release source must be an absolute existing directory'
 	GAME_RELEASE_SOURCE="$(realpath -e -- "${GAME_RELEASE_SOURCE}")"
@@ -726,15 +726,15 @@ validate_game_release_source() {
 	[[ "${EXPECTED_GAME_SHA256}" =~ ^[A-Fa-f0-9]{64}$ ]] || fail 'expected game SHA-256 is malformed'
 	EXPECTED_GAME_SHA256="${EXPECTED_GAME_SHA256^^}"
 	[[ "${EXPECTED_GAME_SHA256}" == "${APPROVED_GAME_SHA256}" ]] \
-		|| fail 'expected game SHA-256 does not identify the approved v1.2.0 candidate'
+		|| fail 'expected game SHA-256 does not identify the approved v1.3.0 candidate'
 	[[ "$(sha256sum "${GAME_RELEASE_SOURCE}/JungleLawServer.x86_64" | awk '{print toupper($1)}')" == "${APPROVED_GAME_SHA256}" ]] \
-		|| fail 'game ELF SHA-256 does not match the approved v1.2.0 candidate'
+		|| fail 'game ELF SHA-256 does not match the approved v1.3.0 candidate'
 	[[ "$(sha256sum "${GAME_RELEASE_SOURCE}/junglelaw-server.service" | awk '{print toupper($1)}')" == "${APPROVED_GAME_UNIT_SHA256}" ]] \
-		|| fail 'game systemd unit SHA-256 does not match the approved v1.2.0 candidate'
+		|| fail 'game systemd unit SHA-256 does not match the approved v1.3.0 candidate'
 	[[ "$(sha256sum "${GAME_RELEASE_SOURCE}/junglelaw-server-stop.sh" | awk '{print toupper($1)}')" == "${APPROVED_GAME_STOP_HELPER_SHA256}" ]] \
-		|| fail 'game stop helper SHA-256 does not match the approved v1.2.0 candidate'
+		|| fail 'game stop helper SHA-256 does not match the approved v1.3.0 candidate'
 	[[ "$(sha256sum "${GAME_RELEASE_SOURCE}/junglelaw-server-admin-dashboard.conf.example" | awk '{print toupper($1)}')" == "${APPROVED_GAME_DROPIN_SHA256}" ]] \
-		|| fail 'game admin drop-in SHA-256 does not match the approved v1.2.0 candidate'
+		|| fail 'game admin drop-in SHA-256 does not match the approved v1.3.0 candidate'
 	bash -n "${GAME_RELEASE_SOURCE}/junglelaw-server-stop.sh"
 	python3 - \
 		"${GAME_RELEASE_SOURCE}/manifest.json" \
@@ -804,7 +804,7 @@ atomic_install_game_component() {
 	local destination_path="$2"
 	local mode="$3"
 	local expected_sha="$4"
-	local temporary_path="${destination_path}.junglelaw-v1.2.0.new"
+	local temporary_path="${destination_path}.junglelaw-v1.3.0.new"
 	[[ ! -e "${temporary_path}" && ! -L "${temporary_path}" ]] \
 		|| fail "temporary game component already exists: ${temporary_path}"
 	install -o root -g root -m "${mode}" "${source_path}" "${temporary_path}"
@@ -1167,9 +1167,18 @@ restore_backup_transaction() {
 		validate_public_ipv4 "${RESTORED_PUBLIC_IP}" || fail 'restored dashboard certificate IP is invalid'
 		[[ "${RESTORED_DASHBOARD_PORT}" == '8443' || "${RESTORED_DASHBOARD_PORT}" == '443' ]] \
 			|| fail 'restored dashboard health port is not approved'
-		curl --fail --silent --show-error --max-time 15 --output /dev/null \
-			--connect-to "${RESTORED_PUBLIC_IP}:${RESTORED_DASHBOARD_PORT}:127.0.0.1:${RESTORED_DASHBOARD_PORT}" \
-			"https://${RESTORED_PUBLIC_IP}:${RESTORED_DASHBOARD_PORT}/api/health" \
+		RESTORED_HEALTH_READY='0'
+		for attempt in $(seq 1 15); do
+			if curl --fail --silent --max-time 3 --output /dev/null \
+				--connect-to "${RESTORED_PUBLIC_IP}:${RESTORED_DASHBOARD_PORT}:127.0.0.1:${RESTORED_DASHBOARD_PORT}" \
+				"https://${RESTORED_PUBLIC_IP}:${RESTORED_DASHBOARD_PORT}/api/health"; then
+				RESTORED_HEALTH_READY='1'
+				break
+			fi
+			systemctl is-active --quiet junglelaw-admin-dashboard.service || break
+			sleep 1
+		done
+		[[ "${RESTORED_HEALTH_READY}" == '1' ]] \
 			|| fail 'restored dashboard failed certificate-verified health acceptance'
 	fi
 	restore_service_baseline junglelaw-admin-dashboard-cert-renew.timer \

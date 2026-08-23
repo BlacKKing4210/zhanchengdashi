@@ -20,6 +20,7 @@ const MAX_AUTHORITY_BYTES = 64 * 1024 * 1024
 const MAX_ADMIN_COMMAND_BYTES = 8 * 1024 * 1024
 const MAX_ADMIN_COMMAND_GRANTS = 20
 const MAX_ADMIN_GRANT_AMOUNT = 100000
+const MAX_ADMIN_SELECTED_TARGETS = 500
 const MAX_ADMIN_COMMANDS_PER_POLL = 20
 const MAX_ADMIN_COMMAND_RECEIPTS = 5000
 
@@ -935,10 +936,12 @@ func _validate_admin_command(source: Dictionary, expected_command_id: String, al
 	if reason.is_empty():
 		return _failure("invalid_reason")
 	var scope = String(source.get("scope", "")).strip_edges().to_lower()
-	if scope not in ["target", "all"]:
+	if scope not in ["target", "selected", "all"]:
 		return _failure("invalid_scope")
 	if scope == "all" and String(source.get("all_confirmation", "")) != "SEND TO ALL":
 		return _failure("all_confirmation_required")
+	if scope != "all" and not String(source.get("all_confirmation", "")).is_empty():
+		return _failure("unexpected_all_confirmation")
 	var raw_target_user_ids = source.get("target_user_ids", [])
 	if typeof(raw_target_user_ids) != TYPE_ARRAY:
 		return _failure("invalid_targets")
@@ -950,6 +953,25 @@ func _validate_admin_command(source: Dictionary, expected_command_id: String, al
 		target_user_ids.append(user_id)
 	if target_user_ids.is_empty() or (scope == "target" and target_user_ids.size() != 1):
 		return _failure("invalid_targets")
+	if scope == "selected" and (target_user_ids.size() < 2 or target_user_ids.size() > MAX_ADMIN_SELECTED_TARGETS):
+		return _failure("invalid_selected_targets")
+	if int(source.get("target_count", -1)) != target_user_ids.size():
+		return _failure("invalid_target_count")
+	var sorted_target_user_ids = target_user_ids.duplicate()
+	sorted_target_user_ids.sort()
+	if sorted_target_user_ids != target_user_ids:
+		return _failure("invalid_target_order")
+	if scope == "selected" and target_user_ids.size() == accounts.size():
+		return _failure("all_scope_required")
+	if scope == "all":
+		if target_user_ids.size() != accounts.size():
+			return _failure("invalid_targets")
+		for record_value in accounts.values():
+			if typeof(record_value) != TYPE_DICTIONARY:
+				return _failure("invalid_targets")
+			var current_user_id = _safe_admin_text((record_value as Dictionary).get("user_id", ""), 80)
+			if current_user_id.is_empty() or not target_user_ids.has(current_user_id):
+				return _failure("invalid_targets")
 	var raw_grants = source.get("grants", [])
 	if typeof(raw_grants) != TYPE_ARRAY or raw_grants.is_empty() or raw_grants.size() > MAX_ADMIN_COMMAND_GRANTS:
 		return _failure("invalid_grants")

@@ -15,7 +15,9 @@ const state = {
   animalQuery: "",
   animalBattleType: "all",
   accountQuery: "",
-  selectedGrantUserId: "",
+  grantAccountQuery: "",
+  selectedGrantUserIds: new Set(),
+  grantFormValues: { grant_type: "gacha_tickets", amount: "1", card_id: "", reason: "" },
   grantDraft: null,
   grantPreview: null,
   grantResult: null,
@@ -24,6 +26,7 @@ const state = {
 };
 
 const OWNER_TABS = new Set(["grants", "tasks", "permissions"]);
+const MAX_SELECTED_GRANT_TARGETS = 500;
 const TAB_DEFINITIONS = [
   ["overview", "总览"],
   ["animals", "动物平衡"],
@@ -165,6 +168,10 @@ function apiErrorMessage(code) {
     preview_stale: "目标账号集合已变化，请刷新账号投影并重新生成预览。",
     preview_session_mismatch: "预览不属于当前登录会话，请重新登录并生成预览。",
     target_not_found: "指定账号不在最新账号投影中，请刷新后重新预览。",
+    selected_targets_required: "多选发放至少需要勾选 2 个玩家。",
+    selected_target_limit: "单次最多勾选 500 个玩家。",
+    duplicate_target: "玩家选择中存在重复 ID，请刷新后重试。",
+    all_scope_required: "当前选择已覆盖全部账号，必须使用全账号强确认流程。",
     no_target_accounts: "最新账号投影中没有可发放目标。",
     invalid_idempotency_key: "幂等键无效，请返回并重新生成预览。",
     invalid_grant_amount: "资源数量无效。",
@@ -535,6 +542,8 @@ async function loadAccounts(force = false) {
   state.loadErrors.accounts = "";
   try {
     state.accounts = await request("/api/accounts");
+    const availableUserIds = new Set(normalizeList(state.accounts?.accounts).map((account) => String(account.user_id || "")).filter(Boolean));
+    state.selectedGrantUserIds = new Set([...state.selectedGrantUserIds].filter((userId) => availableUserIds.has(userId)));
   } catch (error) {
     state.accounts = null;
     state.loadErrors.accounts = apiErrorMessage(error.code);
@@ -643,7 +652,9 @@ function directGrantButton(account) {
   if (state.session?.role !== "owner") return element("span", { className: "muted", text: "只读" });
   const button = element("button", { className: "primary compact-action", type: "button", text: "发放资源" });
   button.addEventListener("click", () => {
-    state.selectedGrantUserId = account.user_id;
+    state.selectedGrantUserIds = new Set([account.user_id]);
+    state.grantAccountQuery = "";
+    state.grantFormValues = { grant_type: "gacha_tickets", amount: "1", card_id: "", reason: "" };
     state.grantDraft = null;
     state.grantPreview = null;
     state.grantResult = null;
@@ -737,27 +748,184 @@ function generateIdempotencyKey() {
   return `grant-${Date.now()}-${Math.random().toString(16).slice(2)}`;
 }
 
-function accountOptions(select) {
-  select.append(new Option("选择指定账号", ""));
-  normalizeList(state.accounts?.accounts).forEach((account) => select.append(new Option(`${accountDisplayName(account)} · ${compactUserId(account.user_id)}`, account.user_id)));
+function grantFilteredAccounts() {
+  const query = state.grantAccountQuery.trim().toLowerCase();
+  return sortedAccounts().filter((account) => !query
+    || String(account.user_id || "").toLowerCase().includes(query)
+    || String(account.masked_account || "").toLowerCase().includes(query));
+}
+
+function selectedGrantIds() {
+  const availableUserIds = new Set(normalizeList(state.accounts?.accounts).map((account) => String(account.user_id || "")).filter(Boolean));
+  return [...state.selectedGrantUserIds].filter((userId) => availableUserIds.has(userId)).sort();
+}
+
+function totalCardCopies(account) {
+  const copies = account?.resources?.card_copies;
+  if (!copies || typeof copies !== "object" || Array.isArray(copies)) return 0;
+  return Object.values(copies).reduce((sum, value) => sum + Math.max(0, Number(value) || 0), 0);
+}
+
+function grantSelectionToolbar(accounts, filtered) {
+  const toolbar = element("div", { className: "grant-player-toolbar" });
+  const searchForm = element("form", { className: "grant-player-search", attrs: { role: "search" } });
+  const search = element("input", {
+    type: "search",
+    value: state.grantAccountQuery,
+    placeholder: "搜索完整玩家 ID 或脱敏账号",
+    attrs: { "aria-label": "搜索资源发放玩家" },
+  });
+  const searchButton = element("button", { className: "secondary", type: "submit", text: "搜索" });
+  const resetSearch = element("button", { className: "ghost", type: "button", text: "清除搜索" });
+  searchForm.append(search, searchButton, resetSearch);
+  searchForm.addEventListener("submit", (event) => {
+    event.preventDefault();
+    state.grantAccountQuery = search.value.trim();
+    renderActiveTab();
+  });
+  resetSearch.addEventListener("click", () => {
+    state.grantAccountQuery = "";
+    renderActiveTab();
+  });
+
+  const selectedIds = selectedGrantIds();
+  const actions = element("div", { className: "grant-selection-actions" });
+  const selectVisible = element("button", {
+    className: "secondary",
+    type: "button",
+    text: "全选当前结果",
+    disabled: filtered.length === 0 || filtered.every((account) => state.selectedGrantUserIds.has(account.user_id)),
+  });
+  const clearSelection = element("button", {
+    className: "ghost",
+    type: "button",
+    text: "清空选择",
+    disabled: selectedIds.length === 0,
+  });
+  selectVisible.addEventListener("click", () => {
+    filtered.forEach((account) => state.selectedGrantUserIds.add(account.user_id));
+    announce(`已选择 ${selectedGrantIds().length} 个玩家。`);
+    renderActiveTab();
+  });
+  clearSelection.addEventListener("click", () => {
+    state.selectedGrantUserIds.clear();
+    announce("已清空玩家选择。");
+    renderActiveTab();
+  });
+  actions.append(
+    element("strong", {
+      className: "grant-selection-summary",
+      text: `已选择 ${selectedIds.length} / 全部 ${accounts.length}`,
+      attrs: { role: "status", "aria-live": "polite" },
+    }),
+    selectVisible,
+    clearSelection,
+  );
+  toolbar.append(searchForm, actions);
+  return toolbar;
+}
+
+function grantPlayerTable(accounts, filtered) {
+  if (!filtered.length) return emptyState("没有匹配的玩家；已勾选的其他玩家仍会保留。请清除搜索后查看。", "玩家选择为空");
+  const region = element("div", {
+    className: "table-scroll grant-player-table-scroll",
+    attrs: { role: "region", tabindex: "0", "aria-label": "资源发放玩家明细与选择" },
+  });
+  const tableNode = element("table", { className: "grant-player-table" });
+  tableNode.append(element("caption", { className: "sr-only", text: "资源发放玩家明细；可勾选一个或多个玩家" }));
+  const head = document.createElement("thead");
+  const headRow = document.createElement("tr");
+  const selectedVisibleCount = filtered.filter((account) => state.selectedGrantUserIds.has(account.user_id)).length;
+  const selectAll = element("input", {
+    type: "checkbox",
+    checked: selectedVisibleCount === filtered.length,
+    attrs: { "aria-label": "选择或取消当前搜索结果中的全部玩家" },
+  });
+  selectAll.indeterminate = selectedVisibleCount > 0 && selectedVisibleCount < filtered.length;
+  selectAll.addEventListener("change", () => {
+    filtered.forEach((account) => {
+      if (selectAll.checked) state.selectedGrantUserIds.add(account.user_id);
+      else state.selectedGrantUserIds.delete(account.user_id);
+    });
+    announce(`已选择 ${selectedGrantIds().length} 个玩家。`);
+    renderActiveTab();
+  });
+  const selectionHeader = element("th", { attrs: { scope: "col" } });
+  const selectionHeaderLabel = element("label", { className: "grant-checkbox grant-checkbox-header" });
+  selectionHeaderLabel.append(selectAll, element("span", { text: "选择" }));
+  selectionHeader.append(selectionHeaderLabel);
+  headRow.append(selectionHeader);
+  ["完整玩家 ID", "脱敏账号", "段位 / Elo", "阵容卡数", "抽卡券", "卡牌总份数", "更新时间", "Revision"].forEach((label) => {
+    headRow.append(element("th", { text: label, attrs: { scope: "col" } }));
+  });
+  head.append(headRow);
+  const body = document.createElement("tbody");
+  filtered.forEach((account) => {
+    const selected = state.selectedGrantUserIds.has(account.user_id);
+    const row = element("tr", { className: selected ? "is-selected" : "" });
+    const checkbox = element("input", {
+      type: "checkbox",
+      checked: selected,
+      attrs: { "aria-label": `选择玩家 ${account.user_id}` },
+    });
+    checkbox.addEventListener("change", () => {
+      if (checkbox.checked) state.selectedGrantUserIds.add(account.user_id);
+      else state.selectedGrantUserIds.delete(account.user_id);
+      announce(`已选择 ${selectedGrantIds().length} 个玩家。`);
+      renderActiveTab();
+    });
+    const checkboxLabel = element("label", { className: "grant-checkbox" });
+    checkboxLabel.append(checkbox, element("span", { className: "sr-only", text: `玩家 ${account.user_id}` }));
+    const values = [
+      checkboxLabel,
+      element("code", { className: "full-user-id", text: account.user_id || "—" }),
+      account.masked_account || "—",
+      `${rankLabel(account.rank?.rank_key)} ${formatNumber(account.rank?.rank_stars)} 星 · Elo ${formatNumber(account.rank?.elo)}`,
+      formatNumber(normalizeList(account.deck).length),
+      formatNumber(account.resources?.gacha_tickets),
+      formatNumber(totalCardCopies(account)),
+      formatDate(account.updated_at_unix),
+      formatNumber(account.profile_revision),
+    ];
+    const labels = ["选择", "完整玩家 ID", "脱敏账号", "段位 / Elo", "阵容卡数", "抽卡券", "卡牌总份数", "更新时间", "Revision"];
+    values.forEach((value, index) => {
+      const cell = element("td", { attrs: { "data-label": labels[index] } });
+      if (value instanceof Node) cell.append(value);
+      else cell.textContent = String(value);
+      row.append(cell);
+    });
+    body.append(row);
+  });
+  tableNode.append(head, body);
+  region.append(tableNode);
+  return region;
 }
 
 function buildGrantDraft(form) {
   const formData = new FormData(form);
-  const kind = String(formData.get("target_kind") || "user");
   const type = String(formData.get("grant_type") || "gacha_tickets");
+  const selectedIds = selectedGrantIds();
+  const accountCount = new Set(normalizeList(state.accounts?.accounts).map((account) => account.user_id).filter(Boolean)).size;
+  const target = selectedIds.length > 0 && selectedIds.length === accountCount
+    ? { kind: "all" }
+    : selectedIds.length === 1
+      ? { kind: "user", user_id: selectedIds[0] }
+      : { kind: "selected", user_ids: selectedIds };
   const draft = {
-    target: { kind },
+    target,
     grant: { type, amount: Number(formData.get("amount")) },
     reason: String(formData.get("reason") || "").trim(),
   };
-  if (kind === "user") draft.target.user_id = String(formData.get("user_id") || "");
   if (type === "card_copies") draft.grant.card_id = String(formData.get("card_id") || "").trim();
   return draft;
 }
 
 function validateGrantDraft(draft) {
   const accountCount = normalizeList(state.accounts?.accounts).length;
+  const targetCount = draft.target.kind === "user" ? 1 : normalizeList(draft.target.user_ids).length;
+  if (state.accounts?.availability !== "ready" || accountCount < 1) return "玩家目标必须基于已就绪且非空的账号投影。";
+  if (state.selectedGrantUserIds.size < 1 || (draft.target.kind === "selected" && targetCount < 2)) return "请先勾选至少一个玩家。";
+  if (draft.target.kind === "selected" && targetCount > MAX_SELECTED_GRANT_TARGETS) return `多选发放单次最多选择 ${MAX_SELECTED_GRANT_TARGETS} 个玩家；如需全服发放，请选择全部账号并走强确认。`;
   if (draft.target.kind === "all" && (state.accounts?.availability !== "ready" || accountCount < 1)) return "全服目标必须基于已就绪且非空的账号投影。";
   if (draft.target.kind === "user" && !draft.target.user_id) return "请选择目标账号。";
   if (!Number.isInteger(draft.grant.amount) || draft.grant.amount < 1 || draft.grant.amount > 100000) return "数量必须是 1–100,000 的整数。";
@@ -794,8 +962,8 @@ async function waitForGrantTerminal(commandId, attempts = 10) {
   return state.grants.find((item) => String(item.command_id || item.id) === String(commandId)) || null;
 }
 
-async function submitTargetGrant(contract, idempotencyKey) {
-  if (contract.scope !== "target") throw Object.assign(new Error("target preview required"), { code: "invalid_preview_request" });
+async function submitScopedGrant(contract, idempotencyKey) {
+  if (!["target", "selected"].includes(contract.scope)) throw Object.assign(new Error("scoped preview required"), { code: "invalid_preview_request" });
   const payload = await request("/api/resource-grants", {
     method: "POST",
     mutation: true,
@@ -813,12 +981,12 @@ function renderGrantPreview(pane) {
   preview.append(element("p", { className: "step-label", text: "步骤 2–4 / 4 · 重新认证、二次确认、提交" }), element("h2", { id: "grant-preview-heading", text: "核对不可撤销指令" }));
   preview.append(callout("danger", "提交后不可撤销", "提交只会创建服务器待执行指令，不表示资源已到账。请依据任务状态回执核对执行结果；失败时不要更换幂等键盲目重试。", "alert"));
   const facts = element("dl", { className: "preview-facts" });
-  const targetText = draft.target.kind === "all" ? `全部账号（${targetCount} 个）` : `${compactUserId(draft.target.user_id)}（1 个）`;
+  const targetText = `全部账号（${targetCount} 个）`;
   [["目标", targetText], ["资源", grantDescription(draft)], ["原因", draft.reason], ["幂等键", state.grantPreview.idempotencyKey], ["预览有效至", formatDate(state.grantPreview.expiresAt)]].forEach(([term, value]) => facts.append(element("dt", { text: term }), element("dd", { text: value })));
   preview.append(facts);
   const confirmForm = element("form", { className: "grant-confirm-form" });
   const password = element("input", { type: "password", name: "password", required: true, autocomplete: "current-password", placeholder: "当前 Owner 密码" });
-  const expectedConfirmation = draft.target.kind === "all" ? "SEND TO ALL" : "SEND";
+  const expectedConfirmation = "SEND TO ALL";
   const confirmation = element("input", { name: "confirmation", required: true, autocomplete: "off", placeholder: expectedConfirmation, attrs: { spellcheck: "false" } });
   const error = element("p", { className: "error", attrs: { role: "alert", tabindex: "-1" } });
   const actions = element("div", { className: "form-actions" });
@@ -860,6 +1028,8 @@ function renderGrantPreview(pane) {
       state.grantResult = await waitForGrantTerminal(command.command_id || command.id).catch(() => null) || command;
       state.grantPreview = null;
       state.grantDraft = null;
+      state.selectedGrantUserIds.clear();
+      state.grantFormValues = { grant_type: "gacha_tickets", amount: "1", card_id: "", reason: "" };
       renderActiveTab();
       announce(grantStatusMeta(state.grantResult.status).label);
       document.querySelector("#grant-receipt")?.focus();
@@ -886,7 +1056,9 @@ function renderGrantReceipt() {
   wrapper.classList.add(`receipt-${meta.kind}`);
   const target = command.scope === "all"
     ? `全部 ${formatNumber(command.target_count)} 个账号`
-    : compactUserId(command.target_user_ids?.[0] || command.target?.user_id);
+    : command.scope === "selected"
+      ? `已选 ${formatNumber(command.target_count)} 个账号`
+      : compactUserId(command.target_user_ids?.[0] || command.target?.user_id);
   wrapper.append(
     element("h2", { text: meta.label }),
     element("p", { text: `${target} · ${grantDescription(command)}` }),
@@ -899,7 +1071,6 @@ function renderGrants() {
   const pane = createPane("grants", "资源发放");
   const receipt = renderGrantReceipt();
   if (receipt) pane.append(receipt);
-  const accountCount = normalizeList(state.accounts?.accounts).length;
   if (state.loadErrors.accounts) {
     pane.append(errorState(state.loadErrors.accounts, () => switchTab("grants", { force: true })));
     return pane;
@@ -908,52 +1079,78 @@ function renderGrants() {
     pane.append(loadingState("正在加载可选账号投影…"));
     return pane;
   }
+  const accounts = sortedAccounts();
+  const accountCount = accounts.length;
   const availabilityText = state.accounts.availability === "ready" ? `账号投影已就绪，共 ${accountCount} 个目标。` : "账号投影未就绪，暂不可创建资源指令。";
   pane.append(callout(state.accounts.availability === "ready" ? "info" : "warning", "执行前提", `${availabilityText} 指令由阿里云服务器执行器消费；此后台不直接改写玩家存档。`, state.accounts.availability === "ready" ? "status" : "alert"));
+  if (state.accounts.availability !== "ready" || accountCount < 1) return pane;
   if (state.grantPreview) {
     renderGrantPreview(pane);
     return pane;
   }
+
+  const filtered = grantFilteredAccounts();
+  const playerContent = element("div", { className: "grant-player-panel" });
+  playerContent.append(
+    grantSelectionToolbar(accounts, filtered),
+    grantPlayerTable(accounts, filtered),
+  );
+  pane.append(panel(
+    "选择玩家",
+    playerContent,
+    `直接显示完整玩家 ID 与运营数据 · 当前显示 ${filtered.length} / ${accountCount}`,
+    { className: "grant-player-section" },
+  ));
+
+  const selectedIds = selectedGrantIds();
+  if (selectedIds.length === accountCount) {
+    pane.append(callout("warning", "已选择全部账号", "本次提交会自动进入全服流程；必须重新输入当前 Owner 密码并准确输入 SEND TO ALL。", "alert"));
+  } else if (selectedIds.length > MAX_SELECTED_GRANT_TARGETS) {
+    pane.append(callout("danger", "选择数量超限", `多选发放最多 ${MAX_SELECTED_GRANT_TARGETS} 人；请缩小选择，或选择全部账号后走全服强确认。`, "alert"));
+  }
+
   const form = element("form", { className: "grant-form" });
-  form.append(element("p", { className: "step-label", text: "指定账号一次提交 · 全部账号保留强确认" }), element("h2", { text: "发放资源" }));
-  const targetKind = element("select", { name: "target_kind" });
-  targetKind.append(new Option("指定账号", "user"), new Option(`全部账号（${accountCount} 个）`, "all"));
-  const userId = element("select", { name: "user_id", required: true });
-  accountOptions(userId);
-  if (state.selectedGrantUserId && normalizeList(state.accounts?.accounts).some((account) => account.user_id === state.selectedGrantUserId)) userId.value = state.selectedGrantUserId;
+  form.append(element("p", { className: "step-label", text: "单个 / 多选一次提交 · 覆盖全服自动强确认" }), element("h2", { text: "向已选玩家发放资源" }));
   const grantType = element("select", { name: "grant_type" });
   grantType.append(new Option("抽卡券", "gacha_tickets"), new Option("卡牌副本", "card_copies"));
-  const amount = element("input", { type: "number", name: "amount", required: true, min: "1", max: "100000", step: "1", value: "1" });
-  const cardId = element("input", { name: "card_id", placeholder: "例如 animal_fox", autocomplete: "off" });
+  grantType.value = state.grantFormValues.grant_type || "gacha_tickets";
+  const amount = element("input", { type: "number", name: "amount", required: true, min: "1", max: "100000", step: "1", value: state.grantFormValues.amount || "1" });
+  const cardId = element("input", { name: "card_id", value: state.grantFormValues.card_id || "", placeholder: "例如 animal_fox", autocomplete: "off" });
   const cardField = labeledControl("卡牌 ID", cardId, "仅“卡牌副本”需要。必须使用正式配置 ID。");
-  const reason = element("textarea", { name: "reason", required: true, placeholder: "填写可审计的业务原因（4–200 字）", attrs: { maxlength: "200", rows: "4" } });
+  const reason = element("textarea", { name: "reason", required: true, value: state.grantFormValues.reason || "", placeholder: "填写可审计的业务原因（4–200 字）", attrs: { maxlength: "200", rows: "4" } });
+  reason.value = state.grantFormValues.reason || "";
   const error = element("p", { className: "error", attrs: { role: "alert", tabindex: "-1" } });
-  const preview = element("button", { className: "primary", type: "submit", text: "确认发放" });
+  const submitButton = element("button", { className: "primary", type: "submit", text: `确认向已选 ${selectedIds.length} 人发放` });
   form.append(
-    labeledControl("目标范围", targetKind),
-    labeledControl("指定账号", userId),
     labeledControl("资源类型", grantType),
     labeledControl("数量", amount),
     cardField,
     labeledControl("发放原因", reason),
     error,
-    preview,
+    submitButton,
   );
+  function captureFormValues() {
+    state.grantFormValues = {
+      grant_type: grantType.value,
+      amount: amount.value,
+      card_id: cardId.value,
+      reason: reason.value,
+    };
+  }
   function updateConditionalFields() {
-    const all = targetKind.value === "all";
-    userId.disabled = all;
-    userId.required = !all;
     const cardCopies = grantType.value === "card_copies";
     cardId.disabled = !cardCopies;
     cardId.required = cardCopies;
     cardField.hidden = !cardCopies;
+    captureFormValues();
   }
-  targetKind.addEventListener("change", updateConditionalFields);
   grantType.addEventListener("change", updateConditionalFields);
+  form.addEventListener("input", captureFormValues);
   updateConditionalFields();
   form.addEventListener("submit", async (event) => {
     event.preventDefault();
     error.textContent = "";
+    captureFormValues();
     const draft = buildGrantDraft(form);
     const message = validateGrantDraft(draft);
     if (message) {
@@ -962,7 +1159,7 @@ function renderGrants() {
       return;
     }
     const idempotencyKey = generateIdempotencyKey();
-    preview.disabled = true;
+    submitButton.disabled = true;
     try {
       const payload = await request("/api/resource-grants/preview", {
         method: "POST",
@@ -973,11 +1170,17 @@ function renderGrants() {
       if (!contract?.preview_token || contract.idempotency_key !== idempotencyKey) {
         throw Object.assign(new Error("invalid preview response"), { code: "invalid_preview_token" });
       }
+      const expectedScope = draft.target.kind === "user" ? "target" : draft.target.kind;
+      if (contract.scope !== expectedScope || Number(contract.target_count) !== selectedIds.length) {
+        throw Object.assign(new Error("preview target mismatch"), { code: "invalid_preview_token" });
+      }
       state.grantDraft = draft;
-      if (draft.target.kind === "user") {
+      if (["user", "selected"].includes(draft.target.kind)) {
         state.grantBusy = true;
-        state.grantResult = await submitTargetGrant(contract, idempotencyKey);
+        state.grantResult = await submitScopedGrant(contract, idempotencyKey);
         state.grantDraft = null;
+        state.selectedGrantUserIds.clear();
+        state.grantFormValues = { grant_type: "gacha_tickets", amount: "1", card_id: "", reason: "" };
         renderActiveTab();
         announce(grantStatusMeta(state.grantResult.status).label);
         document.querySelector("#grant-receipt")?.focus();
@@ -997,7 +1200,7 @@ function renderGrants() {
       error.focus?.();
     } finally {
       state.grantBusy = false;
-      preview.disabled = false;
+      submitButton.disabled = false;
     }
   });
   const content = element("div", { className: "grant-layout" });
@@ -1006,7 +1209,7 @@ function renderGrants() {
   [
     ["只建指令", "后台只写入受保护命令目录，不直接修改玩家权威存档。"],
     ["幂等保护", "同一预览固定使用一个 idempotency_key，网络重试不得重复发放。"],
-    ["指定账号一次提交", "从角色列表选择账号后，只需填写资源并确认一次；服务器仍冻结目标并校验幂等键。"],
+    ["多选一次提交", "单个或 2–500 个选中玩家只创建一条冻结目标命令；任一目标失败时整条命令失败，不拆成多次请求。"],
     ["全服强确认", "全部账号发放仍显示目标数、重新认证并强制输入 SEND TO ALL。"],
     ["终态回执", "页面会短暂等待执行器；成功或失败只显示一条最终结果，未完成才显示处理中。"],
   ].forEach(([title, description]) => {
@@ -1062,7 +1265,11 @@ function renderTasks() {
   const grantColumns = ["状态", "目标", "资源", "原因", "完成/创建时间", "备注"].map((label) => ({ label }));
   const grantRows = grants.map((entry) => {
     const meta = grantStatusMeta(entry.status);
-    const target = entry.target?.kind === "all" || entry.scope === "all" ? "全部账号" : compactUserId(entry.target?.user_id || entry.user_id || entry.target_user_ids?.[0]);
+    const target = entry.target?.kind === "all" || entry.scope === "all"
+      ? `全部账号（${formatNumber(entry.target_count)}）`
+      : entry.scope === "selected"
+        ? `已选账号（${formatNumber(entry.target_count)}）`
+        : compactUserId(entry.target?.user_id || entry.user_id || entry.target_user_ids?.[0]);
     return [
       tag(meta.label, meta.kind),
       target,
@@ -1394,7 +1601,9 @@ function clearSensitiveState() {
   state.animalQuery = "";
   state.animalBattleType = "all";
   state.accountQuery = "";
-  state.selectedGrantUserId = "";
+  state.grantAccountQuery = "";
+  state.selectedGrantUserIds = new Set();
+  state.grantFormValues = { grant_type: "gacha_tickets", amount: "1", card_id: "", reason: "" };
   state.grantDraft = null;
   state.grantPreview = null;
   state.grantResult = null;

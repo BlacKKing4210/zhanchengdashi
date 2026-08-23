@@ -435,7 +435,11 @@ export async function createDashboardServer(overrides = {}) {
       await state.appendAudit({
         event: "grant_enqueue_authorized",
         actor: session.user.username,
-        target: command.scope === "all" ? `all:${command.target_count}` : command.target_user_ids[0],
+        target: command.scope === "all"
+          ? `all:${command.target_count}`
+          : command.scope === "selected"
+            ? `selected:${command.target_count}`
+            : command.target_user_ids[0],
         ip,
         detail: `${command.command_id}:${command.reason}:${grantSummary}`,
       });

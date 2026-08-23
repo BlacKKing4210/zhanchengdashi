@@ -206,6 +206,36 @@ active_modules:
     pause_receipt: docs/receipts/F-ZC-ADMIN-001-V1.2-WAITING-USER-AUTH-010.md
     completion_receipt: docs/receipts/F-ZC-ADMIN-001-V1.2-CLOSE-011.md
     blockers: []
+  - task_id: REQ-20260823-ADMIN-DASHBOARD-V1.3-MULTI-GRANT
+    feature_id: F-ZC-ADMIN-001
+    version: v1.3.0-aliyun-staging
+    phase: completion
+    domain: cross_domain
+    owner: codex-primary
+    status: COMPLETE
+    started_on: "2026-08-23"
+    completed_on: "2026-08-23"
+    release_status: STAGING_PUBLIC_DEPLOYED_ACCEPTED_WITH_DECLARED_VISUAL_AND_EXECUTOR_OBSERVABILITY_LIMITS
+    remote_write_status: COMPLETE
+    remote_target: OpenClaw-ejrr
+    remote_environment: staging
+    deployed_endpoint: https://106.15.61.103/
+    deployed_node_release: JungleLaw-admin-dashboard-v1.3.0-aliyun-staging-rc2
+    deployed_node_zip_sha256: ED1F68526ECB5B1CEC9691863DE161B47D30C46345D5CC53C5982676730C0B20
+    deployed_linux_release: v1.3.0-local-linux-rc1
+    deployed_linux_archive_sha256: 626819F8ED906B8BE9832B4240BB416DFACC02DE0DC72EFB977C84FC8CEE0B87
+    deployed_linux_elf_sha256: 5318144037F2F81A962C22510AB2764557ECA289534BC043B023789495E376F1
+    backup_receipt: /var/backups/junglelaw-admin-dashboard/admin-dashboard-predeploy-JungleLaw-admin-dashboard-v1.3.0-aliyun-staging-rc2-20260823T040922Z
+    authority_sha256_before_after: C1FC9CBE4813D2AEB0D264F9E07C2CEDE959BF66BEEC4FE13870F75C8AF63594
+    command_queues_after_acceptance: pending_0_processed_0_failed_0
+    initial_rc1_result: FAILED_SAFE_EXACT_ROLLBACK_COMPLETED_SOURCE_MODE_AND_RECOVERY_WAIT_FIXED_IN_RC2
+    fingerprint: B07FA53856BF052A719E154767AE2A2CC05542FB605CAE9C79014241E7EE9DD4
+    rag_gate_receipt: temp/rag/receipts/rag-gate.json
+    rag_task_receipt: temp/rag/receipts/tasks/REQ-20260823-ADMIN-DASHBOARD-V1.3-MULTI-GRANT.json
+    control_intake: temp/control/REQ-20260823-ADMIN-DASHBOARD-V1.3-MULTI-GRANT.json
+    read_only_receipt: docs/receipts/F-ZC-ADMIN-001-V1.3-READ-ONLY-012.md
+    completion_receipt: docs/receipts/F-ZC-ADMIN-001-V1.3-CLOSE-013.md
+    blockers: []
   - task_id: REQ-20260822-BATTLE-INFO-TARGET-LOCK-001
     feature_id: F-ZC-001
     version: v1.1.0-battle-info-target-lock
@@ -255,6 +285,42 @@ active_modules:
 queued_modules: []
 
 shared_locks:
+  admin_dashboard_v1_3_multi_grant_20260823:
+    task_id: REQ-20260823-ADMIN-DASHBOARD-V1.3-MULTI-GRANT
+    owner: codex-primary
+    status: RELEASED
+    acquired_on: "2026-08-23"
+    hold_reason: producer_requested_visible_player_data_multi_select_and_single_batch_resource_grant
+    released_on: "2026-08-23"
+    release_reason: implementation_tests_staging_deployment_integrity_checks_and_completion_receipt_closed_without_real_resource_grant
+    write_set:
+      - docs/ADMIN_ANALYTICS_DASHBOARD_DESIGN.md
+      - docs/ADMIN_ANALYTICS_DASHBOARD_DESIGN.docx
+      - docs/active_scope.yaml
+      - docs/receipts/F-ZC-ADMIN-001-V1.3-READ-ONLY-012.md
+      - docs/receipts/F-ZC-ADMIN-001-V1.3-CLOSE-013.md
+      - knowledge/knowledge_manifest.csv
+      - production/deployment/aliyun-profile.yaml
+      - scripts/server/player_account_store.gd
+      - tests/test_admin_backend_features.gd
+      - tools/admin_dashboard/package.json
+      - tools/admin_dashboard/lib/resource_grants.mjs
+      - tools/admin_dashboard/server.mjs
+      - tools/admin_dashboard/public/app.js
+      - tools/admin_dashboard/public/styles.css
+      - tests/admin_dashboard/dashboard.test.mjs
+      - tools/build_admin_analytics_dashboard_docx.py
+      - tools/package_admin_dashboard.ps1
+      - tools/admin_dashboard/README.md
+      - deploy/linux/ADMIN_DASHBOARD_DEPLOYMENT.md
+      - deploy/linux/install_junglelaw_admin_dashboard.sh
+      - deploy/linux/test_junglelaw_admin_dashboard_deploy.sh
+      - build/admin-dashboard/
+      - build/linux/
+    remote_target: OpenClaw-ejrr
+    remote_environment: staging
+    remote_scope: junglelaw_only
+    evidence_root: temp/qa/F-ZC-ADMIN-001/v1.3-multi-grant-20260823
   runtime_gm_panel_20260823:
     task_id: REQ-20260823-RUNTIME-GM-PANEL
     owner: codex-primary

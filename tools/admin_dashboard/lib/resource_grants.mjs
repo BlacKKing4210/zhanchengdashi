@@ -10,9 +10,10 @@ const MAX_GRANTS = 20;
 const MAX_GRANT_AMOUNT = 100_000;
 const MAX_ENTRY_BYTES = 8 * 1024 * 1024;
 const MAX_LIST_ENTRIES = 200;
-const PREVIEW_VERSION = 1;
+const PREVIEW_VERSION = 2;
 export const GRANT_PREVIEW_TTL_MS = 2 * 60 * 1000;
-const MAX_PREVIEW_TOKEN_LENGTH = 16 * 1024;
+export const MAX_SELECTED_TARGETS = 500;
+const MAX_PREVIEW_TOKEN_LENGTH = 128 * 1024;
 
 export class GrantError extends Error {
   constructor(status, code) {
@@ -100,16 +101,21 @@ function validatePreviewGrantShape(grant, typeKey) {
 
 function validatePreviewDraftShape(body) {
   requireExactKeys(body, new Set([
-    "target", "grant", "scope", "target_user_id", "grants", "reason", "idempotency_key",
+    "target", "grant", "scope", "target_user_id", "target_user_ids", "grants", "reason", "idempotency_key",
   ]));
   const primary = Object.hasOwn(body, "target") || Object.hasOwn(body, "grant");
   if (primary) {
     if (!Object.hasOwn(body, "target") || !Object.hasOwn(body, "grant")
-      || ["scope", "target_user_id", "grants"].some((key) => Object.hasOwn(body, key))) {
+      || ["scope", "target_user_id", "target_user_ids", "grants"].some((key) => Object.hasOwn(body, key))) {
       throw new GrantError(400, "invalid_grant_request");
     }
     const kind = text(body.target?.kind, 16).toLowerCase();
-    requireExactKeys(body.target, kind === "all" ? new Set(["kind"]) : new Set(["kind", "user_id"]));
+    const targetKeys = kind === "all"
+      ? new Set(["kind"])
+      : kind === "selected"
+        ? new Set(["kind", "user_ids"])
+        : new Set(["kind", "user_id"]);
+    requireExactKeys(body.target, targetKeys);
     validatePreviewGrantShape(body.grant, "type");
     return;
   }
@@ -118,7 +124,11 @@ function validatePreviewDraftShape(body) {
     throw new GrantError(400, "invalid_grant_request");
   }
   const scope = text(body.scope, 16).toLowerCase();
-  if ((scope === "target" || scope === "user") !== Object.hasOwn(body, "target_user_id")) {
+  const hasTargetUserId = Object.hasOwn(body, "target_user_id");
+  const hasTargetUserIds = Object.hasOwn(body, "target_user_ids");
+  if ((scope === "target" || scope === "user") !== hasTargetUserId
+    || (scope === "selected") !== hasTargetUserIds
+    || (hasTargetUserId && hasTargetUserIds)) {
     throw new GrantError(400, "invalid_grant_request");
   }
   for (const grant of body.grants) validatePreviewGrantShape(grant, "resource");
@@ -207,7 +217,7 @@ export function sanitizeGrantEntry(value, fallbackStatus = "unknown") {
     command_id: commandId,
     idempotency_key: text(value.idempotency_key, 80).toLowerCase(),
     status,
-    scope: ["target", "all"].includes(text(value.scope, 16)) ? text(value.scope, 16) : "unknown",
+    scope: ["target", "selected", "all"].includes(text(value.scope, 16)) ? text(value.scope, 16) : "unknown",
     actor: text(value.actor, 40),
     reason: text(value.reason, 200),
     target_user_ids: targetUserIds,
@@ -346,16 +356,35 @@ export function prepareGrantCommand({ body, accountSnapshot, actor, now = Date.n
   const primaryTarget = body.target && typeof body.target === "object" && !Array.isArray(body.target) ? body.target : null;
   const requestedScope = text(primaryTarget?.kind ?? body.scope, 16).toLowerCase();
   const scope = requestedScope === "user" ? "target" : requestedScope;
-  if (!new Set(["target", "all"]).has(scope)) throw new GrantError(400, "invalid_scope");
-  const availableUserIds = accountSnapshot.accounts.map((entry) => safeUserId(entry.user_id)).filter(Boolean);
+  if (!new Set(["target", "selected", "all"]).has(scope)) throw new GrantError(400, "invalid_scope");
+  const availableUserIds = [...new Set(accountSnapshot.accounts.map((entry) => safeUserId(entry.user_id)).filter(Boolean))].sort();
+  const availableUserIdSet = new Set(availableUserIds);
   let targetUserIds;
   if (scope === "all") {
     if ((body.confirmation ?? body.all_confirmation) !== "SEND TO ALL") throw new GrantError(400, "all_confirmation_required");
-    targetUserIds = [...new Set(availableUserIds)].sort();
+    targetUserIds = availableUserIds;
+  } else if (scope === "selected") {
+    if (body.confirmation !== "SEND") throw new GrantError(400, "target_confirmation_required");
+    const rawTargetUserIds = primaryTarget?.user_ids ?? body.target_user_ids;
+    if (!Array.isArray(rawTargetUserIds) || rawTargetUserIds.length < 2) {
+      throw new GrantError(400, "selected_targets_required");
+    }
+    if (rawTargetUserIds.length > MAX_SELECTED_TARGETS) throw new GrantError(400, "selected_target_limit");
+    const seenTargetUserIds = new Set();
+    targetUserIds = [];
+    for (const rawTargetUserId of rawTargetUserIds) {
+      const targetUserId = safeUserId(rawTargetUserId);
+      if (!targetUserId || !availableUserIdSet.has(targetUserId)) throw new GrantError(404, "target_not_found");
+      if (seenTargetUserIds.has(targetUserId)) throw new GrantError(400, "duplicate_target");
+      seenTargetUserIds.add(targetUserId);
+      targetUserIds.push(targetUserId);
+    }
+    targetUserIds.sort();
+    if (targetUserIds.length === availableUserIds.length) throw new GrantError(400, "all_scope_required");
   } else {
     if (body.confirmation !== "SEND") throw new GrantError(400, "target_confirmation_required");
     const targetUserId = safeUserId(primaryTarget?.user_id ?? body.target_user_id);
-    if (!targetUserId || !availableUserIds.includes(targetUserId)) throw new GrantError(404, "target_not_found");
+    if (!targetUserId || !availableUserIdSet.has(targetUserId)) throw new GrantError(404, "target_not_found");
     targetUserIds = [targetUserId];
   }
   if (targetUserIds.length === 0) throw new GrantError(409, "no_target_accounts");
@@ -437,6 +466,7 @@ export function createGrantPreview({
     command_id: command.command_id,
     scope: command.scope,
     target_user_id: command.scope === "target" ? command.target_user_ids[0] : "",
+    target_user_ids: command.scope === "selected" ? [...command.target_user_ids] : [],
     target_count: command.target_count,
     targets_digest: targetDigest(command.target_user_ids),
     reason: command.reason,
@@ -447,7 +477,8 @@ export function createGrantPreview({
     expires_at_unix: Math.floor(payload.expires_at_ms / 1000),
     target_count: payload.target_count,
     scope: payload.scope,
-    target_user_ids: command.scope === "target" ? [...command.target_user_ids] : [],
+    target_user_ids: command.scope === "all" ? [] : [...command.target_user_ids],
+    targets_digest: payload.targets_digest,
     grants: command.grants,
     reason: command.reason,
     idempotency_key: command.idempotency_key,
@@ -463,9 +494,9 @@ export function commandFromGrantPreview({
   now = Date.now(),
 }) {
   if (!body || typeof body !== "object" || Array.isArray(body)) throw new GrantError(400, "invalid_grant_request");
-  // Individual targets use the already-authenticated Owner session and signed
-  // one-use preview. Broad all-account grants additionally carry password and
-  // explicit text confirmation, which the HTTP layer verifies before enqueue.
+  // Single and selected targets use the already-authenticated Owner session and
+  // signed one-use preview. Broad all-account grants additionally carry password
+  // and explicit text confirmation, which the HTTP layer verifies before enqueue.
   const allowedBodyFields = new Set(["preview_token", "idempotency_key", "password", "confirmation"]);
   if (Object.keys(body).some((key) => !allowedBodyFields.has(key))) {
     throw new GrantError(400, "invalid_preview_request");
@@ -488,7 +519,7 @@ export function commandFromGrantPreview({
     throw new GrantError(400, "invalid_preview_request");
   }
   const scope = text(payload.scope, 16);
-  if (!new Set(["target", "all"]).has(scope)) throw new GrantError(400, "invalid_preview_token");
+  if (!new Set(["target", "selected", "all"]).has(scope)) throw new GrantError(400, "invalid_preview_token");
   if (scope === "all") {
     if (body.confirmation !== "SEND TO ALL") throw new GrantError(400, "all_confirmation_required");
     if (typeof body.password !== "string" || body.password.length < 1 || body.password.length > 256) {
@@ -500,10 +531,32 @@ export function commandFromGrantPreview({
   if (!accountSnapshot || accountSnapshot.availability !== "ready" || !Array.isArray(accountSnapshot.accounts)) {
     throw new GrantError(503, "account_snapshot_unavailable");
   }
-  const availableUserIds = accountSnapshot.accounts.map((entry) => safeUserId(entry.user_id)).filter(Boolean);
-  const targetUserIds = scope === "all"
-    ? [...new Set(availableUserIds)].sort()
-    : [safeUserId(payload.target_user_id)].filter((userId) => userId && availableUserIds.includes(userId));
+  const availableUserIds = [...new Set(accountSnapshot.accounts.map((entry) => safeUserId(entry.user_id)).filter(Boolean))].sort();
+  const availableUserIdSet = new Set(availableUserIds);
+  let targetUserIds;
+  if (scope === "all") {
+    targetUserIds = availableUserIds;
+  } else if (scope === "target") {
+    targetUserIds = [safeUserId(payload.target_user_id)].filter((userId) => userId && availableUserIdSet.has(userId));
+  } else {
+    const rawTargetUserIds = payload.target_user_ids;
+    if (!Array.isArray(rawTargetUserIds) || rawTargetUserIds.length < 2
+      || rawTargetUserIds.length > MAX_SELECTED_TARGETS) {
+      throw new GrantError(400, "invalid_preview_token");
+    }
+    const seenTargetUserIds = new Set();
+    targetUserIds = [];
+    for (const rawTargetUserId of rawTargetUserIds) {
+      const targetUserId = safeUserId(rawTargetUserId);
+      if (!targetUserId || !availableUserIdSet.has(targetUserId) || seenTargetUserIds.has(targetUserId)) {
+        throw new GrantError(409, "preview_stale");
+      }
+      seenTargetUserIds.add(targetUserId);
+      targetUserIds.push(targetUserId);
+    }
+    targetUserIds.sort();
+    if (targetUserIds.length === availableUserIds.length) throw new GrantError(409, "all_scope_required");
+  }
   if (targetUserIds.length === 0) throw new GrantError(409, "preview_stale");
   if (payload.target_count !== targetUserIds.length || payload.targets_digest !== targetDigest(targetUserIds)) {
     throw new GrantError(409, "preview_stale");

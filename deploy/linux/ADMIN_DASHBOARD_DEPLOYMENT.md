@@ -235,13 +235,13 @@ test "$(readlink -f "${ADMIN_CURRENT_LINK}")" = "${ADMIN_RELEASE_TARGET}"
 bash '<absolute-verified-extracted-release>/deploy/linux/install_junglelaw_admin_dashboard.sh' prepare \
   --release-version '<approved-version>' \
   --release-source '<absolute-verified-extracted-release>' \
-  --node-archive '<absolute-approved-v1.2.0-runtime.zip>' \
-  --node-manifest '<absolute-approved-v1.2.0-runtime.manifest.json>' \
-  --expected-node-sha256 '<approved-v1.2.0-node-zip-sha256>' \
-  --game-release-source '<absolute-verified-v1.2.0-game-bundle-directory>' \
-  --game-archive '<absolute-JungleLawServer-v1.2.0-local-linux-rc1.tar.gz>' \
-  --expected-game-archive-sha256 '<approved-v1.2.0-game-archive-sha256>' \
-  --expected-game-sha256 7F11BC743A3573C8F9EAB7ECF6AADD65C74E7C8720DE80F7FA03ACC8BF1F2B94 \
+  --node-archive '<absolute-approved-v1.3.0-runtime.zip>' \
+  --node-manifest '<absolute-approved-v1.3.0-runtime.manifest.json>' \
+  --expected-node-sha256 '<approved-v1.3.0-node-zip-sha256>' \
+  --game-release-source '<absolute-verified-v1.3.0-game-bundle-directory>' \
+  --game-archive '<absolute-JungleLawServer-v1.3.0-local-linux-rc1.tar.gz>' \
+  --expected-game-archive-sha256 '<approved-v1.3.0-game-archive-sha256>' \
+  --expected-game-sha256 5318144037F2F81A962C22510AB2764557ECA289534BC043B023789495E376F1 \
   --backup-root /var/backups/junglelaw-admin-dashboard \
   --authority-path '<read-only-baseline-resolved-player_accounts.json>' \
   --acme-webroot '<read-only-baseline-resolved-existing-nginx-webroot>' \
@@ -252,9 +252,9 @@ bash '<absolute-verified-extracted-release>/deploy/linux/install_junglelaw_admin
   --authorize-state-directory-quarantine
 ```
 
-helper 必须从已验签 Node release 自己的 `deploy/linux` 目录运行；执行中的 overlay 与 `--release-source/deploy/linux` canonical 路径不相同就拒绝。Node ZIP 的整体哈希、ZIP 内每个文件、外部 manifest 和解压目录必须四方一致。游戏 ELF、基础 unit、stop helper 和后台 drop-in 则全部来自已验签的 v1.2.0 游戏服 bundle；drop-in 必须命中 `12D08A7B47816517BEEE46EF1C0D939D49F796D692425A1F9E23709D5E3B0BF1`，不得从 Node overlay 混装。
+helper 必须从已验签 Node release 自己的 `deploy/linux` 目录运行；执行中的 overlay 与 `--release-source/deploy/linux` canonical 路径不相同就拒绝。Node ZIP 的整体哈希、ZIP 内每个文件、外部 manifest 和解压目录必须四方一致。游戏 ELF、基础 unit、stop helper 和后台 drop-in 则全部来自已验签的 v1.3.0 游戏服 bundle；drop-in 必须命中 `12D08A7B47816517BEEE46EF1C0D939D49F796D692425A1F9E23709D5E3B0BF1`，不得从 Node overlay 混装。
 
-`prepare` 记录 game/dashboard/cert timer 的 active 与 enabled 基线以及 cert-renew active 基线；按 cert timer → cert-renew → 后台的顺序停止后第一次检查 `pending`，再停止游戏服并第二次检查 `pending`，随后创建一致性备份。它再原子安装 v1.2.0 游戏 ELF/unit/stop helper/drop-in、Node release、续期 helper/timer、端口 drop-in 和无秘密环境文件；新游戏服只启动一次。`--authorize-state-directory-quarantine` 是失败自动恢复的强制门禁：只有已校验的 exact receipt 可把当前完整状态目录移动到 root-only quarantine，绝不删除。它不会初始化 Owner、不会签发证书、不会开放云防火墙、不会改 nginx，也不会启动后台。
+`prepare` 记录 game/dashboard/cert timer 的 active 与 enabled 基线以及 cert-renew active 基线；按 cert timer → cert-renew → 后台的顺序停止后第一次检查 `pending`，再停止游戏服并第二次检查 `pending`，随后创建一致性备份。它再原子安装 v1.3.0 游戏 ELF/unit/stop helper/drop-in、Node release、续期 helper/timer、端口 drop-in 和无秘密环境文件；新游戏服只启动一次。`--authorize-state-directory-quarantine` 是失败自动恢复的强制门禁：只有已校验的 exact receipt 可把当前完整状态目录移动到 root-only quarantine，绝不删除。它不会初始化 Owner、不会签发证书、不会开放云防火墙、不会改 nginx，也不会启动后台。
 
 `prepare` 成功后，先用已固定为 Certbot `5.7.0` 的虚拟环境签发正式短期 IPv4 证书。测试 lineage `junglelaw-admin-ip-staging` 只能证明 HTTP-01 通路，证书标记为 `TEST_CERT`，不得复制到后台或计入 HTTPS 验收。正式签发必须使用生产 ACME endpoint、`shortlived` 必需 profile、现有 nginx webroot 和独立 lineage `junglelaw-admin-ip`；不得使用 `--staging`、`--test-cert`、`--dry-run`、`--no-verify-ssl` 或任何 TLS 绕过参数：
 
