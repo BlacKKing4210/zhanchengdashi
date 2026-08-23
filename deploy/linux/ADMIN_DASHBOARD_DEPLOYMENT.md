@@ -1,5 +1,7 @@
 # 数据后台阿里云部署手册
 
+> v1.3.1 后台界面热修仅允许替换版本化 Node release 与 `current` 链接，并只重启 `junglelaw-admin-dashboard.service`；不得借此升级游戏服、迁移权威账号或执行真实资源发放。部署前必须备份当前 Node release 指针、后台状态、队列计数与共享宿主机指纹，失败时原子恢复旧链接并重启后台。
+
 状态：`AUTHORIZED STAGING EXECUTION IN PROGRESS / 已完成 prepare 与正式证书签发，激活和外部验收待完成`
 
 本目录只提供可审查的 Linux 部署模板，没有授权或执行任何 SSH、上传、安装、端口变更、服务启动、账号初始化或生产写入。只有 `production/deployment/aliyun-profile.yaml` 完整记录目标环境与授权，且制片人明确批准对应环境的远程写入后，才可以按本手册从 staging 开始部署。

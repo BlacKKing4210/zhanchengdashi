@@ -8,7 +8,7 @@ ownership:
 
 environments:
   staging:
-    readiness: deployed_v1_3_staging_public_functional_with_declared_visual_and_executor_observability_limits
+    readiness: deployed_v1_3_1_staging_public_functional_with_declared_temporary_player_name_and_executor_observability_limits
     cloud_service: alibaba_cloud_simple_application_server_swas
     instance:
       id: 5753aa004b904138a06cc5437df6a468
@@ -24,7 +24,7 @@ environments:
     public_endpoints:
       - url: https://106.15.61.103/
         purpose: junglelaw_admin_dashboard
-        approval_state: deployed_v1_3_external_https_multi_player_grant_ui_and_retained_authority_accepted_2026-08-23
+        approval_state: deployed_v1_3_1_external_https_visible_grant_action_player_name_fallback_and_retained_authority_accepted_2026-08-23
     ports:
       - protocol: tcp
         port: 22
@@ -66,7 +66,7 @@ environments:
         observed_state: present
       - purpose: admin_dashboard
         path: /opt/junglelaw-admin
-        observed_state: present_current_points_to_JungleLaw-admin-dashboard-v1.3.0-aliyun-staging-rc2
+        observed_state: present_current_points_to_JungleLaw-admin-dashboard-v1.3.1-aliyun-staging-rc1
       - purpose: admin_dashboard_state
         path: /var/lib/junglelaw-admin-dashboard
         observed_state: present_root_managed_service_private
@@ -85,9 +85,9 @@ environments:
       - "POSIX ACL tooling /usr/bin/getfacl and /usr/bin/setfacl observed present; getfacl is 2.2.53 and numeric receipts must use supported -n rather than unsupported --numeric-names; junglelaw-admin may receive only --x on /var/lib/junglelaw and must not join the junglelaw group"
       - "prepare must receive the read-only observed Fisher and nginx unit names; their unit/PID/start-time/executable/config/listener fingerprints must remain byte-identical across the transaction"
     data_readiness:
-      account_authority: "deployed version 3; SHA-256 c1fc9cbe4813d2aeb0d264f9e07c2cede959bf66beec4fe13870f75c8af63594 unchanged before and after v1.3 RC2 deployment; no real resource grant executed during acceptance"
+      account_authority: "deployed version 3; SHA-256 c1fc9cbe4813d2aeb0d264f9e07c2cede959bf66beec4fe13870f75c8af63594 unchanged before and after v1.3.1 RC1 deployment; no username or display_name exists in the 30 current records; no real resource grant executed during acceptance"
       dashboard_snapshot: "deployed admin projection version 3 generated 2026-08-23T12:09:27+08:00; source all_completed_authenticated_battles_by_type; 60 animal rows; zero completed matches, battle-type rows, recent matches, leaderboard rows, and top decks"
-      account_snapshot: "deployed version 2 generated 2026-08-23T12:09:27+08:00; 30 sanitized account rows; 27 accounts with a non-empty saved deck; 65 Chinese card-name mappings"
+      account_snapshot: "deployed version 2 generated 2026-08-23T12:09:27+08:00; SHA-256 c57b4eacd3ad952bd1d0e2382adc3012484111edee33de4b099f7c072064a380 unchanged during v1.3.1 RC1; 30 sanitized account rows; zero username/display_name fields, therefore v1.3.1 uses explicitly labeled stable temporary names until a separately authorized identity projection ships; 27 accounts with a non-empty saved deck; 65 Chinese card-name mappings"
       match_analytics: "deployed version 3; controlled battle type and authority dimensions; 60 animal records; zero players and zero placement samples"
       balance_decision_status: "not_ready: current authoritative analytics contain no match or placement evidence"
     tls_and_reverse_proxy: "deployed: Node.js terminates TLS directly on public IPv4 106.15.61.103:443 as non-root junglelaw-admin with only CAP_NET_BIND_SERVICE; environment runtime port and certificate health port both equal 443; production Let's Encrypt shortlived lineage junglelaw-admin-ip has SAN 106.15.61.103, issuer YE2, expires 2026-08-28T05:37:38Z, and is atomically projected root:junglelaw-admin 0640; Certbot 5.7.0 timer is active/enabled twice daily with randomized delay; nginx TCP 80 was not edited, reloaded, or restarted"
@@ -100,9 +100,14 @@ environments:
       - "passed v1.3 recheck: external root and /api/health returned HTTP 200; deployed /app.js contains selectedGrantUserIds, full-player-ID and select-current-result markers"
       - "passed v1.3 recheck: actual command queues /var/lib/junglelaw/admin_commands/{pending,processed,failed} each contain zero JSON commands; no real resource grant was submitted"
       - "passed v1.3 recheck: game and admin services are active/running/enabled with NRestarts=0 and ExecMainStatus=0; error-priority journals since RC2 activation are empty"
-    backup_plan: "executed: root-only receipt /var/backups/junglelaw-admin-dashboard/admin-dashboard-predeploy-JungleLaw-admin-dashboard-v1.3.0-aliyun-staging-rc2-20260823T040922Z; payload.tar.sha256 and receipt.sha256 passed; full canonical server state, ACL/xattr, admin auth/audit, protected TLS, queues, game/admin components, active/enabled baselines and shared-host fingerprints recorded; Alibaba Cloud snapshot quota remains 3/3 and no snapshot was deleted"
-    rollback_plan: "ready and evidence-bound after successful v1.3 RC2 acceptance: the exact v1.3 RC2 backup ID and --authorize-state-directory-quarantine are mandatory; RC1 failed safely and the exact prior receipt restored v1.2 before RC2 fixed source permissions and bounded recovery health waiting; canonical server state may only be moved to root-only quarantine and never deleted"
-    monitoring: "junglelaw-server.service and junglelaw-admin-dashboard.service active/running/enabled with NRestarts=0 and ExecMainStatus=0; junglelaw-admin-dashboard-cert-renew.timer active/enabled; external TLS/root/health and journal checks passed; independent alert routing remains declared post-staging observability work"
+      - "passed v1.3.1: 25/25 Node tests plus Chrome 2048x1100 and 390x844 evidence show player names, full IDs, two-player selection, visible enabled grant CTA and no horizontal overflow; no submit action was performed"
+      - "passed v1.3.1: external trusted-TLS root and /api/health returned HTTP 200; protected wrong-password request with the correct Origin returned HTTP 401; deployed app.js contains player-name, full-ID, multi-grant CTA and compact-mobile markers"
+      - "passed v1.3.1: actual command queues /var/lib/junglelaw/admin_commands/{pending,processed,failed} each contain zero JSON commands; authority and account-snapshot hashes were unchanged; no real resource grant was submitted"
+      - "passed v1.3.1: only junglelaw-admin-dashboard.service restarted; JungleLaw game, Fisher and nginx MainPID/start-time/restart/status fingerprints remained identical; error-priority admin journal is empty"
+      - "declared v1.3.1 limitation: current remote records have no real username, so the UI shows a stable explicitly labeled temporary name until a separately authorized identity/game-server projection is deployed"
+    backup_plan: "executed: root-only receipt /var/backups/junglelaw-admin-dashboard/admin-dashboard-predeploy-JungleLaw-admin-dashboard-v1.3.1-aliyun-staging-rc1-20260823T102538Z; payload.tar.sha256 and receipt.sha256 passed; prior immutable release, current link, admin state/audit and protected configuration were captured; shared-host service fingerprints and authority/snapshot hashes were bound; no Alibaba Cloud snapshot was deleted"
+    rollback_plan: "ready and evidence-bound after successful v1.3.1 RC1 acceptance: restore the current pointer to JungleLaw-admin-dashboard-v1.3.0-aliyun-staging-rc2 and use the exact v1.3.1 RC1 root-only backup receipt if state restoration is required; rollback was not executed"
+    monitoring: "junglelaw-server.service, fisher-server.service, nginx.service and junglelaw-admin-dashboard.service active/enabled with NRestarts=0 and ExecMainStatus=0; only admin MainPID changed as expected; junglelaw-admin-dashboard-cert-renew.timer remains active/enabled; external TLS/root/health, protected-login and journal checks passed; independent executor-heartbeat alert routing remains declared post-staging observability work"
   production:
     ssh_alias: null
     region: null
@@ -128,6 +133,6 @@ authorization:
   staging_remote_writes: true
   production_remote_writes: false
   staging_scope: OpenClaw-ejrr_junglelaw_only
-  explicit_user_confirmation: "fulfilled_2026-08-23_OpenClaw-ejrr_staging_JungleLaw_only_v1_3_deployment_authorized"
+  explicit_user_confirmation: "fulfilled_2026-08-23_OpenClaw-ejrr_staging_JungleLaw_node_only_v1_3_1_continuation_authorized"
   state_directory_quarantine_restore: true
   destructive_state_deletion: false

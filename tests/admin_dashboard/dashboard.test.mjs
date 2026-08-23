@@ -397,6 +397,7 @@ test("account snapshot sanitizer exposes saved decks and resources without crede
     card_names: { rabbit: "兔子", wolf: "狼", "invalid card id": "不应出现" },
     accounts: [{
       user_id: "U-ONE",
+      username: "  狐狸队长\u0000  ",
       masked_account: "f***e",
       account: "fieldmouse",
       salt: "must-not-leak",
@@ -413,6 +414,7 @@ test("account snapshot sanitizer exposes saved decks and resources without crede
       resources: { gacha_tickets: 19, card_copies: { rabbit: 7, wolf: 2 } },
     }, {
       user_id: "U-KING",
+      username: "A",
       masked_account: "k***g",
       profile_revision: 2,
       deck: ["wolf"],
@@ -425,6 +427,8 @@ test("account snapshot sanitizer exposes saved decks and resources without crede
   assert.equal(snapshot.accounts.length, 2);
   assert.deepEqual(snapshot.card_names, { rabbit: "兔子", wolf: "狼" });
   assert.deepEqual(snapshot.accounts.map((entry) => entry.user_id), ["U-KING", "U-ONE"]);
+  assert.equal(snapshot.accounts[0].username, "");
+  assert.equal(snapshot.accounts[1].username, "狐狸队长");
   assert.deepEqual(snapshot.accounts[1].deck, ["rabbit", "wolf"]);
   assert.deepEqual(snapshot.accounts[1].card_levels, { rabbit: 4, wolf: 3, reserve_card: 2 });
   assert.equal(snapshot.accounts[1].resources.gacha_tickets, 19);
@@ -1153,15 +1157,22 @@ test("resource grant API submits one-account grants once while broad grants reta
 test("resource page contract exposes player data and persistent multi-selection controls", async () => {
   const appSource = await fs.readFile(path.join(PROJECT_ROOT, "tools", "admin_dashboard", "public", "app.js"), "utf8");
   const styleSource = await fs.readFile(path.join(PROJECT_ROOT, "tools", "admin_dashboard", "public", "styles.css"), "utf8");
-  for (const label of ["完整玩家 ID", "脱敏账号", "段位 / Elo", "阵容卡数", "抽卡券", "卡牌总份数", "更新时间", "Revision"]) {
+  for (const label of ["玩家名称", "完整玩家 ID", "段位 / Elo", "抽卡券", "阵容卡数", "发放资源", "系统临时名称"]) {
     assert.match(appSource, new RegExp(label.replace("/", "\\/")));
   }
   assert.match(appSource, /selectedGrantUserIds: new Set\(\)/);
   assert.match(appSource, /全选当前结果/);
   assert.match(appSource, /清空选择/);
   assert.match(appSource, /\{ kind: "selected", user_ids: selectedIds \}/);
+  assert.match(appSource, /accountDisplayName\(account\)/);
+  assert.match(appSource, /temporaryPlayerName/);
+  assert.match(appSource, /disabled: selectionInvalid/);
   assert.doesNotMatch(appSource, /name: "target_kind"/);
   assert.match(styleSource, /\.grant-player-table/);
+  assert.match(styleSource, /\.grant-workspace/);
+  assert.match(styleSource, /grid-template-areas: "players operation"/);
+  assert.match(styleSource, /\.grant-operation-form/);
+  assert.match(styleSource, /\.grant-primary-fields/);
   assert.match(styleSource, /tbody tr\.is-selected/);
   assert.match(styleSource, /\.grant-checkbox input\[type="checkbox"\]/);
 });

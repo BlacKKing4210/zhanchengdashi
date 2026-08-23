@@ -90,6 +90,11 @@ function compactUserId(value) {
   return `${userId.slice(0, 9)}…${userId.slice(-6)}`;
 }
 
+function temporaryPlayerName(value) {
+  const suffix = String(value || "").replace(/[^A-Za-z0-9]/g, "").slice(-4).toUpperCase();
+  return `新玩家${suffix || "未知"}`;
+}
+
 function roleLabel(value) {
   return value === "owner" ? "Owner" : "Analyst";
 }
@@ -552,7 +557,19 @@ async function loadAccounts(force = false) {
 }
 
 function accountDisplayName(account) {
-  return account.masked_account || compactUserId(account.user_id);
+  const username = String(account?.username || "").trim();
+  return username || temporaryPlayerName(account?.user_id);
+}
+
+function accountUsesTemporaryName(account) {
+  return !String(account?.username || "").trim();
+}
+
+function accountMatchesQuery(account, query) {
+  return !query
+    || accountDisplayName(account).toLowerCase().includes(query)
+    || String(account.user_id || "").toLowerCase().includes(query)
+    || String(account.masked_account || "").toLowerCase().includes(query);
 }
 
 function renderResources(resources) {
@@ -619,14 +636,12 @@ function sortedAccounts() {
 
 function filteredAccounts() {
   const query = state.accountQuery.trim().toLowerCase();
-  return sortedAccounts().filter((account) => !query
-    || String(account.user_id || "").toLowerCase().includes(query)
-    || String(account.masked_account || "").toLowerCase().includes(query));
+  return sortedAccounts().filter((account) => accountMatchesQuery(account, query));
 }
 
 function accountSearchToolbar(labelText) {
   const toolbar = element("form", { className: "filter-bar", attrs: { role: "search" } });
-  const search = element("input", { type: "search", value: state.accountQuery, placeholder: "搜索脱敏账号或完整 user_id", attrs: { "aria-label": labelText } });
+  const search = element("input", { type: "search", value: state.accountQuery, placeholder: "搜索玩家名称、完整玩家 ID 或脱敏账号", attrs: { "aria-label": labelText } });
   const submit = element("button", { className: "secondary", type: "submit", text: "搜索" });
   const reset = element("button", { className: "ghost", type: "button", text: "清除" });
   toolbar.append(search, submit, reset);
@@ -644,7 +659,8 @@ function accountSearchToolbar(labelText) {
 
 function accountIdentity(account) {
   const identity = element("span", { className: "rank-name", text: accountDisplayName(account) });
-  identity.append(element("small", { className: "rank-id", text: account.user_id || "—" }));
+  const prefix = accountUsesTemporaryName(account) ? "系统临时名称" : "完整玩家 ID";
+  identity.append(element("small", { className: "rank-id", text: `${prefix} · ${account.user_id || "—"}` }));
   return identity;
 }
 
@@ -686,7 +702,7 @@ function renderRoles() {
     pane.append(panel("全部角色", emptyState("没有匹配的账号。")));
     return pane;
   }
-  const columns = ["#", "角色账号", "存储段位", "Elo", "抽卡券", "更新时间", "操作"].map((label) => ({ label }));
+  const columns = ["#", "玩家名称 / ID", "存储段位", "Elo", "抽卡券", "更新时间", "操作"].map((label) => ({ label }));
   const rows = filtered.map((account) => {
     const storageIndex = accounts.findIndex((entry) => entry.user_id === account.user_id) + 1;
     return [
@@ -720,9 +736,7 @@ function renderDecks() {
   const allAccounts = sortedAccounts();
   const accounts = allAccounts.filter((account) => normalizeList(account.deck).length > 0);
   const query = state.accountQuery.trim().toLowerCase();
-  const filtered = accounts.filter((account) => !query
-    || String(account.user_id || "").toLowerCase().includes(query)
-    || String(account.masked_account || "").toLowerCase().includes(query));
+  const filtered = accounts.filter((account) => accountMatchesQuery(account, query));
   pane.append(
     panel("查找阵容", accountSearchToolbar("搜索保存阵容"), "卡牌以配置中的中文名显示"),
     callout("info", "排行口径", `共 ${accounts.length} 套已保存阵容（账号总数 ${allAccounts.length}）；按存储段位、星数和 Elo 从高到低排列，不按近期胜率重排。`),
@@ -750,20 +764,12 @@ function generateIdempotencyKey() {
 
 function grantFilteredAccounts() {
   const query = state.grantAccountQuery.trim().toLowerCase();
-  return sortedAccounts().filter((account) => !query
-    || String(account.user_id || "").toLowerCase().includes(query)
-    || String(account.masked_account || "").toLowerCase().includes(query));
+  return sortedAccounts().filter((account) => accountMatchesQuery(account, query));
 }
 
 function selectedGrantIds() {
   const availableUserIds = new Set(normalizeList(state.accounts?.accounts).map((account) => String(account.user_id || "")).filter(Boolean));
   return [...state.selectedGrantUserIds].filter((userId) => availableUserIds.has(userId)).sort();
-}
-
-function totalCardCopies(account) {
-  const copies = account?.resources?.card_copies;
-  if (!copies || typeof copies !== "object" || Array.isArray(copies)) return 0;
-  return Object.values(copies).reduce((sum, value) => sum + Math.max(0, Number(value) || 0), 0);
 }
 
 function grantSelectionToolbar(accounts, filtered) {
@@ -772,7 +778,7 @@ function grantSelectionToolbar(accounts, filtered) {
   const search = element("input", {
     type: "search",
     value: state.grantAccountQuery,
-    placeholder: "搜索完整玩家 ID 或脱敏账号",
+    placeholder: "搜索玩家名称、完整玩家 ID 或脱敏账号",
     attrs: { "aria-label": "搜索资源发放玩家" },
   });
   const searchButton = element("button", { className: "secondary", type: "submit", text: "搜索" });
@@ -855,7 +861,7 @@ function grantPlayerTable(accounts, filtered) {
   selectionHeaderLabel.append(selectAll, element("span", { text: "选择" }));
   selectionHeader.append(selectionHeaderLabel);
   headRow.append(selectionHeader);
-  ["完整玩家 ID", "脱敏账号", "段位 / Elo", "阵容卡数", "抽卡券", "卡牌总份数", "更新时间", "Revision"].forEach((label) => {
+  ["玩家名称", "完整玩家 ID", "段位 / Elo", "抽卡券", "阵容卡数"].forEach((label) => {
     headRow.append(element("th", { text: label, attrs: { scope: "col" } }));
   });
   head.append(headRow);
@@ -866,7 +872,7 @@ function grantPlayerTable(accounts, filtered) {
     const checkbox = element("input", {
       type: "checkbox",
       checked: selected,
-      attrs: { "aria-label": `选择玩家 ${account.user_id}` },
+      attrs: { "aria-label": `选择玩家 ${accountDisplayName(account)} ${account.user_id}` },
     });
     checkbox.addEventListener("change", () => {
       if (checkbox.checked) state.selectedGrantUserIds.add(account.user_id);
@@ -875,19 +881,21 @@ function grantPlayerTable(accounts, filtered) {
       renderActiveTab();
     });
     const checkboxLabel = element("label", { className: "grant-checkbox" });
-    checkboxLabel.append(checkbox, element("span", { className: "sr-only", text: `玩家 ${account.user_id}` }));
+    checkboxLabel.append(checkbox, element("span", { className: "sr-only", text: `玩家 ${accountDisplayName(account)} ${account.user_id}` }));
+    const playerName = element("span", { className: "grant-player-name", text: accountDisplayName(account) });
+    playerName.append(element("small", {
+      className: "rank-id",
+      text: accountUsesTemporaryName(account) ? "系统临时名称" : (account.masked_account || "已设置用户名"),
+    }));
     const values = [
       checkboxLabel,
+      playerName,
       element("code", { className: "full-user-id", text: account.user_id || "—" }),
-      account.masked_account || "—",
       `${rankLabel(account.rank?.rank_key)} ${formatNumber(account.rank?.rank_stars)} 星 · Elo ${formatNumber(account.rank?.elo)}`,
-      formatNumber(normalizeList(account.deck).length),
       formatNumber(account.resources?.gacha_tickets),
-      formatNumber(totalCardCopies(account)),
-      formatDate(account.updated_at_unix),
-      formatNumber(account.profile_revision),
+      formatNumber(normalizeList(account.deck).length),
     ];
-    const labels = ["选择", "完整玩家 ID", "脱敏账号", "段位 / Elo", "阵容卡数", "抽卡券", "卡牌总份数", "更新时间", "Revision"];
+    const labels = ["选择", "玩家名称", "完整玩家 ID", "段位 / Elo", "抽卡券", "阵容卡数"];
     values.forEach((value, index) => {
       const cell = element("td", { attrs: { "data-label": labels[index] } });
       if (value instanceof Node) cell.append(value);
@@ -1095,22 +1103,37 @@ function renderGrants() {
     grantSelectionToolbar(accounts, filtered),
     grantPlayerTable(accounts, filtered),
   );
-  pane.append(panel(
+  const playerSection = panel(
     "选择玩家",
     playerContent,
-    `直接显示完整玩家 ID 与运营数据 · 当前显示 ${filtered.length} / ${accountCount}`,
+    `显示玩家名称、完整玩家 ID 与核心运营数据 · 当前显示 ${filtered.length} / ${accountCount}`,
     { className: "grant-player-section" },
-  ));
+  );
 
   const selectedIds = selectedGrantIds();
+  let selectionNotice = null;
   if (selectedIds.length === accountCount) {
-    pane.append(callout("warning", "已选择全部账号", "本次提交会自动进入全服流程；必须重新输入当前 Owner 密码并准确输入 SEND TO ALL。", "alert"));
+    selectionNotice = callout("warning", "已选择全部账号", "提交后进入全服强确认：需重新输入 Owner 密码与 SEND TO ALL。", "alert");
   } else if (selectedIds.length > MAX_SELECTED_GRANT_TARGETS) {
-    pane.append(callout("danger", "选择数量超限", `多选发放最多 ${MAX_SELECTED_GRANT_TARGETS} 人；请缩小选择，或选择全部账号后走全服强确认。`, "alert"));
+    selectionNotice = callout("danger", "选择数量超限", `多选发放最多 ${MAX_SELECTED_GRANT_TARGETS} 人；请缩小选择，或选择全部账号后走全服强确认。`, "alert");
   }
 
-  const form = element("form", { className: "grant-form" });
-  form.append(element("p", { className: "step-label", text: "单个 / 多选一次提交 · 覆盖全服自动强确认" }), element("h2", { text: "向已选玩家发放资源" }));
+  const form = element("form", { className: "grant-form grant-operation-form", attrs: { "aria-labelledby": "grant-form-heading" } });
+  const selectionInvalid = selectedIds.length === 0 || (selectedIds.length > MAX_SELECTED_GRANT_TARGETS && selectedIds.length !== accountCount);
+  const selectionStatus = element("p", {
+    id: "grant-selection-status",
+    className: `grant-operation-summary${selectionInvalid ? " is-invalid" : ""}`,
+    text: selectedIds.length === 0
+      ? "尚未选择玩家，请在左侧玩家表勾选目标。"
+      : `已选择 ${selectedIds.length} 人${selectedIds.length === accountCount ? " · 全服强确认" : " · 一次提交"}`,
+    attrs: { role: "status", "aria-live": "polite" },
+  });
+  form.append(
+    element("p", { className: "step-label", text: "首屏操作区 · 单个 / 多选一次提交" }),
+    element("h2", { id: "grant-form-heading", text: "发放资源" }),
+    selectionStatus,
+  );
+  if (selectionNotice) form.append(selectionNotice);
   const grantType = element("select", { name: "grant_type" });
   grantType.append(new Option("抽卡券", "gacha_tickets"), new Option("卡牌副本", "card_copies"));
   grantType.value = state.grantFormValues.grant_type || "gacha_tickets";
@@ -1120,14 +1143,32 @@ function renderGrants() {
   const reason = element("textarea", { name: "reason", required: true, value: state.grantFormValues.reason || "", placeholder: "填写可审计的业务原因（4–200 字）", attrs: { maxlength: "200", rows: "4" } });
   reason.value = state.grantFormValues.reason || "";
   const error = element("p", { className: "error", attrs: { role: "alert", tabindex: "-1" } });
-  const submitButton = element("button", { className: "primary", type: "submit", text: `确认向已选 ${selectedIds.length} 人发放` });
-  form.append(
+  const submitButtonText = selectedIds.length === 0
+    ? "请先选择玩家"
+    : selectedIds.length === accountCount
+      ? `继续全服发放资源（${selectedIds.length} 人）`
+      : selectedIds.length > MAX_SELECTED_GRANT_TARGETS
+        ? "已选玩家超过上限"
+        : `向已选 ${selectedIds.length} 人发放资源`;
+  const submitButton = element("button", {
+    className: "primary grant-submit-button",
+    type: "submit",
+    text: submitButtonText,
+    disabled: selectionInvalid,
+    attrs: { "aria-describedby": "grant-selection-status" },
+  });
+  const primaryFields = element("div", { className: "grant-primary-fields" });
+  primaryFields.append(
     labeledControl("资源类型", grantType),
     labeledControl("数量", amount),
+  );
+  form.append(
+    primaryFields,
     cardField,
     labeledControl("发放原因", reason),
     error,
     submitButton,
+    element("p", { className: "grant-operation-note", text: "后台只创建一条幂等指令；处理成功后才显示到账。" }),
   );
   function captureFormValues() {
     state.grantFormValues = {
@@ -1203,22 +1244,9 @@ function renderGrants() {
       submitButton.disabled = false;
     }
   });
-  const content = element("div", { className: "grant-layout" });
-  content.append(form);
-  const guardrails = element("div", { className: "guardrail-list" });
-  [
-    ["只建指令", "后台只写入受保护命令目录，不直接修改玩家权威存档。"],
-    ["幂等保护", "同一预览固定使用一个 idempotency_key，网络重试不得重复发放。"],
-    ["多选一次提交", "单个或 2–500 个选中玩家只创建一条冻结目标命令；任一目标失败时整条命令失败，不拆成多次请求。"],
-    ["全服强确认", "全部账号发放仍显示目标数、重新认证并强制输入 SEND TO ALL。"],
-    ["终态回执", "页面会短暂等待执行器；成功或失败只显示一条最终结果，未完成才显示处理中。"],
-  ].forEach(([title, description]) => {
-    const item = element("article", { className: "guardrail" });
-    item.append(element("strong", { text: title }), element("p", { text: description }));
-    guardrails.append(item);
-  });
-  content.append(panel("安全护栏", guardrails, "Owner 专属"));
-  pane.append(content);
+  const workspace = element("div", { className: "grant-workspace" });
+  workspace.append(form, playerSection);
+  pane.append(workspace);
   return pane;
 }
 

@@ -943,7 +943,11 @@ tbody tr:last-child td { border-bottom: 0; }
   gap: 14px;
 }
 
-.grant-player-section { padding-bottom: 14px; }
+.grant-player-section {
+  grid-area: players;
+  min-width: 0;
+  padding-bottom: 14px;
+}
 
 .grant-player-panel {
   display: grid;
@@ -978,11 +982,11 @@ tbody tr:last-child td { border-bottom: 0; }
 }
 
 .grant-player-table-scroll {
-  max-height: min(520px, calc(100dvh - var(--header-height) - 210px));
+  max-height: min(620px, calc(100dvh - var(--header-height) - 190px));
 }
 
 .grant-player-table {
-  min-width: 1280px;
+  min-width: 980px;
   font-size: 0.8rem;
 }
 
@@ -1028,14 +1032,69 @@ tbody tr:last-child td { border-bottom: 0; }
   white-space: normal;
 }
 
-.grant-layout {
+.grant-player-name {
   display: grid;
-  grid-template-columns: minmax(0, 1.15fr) minmax(300px, 0.85fr);
+  gap: 3px;
+  min-width: 126px;
+  color: var(--text);
+  font-weight: 800;
+}
+
+.grant-workspace {
+  display: grid;
+  grid-template-areas: "players operation";
+  grid-template-columns: minmax(0, 1fr) minmax(340px, 420px);
   align-items: start;
   gap: 14px;
 }
 
 .grant-form { padding: 18px; }
+
+.grant-operation-form {
+  grid-area: operation;
+  position: sticky;
+  top: calc(var(--header-height) + 14px);
+  max-height: calc(100dvh - var(--header-height) - 28px);
+  overflow: auto;
+  border-color: rgba(211, 170, 91, 0.42);
+  box-shadow: 0 16px 38px rgba(0, 0, 0, 0.24);
+}
+
+.grant-operation-summary {
+  margin: -2px 0 0;
+  padding: 10px 12px;
+  border: 1px solid rgba(211, 170, 91, 0.24);
+  border-radius: var(--radius-sm);
+  background: rgba(211, 170, 91, 0.08);
+  color: var(--gold-soft);
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.grant-operation-summary.is-invalid {
+  border-color: rgba(224, 106, 93, 0.32);
+  background: rgba(224, 106, 93, 0.08);
+  color: var(--red);
+}
+
+.grant-primary-fields {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(108px, 0.58fr);
+  gap: 10px;
+}
+
+.grant-submit-button {
+  width: 100%;
+  min-height: 50px;
+  font-size: 0.95rem;
+}
+
+.grant-operation-note {
+  margin: -4px 0 0;
+  color: var(--muted);
+  font-size: 0.78rem;
+  line-height: 1.5;
+}
 
 .grant-form h2,
 .grant-preview h2 { margin-bottom: 4px; }
@@ -1145,8 +1204,20 @@ tbody tr:last-child td { border-bottom: 0; }
 @media (max-width: 1000px) {
   .overview-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .management-grid,
-  .grant-layout,
   .rankings-layout { grid-template-columns: 1fr; }
+
+  .grant-workspace {
+    grid-template-areas:
+      "operation"
+      "players";
+    grid-template-columns: 1fr;
+  }
+
+  .grant-operation-form {
+    position: static;
+    max-height: none;
+    overflow: visible;
+  }
 
   .animal-index-panel {
     position: static;
@@ -1218,6 +1289,14 @@ tbody tr:last-child td { border-bottom: 0; }
   .page-title { font-size: 1.65rem; }
 
   .panel { padding: 13px; }
+  .grant-operation-form {
+    gap: 10px;
+    padding: 13px;
+  }
+  .grant-operation-form textarea {
+    min-height: 66px;
+    height: 66px;
+  }
   .metric { min-height: 92px; padding: 13px; }
   .metric strong { font-size: 1.55rem; }
 

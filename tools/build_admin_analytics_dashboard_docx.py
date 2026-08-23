@@ -73,7 +73,7 @@ def image(path: str, caption: str, url: str) -> Item:
 METADATA = [
     ["功能编号", "F-ZC-ADMIN-001"],
     ["文档名称", "运营数据后台设计与实现契约"],
-    ["版本", "v1.3.0"],
+    ["版本", "v1.3.1"],
     ["状态", "MATERIAL / IMPLEMENTATION_CONTRACT"],
     ["更新日期", "2026-08-23"],
     ["适用范围", "阿里云私有运营后台、只读数据投影与 Owner 资源指令"],
@@ -92,17 +92,18 @@ CONTENT: list[Item] = [
             ["v1.1.2", "2026-08-14", "MATERIAL / IMPLEMENTATION_CONTRACT", "按用户指定的英雄联盟数据站榜单页提炼深色暖金、顶部导航、左筛选/右排名与密集数据表视觉契约；保留原创品牌和完整响应式。", "本地代码与视觉验收 PNG 已完成；Figma 新风格帧因 Starter 套餐调用上限待同步，旧 v1.1 可编辑画板继续保留。"],
             ["v1.2.0", "2026-08-22", "MATERIAL / IMPLEMENTATION_CONTRACT", "所有可上报的已完成战斗按 battle_type 入库；新增角色页与账号直达发放；阵容改为中文名段位列表；指定账号收敛为一次提交并修复跨服务 pending。", "沿用 v1.1.2 深色暖金组件体系；全账号群发继续保留强确认。"],
             ["v1.3.0", "2026-08-23", "MATERIAL / IMPLEMENTATION_CONTRACT", "资源页改为可搜索的玩家明细表，直接展示完整玩家 ID 与脱敏运营数据；支持持续勾选多个玩家并以一条冻结、签名、幂等命令原子发放。", "沿用深色暖金组件体系；v1.3 可编辑资源页状态仍为 PENDING，不冒充已同步。"],
+            ["v1.3.1", "2026-08-23", "MATERIAL / IMPLEMENTATION_CONTRACT", "修复资源主按钮被长玩家表推到首屏以下的问题；玩家、阵容和资源页优先显示/搜索用户名，缺失时显示稳定的系统临时名称。", "沿用 v1.3 组件；操作卡与玩家表桌面并列、窄屏操作卡在表前；可编辑 v1.3.1 状态仍为 PENDING。"],
         ],
         [0.8, 1.0, 1.45, 3.1, 2.1],
     ),
     heading(1, "1. 文档目标与权威性"),
-    paragraph("本文件是 F-ZC-ADMIN-001 v1.3.0 的 MATERIAL / IMPLEMENTATION_CONTRACT。它约束产品、前端、后台 API、战斗统计采集、资源命令执行器、阿里云部署和 QA；实现与本文件冲突时，必须先完成正式变更评审并同步本文与可编辑设计源。"),
+    paragraph("本文件是 F-ZC-ADMIN-001 v1.3.1 的 MATERIAL / IMPLEMENTATION_CONTRACT。它约束产品、前端、后台 API、战斗统计采集、资源命令执行器、阿里云部署和 QA；实现与本文件冲突时，必须先完成正式变更评审并同步本文与可编辑设计源。"),
     bullets(
         "给运营人员提供登录后可审计的 Web 数据后台，快速查看动物平均排名并提出平衡调整建议。",
         "把全部已完成且具有在线认证会话、能够上报的经典、组队和六人乱斗战斗纳入统计，并为每条记录标记 battle_type 与 analytics_authority。",
-        "角色页显示当前脱敏投影中的所有账号；Owner 可点击账号直接进入该账号的资源发放。",
+        "角色页显示当前脱敏投影中的所有账号，并优先显示允许重名的玩家用户名；缺失用户名时使用新玩家+user_id 后缀的稳定临时名称。Owner 可点击玩家直接进入资源发放。",
         "阵容库以紧凑列表展示全部保存阵容，使用正式卡牌配置中的中文名，并按存储段位从高到低稳定排序。",
-        "资源页直接展示每个玩家的完整 user_id、脱敏账号、段位/星数/Elo、阵容卡数、抽卡券、卡牌总份数、更新时间与 profile revision，并支持搜索后勾选一个或多个玩家。",
+        "资源页在首屏同时呈现玩家选择与资源操作卡，主按钮不得被长表格推到首屏以下；表格直接展示玩家名称、完整 user_id、段位/星数/Elo、抽卡券和阵容卡数，并支持按名称或 ID 搜索后勾选一个或多个玩家。",
         "允许 Owner 给单个、多个选中玩家或全部账号创建抽卡券、卡牌副本资源指令。单个与多选只保留一次明确提交；全账号群发仍强制 Owner 密码与 SEND TO ALL。所有发放继续强制同源/CSRF、签名预览、冻结目标、幂等、审计与终态回执。",
         "所有持久服务器组件只允许部署到正式声明的阿里云环境；本地仅用于源代码、静态检查和短时测试替身。",
     ),
@@ -126,9 +127,9 @@ CONTENT: list[Item] = [
         "账号密码登录、会话续期检查、退出后清空已渲染敏感状态。",
         "总览：赛事 KPI、玩家榜单、最近对局与数据口径。",
         "动物平衡：placement_samples、average_placement、average_placement_score、average_field_size、balance_signal、confidence。",
-        "角色：当前投影内全部账号、本地搜索和账号行直达发放，不做客户端分页截断。",
+        "角色：当前投影内全部账号、玩家名称与完整 ID、本地搜索和账号行直达发放，不做客户端分页截断。",
         "阵容库：全部保存阵容的紧凑列表、中文卡牌名、等级与存储段位降序。",
-        "Owner 资源发放：玩家明细表持续勾选，单个/多选玩家一次提交；全部账号保留密码重认证与 SEND TO ALL；三种范围均含原因、幂等键与终态回执。",
+        "Owner 资源发放：首屏可见操作卡与主按钮、玩家名称明细表持续勾选，单个/多选玩家一次提交；全部账号保留密码重认证与 SEND TO ALL；三种范围均含原因、幂等键与终态回执。",
         "Owner 任务与审计：资源命令状态和后台权限审计。",
         "Owner 权限：创建管理员、启停、角色切换、撤销会话，所有危险动作二次确认。",
     ),
@@ -175,8 +176,8 @@ CONTENT: list[Item] = [
     table(
         ["步骤", "界面动作", "校验与反馈", "禁止行为"],
         [
-            ["1 选择玩家", "资源页直接呈现玩家明细表；Owner 可搜索、逐行勾选、全选当前结果或清空选择。", "搜索不清除已勾选玩家；页面持续显示“已选择 X / 全部 N”。", "不得只显示下拉框、截断完整 user_id，或把隐藏分页当作全选。"],
-            ["2 单个/多选", "填写资源、数量和原因后点击一次“确认发放”；前端取得服务器签名预览后，用同一幂等键立即提交。", "单个冻结一个 user_id；多选冻结排序后的 2..500 个唯一 user_id；服务器以一条 command_id 原子处理。", "不得拆成多条浏览器请求、静默去重重复 ID、夹带密码/SEND 或绕过预览签名。"],
+            ["1 选择玩家", "资源页首屏同时呈现玩家表与资源操作卡；Owner 可按玩家名称、完整 ID 或脱敏账号搜索、逐行勾选、全选当前结果或清空选择。", "搜索不清除已勾选玩家；页面持续显示已选择 X / 全部 N；临时名称明确标记。", "不得只显示下拉框、截断完整 user_id、把按钮放到长表格之后，或把隐藏分页当作全选。"],
+            ["2 单个/多选", "操作卡填写资源、数量和原因；按钮始终可见，选择为空时明确禁用；选择有效后点击一次发放资源。", "单个冻结一个 user_id；多选冻结排序后的 2..500 个唯一 user_id；服务器以一条 command_id 原子处理。", "不得拆成多条浏览器请求、静默去重重复 ID、夹带密码/SEND 或绕过预览签名。"],
             ["3 全部账号", "当选择覆盖当前全部账号时自动升级为 all；生成预览后显示冻结目标数，Owner 输入当前密码和 SEND TO ALL 再提交。", "密码错误、确认文本错误、目标集合变化或用 selected 冒充全服均拒绝，且不入队。", "不得把多选一次提交规则扩展成无保护群发。"],
             ["4 终态回执", "自动短轮询同一 command_id，直到 processed/failed 或超时。", "processed 才显示已到账；短暂 pending 只显示一条处理中状态。", "不得把 pending/queued 当成功，也不得堆叠重复状态卡。"],
         ],
@@ -202,12 +203,12 @@ CONTENT: list[Item] = [
     paragraph("动物可按全部战斗或单一 battle_type 查看，并按 average_placement 升序展示；无排名样本的动物置后。不同规则模式不混作同质样本：每个类型独立给出样本、区间与建议，总计只用于覆盖观察。信号和置信度由服务端计算，前端只翻译与呈现，不在浏览器内重新判定增强/削弱。"),
     image("ADMIN_DASHBOARD_ANIMAL_BALANCE_FIGMA_v1.1.png", "图 1  动物平衡画板（Figma 节点 10:34，已同步并逐屏截图复核）", f"{FIGMA_FILE}?node-id=10-34"),
     heading(2, "4.3 角色", page_break=True),
-    paragraph("角色页展示 admin_accounts_snapshot.json 中全部脱敏账号，不以是否有战斗样本或是否保存非空阵容作为过滤条件。支持本地搜索且不做客户端分页截断；Owner 可从任一账号行点击“发放资源”，资源页随即预选该 user_id。Analyst 只能查看，服务端仍拒绝其资源写请求。"),
+    paragraph("角色页展示 admin_accounts_snapshot.json 中全部脱敏账号，不以是否有战斗样本或是否保存非空阵容作为过滤条件。身份列优先显示白名单字段 username；字段缺失或非法时显示基于 user_id 后缀生成的稳定新玩家XXXX，并标记系统临时名称，不得回退显示原始登录 account。支持按玩家名称、完整 user_id 或脱敏账号本地搜索且不做客户端分页截断；Owner 可从任一玩家行点击发放资源，资源页随即预选该 user_id。Analyst 只能查看，服务端仍拒绝其资源写请求。"),
     heading(2, "4.4 阵容库"),
     paragraph("阵容库使用紧凑表格/列表展示投影中的全部非空保存阵容，不再使用大卡片墙。排序固定为存储段位等级降序、rank_stars 降序、elo 降序、user_id 升序；每张卡牌优先由 admin_accounts_snapshot.json 的 card_names 正式目录映射中文名，并同时保留 card_id 与等级供核对。未知 ID 明确显示 card_id，不伪造中文名。"),
     image("ADMIN_DASHBOARD_SAVED_DECKS_FIGMA_v1.1.png", "图 2  全量保存阵容画板（Figma 节点 10:35，已同步并逐屏截图复核）", f"{FIGMA_FILE}?node-id=10-35"),
     heading(2, "4.5 Owner 资源发放", page_break=True),
-    paragraph("资源页首先加载账号投影并把全部玩家直接呈现在可搜索、可勾选的数据表中，不再用目标范围和账号下拉框遮蔽玩家数据。表格列固定为：勾选、完整 user_id、脱敏账号、段位/星数/Elo、阵容卡数、抽卡券、卡牌总份数、投影更新时间、profile revision。完整 user_id 不做省略；窄屏以 data-label 卡片换行呈现，不引入页面级横向滚动。"),
+    paragraph("资源页首先加载账号投影。桌面端使用左侧玩家表+右侧资源操作卡的主次布局，右侧卡片在当前视口保持可见；窄屏把操作卡放到玩家表之前。主按钮必须始终渲染，未选择玩家或选择超限时明确禁用并给出状态，禁止由表格高度决定按钮是否可见。玩家表固定为决策所需列：勾选、玩家名称、完整 user_id、段位/星数/Elo、抽卡券、阵容卡数；低优先级数据仍保留在角色/详情数据中，不占用发放主流程。"),
     paragraph("选择集合独立于搜索结果：搜索只改变当前可见行，“全选当前结果”并入集合，“清空选择”显式移除全部，投影刷新时只保留仍存在的 user_id。选择 1 人使用 target；选择 2..500 人使用 selected；若选择覆盖当前全部账号，必须自动升级为 all，不允许用 selected 绕过全服强确认。账号投影不是 ready、账号数为 0、选择为空、存在重复/未知 ID、选择超过 500 或签名后目标集合变化时均 fail closed。"),
     paragraph("target 与 selected 都只需一次明确提交：页面内部取得绑定已排序目标列表和摘要的短期签名预览后立即提交同一冻结负载；all 预览必须显示冻结目标数，并要求 Owner 密码重认证和 SEND TO ALL。提交后自动查询同一 command_id：processed 才显示已到账，failed 显示安全错误，pending 只保留单一处理中摘要。多选是一条命令和一次权威存档提交；任一目标校验或持久化失败时整条命令失败并恢复提交前内存，不得出现部分玩家已到账而页面宣称整体成功。"),
     image("ADMIN_DASHBOARD_RESOURCE_GRANTS_FIGMA_v1.1.png", "图 3  Owner 资源发放画板（Figma 节点 10:36，已同步并逐屏截图复核）", f"{FIGMA_FILE}?node-id=10-36"),
@@ -238,6 +239,7 @@ CONTENT: list[Item] = [
             ["v1.1.2 风格帧", "待分配", "PENDING：套餐调用上限", "本地实现与视觉验收 PNG 已完成；额度恢复后须同步可编辑风格帧并逐屏复核。"],
             ["v1.2 行为修订", "沿用 10:33–10:36", "合同已更新", "不改变品牌和组件基线；新增角色页、列表阵容、战斗类型筛选、指定账号一次提交与全账号强确认状态。"],
             ["v1.3 多选资源页", "待分配", "PENDING：可编辑设计未同步", "本次按用户明确行为合同实现玩家明细表、持续勾选、多选一次提交与全服升级；不得声称 Figma 已完成。"],
+            ["v1.3.1 操作卡与玩家名称", "待分配", "PENDING：可编辑设计未同步", "按制作人截图修复首屏主操作层级，并补玩家名称/临时名称状态；浏览器证据不能冒充可编辑设计源。"],
             ["任务/权限", "无独立完整画板", "契约已定义", "仅在导航与资源页最近任务状态中体现，不声称独立画板。"],
         ],
         [1.45, 1.4, 1.75, 3.95],
@@ -251,7 +253,7 @@ CONTENT: list[Item] = [
             ["导航", "桌面端品牌、七页主导航和账号工具同处紧凑顶栏；当前页用暖金文字与下划线表达。", "改变 Analyst/Owner 可见范围，或用仅颜色且无 aria-selected 的状态。"],
             ["动物页", "桌面采用左侧动物筛选索引、右侧平均排名表；表头约 42px、数据行约 56px，数值使用等宽数字。", "从浏览器重算平衡信号，或用角色图片冒充项目自有动物素材。"],
             ["组件", "卡片减少圆角、渐变和悬浮感，使用 4/8px 节奏、44px 控件、清晰 hover/focus/selected/disabled。", "黑金装饰替代信息层级，或把危险动作做成普通主按钮。"],
-            ["资源玩家表", "表格优先占满主内容宽度；搜索、选择计数、全选当前结果和清空选择置于同一工具栏；选中行同时用复选框、底色和文字状态表达。", "把玩家重新藏回下拉框、仅用颜色表示选中、搜索后丢失选择，或省略完整 user_id。"],
+            ["资源主流程", "桌面左表右操作卡，操作卡可粘附且主按钮首屏可见；窄屏操作卡先于玩家表。玩家表优先显示名称与完整 ID，搜索、选择计数、全选当前结果和清空选择位于同一工具栏。", "把玩家重新藏回下拉框、把主按钮放到长表格后面、仅用颜色表示选中、搜索后丢失选择，或省略完整 user_id。"],
             ["响应式", "1440/1024 保持左筛选右表；768 以下改为单列，≤720 的表格转 data-label 键值卡片，320px 无页面级横向滚动。", "继承参考站 1608px 最小画布、裁切导航或要求移动端横向拖动整页。"],
         ],
         [1.3, 4.0, 3.4],
@@ -297,7 +299,8 @@ admin_accounts_snapshot.json         # 脱敏账号、阵容、等级、镜像�
         ["字段", "内容", "隐私/边界"],
         [
             ["user_id", "服务器内部稳定目标 ID。", "只向已登录后台显示；不得下载原始账号库。"],
-            ["masked_account", "脱敏后的账号显示名。", "列表主身份；不可反推出凭据。"],
+            ["username", "允许重名、可修改的玩家名称。", "仅接受服务端快照白名单值；控制字符与超长值被清洗；不得作为登录键。"],
+            ["masked_account", "脱敏后的登录账号摘要。", "只作辅助核对；不可反推出凭据，不再作为列表主身份。"],
             ["updated_at_unix", "账号投影更新时间。", "显示陈旧性；不作为 CAS revision。"],
             ["deck / card_levels", "当前保存阵容与对应卡牌等级。", "卡牌 ID 白名单；等级范围清洗。"],
             ["rank_mirrors", "各段位的镜像阵容集合。", "限制每段位数量与字段长度。"],
@@ -311,7 +314,7 @@ admin_accounts_snapshot.json         # 脱敏账号、阵容、等级、镜像�
         ["方法/路径", "权限", "请求/响应", "失败边界"],
         [
             ["GET /api/dashboard", "已登录", "返回 availability、overview、battle_types、leaderboard、animals、animals_by_battle_type、recent_matches；战斗记录含 battle_type/analytics_authority。", "快照不存在/损坏时返回安全 unavailable，不读权威账号库。"],
-            ["GET /api/accounts", "已登录", "返回 availability、generated_at_unix、accounts[]；每项含 user_id、masked_account、updated_at_unix、deck、card_levels、rank_mirrors、rank、resources。", "字段白名单、大小限制、去重、稳定排序。"],
+            ["GET /api/accounts", "已登录", "返回 availability、generated_at_unix、accounts[]；每项含 user_id、username、masked_account、updated_at_unix、deck、card_levels、rank_mirrors、rank、resources。", "字段白名单、大小限制、控制字符清洗、去重、稳定排序；禁止返回 account/密码材料。"],
             ["POST /api/resource-grants/preview", "Owner + CSRF", "接收目标、资源、原因与幂等键；返回绑定会话和冻结目标的短期签名预览。", "严格字段白名单；目标、卡牌、原因或快照无效时零入队。"],
             ["POST /api/resource-grants", "Owner + CSRF + 签名预览", "单个/多选账号仅提交 preview_token 与 idempotency_key；全账号额外提交 password 与 confirmation=SEND TO ALL。", "来源、角色、预览会话/时限、冻结目标、selected 不得覆盖全服、全账号重认证与幂等均 fail closed。"],
             ["GET /api/resource-grants", "Owner", "返回 entries[] 任务状态。", "损坏命令不回显原始内容；未知状态不推断成功。"],
@@ -455,7 +458,7 @@ POST /api/resource-grants
         "主导航使用 role=tablist/tab/tabpanel，aria-selected、aria-controls、可达 tabIndex 与方向键/Home/End 导航一致。",
         "登录错误、加载状态、命令回执使用适当 alert/status live region；焦点不会因整个 main 更新而反复朗读。",
         "所有数据表有 caption、列头 scope=col 和可聚焦横向区域；≤720px 时每个 td 通过 data-label 转为卡片键值。",
-        "资源玩家表的逐行复选框具有包含完整 user_id 的可访问名称；表头全选只作用于当前搜索结果，并通过 indeterminate 表达部分选中；搜索不得清空已选集合。",
+        "资源玩家表的逐行复选框具有包含玩家名称与完整 user_id 的可访问名称；表头全选只作用于当前搜索结果，并通过 indeterminate 表达部分选中；搜索不得清空已选集合；主按钮的禁用状态和原因可被读屏理解。",
         "所有按钮与输入最小高度 44px；focus-visible 清晰；颜色不单独表达成功、危险或平衡信号。",
         "确认 dialog 有可访问标题、说明、取消/确认动作和 Escape 行为；关闭后保持合理焦点序列。",
         "遵守 prefers-reduced-motion 和 forced-colors；320px 宽度不出现页面级横向滚动。",
@@ -521,8 +524,8 @@ POST /api/resource-grants
             ["QA-02", "RBAC", "Analyst 直接请求三组 Owner API。", "全部 403；页面不显示 Owner 页签。"],
             ["QA-03", "Animals", "0/29/30/大样本、不同 field_size、空平均值。", "公式、排序、信号、confidence 与服务端快照一致。"],
             ["QA-03A", "Battle types", "经典、1v1/2v2/3v3、六人乱斗、AI 补位、历史无类型、重复 report_id。", "每个完成事实恰好一次；battle_type/authority 正确；按类型样本不串线。"],
-            ["QA-04", "Accounts/Decks", "0、1、13、100000 账号，搜索、角色行直达发放、段位排序、中文卡名。", "账号全量、Owner 预选正确；阵容紧凑列表且 rank/stars/elo/user_id 稳定排序。"],
-            ["QA-05", "Grant target", "0/1/2/29/501 选择、搜索后保留选择、全选当前结果、重复/未知 ID、selected 覆盖全服、发送时目标变化。", "明细列与投影一致；单个/2..500 多选一次点击完成预览+提交；多选只生成一条命令并原子处理；全账号必须密码+SEND TO ALL；变化时拒绝。"],
+            ["QA-04", "Accounts/Decks", "0、1、13、100000 账号，合法/非法/缺失 username，按名称/ID 搜索、角色行直达发放、段位排序、中文卡名。", "名称优先且不泄露 account；缺失时稳定临时名称；账号全量、Owner 预选正确；阵容稳定排序。"],
+            ["QA-05", "Grant target", "首屏按钮可见、0/1/2/29/501 选择、搜索后保留选择、全选当前结果、重复/未知 ID、selected 覆盖全服、发送时目标变化。", "桌面同屏看到玩家表和操作卡，窄屏操作卡在表前；单个/2..500 多选一次点击完成预览+提交；全账号必须密码+SEND TO ALL；变化时拒绝。"],
             ["QA-06", "Grant validation", "两种资源、边界数量、未知卡牌、空原因。", "无效请求零入队、零审计敏感数据。"],
             ["QA-07", "Idempotency", "同键串行、并发、超时重试、不同负载。", "只应用一次；冲突明确。"],
             ["QA-08", "CAS", "revision 竞争、执行器中断/重启、账号缺失。", "不丢更新、不重复加资源、终态可复核。"],
@@ -560,7 +563,7 @@ POST /api/resource-grants
     table(
         ["交付面", "完成定义"],
         [
-            ["产品/UE", "七页顺序、角色全量、列表阵容、按类型平衡、资源页玩家明细表、持续勾选、单个/多选一次提交与全账号强确认流程实现。"],
+            ["产品/UE", "七页顺序、角色全量与玩家名称、列表阵容、按类型平衡、资源页首屏可见操作卡与玩家表、持续勾选、单个/多选一次提交与全账号强确认流程实现。"],
             ["数据", "全部可上报完成战斗按类型入库；两个只读快照与命令目录严格隔离；跨服务命令在有限时间内终结。"],
             ["安全", "无默认/明文凭据；Owner、CSRF、同源、签名预览、冻结目标、幂等、CAS、审计全部 fail closed。"],
             ["设计", "Figma v1.1 页面 10:33 与画板 10:34/10:35/10:36 已同步；v1.1.2 风格帧与 v1.3 多选资源页可编辑状态继续明确为 PENDING，完成同步和逐屏复核前不得冒充设计门禁完成。"],
@@ -569,7 +572,7 @@ POST /api/resource-grants
         ],
         [1.45, 7.25],
     ),
-    paragraph("只有上述完成定义全部满足，且资源指令在授权阿里云 staging 的隔离测试账号完成一次真实 processed 到账与重启幂等验证，F-ZC-ADMIN-001 v1.3.0 才可从 MATERIAL / IMPLEMENTATION_CONTRACT 进入发布验收。本次自动验收只使用无效目标或隔离替身验证合同，不对真实玩家执行资源发放；因此在没有专用测试账号授权前，到账验证保持未完成且不得伪称。"),
+    paragraph("只有上述完成定义全部满足，且资源指令在授权阿里云 staging 的隔离测试账号完成一次真实 processed 到账与重启幂等验证，F-ZC-ADMIN-001 v1.3.1 才可从 MATERIAL / IMPLEMENTATION_CONTRACT 进入发布验收。本次自动验收不对真实玩家执行资源发放；因此在没有专用测试账号授权前，到账验证保持未完成且不得伪称。"),
 ]
 
 
@@ -795,7 +798,7 @@ def _configure_page(document: Document) -> None:
     section.footer_distance = Mm(7)
     header = section.header.paragraphs[0]
     header.alignment = WD_ALIGN_PARAGRAPH.RIGHT
-    _set_run_font(header.add_run("Jungle Law | F-ZC-ADMIN-001 v1.3.0 | MATERIAL / IMPLEMENTATION_CONTRACT"), 8.2, MUTED)
+    _set_run_font(header.add_run("Jungle Law | F-ZC-ADMIN-001 v1.3.1 | MATERIAL / IMPLEMENTATION_CONTRACT"), 8.2, MUTED)
     footer = section.footer.paragraphs[0]
     footer.alignment = WD_ALIGN_PARAGRAPH.CENTER
     _set_run_font(footer.add_run("内部使用  |  第 "), 8.2, MUTED)
@@ -816,7 +819,7 @@ def build_docx() -> None:
     _configure_styles(document)
     _configure_page(document)
     document.core_properties.title = "运营数据后台设计与实现契约"
-    document.core_properties.subject = "F-ZC-ADMIN-001 v1.3.0"
+    document.core_properties.subject = "F-ZC-ADMIN-001 v1.3.1"
     document.core_properties.author = "Jungle Law Project"
     document.core_properties.keywords = "Admin Dashboard, Implementation Contract, Alibaba Cloud, Figma"
 
@@ -828,7 +831,7 @@ def build_docx() -> None:
     subtitle = document.add_paragraph()
     subtitle.alignment = WD_ALIGN_PARAGRAPH.CENTER
     subtitle.paragraph_format.space_after = Mm(18)
-    _set_run_font(subtitle.add_run("F-ZC-ADMIN-001 · v1.3.0"), 14, BLUE, True)
+    _set_run_font(subtitle.add_run("F-ZC-ADMIN-001 · v1.3.1"), 14, BLUE, True)
     _add_table(document, ["项目", "内容"], METADATA, [1.55, 6.45])
     status = document.add_paragraph()
     status.alignment = WD_ALIGN_PARAGRAPH.CENTER

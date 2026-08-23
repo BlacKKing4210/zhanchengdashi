@@ -1,0 +1,29 @@
+{
+  "schema_version": 1,
+  "request_id": "REQ-20260823-ADMIN-DASHBOARD-V1.3.1-GRANT-CTA-PLAYER-NAME",
+  "environment": "local_isolated_fixture_no_real_grant",
+  "browser": "system_google_chrome_headless_via_playwright",
+  "desktop": {
+    "viewport": "2048x1100",
+    "selected_players": 2,
+    "button_text": "向已选 2 人发放资源",
+    "button_enabled": true,
+    "button_fully_visible": true,
+    "operation_card_right_of_player_table": true,
+    "horizontal_overflow": false,
+    "screenshot": "grant-page-desktop.png",
+    "screenshot_sha256": "81940D8748258999ECFAA7ED9EC267360D0BCC912A647C24836A5C8945926CEB"
+  },
+  "mobile": {
+    "viewport": "390x844",
+    "selected_players": 2,
+    "button_text": "向已选 2 人发放资源",
+    "button_enabled": true,
+    "button_fully_visible": true,
+    "operation_card_before_player_table": true,
+    "horizontal_overflow": false,
+    "screenshot": "grant-page-mobile.png",
+    "screenshot_sha256": "3C8BFF5F0B9D264F2E07F2A2DDFB36761CDD02A75CAE884BA39E383A0EDE20D5"
+  },
+  "submission_performed": false
+}

@@ -41,6 +41,11 @@ function safeMaskedAccount(value) {
   return candidate === "device-account" || candidate.includes("*") ? candidate : "masked-account";
 }
 
+function safeUsername(value) {
+  const candidate = text(value, 16);
+  return candidate.length >= 2 ? candidate : "";
+}
+
 function safeDeck(value) {
   const result = [];
   if (!Array.isArray(value)) return result;
@@ -118,6 +123,7 @@ function sanitizeAccount(value) {
   const resources = value.resources && typeof value.resources === "object" && !Array.isArray(value.resources) ? value.resources : {};
   return {
     user_id: userId,
+    username: safeUsername(value.username),
     masked_account: safeMaskedAccount(value.masked_account),
     created_at_unix: integer(value.created_at_unix, 0, 0, 4_102_444_800),
     updated_at_unix: integer(value.updated_at_unix, 0, 0, 4_102_444_800),

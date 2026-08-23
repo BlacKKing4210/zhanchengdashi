@@ -236,6 +236,36 @@ active_modules:
     read_only_receipt: docs/receipts/F-ZC-ADMIN-001-V1.3-READ-ONLY-012.md
     completion_receipt: docs/receipts/F-ZC-ADMIN-001-V1.3-CLOSE-013.md
     blockers: []
+  - task_id: REQ-20260823-ADMIN-DASHBOARD-V1.3.1-GRANT-CTA-PLAYER-NAME
+    feature_id: F-ZC-ADMIN-001
+    version: v1.3.1-aliyun-staging
+    phase: completion
+    domain: cross_domain
+    owner: codex-primary
+    status: COMPLETE
+    started_on: "2026-08-23"
+    completed_on: "2026-08-23"
+    release_status: STAGING_PUBLIC_DEPLOYED_ACCEPTED_WITH_TEMPORARY_PLAYER_NAME_AND_NO_REAL_GRANT_LIMITS
+    remote_write_status: COMPLETE_STAGING_JUNGLELAW_NODE_ONLY
+    remote_target: OpenClaw-ejrr
+    remote_environment: staging
+    deployed_endpoint: https://106.15.61.103/
+    deployed_node_release: JungleLaw-admin-dashboard-v1.3.1-aliyun-staging-rc1
+    deployed_node_zip_sha256: 5168F3EE52EC19CE1F1E9905898D56F79E810C0295ACB328B412E8F273CA977B
+    backup_receipt: /var/backups/junglelaw-admin-dashboard/admin-dashboard-predeploy-JungleLaw-admin-dashboard-v1.3.1-aliyun-staging-rc1-20260823T102538Z
+    authority_sha256_before_after: C1FC9CBE4813D2AEB0D264F9E07C2CEDE959BF66BEEC4FE13870F75C8AF63594
+    account_snapshot_sha256_before_after: C57B4EACD3AD952BD1D0E2382ADC3012484111EDEE33DE4B099F7C072064A380
+    command_queues_after_acceptance: pending_0_processed_0_failed_0
+    browser_evidence: output/qa/F-ZC-ADMIN-001/v1.3.1-grant-cta-player-name/browser-acceptance.json
+    fingerprint: 64B5AC2EF46099BDCCE4660DDDABD5BA2BFF73C7B4F2A87D6AB7EC7D00CAF02D
+    rag_gate_receipt: temp/rag/receipts/rag-gate.json
+    rag_task_receipt: temp/rag/receipts/tasks/REQ-20260823-ADMIN-DASHBOARD-V1.3.1-GRANT-CTA-PLAYER-NAME.json
+    control_intake: temp/control/REQ-20260823-ADMIN-DASHBOARD-V1.3.1-GRANT-CTA-PLAYER-NAME.json
+    read_only_receipt: docs/receipts/F-ZC-ADMIN-001-V1.3.1-READ-ONLY-014.md
+    completion_receipt: docs/receipts/F-ZC-ADMIN-001-V1.3.1-CLOSE-015.md
+    authority_migration: FORBIDDEN_THIS_TASK
+    real_resource_grant: FORBIDDEN_THIS_TASK
+    remaining_limits: [remote_accounts_have_no_real_username_stable_temporary_name_used, executor_heartbeat_not_observed, real_grant_not_executed, production_not_authorized, figma_figjam_editable_ui_pending]
   - task_id: REQ-20260822-BATTLE-INFO-TARGET-LOCK-001
     feature_id: F-ZC-001
     version: v1.1.0-battle-info-target-lock
@@ -303,6 +333,39 @@ active_modules:
 queued_modules: []
 
 shared_locks:
+  admin_dashboard_v1_3_1_grant_cta_player_name_20260823:
+    task_id: REQ-20260823-ADMIN-DASHBOARD-V1.3.1-GRANT-CTA-PLAYER-NAME
+    owner: codex-primary
+    status: RELEASED
+    acquired_on: "2026-08-23"
+    hold_reason: producer_requested_visible_grant_action_and_player_names_for_selection
+    released_on: "2026-08-23"
+    release_reason: implementation_tests_desktop_mobile_browser_evidence_node_only_staging_deployment_integrity_checks_and_completion_receipt_closed_without_real_resource_grant
+    write_set:
+      - docs/ADMIN_ANALYTICS_DASHBOARD_DESIGN.md
+      - docs/ADMIN_ANALYTICS_DASHBOARD_DESIGN.docx
+      - docs/active_scope.yaml
+      - docs/receipts/F-ZC-ADMIN-001-V1.3.1-READ-ONLY-014.md
+      - docs/receipts/F-ZC-ADMIN-001-V1.3.1-CLOSE-015.md
+      - knowledge/knowledge_manifest.csv
+      - production/deployment/aliyun-profile.yaml
+      - tools/admin_dashboard/package.json
+      - tools/admin_dashboard/lib/account_snapshot.mjs
+      - tools/admin_dashboard/public/app.js
+      - tools/admin_dashboard/public/styles.css
+      - tests/admin_dashboard/dashboard.test.mjs
+      - tools/build_admin_analytics_dashboard_docx.py
+      - tools/package_admin_dashboard.ps1
+      - tools/admin_dashboard/README.md
+      - deploy/linux/ADMIN_DASHBOARD_DEPLOYMENT.md
+      - build/admin-dashboard/
+      - output/qa/F-ZC-ADMIN-001/v1.3.1-grant-cta-player-name/
+    remote_target: OpenClaw-ejrr
+    remote_environment: staging
+    remote_scope: junglelaw_admin_node_only
+    authority_migration_authorized: false
+    real_resource_grant_authorized: false
+    evidence_root: temp/qa/F-ZC-ADMIN-001/v1.3.1-grant-cta-player-name-20260823
   account_identity_avatar_v2_20260823:
     task_id: REQ-20260823-ACCOUNT-IDENTITY-AVATAR-V2-001
     owner: codex-primary
