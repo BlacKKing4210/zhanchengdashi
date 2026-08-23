@@ -126,3 +126,12 @@ Producer -> Creative Director -> Art Director -> Visual Development Artist -> Co
 5. 最后才改 Godot UI/场景/资产引用。
 
 本轮当前状态：等待用户审核。
+
+## 10. 2026-08-23 账号人物头像候选整板
+
+- 评审文件：`output/visual_concepts/account-avatar-v2/ACCOUNT_AVATAR_HUMAN_OPTIONS_BOARD_v1.png`
+- SHA-256：`4C5828588574E2842A34A7F47C9A8B181F115C9F1D60656D8B8DDF1CF1DDBC45`
+- 交付形态：单张 2×2 整套评审板，共 4 个原创通用卡通人物头像；脸型、肤色、发型和服装色互有区分，但构图、线条、光照和背景语言一致。
+- 参考边界：只借鉴生活模拟游戏通过预设快速表达身份的方法，不复制《模拟人生》的角色、服装、绿色晶锥、UI、Logo 或其他可识别资产。
+- 当前状态：`NOT_RUNTIME_PENDING_PRODUCER_APPROVAL`。不得切图、不得生成运行时 `avatar_id`、不得写入服务器白名单。
+- 已批准运行时基线：继续使用现有 12 个动物头像；人物头像只有在制作人书面选定整板方向后，才进入原样切图、透明边缘、缩略图可读性和运行时接入验收。

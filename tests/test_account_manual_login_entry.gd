@@ -9,34 +9,50 @@ var failures = 0
 func _ready() -> void:
 	var original_user_id = OnlineRoom.current_user_id
 	var original_account_name = OnlineRoom.current_account_name
+	var original_username = OnlineRoom.current_username
+	var original_avatar_id = OnlineRoom.current_avatar_id
+	var original_identity_revision = OnlineRoom.current_identity_revision
+	var original_identity_complete = OnlineRoom.current_identity_complete
 	var original_has_password = OnlineRoom.current_account_has_password
 	var original_is_generated = OnlineRoom.current_account_is_generated
 	var original_auto_password_local = OnlineRoom.current_auto_password_local
 	var original_recovery_secret = String(OnlineRoom.get("_device_recovery_secret"))
 	OnlineRoom.current_user_id = "U-account-entry-test"
 	OnlineRoom.current_account_name = "FieldMouse"
+	OnlineRoom.current_username = "田野仓鼠"
+	OnlineRoom.current_avatar_id = "animal_hamster"
+	OnlineRoom.current_identity_revision = 3
+	OnlineRoom.current_identity_complete = true
 	OnlineRoom.current_account_has_password = true
 	var app = MainApp.new()
 	add_child(app)
 	await get_tree().process_frame
 	app.set("account_center_open", true)
 	app.set("account_manual_login_open", false)
+	app.call("_sync_account_identity_editor", true)
 	app.call("_set_account_fields_visible", true)
+	var username_field: LineEdit = app.get("account_username_field")
 	var name_field: LineEdit = app.get("account_name_field")
 	var password_field: LineEdit = app.get("account_password_field")
+	_expect_true(username_field.visible, "authenticated account shows the independent username field")
+	_expect_true(username_field.text == "田野仓鼠", "username editor uses the display username instead of the account id")
 	_expect_false(name_field.visible, "generated device account keeps manual fields hidden by default")
 	_expect_false(password_field.visible, "generated device account keeps the password field hidden by default")
 	var switch_rect: Rect2 = app.call("_account_switch_rect")
 	var bind_rect: Rect2 = app.call("_account_bind_rect")
 	var password_view_rect: Rect2 = app.call("_account_password_view_rect")
 	var password_copy_rect: Rect2 = app.call("_account_password_copy_rect")
+	var account_copy_rect: Rect2 = app.call("_account_id_copy_rect")
+	var copy_all_rect: Rect2 = app.call("_account_copy_all_rect")
 	_expect_false(switch_rect.intersects(bind_rect), "switch and bind account controls do not overlap")
 	_expect_false(password_view_rect.intersects(password_copy_rect), "password view and credential copy controls do not overlap")
+	_expect_false(account_copy_rect.intersects(password_copy_rect) or password_copy_rect.intersects(copy_all_rect), "three credential copy controls do not overlap")
 	_expect_true(password_copy_rect.size.x >= 48.0 and password_copy_rect.size.y >= 48.0, "credential copy control has a mobile touch target")
 	app.call("_handle_account_center_tap", bind_rect.get_center())
 	_expect_true(bool(app.get("account_manual_login_open")), "bind account control opens the manual login form")
 	_expect_true(name_field.visible, "bind account control shows the account field")
 	_expect_true(password_field.visible, "bind account control shows the password field")
+	_expect_false(username_field.visible, "manual login temporarily hides the display-name editor")
 	_expect_true(name_field.virtual_keyboard_enabled and name_field.virtual_keyboard_show_on_focus, "account input requests the mobile virtual keyboard")
 	_expect_true(password_field.virtual_keyboard_enabled and password_field.virtual_keyboard_show_on_focus, "password input requests the mobile virtual keyboard")
 	_expect_true(password_field.virtual_keyboard_type == LineEdit.KEYBOARD_TYPE_PASSWORD, "password input requests a password keyboard on mobile")
@@ -60,6 +76,8 @@ func _ready() -> void:
 	app.call("_remember_account_password", "FieldMouse", "copy-password-demo")
 	var expected_payload = "账号ID：FieldMouse\n密码：copy-password-demo"
 	_expect_true(String(app.call("_account_credential_clipboard_text")) == expected_payload, "copy payload uses the current account and manual-session password")
+	_expect_true(String(app.call("_account_id_clipboard_text")) == "账号ID：FieldMouse", "account copy payload is independent")
+	_expect_true(String(app.call("_account_password_clipboard_text")) == "密码：copy-password-demo", "password copy payload is independent")
 	app.set("account_clipboard_payload", expected_payload)
 	app.set("account_clipboard_clear_timer", 60.0)
 	_expect_true(bool(app.call("_clipboard_payload_matches_tracked", expected_payload)), "clipboard ownership recognizes the unchanged credential payload")
@@ -68,13 +86,13 @@ func _ready() -> void:
 	_expect_true(String(app.get("account_clipboard_payload")).is_empty(), "clipboard expiry forgets the tracked payload")
 	if DisplayServer.has_feature(DisplayServer.FEATURE_CLIPBOARD):
 		DisplayServer.clipboard_set("")
-		app.call("_handle_account_center_tap", password_copy_rect.get_center())
+		app.call("_handle_account_center_tap", copy_all_rect.get_center())
 		_expect_true(String(app.get("account_clipboard_payload")) == expected_payload, "copy tracks the operating-system clipboard payload")
 		_expect_true(bool(app.call("_clipboard_payload_matches_tracked", DisplayServer.clipboard_get())), "copy writes the credential payload to the operating-system clipboard")
 		DisplayServer.clipboard_set("newer-player-clipboard")
 		app.call("_update_account_clipboard_expiry", 61.0)
 		_expect_true(DisplayServer.clipboard_get() == "newer-player-clipboard", "clipboard expiry preserves newer player clipboard content")
-		app.call("_handle_account_center_tap", password_copy_rect.get_center())
+		app.call("_handle_account_center_tap", copy_all_rect.get_center())
 		app.call("_update_account_clipboard_expiry", 61.0)
 		_expect_true(DisplayServer.clipboard_get().is_empty(), "clipboard expiry clears the unchanged credential payload")
 	app.call("_clear_session_account_password")
@@ -99,10 +117,14 @@ func _ready() -> void:
 	_expect_true(String(app.call("_account_credential_clipboard_text")) == expected_auto_payload, "generated account copy payload contains its account id and derived password")
 	if DisplayServer.has_feature(DisplayServer.FEATURE_CLIPBOARD):
 		DisplayServer.clipboard_set("")
-		app.call("_handle_account_center_tap", password_copy_rect.get_center())
+		app.call("_handle_account_center_tap", copy_all_rect.get_center())
 		_expect_true(String(app.get("account_clipboard_payload")) == expected_auto_payload, "generated account copy button works without reopening login")
 	OnlineRoom.current_user_id = original_user_id
 	OnlineRoom.current_account_name = original_account_name
+	OnlineRoom.current_username = original_username
+	OnlineRoom.current_avatar_id = original_avatar_id
+	OnlineRoom.current_identity_revision = original_identity_revision
+	OnlineRoom.current_identity_complete = original_identity_complete
 	OnlineRoom.current_account_has_password = original_has_password
 	OnlineRoom.current_account_is_generated = original_is_generated
 	OnlineRoom.current_auto_password_local = original_auto_password_local

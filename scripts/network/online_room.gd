@@ -33,6 +33,7 @@ const REGISTRY_PATH = "res://scripts/network/room_registry.gd"
 const ACCOUNT_STORE_PATH = "res://scripts/server/player_account_store.gd"
 const MATCH_ANALYTICS_STORE_PATH = "res://scripts/server/match_analytics_store.gd"
 const AccountCredentialRules = preload("res://scripts/shared/account_credential_rules.gd")
+const AccountIdentityRules = preload("res://scripts/shared/account_identity_rules.gd")
 const BattleAnalyticsContract = preload("res://scripts/shared/battle_analytics_contract.gd")
 const DEVICE_CREDENTIAL_PATH = "user://client/device_account.json"
 const MAX_PLAYER_NAME_LENGTH = 24
@@ -58,6 +59,10 @@ var current_match: Dictionary = {}
 var last_operation_error = ""
 var current_user_id = ""
 var current_account_name = ""
+var current_username = ""
+var current_avatar_id = AccountIdentityRules.DEFAULT_AVATAR_ID
+var current_identity_revision = 0
+var current_identity_complete = false
 var current_account_has_password = false
 var current_account_is_generated = false
 var current_auto_password_local = false
@@ -445,6 +450,23 @@ func create_new_account() -> bool:
 	return true
 
 
+func update_account_identity(username: String, avatar_id: String, expected_revision: int) -> bool:
+	if not _require_client_connection("update_account_identity"):
+		return false
+	if _client_session_token.is_empty() or current_user_id.is_empty():
+		_emit_local_failure("update_account_identity", "账号尚未登录")
+		return false
+	rpc_id(
+		SERVER_PEER_ID,
+		"_rpc_request_update_account_identity",
+		_client_session_token,
+		username,
+		avatar_id,
+		expected_revision
+	)
+	return true
+
+
 func current_generated_account_password() -> String:
 	if not current_auto_password_local:
 		return ""
@@ -683,6 +705,28 @@ func _rpc_request_set_auto_account_credentials(session_token: String, password: 
 		_server_animal_card_ids()
 	)
 	_send_operation_result(sender, "set_auto_account_credentials", result)
+
+
+@rpc("any_peer", "call_remote", "reliable", 0)
+func _rpc_request_update_account_identity(
+	session_token: String,
+	username: String,
+	avatar_id: String,
+	expected_revision: int
+) -> void:
+	if not _accept_server_request():
+		return
+	var sender = multiplayer.get_remote_sender_id()
+	if session_token != String(_server_peer_sessions.get(sender, "")):
+		_send_operation_result(sender, "update_account_identity", _failure("invalid_session"))
+		return
+	_send_operation_result(sender, "update_account_identity", _account_store.call(
+		"update_identity",
+		session_token,
+		username,
+		avatar_id,
+		expected_revision
+	))
 
 
 @rpc("any_peer", "call_remote", "reliable", 0)
@@ -1077,10 +1121,11 @@ func _record_authenticated_client_battle(
 	var user_id = String(player_profile.get("user_id", "")).strip_edges()
 	if user_id.is_empty():
 		return _failure("invalid_session")
+	var username = String(player_profile.get("username", "")).strip_edges()
 	var account_name = String(player_profile.get("account", "")).strip_edges()
 	var roster = [player_profile.merged({
 		"team_id": 1,
-		"display_name": account_name if not account_name.is_empty() else "未命名玩家",
+		"display_name": username if not username.is_empty() else (account_name if not account_name.is_empty() else "未命名玩家"),
 	}, true)]
 	var match_id = "client-%s" % (user_id.to_lower() + ":" + report_id).sha256_text()
 	var begin_result = _match_analytics_store.call("begin_match", {
@@ -1410,6 +1455,8 @@ func _server_rank_profile(peer_id: int) -> Dictionary:
 	return {
 		"user_id": String((result as Dictionary).get("user_id", "")),
 		"account": String((result as Dictionary).get("account", "")),
+		"username": String((result as Dictionary).get("username", "")),
+		"avatar_id": String((result as Dictionary).get("avatar_id", AccountIdentityRules.DEFAULT_AVATAR_ID)),
 		"rank_key": String((profile as Dictionary).get("rank_key", "bronze")),
 		"rank_stars": maxi(1, int((profile as Dictionary).get("rank_stars", 1))),
 		"elo": maxi(0, int((profile as Dictionary).get("elo", 1000))),
@@ -1419,6 +1466,9 @@ func _server_rank_profile(peer_id: int) -> Dictionary:
 
 
 func _server_player_display_name(player_rank: Dictionary, requested_name: String, peer_id: int) -> String:
+	var username = String(player_rank.get("username", "")).strip_edges()
+	if not username.is_empty():
+		return _sanitize_player_name(username, peer_id)
 	var account_name = String(player_rank.get("account", "")).strip_edges()
 	if not account_name.is_empty():
 		return _sanitize_player_name(account_name, peer_id)
@@ -1504,6 +1554,10 @@ func _apply_account_operation(operation: String, result: Dictionary) -> void:
 		_client_session_token = String(result.get("session_token", ""))
 		current_user_id = String(result.get("user_id", ""))
 		current_account_name = String(result.get("account", ""))
+		current_username = String(result.get("username", ""))
+		current_avatar_id = String(result.get("avatar_id", AccountIdentityRules.DEFAULT_AVATAR_ID))
+		current_identity_revision = maxi(0, int(result.get("identity_revision", 0)))
+		current_identity_complete = bool(result.get("identity_complete", false))
 		current_account_has_password = bool(result.get("has_password", false))
 		current_account_is_generated = bool(result.get("auto_generated", false))
 		current_auto_password_local = bool(result.get("auto_password_local", false))
@@ -1516,19 +1570,38 @@ func _apply_account_operation(operation: String, result: Dictionary) -> void:
 	elif operation in ["load_player_profile", "save_player_profile"]:
 		current_user_id = String(result.get("user_id", current_user_id))
 		current_account_name = String(result.get("account", current_account_name))
+		current_username = String(result.get("username", current_username))
+		current_avatar_id = String(result.get("avatar_id", current_avatar_id))
+		current_identity_revision = maxi(0, int(result.get("identity_revision", current_identity_revision)))
+		current_identity_complete = bool(result.get("identity_complete", current_identity_complete))
 		current_account_has_password = bool(result.get("has_password", current_account_has_password))
 		current_account_is_generated = bool(result.get("auto_generated", current_account_is_generated))
 		current_profile = (result.get("profile", {}) as Dictionary).duplicate(true)
 		current_profile_revision = maxi(0, int(result.get("profile_revision", current_profile_revision)))
+	elif operation == "update_account_identity":
+		current_user_id = String(result.get("user_id", current_user_id))
+		current_account_name = String(result.get("account", current_account_name))
+		current_username = String(result.get("username", current_username))
+		current_avatar_id = String(result.get("avatar_id", current_avatar_id))
+		current_identity_revision = maxi(0, int(result.get("identity_revision", current_identity_revision)))
+		current_identity_complete = bool(result.get("identity_complete", current_identity_complete))
+		if not current_username.is_empty():
+			local_player_name = _sanitize_player_name(current_username, local_peer_id())
 	elif operation == "logout_account":
 		_clear_account_state()
 	if result.has("accounts") and typeof(result.get("accounts")) == TYPE_ARRAY:
 		current_account_summaries = (result.get("accounts") as Array).duplicate(true)
 	if operation == "set_auto_account_credentials":
 		_auto_credential_request_pending = false
+	if not current_username.is_empty():
+		local_player_name = _sanitize_player_name(current_username, local_peer_id())
 	account_state_changed.emit({
 		"user_id": current_user_id,
 		"account": current_account_name,
+		"username": current_username,
+		"avatar_id": current_avatar_id,
+		"identity_revision": current_identity_revision,
+		"identity_complete": current_identity_complete,
 		"has_password": current_account_has_password,
 		"auto_generated": current_account_is_generated,
 		"auto_password_local": current_auto_password_local,
@@ -1545,6 +1618,10 @@ func _clear_account_state() -> void:
 	_client_session_token = ""
 	current_user_id = ""
 	current_account_name = ""
+	current_username = ""
+	current_avatar_id = AccountIdentityRules.DEFAULT_AVATAR_ID
+	current_identity_revision = 0
+	current_identity_complete = false
 	current_account_has_password = false
 	current_account_is_generated = false
 	current_auto_password_local = false

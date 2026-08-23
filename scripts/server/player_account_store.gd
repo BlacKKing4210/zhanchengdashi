@@ -3,6 +3,7 @@ extends RefCounted
 const ProfileAdapter = preload("res://scripts/server/player_account_profile_adapter.gd")
 const LifecycleLock = preload("res://scripts/server/player_account_lifecycle_lock.gd")
 const AccountCredentialRules = preload("res://scripts/shared/account_credential_rules.gd")
+const AccountIdentityRules = preload("res://scripts/shared/account_identity_rules.gd")
 
 const DEFAULT_PATH = "user://server/player_accounts.json"
 const ADMIN_ACCOUNTS_SNAPSHOT_BASENAME = "admin_accounts_snapshot.json"
@@ -123,6 +124,10 @@ func register_account(account: String, password: String) -> Dictionary:
 	var record = {
 		"user_id": _new_user_id(),
 		"account": account.strip_edges(),
+		"username": account.strip_edges().left(AccountIdentityRules.USERNAME_MAX_LENGTH),
+		"avatar_id": AccountIdentityRules.DEFAULT_AVATAR_ID,
+		"identity_revision": 1,
+		"identity_complete": true,
 		"auto_generated": false,
 		"salt": salt,
 		"password_hash": _password_hash(password, salt),
@@ -326,6 +331,10 @@ func switch_account(
 		return _success({
 			"user_id": target_user_id,
 			"account": String(current_record.get("account", "")),
+			"username": String(current_record.get("username", "")),
+			"avatar_id": String(current_record.get("avatar_id", AccountIdentityRules.DEFAULT_AVATAR_ID)),
+			"identity_revision": maxi(1, int(current_record.get("identity_revision", 1))),
+			"identity_complete": bool(current_record.get("identity_complete", true)),
 			"has_password": not String(current_record.get("password_hash", "")).is_empty(),
 			"auto_generated": bool(current_record.get("auto_generated", false)),
 			"auto_password_local": false,
@@ -371,12 +380,52 @@ func profile_for_session(session_token: String) -> Dictionary:
 	return _success({
 		"user_id": record["user_id"],
 		"account": String(record.get("account", "")),
+		"username": String(record.get("username", "")),
+		"avatar_id": String(record.get("avatar_id", AccountIdentityRules.DEFAULT_AVATAR_ID)),
+		"identity_revision": maxi(1, int(record.get("identity_revision", 1))),
+		"identity_complete": bool(record.get("identity_complete", true)),
 		"has_password": not String(record.get("password_hash", "")).is_empty(),
 		"auto_generated": bool(record.get("auto_generated", false)),
 		"profile": normalized_profile.duplicate(true),
 		"profile_revision": maxi(1, int(record.get("profile_revision", 1))),
 		"conflict": false,
 	})
+
+
+func update_identity(
+	session_token: String,
+	username: String,
+	avatar_id: String,
+	expected_revision: int
+) -> Dictionary:
+	if not authority_storage_ready:
+		return _failure("authority_storage_unavailable")
+	var user_id = String(sessions.get(session_token, ""))
+	var key = _key_for_user_id(user_id)
+	if key.is_empty():
+		return _failure("invalid_session")
+	var normalized_username = AccountIdentityRules.normalize_username(username)
+	var username_error = AccountIdentityRules.username_error(normalized_username)
+	if not username_error.is_empty():
+		return _failure(username_error)
+	var normalized_avatar_id = avatar_id.strip_edges().to_lower()
+	if not AccountIdentityRules.is_runtime_avatar_id(normalized_avatar_id):
+		return _failure("invalid_avatar")
+	var previous_record: Dictionary = (accounts[key] as Dictionary).duplicate(true)
+	var current_revision = maxi(1, int(previous_record.get("identity_revision", 1)))
+	if expected_revision != current_revision:
+		return _identity_result(previous_record, true)
+	var record = previous_record.duplicate(true)
+	record["username"] = normalized_username
+	record["avatar_id"] = normalized_avatar_id
+	record["identity_revision"] = current_revision + 1
+	record["identity_complete"] = true
+	record["updated_at_unix"] = int(Time.get_unix_time_from_system())
+	accounts[key] = record
+	if not _save():
+		accounts[key] = previous_record
+		return _failure("storage_error")
+	return _identity_result(record, false)
 
 
 func save_profile(session_token: String, profile: Dictionary) -> Dictionary:
@@ -412,10 +461,26 @@ func _profile_result(record: Dictionary, conflict: bool) -> Dictionary:
 	return _success({
 		"user_id": String(record.get("user_id", "")),
 		"account": String(record.get("account", "")),
+		"username": String(record.get("username", "")),
+		"avatar_id": String(record.get("avatar_id", AccountIdentityRules.DEFAULT_AVATAR_ID)),
+		"identity_revision": maxi(1, int(record.get("identity_revision", 1))),
+		"identity_complete": bool(record.get("identity_complete", true)),
 		"has_password": not String(record.get("password_hash", "")).is_empty(),
 		"auto_generated": bool(record.get("auto_generated", false)),
 		"profile": (record.get("profile", {}) as Dictionary).duplicate(true),
 		"profile_revision": maxi(1, int(record.get("profile_revision", 1))),
+		"conflict": conflict,
+	})
+
+
+func _identity_result(record: Dictionary, conflict: bool) -> Dictionary:
+	return _success({
+		"user_id": String(record.get("user_id", "")),
+		"account": String(record.get("account", "")),
+		"username": String(record.get("username", "")),
+		"avatar_id": String(record.get("avatar_id", AccountIdentityRules.DEFAULT_AVATAR_ID)),
+		"identity_revision": maxi(1, int(record.get("identity_revision", 1))),
+		"identity_complete": bool(record.get("identity_complete", true)),
 		"conflict": conflict,
 	})
 
@@ -592,6 +657,10 @@ func _session_result(session_token: String, auto_password_local: bool = false) -
 	return _success({
 		"user_id": user_id,
 		"account": String(record.get("account", "")),
+		"username": String(record.get("username", "")),
+		"avatar_id": String(record.get("avatar_id", AccountIdentityRules.DEFAULT_AVATAR_ID)),
+		"identity_revision": maxi(1, int(record.get("identity_revision", 1))),
+		"identity_complete": bool(record.get("identity_complete", true)),
 		"has_password": not String(record.get("password_hash", "")).is_empty(),
 		"auto_generated": bool(record.get("auto_generated", false)),
 		"auto_password_local": auto_password_local,
@@ -609,6 +678,10 @@ func _device_account_record(
 	return {
 		"user_id": user_id,
 		"account": "",
+		"username": AccountIdentityRules.default_username(user_id),
+		"avatar_id": AccountIdentityRules.DEFAULT_AVATAR_ID,
+		"identity_revision": 1,
+		"identity_complete": false,
 		"auto_generated": false,
 		"salt": "",
 		"password_hash": "",
@@ -692,6 +765,10 @@ func _account_summaries(installation_hash: String, animal_card_ids: Array) -> Ar
 		var summary = profile_adapter.summary_for_profile(profile, animal_card_ids)
 		summary["user_id"] = user_id
 		summary["account"] = String(record.get("account", ""))
+		summary["username"] = String(record.get("username", ""))
+		summary["avatar_id"] = String(record.get("avatar_id", AccountIdentityRules.DEFAULT_AVATAR_ID))
+		summary["identity_revision"] = maxi(1, int(record.get("identity_revision", 1)))
+		summary["identity_complete"] = bool(record.get("identity_complete", true))
 		summary["has_password"] = not String(record.get("password_hash", "")).is_empty()
 		summary["auto_generated"] = bool(record.get("auto_generated", false))
 		summary["is_active"] = user_id == active_user_id
@@ -742,6 +819,9 @@ func admin_accounts_snapshot() -> Dictionary:
 		rows.append({
 			"user_id": user_id,
 			"masked_account": _masked_account(record.get("account", "")),
+			"username": _safe_admin_text(record.get("username", ""), AccountIdentityRules.USERNAME_MAX_LENGTH),
+			"avatar_id": _safe_admin_text(record.get("avatar_id", AccountIdentityRules.DEFAULT_AVATAR_ID), 48),
+			"identity_revision": maxi(1, int(record.get("identity_revision", 1))),
 			"created_at_unix": maxi(0, int(record.get("created_at_unix", 0))),
 			"updated_at_unix": maxi(0, int(record.get("updated_at_unix", 0))),
 			"profile_revision": maxi(1, int(record.get("profile_revision", 1))),
@@ -1431,6 +1511,8 @@ func _load() -> void:
 	var migration_required = version < 3
 	if _add_missing_profile_revisions():
 		migration_required = true
+	if _add_missing_identity_fields():
+		migration_required = true
 	if migration_required and not _save():
 		_mark_authority_unavailable("authority_migration_persist_failed")
 
@@ -1508,6 +1590,42 @@ func _add_missing_profile_revisions() -> bool:
 		record["profile_revision"] = 1
 		accounts[raw_account_key] = record
 		changed = true
+	return changed
+
+
+func _add_missing_identity_fields() -> bool:
+	var changed = false
+	for raw_account_key in accounts:
+		var record: Dictionary = (accounts[raw_account_key] as Dictionary).duplicate(true)
+		var record_changed = false
+		var username = AccountIdentityRules.normalize_username(record.get("username", ""))
+		if not AccountIdentityRules.is_valid_username(username):
+			username = AccountIdentityRules.default_username(
+				record.get("user_id", ""),
+				record.get("account", ""),
+				bool(record.get("auto_generated", false))
+			)
+			record_changed = true
+		if String(record.get("username", "")) != username:
+			record["username"] = username
+			record_changed = true
+		var avatar_id = String(record.get("avatar_id", "")).strip_edges().to_lower()
+		if not AccountIdentityRules.is_runtime_avatar_id(avatar_id):
+			avatar_id = AccountIdentityRules.DEFAULT_AVATAR_ID
+			record_changed = true
+		if String(record.get("avatar_id", "")) != avatar_id:
+			record["avatar_id"] = avatar_id
+			record_changed = true
+		if int(record.get("identity_revision", 0)) < 1:
+			record["identity_revision"] = 1
+			record_changed = true
+		if not record.has("identity_complete"):
+			# Existing records are migrated without forcing a blocking setup flow.
+			record["identity_complete"] = true
+			record_changed = true
+		if record_changed:
+			accounts[raw_account_key] = record
+			changed = true
 	return changed
 
 

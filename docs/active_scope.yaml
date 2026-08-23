@@ -282,9 +282,61 @@ active_modules:
     control_intake: temp/control/REQ-20260823-RUNTIME-GM-PANEL.json
     read_only_receipt: docs/receipts/REQ-20260823-RUNTIME-GM-PANEL-READ-ONLY-001.md
     completion_receipt: docs/receipts/REQ-20260823-RUNTIME-GM-PANEL-CLOSE-002.md
+  - task_id: REQ-20260823-ACCOUNT-IDENTITY-AVATAR-V2-001
+    feature_id: F-ZC-AUTH-001
+    version: v2.0.0-account-identity-avatar
+    phase: closure
+    domain: cross_domain
+    owner: codex-primary
+    status: COMPLETE
+    started_on: "2026-08-23"
+    completed_on: "2026-08-23"
+    release_status: LOCAL_IMPLEMENTATION_VALIDATED_WITH_EXTERNAL_GATES_PENDING
+    remote_write_status: NOT_AUTHORIZED
+    fingerprint: 76EF1CD14C962282505242A7AB66472E49810AE0A7B682E8FBBAD39ED3DE42DA
+    rag_gate_receipt: temp/rag/receipts/rag-gate.json
+    rag_task_receipt: temp/rag/receipts/tasks/REQ-20260823-ACCOUNT-IDENTITY-AVATAR-V2-001.json
+    control_intake: temp/control/REQ-20260823-ACCOUNT-IDENTITY-AVATAR-V2-001.json
+    read_only_receipt: docs/receipts/REQ-20260823-ACCOUNT-IDENTITY-AVATAR-V2-READ-ONLY-001.md
+    completion_receipt: docs/receipts/REQ-20260823-ACCOUNT-IDENTITY-AVATAR-V2-CLOSE-002.md
+    remaining_gates: [figjam_connector_unavailable, human_avatar_board_pending_producer_approval, production_password_kdf, encrypted_auth_transport, aliyun_remote_write_not_authorized]
 queued_modules: []
 
 shared_locks:
+  account_identity_avatar_v2_20260823:
+    task_id: REQ-20260823-ACCOUNT-IDENTITY-AVATAR-V2-001
+    owner: codex-primary
+    status: RELEASED
+    acquired_on: "2026-08-23"
+    hold_reason: producer_requested_account_id_username_avatar_registration_login_and_credential_copy_rework
+    released_on: "2026-08-23"
+    release_reason: local_identity_username_animal_avatar_login_copy_migration_tests_docx_workbook_and_visual_evidence_accepted
+    write_set:
+      - PM/feature_progress.xlsx
+      - docs/CURRENT_GAME_DESIGN.md
+      - docs/CURRENT_GAME_VISUAL_CONCEPT_OPTIONS.md
+      - docs/PLAYER_ACCOUNT_IDENTITY_AVATAR_DESIGN_v2.0.docx
+      - docs/active_scope.yaml
+      - docs/receipts/REQ-20260823-ACCOUNT-IDENTITY-AVATAR-V2-READ-ONLY-001.md
+      - docs/receipts/REQ-20260823-ACCOUNT-IDENTITY-AVATAR-V2-CLOSE-002.md
+      - knowledge/knowledge_manifest.csv
+      - output/visual_concepts/account-avatar-v2/ACCOUNT_AVATAR_HUMAN_OPTIONS_BOARD_v1.png
+      - output/qa/F-ZC-AUTH-001/account_identity_v2.png
+      - scripts/app/main.gd
+      - scripts/network/online_room.gd
+      - scripts/server/player_account_store.gd
+      - scripts/shared/account_identity_rules.gd
+      - scripts/shared/account_identity_rules.gd.uid
+      - tests/capture_account_identity_v2.gd
+      - tests/capture_account_identity_v2.tscn
+      - tests/test_account_identity_v2.gd
+      - tests/test_account_identity_v2.tscn
+      - tests/test_account_manual_login_entry.gd
+      - tests/test_player_account_store.gd
+      - tools/build_account_identity_avatar_v2_docx.py
+    remote_write_authorized: false
+    candidate_art_status: NOT_RUNTIME_PENDING_PRODUCER_APPROVAL
+    evidence_root: temp/qa/F-ZC-AUTH-001/account-identity-avatar-v2-20260823
   admin_dashboard_v1_3_multi_grant_20260823:
     task_id: REQ-20260823-ADMIN-DASHBOARD-V1.3-MULTI-GRANT
     owner: codex-primary
