@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import os
 from pathlib import Path
 
@@ -19,7 +20,8 @@ TEMPLATE = (
     if TEMPLATE_OVERRIDE
     else Path.home() / ".codex" / "skills" / "game-feature-design-docs" / "assets" / "general-feature-design-template.docx"
 )
-OUTPUT = ROOT / "docs" / "PLAYER_ACCOUNT_IDENTITY_AVATAR_DESIGN_v2.0.docx"
+OUTPUT = ROOT / "docs" / "PLAYER_ACCOUNT_IDENTITY_AVATAR_DESIGN_v2.1.docx"
+CARDS_JSON = ROOT / "runtime" / "config" / "cards.json"
 HUMAN_BOARD = ROOT / "output" / "visual_concepts" / "account-avatar-v2" / "ACCOUNT_AVATAR_HUMAN_OPTIONS_BOARD_v1.png"
 
 INK = "172033"
@@ -203,7 +205,7 @@ def style_document(doc: Document) -> None:
     set_run_font(header.runs[0], 8.3, color=GRAY)
     footer = section.footer.paragraphs[0]
     footer.alignment = WD_ALIGN_PARAGRAPH.RIGHT
-    footer.text = "F-ZC-AUTH-001｜v2.0｜2026-08-23"
+    footer.text = "F-ZC-AUTH-001｜v2.1｜2026-08-25"
     set_run_font(footer.runs[0], 8.3, color=GRAY)
 
 
@@ -215,18 +217,18 @@ def add_title_page(doc: Document) -> None:
 
     subtitle = doc.add_paragraph()
     subtitle.paragraph_format.space_after = Pt(18)
-    set_run_font(subtitle.add_run("简单注册登录｜稳定账号 ID｜可修改用户名｜预设头像｜凭据复制"), 12.2, False, BLUE)
+    set_run_font(subtitle.add_run("简单注册登录｜全动物头像｜品质与解锁态｜单一凭据复制"), 12.2, False, BLUE)
 
     add_table(
         doc,
         ["字段", "内容"],
         [
             ["项目 / 功能", "战城大师 / F-ZC-AUTH-001"],
-            ["文档版本", "v2.0（本地实现基线）"],
+            ["文档版本", "v2.1（制作人批准实施）"],
             ["负责人", "唯一制作人：项目制作人；执行：codex-primary"],
             ["实现状态", "本地实现授权；人物头像整板、FigJam 与阿里云生产安全门待验收"],
             ["兼容目标", "保留既有 UserID、进度、密码哈希、设备绑定和账号切换"],
-            ["运行时头像", "首版开放 12 个现有动物头像；4 个人物候选保持 NOT_RUNTIME"],
+            ["运行时头像", "纳入 cards.json 全部 60 个动物；显示品质、拥有/锁定状态和获得说明"],
         ],
         [1.6, 5.0],
     )
@@ -256,6 +258,7 @@ def build_document() -> Document:
         [
             ["v1.5", "2026-08-13", "既有基线", "设备账号、账号密码登录、服务器权威资料、复制凭据"],
             ["v2.0", "2026-08-23", "本地实现", "新增独立用户名、预设头像、身份 revision、旧记录兼容迁移"],
+            ["v2.1", "2026-08-25", "制作人批准实施", "全动物头像、品质与锁定态、头像弹窗、单一复制入口、服务器拥有校验"],
         ],
         [0.8, 1.1, 1.1, 3.6],
     )
@@ -271,7 +274,7 @@ def build_document() -> Document:
     for item in (
         "玩家第一次打开游戏即可自动获得可登录账号，不要求先填写复杂表单；只选择用户名和头像即可完成身份设置。",
         "账号 ID、UserID、用户名三者职责清晰：登录、内部主键、玩家展示互不混用。",
-        "玩家可直接使用账号 ID + 密码登录其他设备，并可复制账号、复制密码或复制全部。",
+        "玩家可直接使用账号 ID + 密码登录其他设备；账号中心仅保留一个“复制”入口，一次复制账号 ID 与当前前台密码。",
         "房间、账号中心和账号切换列表统一优先显示用户名，必要位置附短 UserID 识别。",
         "既有账号无损迁移；服务器对用户名和头像实施白名单、长度、控制字符与 revision 校验。",
     ):
@@ -293,9 +296,9 @@ def build_document() -> Document:
             ["首次身份设置", "用户名 + 头像两项，一次确认完成；不再要求另填账号 ID"],
             ["登录路径", "账号 ID + 密码，两项输入；用户名不能登录"],
             ["兼容迁移", "旧记录的 UserID、资料、密码派生值、安装绑定逐字段不变"],
-            ["头像首发", "12 个动物头像全部可选且资源存在；人物 4 候选均不进入运行时"],
+            ["头像目录", "cards.json 的 60 个动物全部展示；品质与卡牌一致；未拥有项明确锁定"],
             ["身份并发", "expected_revision 不匹配时拒绝覆盖并返回最新身份"],
-            ["玩家可见证据", "账号中心截图显示独立用户名、账号 ID、UserID、头像和三个复制入口"],
+            ["玩家可见证据", "账号中心显示当前头像品质与单一复制入口；头像弹窗完整覆盖 60 个动物及锁定提示"],
         ],
         [1.5, 5.1],
     )
@@ -323,7 +326,7 @@ def build_document() -> Document:
             ["user_id", "服务器内部主键", "创建后不可修改；不作为玩家输入", "服务器；必要位置显示短尾号"],
             ["account", "登录账号 ID", "唯一、稳定、可复制；不能用作房间显示名", "服务器 + 当前客户端凭据"],
             ["username", "玩家展示名", "2–16 个字符；去首尾空白；拒绝控制字符；允许重名", "服务器；房间/UI 主显示"],
-            ["avatar_id", "预设头像 ID", "仅服务器运行时白名单可用", "服务器；客户端按目录映射资源"],
+            ["avatar_id", "预设头像 ID", "必须来自 60 个动物目录；切换时服务器验证对应卡牌已拥有；当前旧头像兼容保留", "服务器；客户端按 cards.json 映射资源"],
             ["identity_revision", "身份并发版本", "从 1 递增；更新必须提交 expected_revision", "服务器"],
             ["identity_complete", "首次身份设置状态", "自动设备账号初始为 false；首次确认后为 true；旧账号迁移为 true", "服务器；驱动首次完成按钮与提示"],
             ["password_plain", "本次输入或生成口令", "只在当前前台会话短暂存在；断线/切换/失焦清除", "客户端内存；禁止持久化和回传"],
@@ -331,26 +334,28 @@ def build_document() -> Document:
         ],
         [1.1, 1.4, 2.6, 1.5],
     )
-    doc.add_heading("4.1 首版动物头像目录", level=2)
+    if not CARDS_JSON.exists():
+        raise FileNotFoundError(f"Runtime cards missing: {CARDS_JSON}")
+    cards = json.loads(CARDS_JSON.read_text(encoding="utf-8"))
+    rarity_names = {"common": "普通", "rare": "稀有", "epic": "史诗", "legendary": "传说"}
+    avatar_rows = [
+        [
+            f"animal_{card['id']}",
+            str(card["name"]),
+            rarity_names.get(str(card.get("rarity", "common")), str(card.get("rarity", "common"))),
+            str(card["art_path"]).replace("res://", ""),
+        ]
+        for card in cards
+        if "/animals/" in str(card.get("art_path", ""))
+    ]
+    doc.add_heading("4.1 全动物头像目录", level=2)
     add_table(
         doc,
-        ["avatar_id", "显示名", "既有资源"],
-        [
-            ["animal_cat", "猫", "assets/card_art/animals/cat.png"],
-            ["animal_dog", "狗", "assets/card_art/animals/dog.png"],
-            ["animal_fox", "狐狸", "assets/card_art/animals/fox.png"],
-            ["animal_rabbit", "兔子", "assets/card_art/animals/rabbit.png"],
-            ["animal_tiger", "老虎", "assets/card_art/animals/tiger.png"],
-            ["animal_lion", "狮子", "assets/card_art/animals/lion.png"],
-            ["animal_elephant", "大象", "assets/card_art/animals/elephant.png"],
-            ["animal_penguin", "企鹅", "assets/card_art/animals/penguin.png"],
-            ["animal_otter", "水獭", "assets/card_art/animals/otter.png"],
-            ["animal_squirrel", "松鼠", "assets/card_art/animals/squirrel.png"],
-            ["animal_hamster", "仓鼠", "assets/card_art/animals/hamster.png"],
-            ["animal_monkey", "猴子", "assets/card_art/animals/monkey.png"],
-        ],
-        [1.4, 1.0, 4.2],
+        ["avatar_id", "显示名", "品质", "既有资源"],
+        avatar_rows,
+        [1.35, 0.85, 0.7, 3.7],
     )
+    add_body(doc, f"目录由 runtime/config/cards.json 自动生成，共 {len(avatar_rows)} 个动物。拥有对应卡牌时解锁；未拥有项显示锁定，点击提示“获得【动物名】动物卡后解锁，可通过抽卡获得”。", bold=True)
 
     doc.add_heading("5. 核心玩家流程", level=1)
     doc.add_heading("5.1 首次打开 / 自动注册", level=2)
@@ -359,6 +364,7 @@ def build_document() -> Document:
             "客户端生成安装 ID，并向服务器请求设备账号。",
             "服务器生成不可变 UserID、唯一账号 ID 和随机密码；只在首次响应返回一次账号 ID 与密码。",
             "客户端自动进入身份设置：默认动物头像已选中，用户名输入框预填“新玩家 + UserID 后四位”。",
+            "玩家点击当前头像打开可滚动选择页；可选已拥有动物，锁定动物点击后显示获得方法。",
             "玩家修改用户名或头像后点击“完成注册”；客户端提交 session_token、username、avatar_id、expected_revision。",
             "服务器验证并保存身份；账号中心显示头像、用户名、账号 ID、UserID 与复制按钮。",
         ),
@@ -381,13 +387,11 @@ def build_document() -> Document:
         doc,
         ["入口", "可用条件", "写入剪贴板"],
         [
-            ["复制账号", "当前会话已认证", "账号：<account>"],
-            ["复制密码", "本次创建或重新登录后仍持有前台明文", "密码：<current plaintext>"],
-            ["复制全部", "同时满足账号与密码条件", "账号：... 换行 密码：..."],
+            ["复制", "当前会话已认证，且本次创建或重新登录后仍持有前台明文", "账号：<account> 换行 密码：<current plaintext>"],
         ],
         [1.3, 3.2, 2.1],
     )
-    add_body(doc, "若当前会话没有明文密码，“复制密码/复制全部”不读取服务器或磁盘，而是提示“请重新登录验证后复制”。", bold=True)
+    add_body(doc, "不再提供“复制账号”“复制密码”“复制全部”三个入口。若当前会话没有明文密码，唯一“复制”按钮不读取服务器或磁盘，而是提示“请重新登录验证后复制”。", bold=True)
 
     doc.add_heading("6. UI/UE 规格", level=1)
     add_callout(doc, "最终可编辑 UE 源：FigJam（PENDING_CONNECTOR_UNAVAILABLE）。本节是实现合同，不冒充最终 FigJam 设计源。", fill=LIGHT_RED, text_color=RED)
@@ -396,11 +400,11 @@ def build_document() -> Document:
         doc,
         ["优先级", "区域", "内容 / 行为"],
         [
-            ["P0", "身份头部", "圆形头像 + 大号用户名；不把账号 ID 当名字"],
-            ["P0", "登录信息", "账号 ID、UserID 分两行；各自可复制但不抢主视觉"],
+            ["P0", "身份头部", "带品质边框的当前动物头像 + 大号用户名；点击头像打开选择页"],
+            ["P0", "登录信息", "账号 ID、UserID 分两行；唯一“复制”按钮复制账号 ID + 密码"],
             ["P0", "主操作", "未完成身份时“完成注册”；已完成时“保存资料”"],
-            ["P1", "头像选择", "横向/网格显示 12 个动物头像；当前选中态清晰"],
-            ["P1", "凭据工具", "复制账号、复制密码、复制全部三个独立按钮"],
+            ["P1", "头像选择页", "可滚动网格显示全部 60 个动物；品质文字/边框、选中态、锁定遮罩与锁图标清晰"],
+            ["P1", "锁定说明", "锁定头像仍可点击；用 Toast 明确提示对应动物卡及抽卡获得方式"],
             ["P2", "账号切换", "列表显示头像、用户名、账号 ID 尾号；切换不丢资料"],
         ],
         [0.7, 1.5, 4.4],
@@ -408,7 +412,7 @@ def build_document() -> Document:
     doc.add_heading("6.2 页面状态矩阵", level=2)
     add_table(
         doc,
-        ["状态", "用户名/头像", "主按钮", "复制密码", "提示"],
+        ["状态", "用户名/头像", "主按钮", "复制", "提示"],
         [
             ["首次自动账号", "可编辑；默认值", "完成注册", "可用", "先保存账号信息"],
             ["已登录且有前台密码", "可编辑", "保存资料", "可用", "密码只在本次会话可复制"],
@@ -427,7 +431,8 @@ def build_document() -> Document:
             ["用户名少于 2 个字符", "用户名至少 2 个字符"],
             ["用户名超过 16 个字符", "用户名最多 16 个字符"],
             ["用户名含控制字符", "用户名包含不可用字符，请修改"],
-            ["头像不在运行时白名单", "该头像暂未开放"],
+            ["头像不在运行时目录", "该头像暂未开放"],
+            ["头像对应卡牌未拥有", "获得【动物名】动物卡后解锁，可通过抽卡获得"],
             ["身份 revision 冲突", "资料已在其他设备更新，已载入最新资料"],
             ["登录失败", "账号或密码错误，请重试"],
             ["无前台密码", "请重新登录验证后复制密码"],
@@ -519,12 +524,14 @@ def build_document() -> Document:
             ["AUTH2-002", "两个账号保存相同用户名", "均成功；UserID 和 account 仍各自独立"],
             ["AUTH2-003", "用 username + 密码登录", "拒绝；只有 account + 密码可登录"],
             ["AUTH2-004", "提交 1/17 字符、控制字符用户名", "拒绝并返回稳定错误码"],
-            ["AUTH2-005", "提交未批准人物 avatar_id", "服务器拒绝，不写入记录"],
+            ["AUTH2-005", "提交目录外或未拥有的 avatar_id", "服务器分别返回 invalid_avatar / avatar_locked，不写入记录"],
             ["AUTH2-006", "两个客户端用同一 revision 更新", "首个成功；后一个冲突并拿到最新身份"],
             ["AUTH2-007", "自动登录后复制密码", "不可用；提示重新登录，不读取磁盘或服务器"],
-            ["AUTH2-008", "重新登录后复制账号/密码/全部", "内容准确；失焦/切换/断线清除明文"],
-            ["AUTH2-009", "房间与账号切换列表", "显示 username + avatar，不再使用“玩家X”或 account 当名字"],
-            ["AUTH2-010", "GDScript 与项目解析", "tab 缩进检查、目标测试、全项目 headless 解析通过"],
+            ["AUTH2-008", "重新登录后点击唯一“复制”", "一次写入账号 ID 与密码；旧三个复制入口不存在"],
+            ["AUTH2-009", "打开头像选择页并滚动", "60 个动物均出现；品质正确；未拥有项锁定且点击提示获得方式"],
+            ["AUTH2-010", "选择已拥有 / 未拥有头像", "已拥有可保存；未拥有客户端拦截且服务器再次拒绝"],
+            ["AUTH2-011", "房间与账号切换列表", "显示 username + avatar，不再使用“玩家X”或 account 当名字"],
+            ["AUTH2-012", "GDScript 与项目解析", "tab 缩进检查、目标测试、全项目 headless 解析通过"],
         ],
         [1.0, 2.8, 2.8],
     )
@@ -536,7 +543,7 @@ def build_document() -> Document:
         [
             ["identity_setup_complete", "avatar_category, name_length, elapsed_ms", "评估首次设置完成率"],
             ["identity_update_result", "result_code, avatar_changed, name_changed", "发现校验/冲突问题"],
-            ["credential_copy", "copy_type, has_foreground_password", "评估复制功能需求；绝不记录内容"],
+            ["credential_copy", "has_foreground_password", "评估单一复制功能需求；绝不记录内容"],
             ["manual_login_result", "result_code, latency_bucket", "监控成功率与性能；不记录账号/密码"],
         ],
         [1.8, 3.0, 1.8],

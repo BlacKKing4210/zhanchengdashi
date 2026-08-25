@@ -16,7 +16,9 @@ const COLOR_ERROR = Color(1.0, 0.49, 0.44, 1.0)
 
 var context: Dictionary = {}
 var backdrop: ColorRect
+var center: CenterContainer
 var panel_container: PanelContainer
+var scroll_container: ScrollContainer
 var resource_option: OptionButton
 var operation_option: OptionButton
 var card_row: HBoxContainer
@@ -32,6 +34,10 @@ func _ready() -> void:
 	layer = 200
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	_build_ui()
+	var viewport = get_viewport()
+	if viewport != null and not viewport.size_changed.is_connected(_update_layout):
+		viewport.size_changed.connect(_update_layout)
+	_update_layout()
 	hide_panel()
 
 
@@ -39,6 +45,7 @@ func show_panel(next_context: Dictionary) -> void:
 	context = next_context.duplicate(true)
 	_populate_cards()
 	_refresh_controls()
+	_update_layout()
 	backdrop.show()
 	feedback_label.text = ""
 	amount_field.text = "100"
@@ -84,6 +91,20 @@ func selected_card_id() -> String:
 	return _selected_metadata(card_option)
 
 
+static func layout_metrics_for_viewport(viewport_size: Vector2) -> Dictionary:
+	var safe_margin = 14.0 if minf(viewport_size.x, viewport_size.y) < 700.0 else 22.0
+	var available = Vector2(
+		maxf(360.0, viewport_size.x - safe_margin * 2.0),
+		maxf(520.0, viewport_size.y - safe_margin * 2.0)
+	)
+	var target_width = minf(760.0, available.x)
+	var target_height = minf(1040.0 if viewport_size.y >= 900.0 else 760.0, available.y)
+	return {
+		"safe_margin": safe_margin,
+		"panel_size": Vector2(target_width, target_height),
+	}
+
+
 func _build_ui() -> void:
 	backdrop = ColorRect.new()
 	backdrop.name = "Backdrop"
@@ -92,36 +113,31 @@ func _build_ui() -> void:
 	backdrop.mouse_filter = Control.MOUSE_FILTER_STOP
 	add_child(backdrop)
 
-	var center = CenterContainer.new()
+	center = CenterContainer.new()
 	center.name = "Center"
 	center.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	center.offset_left = 38.0
-	center.offset_top = 64.0
-	center.offset_right = -38.0
-	center.offset_bottom = -64.0
 	backdrop.add_child(center)
 
 	panel_container = PanelContainer.new()
 	panel_container.name = "Panel"
-	panel_container.custom_minimum_size = Vector2(760.0, 0.0)
 	panel_container.add_theme_stylebox_override("panel", _style_box(COLOR_PANEL, COLOR_BORDER, 4, 20))
 	center.add_child(panel_container)
 
 	var margin = MarginContainer.new()
-	margin.add_theme_constant_override("margin_left", 42)
-	margin.add_theme_constant_override("margin_top", 34)
-	margin.add_theme_constant_override("margin_right", 42)
-	margin.add_theme_constant_override("margin_bottom", 38)
+	margin.add_theme_constant_override("margin_left", 30)
+	margin.add_theme_constant_override("margin_top", 26)
+	margin.add_theme_constant_override("margin_right", 30)
+	margin.add_theme_constant_override("margin_bottom", 28)
 	panel_container.add_child(margin)
 
-	var content = VBoxContainer.new()
-	content.name = "Content"
-	content.add_theme_constant_override("separation", 20)
-	margin.add_child(content)
+	var shell = VBoxContainer.new()
+	shell.name = "Shell"
+	shell.add_theme_constant_override("separation", 16)
+	margin.add_child(shell)
 
 	var header = HBoxContainer.new()
 	header.add_theme_constant_override("separation", 16)
-	content.add_child(header)
+	shell.add_child(header)
 	var title = _label("运行时 GM", 38, COLOR_TEXT)
 	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	header.add_child(title)
@@ -135,28 +151,44 @@ func _build_ui() -> void:
 
 	var divider = HSeparator.new()
 	divider.modulate = COLOR_BORDER
-	content.add_child(divider)
+	shell.add_child(divider)
+
+	scroll_container = ScrollContainer.new()
+	scroll_container.name = "BodyScroll"
+	scroll_container.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	scroll_container.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	scroll_container.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	scroll_container.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO
+	scroll_container.follow_focus = true
+	scroll_container.mouse_filter = Control.MOUSE_FILTER_STOP
+	shell.add_child(scroll_container)
+
+	var body = VBoxContainer.new()
+	body.name = "Body"
+	body.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	body.add_theme_constant_override("separation", 20)
+	scroll_container.add_child(body)
 
 	var warning = _label("仅限调试构建 · 互联网对战禁用 · 不写入已登录账号", 23, Color(1.0, 0.79, 0.36))
 	warning.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	content.add_child(warning)
+	body.add_child(warning)
 
 	resource_option = _option_button("ResourceOption")
 	for option in GmResourceRules.resource_options():
 		_add_option(resource_option, String(option.get("label", "")), String(option.get("id", "")))
 	resource_option.item_selected.connect(_on_selection_changed)
-	content.add_child(_field_row("资源", resource_option))
+	body.add_child(_field_row("资源", resource_option))
 
 	card_option = _option_button("CardOption")
 	card_option.item_selected.connect(_on_selection_changed)
 	card_row = _field_row("卡牌", card_option)
-	content.add_child(card_row)
+	body.add_child(card_row)
 
 	operation_option = _option_button("OperationOption")
 	for option in GmResourceRules.operation_options():
 		_add_option(operation_option, String(option.get("label", "")), String(option.get("id", "")))
 	operation_option.item_selected.connect(_on_selection_changed)
-	content.add_child(_field_row("操作", operation_option))
+	body.add_child(_field_row("操作", operation_option))
 
 	amount_field = LineEdit.new()
 	amount_field.name = "AmountField"
@@ -173,29 +205,41 @@ func _build_ui() -> void:
 	amount_field.add_theme_stylebox_override("normal", _style_box(COLOR_FIELD, Color(0.27, 0.35, 0.49), 2, 12))
 	amount_field.add_theme_stylebox_override("focus", _style_box(COLOR_FIELD, COLOR_BORDER, 3, 12))
 	amount_field.text_submitted.connect(_on_amount_submitted)
-	content.add_child(_field_row("数值", amount_field))
+	body.add_child(_field_row("数值", amount_field))
 
 	current_value_label = _label("当前值：—", 27, COLOR_TEXT)
-	content.add_child(current_value_label)
+	body.add_child(current_value_label)
 	restriction_label = _label("", 23, COLOR_MUTED)
 	restriction_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	restriction_label.custom_minimum_size = Vector2(0.0, 58.0)
-	content.add_child(restriction_label)
+	body.add_child(restriction_label)
 	feedback_label = _label("", 24, COLOR_SUCCESS)
 	feedback_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	feedback_label.custom_minimum_size = Vector2(0.0, 58.0)
-	content.add_child(feedback_label)
+	body.add_child(feedback_label)
 
 	apply_button = _button("执行资源修改", 0.0)
 	apply_button.name = "ApplyButton"
 	apply_button.custom_minimum_size = Vector2(0.0, 78.0)
 	apply_button.add_theme_font_size_override("font_size", 30)
 	apply_button.pressed.connect(_request_change)
-	content.add_child(apply_button)
+	body.add_child(apply_button)
 
 	var footnote = _label("测试数据仅保留在当前运行会话；关闭游戏后不会自动保存。", 21, COLOR_MUTED)
 	footnote.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	content.add_child(footnote)
+	body.add_child(footnote)
+
+
+func _update_layout() -> void:
+	if center == null or panel_container == null:
+		return
+	var metrics = layout_metrics_for_viewport(get_viewport().get_visible_rect().size)
+	var safe_margin = float(metrics.get("safe_margin", 18.0))
+	center.offset_left = safe_margin
+	center.offset_top = safe_margin
+	center.offset_right = -safe_margin
+	center.offset_bottom = -safe_margin
+	panel_container.custom_minimum_size = metrics.get("panel_size", Vector2(676.0, 1040.0))
 
 
 func _populate_cards() -> void:

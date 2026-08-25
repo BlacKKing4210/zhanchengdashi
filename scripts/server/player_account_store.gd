@@ -396,7 +396,8 @@ func update_identity(
 	session_token: String,
 	username: String,
 	avatar_id: String,
-	expected_revision: int
+	expected_revision: int,
+	animal_card_ids: Array = []
 ) -> Dictionary:
 	if not authority_storage_ready:
 		return _failure("authority_storage_unavailable")
@@ -409,9 +410,16 @@ func update_identity(
 	if not username_error.is_empty():
 		return _failure(username_error)
 	var normalized_avatar_id = avatar_id.strip_edges().to_lower()
-	if not AccountIdentityRules.is_runtime_avatar_id(normalized_avatar_id):
+	if not AccountIdentityRules.is_runtime_avatar_id(normalized_avatar_id, animal_card_ids):
 		return _failure("invalid_avatar")
 	var previous_record: Dictionary = (accounts[key] as Dictionary).duplicate(true)
+	var previous_avatar_id = String(previous_record.get("avatar_id", AccountIdentityRules.DEFAULT_AVATAR_ID)).strip_edges().to_lower()
+	var profile_value = previous_record.get("profile", {})
+	var profile: Dictionary = profile_value if typeof(profile_value) == TYPE_DICTIONARY else {}
+	var counts_value = profile.get("card_counts", {})
+	var owned_card_counts: Dictionary = counts_value if typeof(counts_value) == TYPE_DICTIONARY else {}
+	if not AccountIdentityRules.avatar_is_unlocked(normalized_avatar_id, owned_card_counts, previous_avatar_id):
+		return _failure("avatar_locked")
 	var current_revision = maxi(1, int(previous_record.get("identity_revision", 1)))
 	if expected_revision != current_revision:
 		return _identity_result(previous_record, true)

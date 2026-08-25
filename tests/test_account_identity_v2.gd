@@ -9,10 +9,22 @@ var failures = 0
 
 func _ready() -> void:
 	_cleanup()
+	var cards_value = JSON.parse_string(FileAccess.get_file_as_string("res://runtime/config/cards.json"))
+	var cards: Array = cards_value if typeof(cards_value) == TYPE_ARRAY else []
+	var avatar_catalog = AccountIdentityRules.runtime_avatar_catalog(cards)
+	var animal_card_ids = []
+	var rarity_counts = {"common": 0, "rare": 0, "epic": 0, "legendary": 0}
+	for entry_value in avatar_catalog:
+		var entry: Dictionary = entry_value
+		animal_card_ids.append(String(entry.get("card_id", "")))
+		var rarity = String(entry.get("rarity", ""))
+		rarity_counts[rarity] = int(rarity_counts.get(rarity, 0)) + 1
+	_expect(avatar_catalog.size() == 60, "runtime avatar catalog includes all 60 animal cards")
+	_expect(rarity_counts == {"common": 10, "rare": 9, "epic": 21, "legendary": 20}, "avatar catalog preserves every card rarity")
 	var store = PlayerAccountStore.new(TEST_PATH)
 	var installation_id = "a7".repeat(32)
 	var recovery_secret = "b8".repeat(32)
-	var device = store.authenticate_installation(installation_id, "", {}, [], recovery_secret)
+	var device = store.authenticate_installation(installation_id, "", {}, animal_card_ids, recovery_secret)
 	_expect(bool(device.get("ok", false)), "device account is created")
 	_expect(AccountIdentityRules.is_valid_username(device.get("username", "")), "device account receives a valid default username")
 	_expect(String(device.get("avatar_id", "")) == AccountIdentityRules.DEFAULT_AVATAR_ID, "device account receives the default animal avatar")
@@ -27,42 +39,49 @@ func _ready() -> void:
 		"alpha-pass-2026",
 		installation_id,
 		refresh_token,
-		[],
+		animal_card_ids,
 		recovery_secret
 	)
 	_expect(bool(alpha_login.get("ok", false)), "account id and password log in")
 	_expect(String(alpha_login.get("username", "")) == "AlphaAccount", "named registration initializes an independent display username")
 	_expect(not alpha_login.has("password") and not alpha_login.has("salt") and not alpha_login.has("password_hash"), "identity response exposes no password material")
 	var alpha_token = String(alpha_login.get("session_token", ""))
-	var alpha_update = store.update_identity(alpha_token, "林地旅者", "animal_fox", 1)
+	_expect(bool(store.save_profile(alpha_token, {"card_counts": {"fox": 1}, "_profile_revision": 1}).get("ok", false)), "alpha fixture owns the fox avatar card")
+	var alpha_update = store.update_identity(alpha_token, "林地旅者", "animal_fox", 1, animal_card_ids)
 	_expect(bool(alpha_update.get("ok", false)), "valid identity update succeeds")
 	_expect(String(alpha_update.get("username", "")) == "林地旅者", "identity update persists the username")
 	_expect(String(alpha_update.get("avatar_id", "")) == "animal_fox", "identity update persists the avatar")
 	_expect(int(alpha_update.get("identity_revision", 0)) == 2, "identity revision increments independently")
 	_expect(bool(alpha_update.get("identity_complete", false)), "identity update completes first-time setup")
 
-	var conflict = store.update_identity(alpha_token, "覆盖失败", "animal_tiger", 1)
+	var conflict = store.update_identity(alpha_token, "覆盖失败", "animal_fox", 1, animal_card_ids)
 	_expect(bool(conflict.get("ok", false)) and bool(conflict.get("conflict", false)), "stale identity revision is rejected without overwriting")
 	_expect(String(conflict.get("username", "")) == "林地旅者", "revision conflict returns the latest server username")
 	_expect(int(conflict.get("identity_revision", 0)) == 2, "revision conflict returns the latest revision")
-	_expect(String(store.update_identity(alpha_token, "一", "animal_cat", 2).get("error", "")) == "invalid_username_length", "too-short username is rejected")
-	_expect(String(store.update_identity(alpha_token, "坏\n名字", "animal_cat", 2).get("error", "")) == "invalid_username_characters", "control characters are rejected")
-	_expect(String(store.update_identity(alpha_token, "合法名字", "human_option_01", 2).get("error", "")) == "invalid_avatar", "unapproved human avatar stays outside runtime")
+	_expect(String(store.update_identity(alpha_token, "一", "animal_cat", 2, animal_card_ids).get("error", "")) == "invalid_username_length", "too-short username is rejected")
+	_expect(String(store.update_identity(alpha_token, "坏\n名字", "animal_cat", 2, animal_card_ids).get("error", "")) == "invalid_username_characters", "control characters are rejected")
+	_expect(String(store.update_identity(alpha_token, "合法名字", "human_option_01", 2, animal_card_ids).get("error", "")) == "invalid_avatar", "unapproved human avatar stays outside runtime")
+	_expect(String(store.update_identity(alpha_token, "合法名字", "animal_tiger", 2, animal_card_ids).get("error", "")) == "avatar_locked", "server rejects an animal avatar whose card is not owned")
+	_expect(bool(store.save_profile(alpha_token, {"card_counts": {}, "_profile_revision": 2}).get("ok", false)), "alpha fixture can remove its owned-card copy after selecting the avatar")
+	var legacy_current_update = store.update_identity(alpha_token, "林地旅者", "animal_fox", 2, animal_card_ids)
+	_expect(bool(legacy_current_update.get("ok", false)), "the currently equipped legacy avatar remains saveable without an owned card")
 
 	var beta_login = store.login(
 		"BetaAccount",
 		"beta-pass-2026",
 		installation_id,
 		refresh_token,
-		[],
+		animal_card_ids,
 		recovery_secret
 	)
 	_expect(bool(beta_login.get("ok", false)), "second named account binds to the same installation")
-	var beta_update = store.update_identity(String(beta_login.get("session_token", "")), "林地旅者", "animal_rabbit", 1)
+	var beta_token = String(beta_login.get("session_token", ""))
+	_expect(bool(store.save_profile(beta_token, {"card_counts": {"rabbit": 1}, "_profile_revision": 1}).get("ok", false)), "beta fixture owns the rabbit avatar card")
+	var beta_update = store.update_identity(beta_token, "林地旅者", "animal_rabbit", 1, animal_card_ids)
 	_expect(bool(beta_update.get("ok", false)) and not bool(beta_update.get("conflict", false)), "duplicate usernames are allowed across distinct accounts")
 	_expect(not bool(store.login("林地旅者", "alpha-pass-2026").get("ok", true)), "username never acts as the login account id")
 
-	var summaries = store.account_summaries_for_session(String(beta_login.get("session_token", "")), [])
+	var summaries = store.account_summaries_for_session(beta_token, animal_card_ids)
 	_expect(bool(summaries.get("ok", false)), "owned account summaries load")
 	var summary_rows: Array = summaries.get("accounts", [])
 	_expect(summary_rows.size() == 3, "device summary keeps device and two named accounts")
@@ -73,7 +92,7 @@ func _ready() -> void:
 		var row: Dictionary = row_value
 		if String(row.get("username", "")) == "林地旅者":
 			named_summary_count += 1
-		_expect(AccountIdentityRules.is_runtime_avatar_id(row.get("avatar_id", "")), "every summary returns a runtime avatar")
+		_expect(AccountIdentityRules.is_runtime_avatar_id(row.get("avatar_id", ""), animal_card_ids), "every summary returns a runtime avatar")
 	_expect(named_summary_count == 2, "summary proves duplicate display names do not merge accounts")
 
 	var alpha_key = String(store.call("_account_key", "AlphaAccount"))

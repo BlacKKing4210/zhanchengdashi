@@ -725,7 +725,8 @@ func _rpc_request_update_account_identity(
 		session_token,
 		username,
 		avatar_id,
-		expected_revision
+		expected_revision,
+		_server_animal_card_ids()
 	))
 
 

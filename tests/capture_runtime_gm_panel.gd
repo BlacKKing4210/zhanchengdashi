@@ -19,7 +19,7 @@ func _ready() -> void:
 		return
 
 	capture_viewport = SubViewport.new()
-	capture_viewport.size = Vector2i(1080, 1920)
+	capture_viewport.size = Vector2i(720, 1280)
 	capture_viewport.render_target_update_mode = SubViewport.UPDATE_ALWAYS
 	capture_viewport.transparent_bg = false
 	add_child(capture_viewport)

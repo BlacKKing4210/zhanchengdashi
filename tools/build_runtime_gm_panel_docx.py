@@ -18,7 +18,7 @@ TEMPLATE = (
     if TEMPLATE_OVERRIDE
     else Path.home() / ".codex" / "skills" / "game-feature-design-docs" / "assets" / "general-feature-design-template.docx"
 )
-OUTPUT = ROOT / "docs" / "RUNTIME_GM_PANEL_DESIGN_v1.0.docx"
+OUTPUT = ROOT / "docs" / "RUNTIME_GM_PANEL_DESIGN_v1.1.docx"
 
 INK = "172033"
 BLUE = "2E74B5"
@@ -181,7 +181,7 @@ def style_document(doc: Document) -> None:
     set_run_font(header.runs[0], 8.5, color=GRAY)
     footer = section.footer.paragraphs[0]
     footer.alignment = WD_ALIGN_PARAGRAPH.RIGHT
-    footer.text = "v1.0｜2026-08-23｜INTERNAL DEBUG ONLY"
+    footer.text = "v1.1｜2026-08-25｜INTERNAL DEBUG ONLY"
     set_run_font(footer.runs[0], 8.5, color=GRAY)
 
 
@@ -200,12 +200,12 @@ def add_title_page(doc: Document) -> None:
         ["字段", "内容"],
         [
             ["文档类型", "IMPLEMENTATION_CONTRACT｜INTERNAL_DEBUG_ONLY"],
-            ["请求编号", "REQ-20260823-RUNTIME-GM-PANEL"],
+            ["请求编号", "REQ-20260825-ACCOUNT-AVATAR-GM-UX"],
             ["功能编号", "F-ZC-GM-001"],
-            ["版本 / 日期", "v1.0 / 2026-08-23"],
+            ["版本 / 日期", "v1.1 / 2026-08-25"],
             ["主策划 / 制作人", "用户制作人（需求与边界批准）"],
             ["制作程序", "codex-primary"],
-            ["目标环境", "Godot 4.6 Debug；Windows 开发验证"],
+            ["目标环境", "Godot 4.6 Debug；720×1280、540×960、1280×720 运行窗口"],
             ["正式发行状态", "禁止启用；不进入 Release / Android 正式包"],
             ["设计源说明", "内部工程工具，不建立生产 Penpot/Figma 页面；本文状态表与运行时截图为验收源"],
         ],
@@ -266,7 +266,10 @@ def build_document() -> Document:
     add_table(
         doc,
         ["版本", "日期", "更新内容", "状态"],
-        [["v1.0", "2026-08-23", "建立 F2 GM 面板、资源操作、安全门禁与 QA 合同", "制作人已批准实施"]],
+        [
+            ["v1.0", "2026-08-23", "建立 F2 GM 面板、资源操作、安全门禁与 QA 合同", "已实现"],
+            ["v1.1", "2026-08-25", "按实际窗口自适应尺寸；固定头部；主体可滚动；横竖屏内容均可达", "制作人批准实施"],
+        ],
         [0.75, 1.05, 4.05, 1.0],
     )
 
@@ -321,7 +324,7 @@ def build_document() -> Document:
     )
 
     doc.add_heading("5. UE 总流程与节点覆盖", level=1)
-    add_body(doc, "本功能是发行禁用的内部工程工具，不建立生产玩家页面，也不宣称 Penpot/Figma 评审完成。以下状态与节点表是实现权威；运行时 1080×1920 截图是视觉验收证据。", color=GRAY)
+    add_body(doc, "本功能是发行禁用的内部工程工具，不建立生产玩家页面，也不宣称 Penpot/Figma 评审完成。以下状态与节点表是实现权威；运行时 720×1280 截图及横竖屏自动化边界检查是视觉验收证据。", color=GRAY)
     add_table(
         doc,
         ["节点", "触发 / 玩家动作", "条件", "系统反馈", "返回 / 异常"],
@@ -434,7 +437,9 @@ def build_document() -> Document:
     )
     doc.add_heading("9.2 布局与交互合同", level=2)
     add_bullet(doc, "使用全屏半透明遮罩与居中面板；遮罩 `MOUSE_FILTER_STOP`，阻止底层点击。")
-    add_bullet(doc, "最小面板宽度适配 720×1280 逻辑画布和 1080×1920 竖屏；文本不依赖缩放后的自绘小字号。")
+    add_bullet(doc, "面板尺寸按实际 viewport 计算，不设置超过窗口的固定最小宽度；四边保留安全边距，兼容 720×1280、540×960 与 1280×720。")
+    add_bullet(doc, "标题、F2 提示和关闭按钮固定在头部；资源表单、当前值、警告、执行按钮与说明放入 ScrollContainer，较矮横屏可滚动到全部内容。")
+    add_bullet(doc, "窗口尺寸变化时立即重算面板最大宽高与滚动区；任何控件都不得超出可视边界或只能靠裁切访问。")
     add_bullet(doc, "资源、卡牌、操作均使用 OptionButton；数值使用真实 LineEdit，数字键盘类型、回车提交与全选可用。")
     add_bullet(doc, "不可执行时按钮禁用，同时保留可读原因；不能只靠颜色表达状态。")
     add_bullet(doc, "成功反馈绿色，错误反馈红色，顶部持续显示“仅限 Debug / 会话本地”。")
@@ -471,7 +476,7 @@ def build_document() -> Document:
             ["GM-QA-03", "线上隔离", "规则 + 运行时测试", "在线比赛打不开；登录账号资源不可写；无 save/grant 调用"],
             ["GM-QA-04", "发行隔离", "规则测试 + 工程检查", "debug=false 时不可用，Release 不实例化"],
             ["GM-QA-05", "输入不穿透", "运行时输入测试", "Modal 可见时鼠标/触摸/键盘不触发底层操作"],
-            ["GM-QA-06", "玩家可见证据", "1080×1920 PNG", "真实 MainApp 运行路径中面板完整、清晰、无裁切"],
+            ["GM-QA-06", "玩家可见证据", "720×1280 PNG + 三分辨率边界检查", "面板完整、清晰；头部固定；主体可滚动；无水平裁切"],
             ["GM-QA-07", "工程健康", "Godot 4.6.3 + 回归", "无解析/缩进错误；经典战斗、账号与房间核心测试通过"],
             ["GM-QA-08", "文档", "DOCX 全页 PNG", "无模板提示、重叠、裁切或孤行；交付仅 DOCX"],
         ],
@@ -502,7 +507,7 @@ def build_document() -> Document:
             ["是否允许线上账号资源修改", "已决策", "制作人 / 工程", "否；使用正式后台发放系统，GM 保持本地隔离"],
             ["是否进入 Android Release", "已决策", "制作人 / 工程", "否；`OS.is_debug_build()` 硬门禁"],
             ["是否需要生产 Penpot 页面", "不适用", "制作人 / UI", "内部工具不进入玩家 UE；以状态表和运行时截图验收"],
-            ["是否保存游客 GM 修改", "已决策", "制作人 / 工程", "v1.0 仅当前进程；持久化另立需求"],
+            ["是否保存游客 GM 修改", "已决策", "制作人 / 工程", "v1.1 仍仅当前进程；持久化另立需求"],
         ],
         [2.4, 0.9, 1.2, 2.65],
     )
