@@ -11,7 +11,6 @@ desktop.ini
 # Logs and temp
 *.log
 tmp/
-temp/
 .cache/
 
 # Python tooling
@@ -70,3 +69,9 @@ Saved/
 *.VC.db
 *.opensdf
 *.sdf
+
+# Project-specific temp policy must follow the generic Unreal Temp/ rule above.
+# Keep the Godot scan-boundary sentinel while ignoring all temporary contents.
+!temp/
+temp/*
+!temp/.gdignore

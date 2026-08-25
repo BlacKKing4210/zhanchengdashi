@@ -155,6 +155,8 @@
 | `output/ui_qa/` | UI 截图验收 | UI 获准实装后，按功能保存获批效果图、Godot 截图、叠图/差异说明和验收记录 |
 | `output/pdf/` | 按需固定版式文档 | 仅在用户明确要求打印、签批、固定版式或归档时生成 PDF，不再作为默认审阅格式 |
 | `tmp/` | 临时产物 | 本地临时文件，不提交 |
+| `temp/` | RAG、QA、打包、表格和隔离验证临时产物 | 必须保留根级 `.gdignore`；允许包含 junction 或工具依赖，但 Godot 不得进入扫描 |
+| `outputs/`、`PM/`、`production/`、`deploy/`、`QA/` | 文档、制作、生产、部署和 QA 工件 | 都不是游戏运行时资源，根目录必须保留 `.gdignore` |
 
 ## 5. 改动落点矩阵
 
@@ -174,6 +176,9 @@
 ## 6. 验证门禁
 
 - 任意 `.gd` 修改后运行 `tools/check_gd_indentation.py`，并启动 Godot 项目确认没有 parser error。
+- Godot 资源扫描只覆盖 `assets/`、`runtime/`、`scenes/`、`scripts/` 和项目根部必要引擎文件；所有工具、文档、临时、发布、部署与 QA 根目录必须以 `.gdignore` 隔离。新增根目录前先分类，非运行时目录不得依赖 Git ignore 代替 Godot 的扫描边界。
+- `temp/`、`tmp/` 中可以生成隔离副本或目录 junction，但对应根目录的 `.gdignore` 不得删除。验证扫描边界时，至少执行一次干净导入、一次无改动的第二次导入，并确认外部工具目录没有生成 `.import` 旁文件。
+- 新增项目根目录、调整临时目录或排查重新导入后，运行 `powershell -ExecutionPolicy Bypass -File tools/check_godot_scan_boundaries.ps1`；该检查必须确认非运行时根目录全部隔离，且四个运行时资源根目录内不存在 junction/symlink。
 - 任意配置表修改后必须立即运行 `tools/validate_config.py` 和 `tools/export_config.py`；游戏读取 `runtime/config/`，不允许只改 CSV 却不更新运行时 JSON。
 - Godot 在 Windows 出现 `应用程序错误`、`内存不能为 read` 或启动即崩溃时，优先检查渲染后端；本项目默认不强制 D3D12，`project.godot` 应使用 Vulkan 作为 Windows 默认渲染驱动，只有在专门兼容性测试通过后才恢复 D3D12。
 - Windows 桌面调试必须保留正式 `1080 x 1920` 竖屏视口，同时用 `display/window/size/window_width_override=540` 与 `window_height_override=960` 设置 50% 初始预览窗；不得为了让窗口塞进桌面而修改 `canvas_items`、`expand`、固定竖屏、UI 坐标或触控换算。验证时必须读取真实 GUI 窗口尺寸和当前屏幕可用区，并在同一帧看到页面顶部与底部。
@@ -196,6 +201,7 @@
 - 本项目 `.gd` 使用 tab 缩进，规则写在 `.editorconfig`。
 - 不做盲目的 tab/space 全局替换；修复缩进时先保护代码块层级。
 - 运行错误优先从 Godot parser/debug 输出定位，再修代码。
+- 编辑器持续重新导入时，先检查新建根目录缺少 `.gdignore`、junction/reparse point、嵌套 `project.godot`、外部 `node_modules` 和 `.godot/imported` 中的非游戏资源；不得通过关闭自动扫描、修改渲染配置或删除源资产掩盖问题。
 - UI 原型当前以 `scripts/app/main.gd` 的绘制函数为主，新增抽象时必须避免让单文件继续无边界膨胀；可复用逻辑成熟后再拆分模块。
 
 ## 8. Git 与 GitHub 同步
@@ -251,3 +257,4 @@ Producer -> Creative Director -> Art Director -> Visual Development Artist -> Co
 | 日期 | 上游版本 | 项目同步结论 |
 | --- | --- | --- |
 | 2026-07-10 | v1.9 | 已确认并同步 UI/UE 正式源稿、效果图工程交付、产品负责人迭代验收、用户实装准入、Godot UI 计划、响应式/安全区、截图对照和 UI QA Gate；当前 1930s 页面批次继续只做效果图，不实装 |
+| 2026-08-25 | v2.0 项目适配 | 固化 Godot 运行时资源根目录白名单和非运行时 `.gdignore` 边界；临时目录 junction 必须保持在 Godot 扫描范围外，并以干净导入加第二次导入验证稳定性 |
