@@ -181,7 +181,9 @@
 - 新增项目根目录、调整临时目录或排查重新导入后，运行 `powershell -ExecutionPolicy Bypass -File tools/check_godot_scan_boundaries.ps1`；该检查必须确认非运行时根目录全部隔离，且四个运行时资源根目录内不存在 junction/symlink。
 - 任意配置表修改后必须立即运行 `tools/validate_config.py` 和 `tools/export_config.py`；游戏读取 `runtime/config/`，不允许只改 CSV 却不更新运行时 JSON。
 - Godot 在 Windows 出现 `应用程序错误`、`内存不能为 read` 或启动即崩溃时，优先检查渲染后端；本项目默认不强制 D3D12，`project.godot` 应使用 Vulkan 作为 Windows 默认渲染驱动，只有在专门兼容性测试通过后才恢复 D3D12。
-- Windows 桌面调试必须保留正式 `1080 x 1920` 竖屏视口，同时用 `display/window/size/window_width_override=540` 与 `window_height_override=960` 设置 50% 初始预览窗；不得为了让窗口塞进桌面而修改 `canvas_items`、`expand`、固定竖屏、UI 坐标或触控换算。验证时必须读取真实 GUI 窗口尺寸和当前屏幕可用区，并在同一帧看到页面顶部与底部。
+- 新游戏或尚未批准目标分辨率的游戏，竖屏默认使用 `720 x 1280`，横屏默认使用 `1280 x 720`；已有项目的正式分辨率优先，迁移不得批量覆盖，必须逐项目完成运行时验收。
+- 本项目固定竖屏，Godot viewport 与默认桌面窗口统一为 `720 x 1280`；保留 `canvas_items`、`expand`、固定竖屏、UI 坐标和触控换算。`540 x 960`、`1080 x 1920` 等尺寸仅作为兼容性边界，不再是默认窗口。
+- 分辨率验证必须读取真实 GUI 客户区尺寸和当前屏幕可用区，在默认分辨率的一帧内同时看到页面顶部与底部，并保留与声明尺寸一致的运行截图。
 - `config/tables/` 下的 CSV 必须保持 UTF-8 或 UTF-8 BOM 编码；不要提交 GBK/ANSI 表格。若 `tools/validate_config.py` 报 Unicode decode 错误，先转码源 CSV，再导出 `runtime/config/`。
 - 任意叙述型文档交付默认生成 Word `.docx`，并渲染或使用等价方式检查分页、字体、表格、图件、链接是否可读且无重叠、无截断。
 - 任意主导型表格交付默认生成 Excel `.xlsx`，并检查工作表命名、字段说明、冻结窗格、筛选、公式、数据验证、数字格式和可编辑性。

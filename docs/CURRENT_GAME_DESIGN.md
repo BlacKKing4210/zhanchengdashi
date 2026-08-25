@@ -1,6 +1,6 @@
 # 战城大师当前游戏设计文档
 
-更新日期：2026-08-12
+更新日期：2026-08-25
 
 ## 1. 文档用途
 
@@ -93,8 +93,10 @@
 
 | 项 | 当前值 | 位置 |
 | --- | --- | --- |
-| 设计分辨率 | 720x1280 | `scripts/app/main.gd` |
-| Godot 窗口 | 1080x1920 | `project.godot` |
+| 竖屏设计分辨率 | 720x1280 | `scripts/app/main.gd` |
+| 当前 Godot 窗口 | 720x1280 | `project.godot` |
+| 横屏默认分辨率 | 1280x720 | 跨项目默认；当前项目固定竖屏，不启用横屏 |
+| 分辨率权威 | 2026-08-25 制作人决策 | 取代旧 `1080x1920` 视口与 `540x960` 桌面预览规则；旧回执仅作历史证据 |
 | 拉伸模式 | canvas_items / expand | `project.godot` |
 | 主场景 | `scenes/main.tscn` | `project.godot` |
 | 主节点 | `Node2D` | `scenes/main.tscn` |

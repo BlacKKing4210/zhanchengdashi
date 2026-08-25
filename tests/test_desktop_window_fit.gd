@@ -1,7 +1,7 @@
 extends Node
 
-const EXPECTED_VIEWPORT = Vector2i(1080, 1920)
-const EXPECTED_DESKTOP_WINDOW = Vector2i(540, 960)
+const PORTRAIT_DEFAULT = Vector2i(720, 1280)
+const LANDSCAPE_DEFAULT = Vector2i(1280, 720)
 
 var failures := 0
 var checks := 0
@@ -16,19 +16,19 @@ func _ready() -> void:
 		int(ProjectSettings.get_setting("display/window/size/window_width_override", 0)),
 		int(ProjectSettings.get_setting("display/window/size/window_height_override", 0))
 	)
-	_expect_vector_equal(viewport_size, EXPECTED_VIEWPORT, "formal portrait viewport")
-	_expect_vector_equal(desktop_window_size, EXPECTED_DESKTOP_WINDOW, "desktop preview window override")
-	_expect_true(desktop_window_size.x * EXPECTED_VIEWPORT.y == desktop_window_size.y * EXPECTED_VIEWPORT.x, "desktop preview preserves the 9:16 aspect ratio")
-	_expect_true(desktop_window_size.x < viewport_size.x and desktop_window_size.y < viewport_size.y, "desktop preview is smaller than the formal viewport")
-	_expect_equal(viewport_size.x / desktop_window_size.x, 2, "desktop preview width uses 50 percent scale")
-	_expect_equal(viewport_size.y / desktop_window_size.y, 2, "desktop preview height uses 50 percent scale")
+	_expect_vector_equal(viewport_size, PORTRAIT_DEFAULT, "portrait viewport default")
+	_expect_vector_equal(desktop_window_size, PORTRAIT_DEFAULT, "desktop window uses the portrait default")
+	_expect_true(PORTRAIT_DEFAULT.x * 16 == PORTRAIT_DEFAULT.y * 9, "portrait default preserves the 9:16 aspect ratio")
+	_expect_true(LANDSCAPE_DEFAULT.x * 9 == LANDSCAPE_DEFAULT.y * 16, "landscape default preserves the 16:9 aspect ratio")
+	_expect_true(PORTRAIT_DEFAULT.x == LANDSCAPE_DEFAULT.y and PORTRAIT_DEFAULT.y == LANDSCAPE_DEFAULT.x, "portrait and landscape defaults are transposed")
+	_expect_true(desktop_window_size == viewport_size, "desktop window renders the default viewport at 100 percent scale")
 	_expect_string(str(ProjectSettings.get_setting("display/window/stretch/mode", "")), "canvas_items", "stretch mode remains canvas_items")
 	_expect_string(str(ProjectSettings.get_setting("display/window/stretch/aspect", "")), "expand", "stretch aspect remains expand")
 	_expect_equal(int(ProjectSettings.get_setting("display/window/handheld/orientation", 0)), 1, "Android orientation remains fixed portrait")
 	if failures == 0:
-		print("DESKTOP_WINDOW_FIT_TEST_PASS checks=%d viewport=%s window=%s" % [checks, str(viewport_size), str(desktop_window_size)])
+		print("RESOLUTION_STANDARD_TEST_PASS checks=%d portrait=%s landscape=%s window=%s" % [checks, str(PORTRAIT_DEFAULT), str(LANDSCAPE_DEFAULT), str(desktop_window_size)])
 	else:
-		push_error("Desktop window fit test failed with %d error(s)." % failures)
+		push_error("Resolution standard test failed with %d error(s)." % failures)
 	get_tree().quit(failures)
 
 

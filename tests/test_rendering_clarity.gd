@@ -17,7 +17,7 @@ func _ready() -> void:
 	_test_screen_rect_mapping()
 	_test_layout_scales()
 	if failures == 0:
-		print("RENDERING_CLARITY_TEST_PASS checks=13")
+		print("RENDERING_CLARITY_TEST_PASS checks=15")
 	else:
 		push_error("Rendering clarity test failed with %d error(s)." % failures)
 	app.queue_free()
@@ -26,8 +26,8 @@ func _ready() -> void:
 
 
 func _test_project_resolution_contract() -> void:
-	_expect_equal(int(ProjectSettings.get_setting("display/window/size/viewport_width", 0)), 1080, "portrait viewport width")
-	_expect_equal(int(ProjectSettings.get_setting("display/window/size/viewport_height", 0)), 1920, "portrait viewport height")
+	_expect_equal(int(ProjectSettings.get_setting("display/window/size/viewport_width", 0)), 720, "portrait viewport width")
+	_expect_equal(int(ProjectSettings.get_setting("display/window/size/viewport_height", 0)), 1280, "portrait viewport height")
 	_expect_equal(int(ProjectSettings.get_setting("display/window/handheld/orientation", 0)), 1, "portrait orientation")
 	_expect_true(bool(ProjectSettings.get_setting("rendering/2d/snap/snap_2d_transforms_to_pixel", false)), "2D transforms snap to pixels")
 	_expect_true(bool(ProjectSettings.get_setting("rendering/2d/snap/snap_2d_vertices_to_pixel", false)), "2D vertices snap to pixels")
@@ -35,6 +35,7 @@ func _test_project_resolution_contract() -> void:
 
 func _test_native_font_sizes() -> void:
 	_expect_equal(int(app.call("_native_font_size_for_scale", 20, 0.75)), 15, "540x960 font size")
+	_expect_equal(int(app.call("_native_font_size_for_scale", 20, 1.0)), 20, "720x1280 default font size")
 	_expect_equal(int(app.call("_native_font_size_for_scale", 20, 1.5)), 30, "1080x1920 font size")
 	_expect_equal(int(app.call("_native_font_size_for_scale", 20, 2.0)), 40, "1440x2560 font size")
 	_expect_equal(int(app.call("_native_font_size_for_scale", 1, 0.01)), 1, "native font minimum")
@@ -51,6 +52,8 @@ func _test_screen_rect_mapping() -> void:
 func _test_layout_scales() -> void:
 	app.call("_layout", Vector2(540.0, 960.0))
 	_expect_close(float(app.get("canvas_scale")), 0.75, "540x960 canvas scale")
+	app.call("_layout", Vector2(720.0, 1280.0))
+	_expect_close(float(app.get("canvas_scale")), 1.0, "720x1280 default canvas scale")
 	app.call("_layout", Vector2(1080.0, 1920.0))
 	_expect_close(float(app.get("canvas_scale")), 1.5, "1080x1920 canvas scale")
 
