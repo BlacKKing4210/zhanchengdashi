@@ -836,6 +836,10 @@ static func _key_before(left: Vector2i, right: Vector2i) -> bool:
 	return left.x < right.x
 
 
+static func hex_distance_from_center(key: Vector2i) -> int:
+	return maxi(absi(key.x), maxi(absi(key.y), absi(key.x + key.y)))
+
+
 static func _apply_exact_bonus_mine_quota(
 	tiles: Dictionary,
 	players_per_side: int,
@@ -1079,6 +1083,7 @@ static func _mirrored_bonus_mine_key(
 	var own_base: Vector2i = base_keys.get(team, INVALID_KEY)
 	var rival_base: Vector2i = base_keys.get(rival_team, INVALID_KEY)
 	var best_key = INVALID_KEY
+	var best_center_distance = 2147483647
 	var best_score = 2147483647
 	for key in tiles:
 		if not _is_bonus_mine_candidate(tiles, key, team, own_base):
@@ -1086,8 +1091,14 @@ static func _mirrored_bonus_mine_key(
 		var mirrored = mirror_key(key)
 		if not _is_bonus_mine_candidate(tiles, mirrored, rival_team, rival_base):
 			continue
+		var center_distance = hex_distance_from_center(key)
 		var score = _derived_seed(layout_seed, "bonus_mine:%d:%d" % [key.x, key.y])
-		if score < best_score or (score == best_score and _key_before(key, best_key)):
+		if (
+			center_distance < best_center_distance
+			or (center_distance == best_center_distance and score < best_score)
+			or (center_distance == best_center_distance and score == best_score and _key_before(key, best_key))
+		):
+			best_center_distance = center_distance
 			best_score = score
 			best_key = key
 	return best_key
@@ -1099,6 +1110,7 @@ static func _rotational_bonus_mine_key(
 	layout_seed: int
 ) -> Vector2i:
 	var best_key = INVALID_KEY
+	var best_center_distance = 2147483647
 	var best_score = 2147483647
 	for key in tiles:
 		if team_for_key(tiles, key) != 1:
@@ -1113,8 +1125,14 @@ static func _rotational_bonus_mine_key(
 				break
 		if not all_sectors_valid:
 			continue
+		var center_distance = hex_distance_from_center(key)
 		var score = _derived_seed(layout_seed, "bonus_mine:%d:%d" % [key.x, key.y])
-		if score < best_score or (score == best_score and _key_before(key, best_key)):
+		if (
+			center_distance < best_center_distance
+			or (center_distance == best_center_distance and score < best_score)
+			or (center_distance == best_center_distance and score == best_score and _key_before(key, best_key))
+		):
+			best_center_distance = center_distance
 			best_score = score
 			best_key = key
 	return best_key

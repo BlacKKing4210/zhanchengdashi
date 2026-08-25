@@ -348,9 +348,54 @@ active_modules:
     read_only_receipt: docs/receipts/REQ-20260825-ACCOUNT-AVATAR-GM-UX-READ-ONLY-001.md
     completion_receipt: docs/receipts/REQ-20260825-ACCOUNT-AVATAR-GM-UX-CLOSE-002.md
     remaining_gates: [android_device_not_run, apk_not_requested, aliyun_remote_write_not_authorized, production_auth_security_gates]
+  - task_id: REQ-20260825-BATTLE-INCOME-RETALIATION-BONUS-MINE-001
+    feature_id: F-ZC-BATTLE-ECONOMY-AI-MAP-004
+    version: v1.0.0
+    phase: closure
+    domain: cross_domain
+    owner: codex-primary
+    status: COMPLETE
+    started_on: "2026-08-25"
+    completed_on: "2026-08-25"
+    release_status: LOCAL_IMPLEMENTATION_VALIDATED
+    remote_write_status: NOT_AUTHORIZED
+    fingerprint: CCD8BCE397EBD798AD190941C7368701B7018C85779C11BCE4678C1823520B32
+    rag_gate_receipt: temp/rag/receipts/rag-gate.json
+    rag_task_receipt: temp/rag/receipts/tasks/REQ-20260825-BATTLE-INCOME-RETALIATION-BONUS-MINE-001.json
+    control_intake: temp/control/REQ-20260825-BATTLE-INCOME-RETALIATION-BONUS-MINE-001.json
+    read_only_receipt: docs/receipts/REQ-20260825-BATTLE-INCOME-RETALIATION-BONUS-MINE-READ-ONLY-001.md
+    completion_receipt: docs/receipts/REQ-20260825-BATTLE-INCOME-RETALIATION-BONUS-MINE-CLOSE-002.md
+    remaining_gates: [android_device_not_run, apk_not_requested, aliyun_remote_write_not_authorized]
 queued_modules: []
 
 shared_locks:
+  battle_income_retaliation_bonus_mine_20260825:
+    task_id: REQ-20260825-BATTLE-INCOME-RETALIATION-BONUS-MINE-001
+    owner: codex-primary
+    status: RELEASED
+    acquired_on: "2026-08-25"
+    hold_reason: producer_requested_income_progress_feedback_damage_retaliation_and_center_weighted_bonus_mines
+    released_on: "2026-08-25"
+    release_reason: formal_docx_runtime_behavior_map_regression_performance_gpu_screenshots_config_unchanged_and_close_receipt_passed
+    write_set:
+      - docs/CURRENT_GAME_DESIGN.md
+      - docs/CURRENT_GAME_DESIGN.docx
+      - docs/active_scope.yaml
+      - docs/receipts/REQ-20260825-BATTLE-INCOME-RETALIATION-BONUS-MINE-READ-ONLY-001.md
+      - docs/receipts/REQ-20260825-BATTLE-INCOME-RETALIATION-BONUS-MINE-CLOSE-002.md
+      - knowledge/knowledge_manifest.csv
+      - output/qa/F-ZC-BATTLE-ECONOMY-AI-MAP-004/income_progress.png
+      - output/qa/F-ZC-BATTLE-ECONOMY-AI-MAP-004/income_payout_effect.png
+      - scripts/app/main.gd
+      - scripts/app/systems/multiplayer_rules.gd
+      - tests/capture_battle_income_feedback.gd
+      - tests/capture_battle_income_feedback.tscn
+      - tests/test_battle_income_retaliation.gd
+      - tests/test_battle_income_retaliation.tscn
+      - tests/test_multiplayer_rules.gd
+      - tools/update_battle_income_retaliation_docx.py
+    evidence_root: temp/qa/F-ZC-BATTLE-ECONOMY-AI-MAP-004/20260825
+    remote_write_authorized: false
   account_avatar_gm_ux_20260825:
     task_id: REQ-20260825-ACCOUNT-AVATAR-GM-UX
     owner: codex-primary

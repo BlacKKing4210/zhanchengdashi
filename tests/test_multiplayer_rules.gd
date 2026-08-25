@@ -437,6 +437,71 @@ func _test_exact_mine_quota(
 			bonus_mine in MultiplayerRules.neighbors(tiles, base),
 			"%s team %d bonus mine is outside the initially unlockable base ring" % [map_id, team]
 		)
+		var minimum_center_distance = _minimum_symmetric_bonus_mine_center_distance(
+			tiles,
+			team,
+			players_per_side,
+			base_keys
+		)
+		_expect_true(minimum_center_distance < 2147483647, "%s team %d has a valid center-ring mine candidate" % [map_id, team])
+		_expect_equal(
+			MultiplayerRules.hex_distance_from_center(bonus_mine),
+			minimum_center_distance,
+			"%s team %d bonus mine uses the nearest valid center ring" % [map_id, team]
+		)
+
+
+func _minimum_symmetric_bonus_mine_center_distance(
+	tiles: Dictionary,
+	team: int,
+	players_per_side: int,
+	base_keys: Dictionary
+) -> int:
+	var best_distance = 2147483647
+	var base: Vector2i = base_keys.get(team, MultiplayerRules.INVALID_KEY)
+	for key_value in tiles.keys():
+		var key: Vector2i = key_value
+		if not _bonus_mine_candidate_for_test(tiles, key, team, base):
+			continue
+		var symmetric_candidates_valid = true
+		if players_per_side == MultiplayerRules.MAX_PLAYERS_PER_SIDE:
+			for sector in range(6):
+				var rotated = MultiplayerRules.rotate_key(key, sector)
+				var rotated_team = MultiplayerRules.team_for_key(tiles, rotated)
+				var rotated_base: Vector2i = base_keys.get(rotated_team, MultiplayerRules.INVALID_KEY)
+				if not _bonus_mine_candidate_for_test(tiles, rotated, rotated_team, rotated_base):
+					symmetric_candidates_valid = false
+					break
+		else:
+			var rival_team = MultiplayerRules.mirror_team(team, players_per_side)
+			var rival_base: Vector2i = base_keys.get(rival_team, MultiplayerRules.INVALID_KEY)
+			symmetric_candidates_valid = _bonus_mine_candidate_for_test(
+				tiles,
+				MultiplayerRules.mirror_key(key),
+				rival_team,
+				rival_base
+			)
+		if symmetric_candidates_valid:
+			best_distance = mini(best_distance, MultiplayerRules.hex_distance_from_center(key))
+	return best_distance
+
+
+func _bonus_mine_candidate_for_test(
+	tiles: Dictionary,
+	key: Vector2i,
+	team: int,
+	base_key: Vector2i
+) -> bool:
+	if not tiles.has(key) or base_key == MultiplayerRules.INVALID_KEY:
+		return false
+	var tile: Dictionary = tiles[key]
+	return (
+		int(tile.get("territory_team", BoardRules.NEUTRAL)) == team
+		and String(tile.get("building", "")).is_empty()
+		and String(tile.get("starting_resource", "")).is_empty()
+		and not String(tile.get("site", "")).is_empty()
+		and key not in MultiplayerRules.neighbors(tiles, base_key)
+	)
 
 
 func _test_mine_quota_across_seeds() -> void:

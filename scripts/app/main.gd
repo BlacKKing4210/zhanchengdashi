@@ -3012,13 +3012,7 @@ func _update_battle(delta: float) -> void:
 	income_timer -= delta
 	if income_timer <= 0.0:
 		income_timer = INCOME_INTERVAL
-		if battle_mode == BATTLE_MODE_MULTIPLAYER:
-			for team in _active_multiplayer_teams():
-				if _is_multiplayer_team_alive(team):
-					_add_gold(team, _building_count(team, "base") * BASE_INCOME + _building_count(team, "mine") * MINE_INCOME)
-		else:
-			gold += _building_count(PLAYER, "base") * BASE_INCOME + _building_count(PLAYER, "mine") * MINE_INCOME
-			enemy_gold += _building_count(ENEMY, "base") * BASE_INCOME + _building_count(ENEMY, "mine") * MINE_INCOME
+		_award_periodic_building_income()
 
 	_update_buildings(delta)
 	if game_over:
@@ -3029,6 +3023,36 @@ func _update_battle(delta: float) -> void:
 		_update_enemy(delta)
 	_update_units(delta)
 	_update_effects(delta)
+
+
+func _award_periodic_building_income() -> void:
+	for key_value in tiles.keys():
+		var key: Vector2i = key_value
+		var tile_value = tiles.get(key, {})
+		if typeof(tile_value) != TYPE_DICTIONARY:
+			continue
+		var tile: Dictionary = tile_value
+		var amount = _building_income_amount(String(tile.get("building", "")))
+		if amount <= 0:
+			continue
+		var team = int(tile.get("team", NEUTRAL))
+		if battle_mode == BATTLE_MODE_MULTIPLAYER:
+			if not _is_multiplayer_team_alive(team):
+				continue
+		elif team != PLAYER and team != ENEMY:
+			continue
+		_add_gold(team, amount, {
+			"pos": _hex_center(key) + Vector2(0, -34),
+			"unit_id": -1,
+		})
+
+
+func _building_income_amount(building: String) -> int:
+	if building == "base":
+		return BASE_INCOME
+	if building == "mine":
+		return MINE_INCOME
+	return 0
 
 
 func _update_buildings(delta: float) -> void:
@@ -3266,11 +3290,11 @@ func _update_units(delta: float) -> void:
 					unit["cooldown"] = _unit_attack_cooldown(unit)
 		if not attacked:
 			unit = units[i]
-			var navigation_target = _unit_navigation_target(unit)
-			if not navigation_target.is_empty():
-				var navigation_pos = Vector2(navigation_target["pos"])
-				if Vector2(unit["pos"]).distance_to(navigation_pos) > 1.0:
-					unit = _move_unit_toward_target(unit, navigation_target, navigation_pos, delta)
+			var movement_target: Dictionary = attack_target if bool(unit.get("attack_target_chase", false)) else _unit_navigation_target(unit)
+			if not movement_target.is_empty():
+				var movement_pos = Vector2(movement_target["pos"])
+				if Vector2(unit["pos"]).distance_to(movement_pos) > 1.0:
+					unit = _move_unit_toward_target(unit, movement_target, movement_pos, delta)
 		var current_tile = _tile_at_world(Vector2(unit["pos"]))
 		if current_tile != previous_tile:
 			_try_paint_crossed_tile(previous_tile, int(unit["team"]), i)
@@ -3491,7 +3515,7 @@ func _tower_attack(key: Vector2i, team: int) -> void:
 			return
 		_play_world_sfx("tower_attack", center, team, -3.0)
 		_projectile(center, Vector2(target.get("pos", units[target_index].get("pos", center))), team)
-		_damage_unit(target_index, damage, -1, team if battle_mode == BATTLE_MODE_MULTIPLAYER else NEUTRAL)
+		_damage_unit(target_index, damage, -1, team, true, key, true)
 	elif String(target.get("kind", "")) == "building":
 		var target_key: Vector2i = target.get("key", MultiplayerRules.INVALID_KEY)
 		if target_key == MultiplayerRules.INVALID_KEY:
@@ -3607,7 +3631,15 @@ func _lock_tower_attack_target(key: Vector2i, target: Dictionary) -> void:
 	tower_target_locks.erase(key)
 
 
-func _damage_unit(index: int, damage: float, source_index: int = -1, source_team: int = NEUTRAL, trigger_reactive: bool = true) -> bool:
+func _damage_unit(
+	index: int,
+	damage: float,
+	source_index: int = -1,
+	source_team: int = NEUTRAL,
+	trigger_reactive: bool = true,
+	source_key: Vector2i = MultiplayerRules.INVALID_KEY,
+	trigger_retaliation: bool = true
+) -> bool:
 	if index < 0 or index >= units.size():
 		return false
 	var unit = units[index]
@@ -3619,7 +3651,7 @@ func _damage_unit(index: int, damage: float, source_index: int = -1, source_team
 		var guardian_index = _damage_guardian_index(index, source_team)
 		if guardian_index >= 0:
 			_pulse(Vector2(units[index]["pos"]), COLOR_BLUE)
-			_damage_unit(guardian_index, damage, source_index, source_team, false)
+			_damage_unit(guardian_index, damage, source_index, source_team, false, source_key, true)
 			return false
 	var final_damage = _incoming_unit_damage(index, damage)
 	var impact_damage = final_damage
@@ -3637,6 +3669,8 @@ func _damage_unit(index: int, damage: float, source_index: int = -1, source_team
 		_trigger_unit_motion(index, UnitMotionFeedback.KIND_HIT, _unit_hit_direction(index, source_index, source_team))
 		_play_world_sfx("shield_hit" if absorbed_damage > 0.0 else "unit_hit", Vector2(units[index]["pos"]), int(units[index].get("team", NEUTRAL)), -5.0)
 	_pulse(Vector2(units[index]["pos"]), COLOR_YELLOW)
+	if trigger_retaliation and final_damage > 0.0 and float(units[index]["hp"]) > 0.0:
+		_lock_retaliation_target(index, source_index, source_team, source_key)
 	if trigger_reactive and final_damage > 0.0 and float(units[index]["hp"]) > 0.0:
 		_apply_unit_damage_skill(index, source_index, source_team)
 	if float(units[index]["hp"]) <= 0.0 and not bool(units[index].get("death_handled", false)):
@@ -3644,6 +3678,42 @@ func _damage_unit(index: int, damage: float, source_index: int = -1, source_team
 		_handle_unit_death(index, source_index, source_team)
 		return true
 	return false
+
+
+func _lock_retaliation_target(
+	unit_index: int,
+	source_index: int,
+	source_team: int,
+	source_key: Vector2i = MultiplayerRules.INVALID_KEY
+) -> void:
+	if unit_index < 0 or unit_index >= units.size() or source_team == NEUTRAL:
+		return
+	var unit: Dictionary = units[unit_index]
+	if float(unit.get("hp", 0.0)) <= 0.0 or _are_allies(int(unit.get("team", NEUTRAL)), source_team):
+		return
+	if not _locked_unit_attack_target(unit).is_empty():
+		return
+	var target: Dictionary = {}
+	if source_index >= 0 and source_index < units.size() and source_index != unit_index:
+		var source_unit: Dictionary = units[source_index]
+		if float(source_unit.get("hp", 0.0)) > 0.0 and not _are_allies(int(unit.get("team", NEUTRAL)), int(source_unit.get("team", NEUTRAL))):
+			var source_pos = Vector2(source_unit.get("pos", Vector2.ZERO))
+			target = {
+				"kind": "unit",
+				"index": source_index,
+				"pos": source_pos,
+				"tile": source_unit.get("tile", _tile_at_world(source_pos)),
+			}
+	elif source_key != MultiplayerRules.INVALID_KEY and _is_enemy_building_target_valid(source_key, int(unit.get("team", NEUTRAL))):
+		target = {
+			"kind": "building",
+			"key": source_key,
+			"pos": _hex_center(source_key),
+			"tile": source_key,
+		}
+	if target.is_empty():
+		return
+	units[unit_index] = _lock_unit_attack_target(unit, target, true)
 
 
 func _damage_tile(key: Vector2i, attacker: int, damage: float) -> bool:
@@ -3841,6 +3911,7 @@ func _locked_unit_attack_target(unit: Dictionary) -> Dictionary:
 	var team = int(unit.get("team", NEUTRAL))
 	var unit_pos = Vector2(unit.get("pos", Vector2.ZERO))
 	var attack_range = maxf(0.0, float(unit.get("range", 0.0)))
+	var chase_until_first_attack = bool(unit.get("attack_target_chase", false))
 	match String(unit.get("attack_target_kind", "")):
 		"unit":
 			var target_index = _unit_index_by_id(int(unit.get("attack_target_unit_id", -1)))
@@ -3850,7 +3921,7 @@ func _locked_unit_attack_target(unit: Dictionary) -> Dictionary:
 			if float(target_unit.get("hp", 0.0)) <= 0.0 or _are_allies(int(target_unit.get("team", NEUTRAL)), team):
 				return {}
 			var target_pos = Vector2(target_unit.get("pos", Vector2.ZERO))
-			if unit_pos.distance_to(target_pos) > attack_range:
+			if not chase_until_first_attack and unit_pos.distance_to(target_pos) > attack_range:
 				return {}
 			return {
 				"kind": "unit",
@@ -3863,7 +3934,7 @@ func _locked_unit_attack_target(unit: Dictionary) -> Dictionary:
 			if not _is_enemy_building_target_valid(key, team):
 				return {}
 			var target_pos = _hex_center(key)
-			if unit_pos.distance_to(target_pos) > attack_range:
+			if not chase_until_first_attack and unit_pos.distance_to(target_pos) > attack_range:
 				return {}
 			return {
 				"kind": "building",
@@ -3922,11 +3993,12 @@ func _nearest_attack_target_in_range(unit: Dictionary) -> Dictionary:
 	return best
 
 
-func _lock_unit_attack_target(unit: Dictionary, target: Dictionary) -> Dictionary:
+func _lock_unit_attack_target(unit: Dictionary, target: Dictionary, chase_until_first_attack: bool = false) -> Dictionary:
 	var kind = String(target.get("kind", ""))
 	unit["attack_target_kind"] = kind
 	unit["attack_target_unit_id"] = -1
 	unit["attack_target_key"] = MultiplayerRules.INVALID_KEY
+	unit["attack_target_chase"] = chase_until_first_attack and not kind.is_empty()
 	if kind == "unit":
 		var index = int(target.get("index", -1))
 		if index >= 0 and index < units.size():
@@ -3940,6 +4012,7 @@ func _clear_unit_attack_target(unit: Dictionary) -> Dictionary:
 	unit["attack_target_kind"] = ""
 	unit["attack_target_unit_id"] = -1
 	unit["attack_target_key"] = MultiplayerRules.INVALID_KEY
+	unit["attack_target_chase"] = false
 	return unit
 
 
@@ -4113,6 +4186,8 @@ func _unit_attack_target(attacker_index: int, target: Dictionary, distance: floa
 		var target_key: Vector2i = target["key"]
 		killed = _damage_tile(target_key, int(attacker["team"]), damage)
 	_apply_unit_attack_skill(attacker_index, target)
+	if attacker_index < units.size():
+		units[attacker_index]["attack_target_chase"] = false
 	if killed:
 		_apply_unit_kill_skill(attacker_index, target)
 
@@ -4322,7 +4397,15 @@ func _apply_melee_thorns_damage(index: int, source_index: int) -> void:
 	if float(source.get("hp", 0.0)) <= 0.0 or float(source.get("range", 0.0)) > HEX_SIZE * 1.5:
 		return
 	var defender = units[index]
-	_damage_unit(source_index, _unit_effect_damage(defender), index, int(defender.get("team", NEUTRAL)), false)
+	_damage_unit(
+		source_index,
+		_unit_effect_damage(defender),
+		index,
+		int(defender.get("team", NEUTRAL)),
+		false,
+		MultiplayerRules.INVALID_KEY,
+		false
+	)
 
 
 func _handle_unit_death(index: int, source_index: int, source_team: int) -> void:
@@ -7713,6 +7796,8 @@ func _draw_building(center: Vector2, tile: Dictionary) -> void:
 		draw_texture_rect(_building_texture(building), Rect2(center - size * 0.5 + Vector2(0, -8), size), false)
 	if building == "barracks" or building == "hall":
 		_draw_building_summon_progress(center, tile)
+	elif building == "base" or building == "mine":
+		_draw_building_income_progress(center)
 	_draw_building_health_bar(center, tile)
 
 
@@ -7728,6 +7813,15 @@ func _draw_building_summon_progress(center: Vector2, tile: Dictionary) -> void:
 	_draw_compact_bar(Rect2(center + Vector2(-21, 19), Vector2(42, 5)), pct, bar_color)
 	if spawn_state == "population_full":
 		_draw_camp_capacity_badge(center)
+
+
+func _draw_building_income_progress(center: Vector2) -> void:
+	_draw_compact_bar(Rect2(center + Vector2(-21, 19), Vector2(42, 5)), _building_income_progress(), COLOR_YELLOW)
+
+
+func _building_income_progress() -> float:
+	var remaining = clampf(income_timer, 0.0, INCOME_INTERVAL)
+	return clampf(1.0 - remaining / INCOME_INTERVAL, 0.0, 1.0)
 
 
 func _draw_camp_capacity_badge(center: Vector2) -> void:
