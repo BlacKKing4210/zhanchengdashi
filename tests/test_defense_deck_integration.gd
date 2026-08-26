@@ -11,6 +11,7 @@ var app
 func _ready() -> void:
 	app = MainApp.new()
 	add_child(app)
+	app.set("card_levels", {})
 	_test_animal_resolution_uses_each_team_deck()
 	_test_multiplayer_slots_keep_independent_deck_snapshots()
 	_test_defense_resolution_uses_each_team_deck()
@@ -240,45 +241,61 @@ func _test_green_defense_replacement_guard() -> void:
 
 
 func _test_defense_tower_combat_stats() -> void:
-	var defense_ids = [
-		"defense_watch_tower",
-		"defense_cannon_tower",
-		"defense_repair_beacon",
-		"defense_storm_obelisk",
-	]
-	for card_id in defense_ids:
+	var expected = {
+		"defense_watch_tower": [1, 5, 2.0, 1.5, "基础防御塔，无特殊效果"],
+		"defense_longshot_tower": [1, 5, 3.5, 1.5, "攻击距离+1.5，优先攻击远程"],
+		"defense_cannon_tower": [2, 6, 2.0, 1.5, "攻击+1"],
+		"defense_plunder_tower": [1, 7, 2.0, 1.5, "攻击时，掠夺1金币"],
+		"defense_rapid_tower": [1, 6, 2.0, 0.5, "攻击速度+200%"],
+		"defense_repair_beacon": [1, 21, 2.0, 1.5, "生命值+200%"],
+		"defense_twinshot_tower": [1, 10, 3.0, 1.5, "攻击目标+1，攻击距离+1"],
+		"defense_bounty_tower": [3, 12, 2.0, 1.5, "攻击+2，击杀时，获得10金币"],
+		"defense_territory_tower": [1, 12, 2.0, 1.5, "无视攻击距离，只要敌人处于我方领地上即可攻击"],
+		"defense_storm_obelisk": [1, 12, 2.0, 5.0, "每5秒对所有动物造成1点伤害"],
+	}
+	for card_id in expected.keys():
 		var card: Dictionary = app.call("_card_by_id", card_id)
 		_expect_false(card.is_empty(), "%s is available for combat stat checks" % card_id)
 		if card.is_empty():
 			continue
+		var target: Array = expected[card_id]
 		var level_one_stats = CardRules.card_stats(card, {card_id: 1})
 		var adjusted_level_one: Dictionary = app.call("_card_stats_with_levels", card, {card_id: 1})
+		_expect_equal(int(adjusted_level_one.get("attack", 0)), int(target[0]), "%s level-one attack is the producer final value" % card_id)
+		_expect_equal(int(adjusted_level_one.get("max_hp", 0)), int(target[1]), "%s level-one health is the producer final value" % card_id)
+		_expect_close(
+			float(adjusted_level_one.get("attack_range_cells", 0.0)),
+			float(target[2]),
+			"%s level-one range is stored as the producer final tile distance" % card_id
+		)
 		_expect_close(
 			float(adjusted_level_one.get("attack_range", 0.0)),
-			float(level_one_stats.get("attack_range", 0.0)) + MainApp.DEFENSE_TOWER_RANGE_BONUS,
-			"%s gains exactly half a tile of range at level one" % card_id
+			float(target[2]) * MainApp.HEX_SIZE,
+			"%s converts final tile distance to world units once" % card_id
 		)
 		_expect_close(
 			float(adjusted_level_one.get("summon_interval_sec", 0.0)),
-			MainApp.DEFENSE_TOWER_ATTACK_INTERVAL,
-			"%s attacks every one second at level one" % card_id
+			float(target[3]),
+			"%s level-one interval is the producer final value" % card_id
 		)
+		_expect_equal(String(card.get("skill_text", "")), String(target[4]), "%s exposes the full producer design in skill text" % card_id)
 		var upgraded_stats = CardRules.card_stats(card, {card_id: 8})
 		var adjusted_upgraded: Dictionary = app.call("_card_stats_with_levels", card, {card_id: 8})
 		_expect_close(
 			float(adjusted_upgraded.get("attack_range", 0.0)),
-			float(upgraded_stats.get("attack_range", 0.0)) + MainApp.DEFENSE_TOWER_RANGE_BONUS,
-			"%s keeps a fixed half-tile bonus after upgrades" % card_id
+			float(upgraded_stats.get("attack_range", 0.0)) * MainApp.HEX_SIZE,
+			"%s upgrade range has no legacy half-tile bonus" % card_id
 		)
+		var expected_upgraded_interval = float(target[3]) if card_id == "defense_storm_obelisk" else float(upgraded_stats.get("summon_interval_sec", 0.0))
 		_expect_close(
 			float(adjusted_upgraded.get("summon_interval_sec", 0.0)),
-			MainApp.DEFENSE_TOWER_ATTACK_INTERVAL,
-			"%s keeps a one-second interval after upgrades" % card_id
+			expected_upgraded_interval,
+			"%s upgrade interval follows its attack or fixed skill-cooldown contract" % card_id
 		)
 		_expect_close(
 			float(app.call("_building_delay", "tower", BoardRules.PLAYER, card_id)),
-			MainApp.DEFENSE_TOWER_ATTACK_INTERVAL,
-			"%s building timer uses the fixed tower interval" % card_id
+			float(adjusted_level_one.get("summon_interval_sec", 0.0)),
+			"%s building timer uses its card interval" % card_id
 		)
 
 

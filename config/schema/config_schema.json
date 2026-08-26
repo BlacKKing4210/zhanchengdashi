@@ -51,17 +51,17 @@
         "skill_trigger": {
           "type": "enum",
           "required": false,
-          "values": ["on_spawn", "on_attack", "on_death", "on_ally_death", "aura", "on_interval", "on_damage", "on_capture"]
+          "values": ["on_spawn", "on_attack", "on_death", "on_ally_death", "aura", "on_interval", "on_damage", "on_capture", "passive", "on_kill"]
         },
         "skill_effect": {
           "type": "enum",
           "required": false,
-          "values": ["damage", "shield", "heal", "buff_attack", "buff_hp", "buff_speed", "slow", "stun", "summon", "gold", "repair", "thorns", "execute", "copy", "revive"]
+          "values": ["damage", "shield", "heal", "buff_attack", "buff_hp", "buff_speed", "slow", "stun", "summon", "gold", "repair", "thorns", "execute", "copy", "revive", "prefer_ranged", "plunder", "attack_speed", "multi_target", "territory_range", "global_damage"]
         },
         "skill_power": { "type": "float", "required": false },
         "skill_cooldown_sec": { "type": "float", "required": false },
         "skill_chance": { "type": "float", "required": false },
-        "skill_target": { "type": "enum", "required": false, "values": ["self", "enemy"] },
+        "skill_target": { "type": "enum", "required": false, "values": ["self", "enemy", "all_animals"] },
         "skill_text": { "type": "string", "required": false },
         "tags": { "type": "list", "required": false },
         "design_notes": { "type": "string", "required": false }

@@ -598,5 +598,185 @@
     "vfx_key": "vfx_wraith_return",
     "description_key": "skill_wraith_return_desc",
     "design_notes": "史诗亡灵第一次死亡后返场，持续时间结束再消散"
+  },
+  {
+    "id": "defense_basic",
+    "type": "passive",
+    "targeting": "self",
+    "cooldown_sec": 0.0,
+    "power": 0.0,
+    "range": 2.0,
+    "radius": 0.0,
+    "duration_sec": 0.0,
+    "effect_tags": [
+      "tower",
+      "basic"
+    ],
+    "vfx_key": null,
+    "description_key": "defense_basic_desc",
+    "design_notes": "基础防御塔；无额外运行时效果"
+  },
+  {
+    "id": "defense_far_sight",
+    "type": "passive",
+    "targeting": "nearest_enemy",
+    "cooldown_sec": 0.0,
+    "power": 0.0,
+    "range": 3.5,
+    "radius": 0.0,
+    "duration_sec": 0.0,
+    "effect_tags": [
+      "tower",
+      "prefer_ranged",
+      "range"
+    ],
+    "vfx_key": null,
+    "description_key": "defense_far_sight_desc",
+    "design_notes": "获取新目标时优先选择远程动物；最终距离已写入卡表"
+  },
+  {
+    "id": "defense_heavy_bolt",
+    "type": "passive",
+    "targeting": "nearest_enemy",
+    "cooldown_sec": 0.0,
+    "power": 1.0,
+    "range": 2.0,
+    "radius": 0.0,
+    "duration_sec": 0.0,
+    "effect_tags": [
+      "tower",
+      "final_stat",
+      "attack"
+    ],
+    "vfx_key": null,
+    "description_key": "defense_heavy_bolt_desc",
+    "design_notes": "攻击加成已折算进最终面板；不重复结算"
+  },
+  {
+    "id": "defense_plunder",
+    "type": "attack",
+    "targeting": "nearest_enemy",
+    "cooldown_sec": 1.5,
+    "power": 1.0,
+    "range": 2.0,
+    "radius": 0.0,
+    "duration_sec": 0.0,
+    "effect_tags": [
+      "tower",
+      "gold",
+      "transfer"
+    ],
+    "vfx_key": null,
+    "description_key": "defense_plunder_desc",
+    "design_notes": "成功直接攻击后从目标阵营转移最多1金币"
+  },
+  {
+    "id": "defense_rapid_fire",
+    "type": "passive",
+    "targeting": "nearest_enemy",
+    "cooldown_sec": 0.5,
+    "power": 200.0,
+    "range": 2.0,
+    "radius": 0.0,
+    "duration_sec": 0.0,
+    "effect_tags": [
+      "tower",
+      "final_stat",
+      "attack_speed"
+    ],
+    "vfx_key": null,
+    "description_key": "defense_rapid_fire_desc",
+    "design_notes": "攻速加成已折算为0.5秒最终间隔；不重复结算"
+  },
+  {
+    "id": "defense_shell_bastion",
+    "type": "passive",
+    "targeting": "self",
+    "cooldown_sec": 0.0,
+    "power": 200.0,
+    "range": 2.0,
+    "radius": 0.0,
+    "duration_sec": 0.0,
+    "effect_tags": [
+      "tower",
+      "final_stat",
+      "hp"
+    ],
+    "vfx_key": null,
+    "description_key": "defense_shell_bastion_desc",
+    "design_notes": "生命加成已折算为21点最终生命；不重复结算"
+  },
+  {
+    "id": "defense_twin_shot",
+    "type": "attack",
+    "targeting": "nearest_enemy",
+    "cooldown_sec": 1.5,
+    "power": 1.0,
+    "range": 3.0,
+    "radius": 0.0,
+    "duration_sec": 0.0,
+    "effect_tags": [
+      "tower",
+      "multi_target",
+      "range"
+    ],
+    "vfx_key": null,
+    "description_key": "defense_twin_shot_desc",
+    "design_notes": "主攻击后额外攻击一个不同的范围内敌方动物"
+  },
+  {
+    "id": "defense_bounty",
+    "type": "passive",
+    "targeting": "nearest_enemy",
+    "cooldown_sec": 0.0,
+    "power": 10.0,
+    "range": 2.0,
+    "radius": 0.0,
+    "duration_sec": 0.0,
+    "effect_tags": [
+      "tower",
+      "gold",
+      "on_kill"
+    ],
+    "vfx_key": null,
+    "description_key": "defense_bounty_desc",
+    "design_notes": "该塔实际击杀动物时获得10金币"
+  },
+  {
+    "id": "defense_territory",
+    "type": "passive",
+    "targeting": "nearest_enemy",
+    "cooldown_sec": 0.0,
+    "power": 0.0,
+    "range": 2.0,
+    "radius": 0.0,
+    "duration_sec": 0.0,
+    "effect_tags": [
+      "tower",
+      "territory",
+      "unlimited_range"
+    ],
+    "vfx_key": null,
+    "description_key": "defense_territory_desc",
+    "design_notes": "只要敌方动物位于我方或盟友领地即可无视距离攻击"
+  },
+  {
+    "id": "defense_global_pulse",
+    "type": "active",
+    "targeting": "area",
+    "cooldown_sec": 5.0,
+    "power": 1.0,
+    "range": 0.0,
+    "radius": 0.0,
+    "duration_sec": 0.0,
+    "effect_tags": [
+      "tower",
+      "global",
+      "all_animals",
+      "damage"
+    ],
+    "vfx_key": null,
+    "description_key": "defense_global_pulse_desc",
+    "design_notes": "每5秒以脉冲替代普攻并对所有存活动物造成1点伤害"
   }
 ]

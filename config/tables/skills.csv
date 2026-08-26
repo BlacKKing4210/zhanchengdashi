@@ -35,3 +35,13 @@ skill_quill_volley,active,area,6.5,1.2,4.2,2.4,0.8,damage|projectile|retaliate,v
 skill_bone_swarm,active,area,5.0,0.8,2.0,2.0,0.6,summon|swarm|damage,vfx_bone_swarm,skill_bone_swarm_desc,亡灵小怪群涌，数量感优先于单体强度
 skill_grave_arrow,attack,nearest_enemy,1.4,1.15,5.2,0.0,3.0,damage|curse|projectile,vfx_grave_arrow,skill_grave_arrow_desc,稀有亡灵远程，命中后诅咒降防
 skill_wraith_return,passive,self,12.0,0.45,0.0,0.0,4.0,revive|ghost|haste,vfx_wraith_return,skill_wraith_return_desc,史诗亡灵第一次死亡后返场，持续时间结束再消散
+defense_basic,passive,self,0.0,0.0,2.0,0.0,0.0,tower|basic,,defense_basic_desc,基础防御塔；无额外运行时效果
+defense_far_sight,passive,nearest_enemy,0.0,0.0,3.5,0.0,0.0,tower|prefer_ranged|range,,defense_far_sight_desc,获取新目标时优先选择远程动物；最终距离已写入卡表
+defense_heavy_bolt,passive,nearest_enemy,0.0,1.0,2.0,0.0,0.0,tower|final_stat|attack,,defense_heavy_bolt_desc,攻击加成已折算进最终面板；不重复结算
+defense_plunder,attack,nearest_enemy,1.5,1.0,2.0,0.0,0.0,tower|gold|transfer,,defense_plunder_desc,成功直接攻击后从目标阵营转移最多1金币
+defense_rapid_fire,passive,nearest_enemy,0.5,200.0,2.0,0.0,0.0,tower|final_stat|attack_speed,,defense_rapid_fire_desc,攻速加成已折算为0.5秒最终间隔；不重复结算
+defense_shell_bastion,passive,self,0.0,200.0,2.0,0.0,0.0,tower|final_stat|hp,,defense_shell_bastion_desc,生命加成已折算为21点最终生命；不重复结算
+defense_twin_shot,attack,nearest_enemy,1.5,1.0,3.0,0.0,0.0,tower|multi_target|range,,defense_twin_shot_desc,主攻击后额外攻击一个不同的范围内敌方动物
+defense_bounty,passive,nearest_enemy,0.0,10.0,2.0,0.0,0.0,tower|gold|on_kill,,defense_bounty_desc,该塔实际击杀动物时获得10金币
+defense_territory,passive,nearest_enemy,0.0,0.0,2.0,0.0,0.0,tower|territory|unlimited_range,,defense_territory_desc,只要敌方动物位于我方或盟友领地即可无视距离攻击
+defense_global_pulse,active,area,5.0,1.0,0.0,0.0,0.0,tower|global|all_animals|damage,,defense_global_pulse_desc,每5秒以脉冲替代普攻并对所有存活动物造成1点伤害

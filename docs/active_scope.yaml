@@ -366,9 +366,77 @@ active_modules:
     read_only_receipt: docs/receipts/REQ-20260825-BATTLE-INCOME-RETALIATION-BONUS-MINE-READ-ONLY-001.md
     completion_receipt: docs/receipts/REQ-20260825-BATTLE-INCOME-RETALIATION-BONUS-MINE-CLOSE-002.md
     remaining_gates: [android_device_not_run, apk_not_requested, aliyun_remote_write_not_authorized]
+  - task_id: REQ-20260826-DEFENSE-TOWER-REDESIGN-V1
+    feature_id: F-ZC-DEFENSE-TOWER-005
+    version: v1.0.0
+    phase: art_direction_review
+    domain: cross_domain
+    owner: codex-primary
+    status: WAITING_PRODUCER_APPROVAL
+    started_on: "2026-08-26"
+    fingerprint: 5B074EA7D03C87B9852BCF10D46B31D39112EEFDEE71D9A4C7BDF28A4D1B4661
+    rag_gate_receipt: temp/rag/receipts/rag-gate.json
+    rag_task_receipt: temp/rag/receipts/tasks/REQ-20260826-DEFENSE-TOWER-REDESIGN-V1.json
+    control_intake: temp/control/REQ-20260826-DEFENSE-TOWER-REDESIGN-V1.json
+    read_only_receipt: docs/receipts/REQ-20260826-DEFENSE-TOWER-REDESIGN-READ-ONLY-001.md
+    milestone_receipt: docs/receipts/REQ-20260826-DEFENSE-TOWER-REDESIGN-MILESTONE-002.md
+    release_status: LOCAL_IMPLEMENTATION_VALIDATED_ART_PENDING
+    implementation_status: MECHANICS_CONFIG_UI_COMPLETE
+    art_status: DIRECTION_BOARDS_A_B_READY_NOT_RUNTIME
+    remaining_gates: [producer_direction_selection, transparent_runtime_asset_generation, representative_runtime_slice, full_runtime_binding]
 queued_modules: []
 
 shared_locks:
+  defense_tower_redesign_20260826:
+    task_id: REQ-20260826-DEFENSE-TOWER-REDESIGN-V1
+    owner: codex-primary
+    status: RELEASED
+    acquired_on: "2026-08-26"
+    hold_reason: producer_requested_ten_final_stat_towers_runtime_skill_mechanics_skill_descriptions_and_simple_animal_style_packaging
+    released_on: "2026-08-26"
+    release_reason: mechanics_config_ui_docx_regression_performance_and_architecture_first_direction_boards_ready_waiting_producer_art_choice
+    write_set:
+      - config/schema/config_schema.json
+      - config/tables/cards.csv
+      - config/tables/defenses.csv
+      - config/tables/skills.csv
+      - config/tables/localization_zh.csv
+      - config/tables/localization_zh_runtime.csv
+      - config/tables/card_random_pools.csv
+      - runtime/config/cards.json
+      - runtime/config/defenses.json
+      - runtime/config/skills.json
+      - runtime/config/localization_zh.json
+      - docs/DEFENSE_TOWER_SYSTEM_DESIGN_v1.0.docx
+      - docs/CURRENT_GAME_DESIGN.md
+      - docs/UNIT_BALANCE_DESIGN.md
+      - docs/ANIMAL_SKILL_IMPLEMENTATION_AUDIT.md
+      - docs/active_scope.yaml
+      - docs/receipts/REQ-20260826-DEFENSE-TOWER-REDESIGN-READ-ONLY-001.md
+      - docs/receipts/REQ-20260826-DEFENSE-TOWER-REDESIGN-MILESTONE-002.md
+      - knowledge/knowledge_manifest.csv
+      - output/visual_concepts/defense_towers_v2/defense_towers_board_a.png
+      - output/visual_concepts/defense_towers_v2/defense_towers_board_b.png
+      - output/visual_concepts/defense_towers_v2/defense_towers_board_manifest.json
+      - output/visual_concepts/defense_towers_v2/raw_candidates/defense_towers_architecture_a.png
+      - output/visual_concepts/defense_towers_v2/raw_candidates/defense_towers_architecture_b.png
+      - output/qa/F-ZC-DEFENSE-TOWER-005/tower_card_detail_720x1280.png
+      - output/qa/F-ZC-DEFENSE-TOWER-005/tower_battle_detail_720x1280.png
+      - scripts/app/main.gd
+      - scripts/app/systems/card_rules.gd
+      - scripts/app/systems/defense_tower_rules.gd
+      - scripts/app/systems/defense_tower_rules.gd.uid
+      - tests/test_defense_deck_integration.gd
+      - tests/test_defense_tower_skills.gd
+      - tests/test_defense_tower_skills.tscn
+      - tests/capture_defense_tower_cards.gd
+      - tests/capture_defense_tower_cards.tscn
+      - tools/build_defense_tower_art_review_boards.py
+      - tools/build_defense_tower_system_docx.py
+      - tools/validate_config.py
+    evidence_root: temp/qa/F-ZC-DEFENSE-TOWER-005/20260826
+    remote_write_authorized: false
+    runtime_art_integration_authorized: false
   battle_income_retaliation_bonus_mine_20260825:
     task_id: REQ-20260825-BATTLE-INCOME-RETALIATION-BONUS-MINE-001
     owner: codex-primary

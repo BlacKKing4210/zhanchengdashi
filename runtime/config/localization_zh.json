@@ -171,23 +171,53 @@
   },
   {
     "key": "defense_watch_tower_name",
-    "zh_cn": "哨戒箭塔",
-    "en_us": "Watch Tower"
+    "zh_cn": "兔子哨塔",
+    "en_us": "Rabbit Watchtower"
   },
   {
     "key": "defense_cannon_tower_name",
-    "zh_cn": "火炮塔",
-    "en_us": "Cannon Tower"
+    "zh_cn": "野猪重弩塔",
+    "en_us": "Boar Heavy-Bolt Tower"
   },
   {
     "key": "defense_repair_beacon_name",
-    "zh_cn": "修复信标",
-    "en_us": "Repair Beacon"
+    "zh_cn": "龟甲壁垒塔",
+    "en_us": "Turtle Bastion"
   },
   {
     "key": "defense_storm_obelisk_name",
-    "zh_cn": "风暴方尖碑",
-    "en_us": "Storm Obelisk"
+    "zh_cn": "猛犸震地塔",
+    "en_us": "Mammoth Quake Tower"
+  },
+  {
+    "key": "defense_longshot_tower_name",
+    "zh_cn": "猎鹰瞭望塔",
+    "en_us": "Falcon Lookout"
+  },
+  {
+    "key": "defense_plunder_tower_name",
+    "zh_cn": "松鼠掠金塔",
+    "en_us": "Squirrel Plunder Tower"
+  },
+  {
+    "key": "defense_rapid_tower_name",
+    "zh_cn": "麻雀速弩塔",
+    "en_us": "Sparrow Repeater"
+  },
+  {
+    "key": "defense_twinshot_tower_name",
+    "zh_cn": "鹦鹉双弩塔",
+    "en_us": "Parrot Twin-Bolt Tower"
+  },
+  {
+    "key": "defense_bounty_tower_name",
+    "zh_cn": "老虎赏金塔",
+    "en_us": "Tiger Bounty Tower"
+  },
+  {
+    "key": "defense_territory_tower_name",
+    "zh_cn": "金雕领空塔",
+    "en_us": "Golden Eagle Domain Tower"
   },
   {
     "key": "skill_guardian_slam_desc",
@@ -358,6 +388,56 @@
     "key": "skill_wraith_return_desc",
     "zh_cn": "首次倒下后化为幽魂短暂返场",
     "en_us": "Return as a wraith after first defeat"
+  },
+  {
+    "key": "defense_basic_desc",
+    "zh_cn": "基础防御塔，无特殊效果",
+    "en_us": "Basic defense tower with no special effect"
+  },
+  {
+    "key": "defense_far_sight_desc",
+    "zh_cn": "攻击距离+1.5，优先攻击远程",
+    "en_us": "Gain 1.5 range and prioritize ranged enemies"
+  },
+  {
+    "key": "defense_heavy_bolt_desc",
+    "zh_cn": "攻击+1",
+    "en_us": "Gain 1 attack"
+  },
+  {
+    "key": "defense_plunder_desc",
+    "zh_cn": "攻击时，掠夺1金币",
+    "en_us": "Steal 1 gold when attacking"
+  },
+  {
+    "key": "defense_rapid_fire_desc",
+    "zh_cn": "攻击速度+200%",
+    "en_us": "Gain 200% attack speed"
+  },
+  {
+    "key": "defense_shell_bastion_desc",
+    "zh_cn": "生命值+200%",
+    "en_us": "Gain 200% health"
+  },
+  {
+    "key": "defense_twin_shot_desc",
+    "zh_cn": "攻击目标+1，攻击距离+1",
+    "en_us": "Attack one extra target and gain 1 range"
+  },
+  {
+    "key": "defense_bounty_desc",
+    "zh_cn": "攻击+2，击杀时，获得10金币",
+    "en_us": "Gain 2 attack and gain 10 gold on kill"
+  },
+  {
+    "key": "defense_territory_desc",
+    "zh_cn": "无视攻击距离，只要敌人处于我方领地上即可攻击",
+    "en_us": "Ignore range while an enemy is on allied territory"
+  },
+  {
+    "key": "defense_global_pulse_desc",
+    "zh_cn": "每5秒对所有动物造成1点伤害",
+    "en_us": "Deal 1 damage to all animals every 5 seconds"
   },
   {
     "key": "item_training_blade_name",

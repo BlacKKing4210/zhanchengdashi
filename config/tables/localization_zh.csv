@@ -69,6 +69,26 @@ skill_quill_volley_desc,齐射尖刺造成范围伤害,Volley quills over an are
 skill_bone_swarm_desc,唤起碎骨群涌向敌人,Raise a swarm of bones
 skill_grave_arrow_desc,射出诅咒箭降低目标防御,Fire a cursed arrow that weakens defense
 skill_wraith_return_desc,首次倒下后化为幽魂短暂返场,Return as a wraith after first defeat
+defense_watch_tower_name,兔子哨塔,Rabbit Watchtower
+defense_longshot_tower_name,猎鹰瞭望塔,Falcon Lookout
+defense_cannon_tower_name,野猪重弩塔,Boar Heavy-Bolt Tower
+defense_plunder_tower_name,松鼠掠金塔,Squirrel Plunder Tower
+defense_rapid_tower_name,麻雀速弩塔,Sparrow Repeater
+defense_repair_beacon_name,龟甲壁垒塔,Turtle Bastion
+defense_twinshot_tower_name,鹦鹉双弩塔,Parrot Twin-Bolt Tower
+defense_bounty_tower_name,老虎赏金塔,Tiger Bounty Tower
+defense_territory_tower_name,金雕领空塔,Golden Eagle Domain Tower
+defense_storm_obelisk_name,猛犸震地塔,Mammoth Quake Tower
+defense_basic_desc,基础防御塔，无特殊效果,Basic defense tower with no special effect
+defense_far_sight_desc,"攻击距离+1.5，优先攻击远程",Gain 1.5 range and prioritize ranged enemies
+defense_heavy_bolt_desc,攻击+1,Gain 1 attack
+defense_plunder_desc,"攻击时，掠夺1金币",Steal 1 gold when attacking
+defense_rapid_fire_desc,攻击速度+200%,Gain 200% attack speed
+defense_shell_bastion_desc,生命值+200%,Gain 200% health
+defense_twin_shot_desc,"攻击目标+1，攻击距离+1",Attack one extra target and gain 1 range
+defense_bounty_desc,"攻击+2，击杀时，获得10金币",Gain 2 attack and gain 10 gold on kill
+defense_territory_desc,无视攻击距离，只要敌人处于我方领地上即可攻击,Ignore range while an enemy is on allied territory
+defense_global_pulse_desc,每5秒对所有动物造成1点伤害,Deal 1 damage to all animals every 5 seconds
 item_training_blade_name,训练短刀,Training Blade
 item_guard_charm_name,守备护符,Guard Charm
 item_energy_ration_name,行军口粮,Energy Ration

@@ -144,6 +144,7 @@ static func card_stats(card: Dictionary, card_levels: Dictionary) -> Dictionary:
 	var mult = card_multiplier(card_levels, id)
 	var hp_bonus = upgrade_hp_bonus(card, card_levels)
 	var max_hp = roundi(float(card.get("base_max_hp", 1)) * mult)
+	var minimum_interval = 1.0 if is_animal_card(card) else 0.1
 	if is_animal_card(card):
 		max_hp = roundi(float(card.get("base_max_hp", 1))) + hp_bonus
 	return {
@@ -151,7 +152,7 @@ static func card_stats(card: Dictionary, card_levels: Dictionary) -> Dictionary:
 		"max_hp": maxi(1, max_hp),
 		"move_speed": float(card.get("base_move_speed", 60.0)) * mult,
 		"attack_range": float(card.get("base_attack_range", 42.0)) * mult,
-		"summon_interval_sec": maxf(1.0, float(card.get("base_summon_interval_sec", 3.5)) / mult),
+		"summon_interval_sec": maxf(minimum_interval, float(card.get("base_summon_interval_sec", 3.5)) / mult),
 		"upgrade_hp_bonus": hp_bonus,
 	}
 

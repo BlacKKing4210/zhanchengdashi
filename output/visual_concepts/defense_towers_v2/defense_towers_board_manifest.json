@@ -1,0 +1,301 @@
+{
+  "feature_id": "F-ZC-DEFENSE-TOWER-005",
+  "version": "2.1",
+  "direction": "architecture_first_animal_motifs",
+  "status": "NOT_RUNTIME",
+  "approval": null,
+  "review_status": "READY_FOR_PRODUCER_DIRECTION_SELECTION",
+  "reviewed_on": "2026-08-26",
+  "review_summary": "A/B both pass architecture-first direction review; no complete animal stands on a tower.",
+  "pending_refinements": [
+    "formal A03 should restore a minimal blue rarity band",
+    "formal A04 should remove the speed-like arrow or turn it into a coin-transfer cue",
+    "formal 05 should add one restrained speed arc",
+    "formal 02 and 09 rely on skill text for secondary targeting meaning"
+  ],
+  "runtime_readiness": "DIRECTION_REVIEW_ONLY_REGENERATE_TRANSPARENT_ASSETS_AFTER_APPROVAL",
+  "constraints": [
+    "tower_body_is_primary",
+    "no_full_animal_on_tower",
+    "animal_motifs_are_architectural_only",
+    "one_primary_weapon_or_skill_prop"
+  ],
+  "boards": [
+    {
+      "variant": "A",
+      "path": "output/visual_concepts/defense_towers_v2/defense_towers_board_a.png",
+      "sha256": "a29bc5470db01409c9136bb97ce0aa59f0d099747583a9df8c030e992f9f7e48",
+      "status": "NOT_RUNTIME",
+      "board_size": [
+        1672,
+        1153
+      ],
+      "source_path": "output/visual_concepts/defense_towers_v2/raw_candidates/defense_towers_architecture_a.png",
+      "source_size": [
+        1672,
+        941
+      ],
+      "source_sha256": "956563b73aaf964de2db8030d14d85bbdaf748958c9fa0b0ac33ce80c4bf947c",
+      "cell_order": [
+        {
+          "cell": 1,
+          "animal_id": "rabbit",
+          "tower_name": "兔子哨塔",
+          "rarity": 2,
+          "source_cell_rect": [
+            0,
+            0,
+            334,
+            470
+          ]
+        },
+        {
+          "cell": 2,
+          "animal_id": "falcon",
+          "tower_name": "猎鹰瞭望塔",
+          "rarity": 3,
+          "source_cell_rect": [
+            334,
+            0,
+            334,
+            470
+          ]
+        },
+        {
+          "cell": 3,
+          "animal_id": "boar",
+          "tower_name": "野猪重弩塔",
+          "rarity": 3,
+          "source_cell_rect": [
+            668,
+            0,
+            335,
+            470
+          ]
+        },
+        {
+          "cell": 4,
+          "animal_id": "squirrel",
+          "tower_name": "松鼠掠金塔",
+          "rarity": 3,
+          "source_cell_rect": [
+            1003,
+            0,
+            334,
+            470
+          ]
+        },
+        {
+          "cell": 5,
+          "animal_id": "sparrow",
+          "tower_name": "麻雀速弩塔",
+          "rarity": 4,
+          "source_cell_rect": [
+            1337,
+            0,
+            335,
+            470
+          ]
+        },
+        {
+          "cell": 6,
+          "animal_id": "turtle",
+          "tower_name": "龟甲壁垒塔",
+          "rarity": 4,
+          "source_cell_rect": [
+            0,
+            470,
+            334,
+            471
+          ]
+        },
+        {
+          "cell": 7,
+          "animal_id": "parrot",
+          "tower_name": "鹦鹉双弩塔",
+          "rarity": 4,
+          "source_cell_rect": [
+            334,
+            470,
+            334,
+            471
+          ]
+        },
+        {
+          "cell": 8,
+          "animal_id": "tiger",
+          "tower_name": "老虎赏金塔",
+          "rarity": 5,
+          "source_cell_rect": [
+            668,
+            470,
+            335,
+            471
+          ]
+        },
+        {
+          "cell": 9,
+          "animal_id": "golden_eagle",
+          "tower_name": "金雕领空塔",
+          "rarity": 5,
+          "source_cell_rect": [
+            1003,
+            470,
+            334,
+            471
+          ]
+        },
+        {
+          "cell": 10,
+          "animal_id": "mammoth",
+          "tower_name": "猛犸震地塔",
+          "rarity": 5,
+          "source_cell_rect": [
+            1337,
+            470,
+            335,
+            471
+          ]
+        }
+      ]
+    },
+    {
+      "variant": "B",
+      "path": "output/visual_concepts/defense_towers_v2/defense_towers_board_b.png",
+      "sha256": "1bee434fdc1915de667eedfd3ce10bbc858b3d82244051835dbe460e4d9a5d2f",
+      "status": "NOT_RUNTIME",
+      "board_size": [
+        1672,
+        1153
+      ],
+      "source_path": "output/visual_concepts/defense_towers_v2/raw_candidates/defense_towers_architecture_b.png",
+      "source_size": [
+        1672,
+        941
+      ],
+      "source_sha256": "7fc1c1199e7a56aeb4c2e08b7bb0c817e20027c7c3c87310768f729b3fe01ff0",
+      "cell_order": [
+        {
+          "cell": 1,
+          "animal_id": "rabbit",
+          "tower_name": "兔子哨塔",
+          "rarity": 2,
+          "source_cell_rect": [
+            0,
+            0,
+            334,
+            470
+          ]
+        },
+        {
+          "cell": 2,
+          "animal_id": "falcon",
+          "tower_name": "猎鹰瞭望塔",
+          "rarity": 3,
+          "source_cell_rect": [
+            334,
+            0,
+            334,
+            470
+          ]
+        },
+        {
+          "cell": 3,
+          "animal_id": "boar",
+          "tower_name": "野猪重弩塔",
+          "rarity": 3,
+          "source_cell_rect": [
+            668,
+            0,
+            335,
+            470
+          ]
+        },
+        {
+          "cell": 4,
+          "animal_id": "squirrel",
+          "tower_name": "松鼠掠金塔",
+          "rarity": 3,
+          "source_cell_rect": [
+            1003,
+            0,
+            334,
+            470
+          ]
+        },
+        {
+          "cell": 5,
+          "animal_id": "sparrow",
+          "tower_name": "麻雀速弩塔",
+          "rarity": 4,
+          "source_cell_rect": [
+            1337,
+            0,
+            335,
+            470
+          ]
+        },
+        {
+          "cell": 6,
+          "animal_id": "turtle",
+          "tower_name": "龟甲壁垒塔",
+          "rarity": 4,
+          "source_cell_rect": [
+            0,
+            470,
+            334,
+            471
+          ]
+        },
+        {
+          "cell": 7,
+          "animal_id": "parrot",
+          "tower_name": "鹦鹉双弩塔",
+          "rarity": 4,
+          "source_cell_rect": [
+            334,
+            470,
+            334,
+            471
+          ]
+        },
+        {
+          "cell": 8,
+          "animal_id": "tiger",
+          "tower_name": "老虎赏金塔",
+          "rarity": 5,
+          "source_cell_rect": [
+            668,
+            470,
+            335,
+            471
+          ]
+        },
+        {
+          "cell": 9,
+          "animal_id": "golden_eagle",
+          "tower_name": "金雕领空塔",
+          "rarity": 5,
+          "source_cell_rect": [
+            1003,
+            470,
+            334,
+            471
+          ]
+        },
+        {
+          "cell": 10,
+          "animal_id": "mammoth",
+          "tower_name": "猛犸震地塔",
+          "rarity": 5,
+          "source_cell_rect": [
+            1337,
+            470,
+            335,
+            471
+          ]
+        }
+      ]
+    }
+  ]
+}

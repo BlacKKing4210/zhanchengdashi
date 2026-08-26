@@ -100,6 +100,56 @@ def check_global_value(row: dict[str, str]) -> str | None:
     return None
 
 
+def check_defense_card_mirror(tables: dict[str, list[dict[str, str]]]) -> list[str]:
+    errors: list[str] = []
+    cards = {row.get("id", ""): row for row in tables.get("cards", [])}
+    defenses = {row.get("id", ""): row for row in tables.get("defenses", [])}
+    skills = {row.get("id", "") for row in tables.get("skills", [])}
+    localization = {row.get("key", ""): row.get("zh_cn", "") for row in tables.get("localization_zh", [])}
+    defense_card_ids = {
+        card_id
+        for card_id, row in cards.items()
+        if {"defense", "tower"}.issubset(set(row.get("tags", "").split("|")))
+    }
+    for card_id in sorted(defense_card_ids - set(defenses)):
+        errors.append(f"cards.{card_id}: defense tower is missing from defenses.id")
+    for defense_id, defense in defenses.items():
+        card = cards.get(defense_id)
+        if card is None:
+            errors.append(f"defenses.{defense_id}: missing matching cards.id")
+            continue
+        for card_field, defense_field in (
+            ("rarity", "rarity"),
+            ("max_hp", "max_hp"),
+            ("attack_range", "attack_range"),
+            ("attack", "base_damage"),
+            ("summon_interval_sec", "attack_cooldown_sec"),
+            ("skill_id", "skill_id"),
+        ):
+            card_value = card.get(card_field, "")
+            defense_value = defense.get(defense_field, "")
+            try:
+                values_match = float(card_value) == float(defense_value)
+            except ValueError:
+                values_match = card_value == defense_value
+            if not values_match:
+                errors.append(
+                    f"defense mirror {defense_id}: cards.{card_field}='{card_value}' "
+                    f"!= defenses.{defense_field}='{defense_value}'"
+                )
+        skill_id = card.get("skill_id", "")
+        if skill_id not in skills:
+            errors.append(f"cards.{defense_id}: skill_id '{skill_id}' is missing from skills.id")
+        name_key = defense.get("name_key", "")
+        localized_name = localization.get(name_key, "")
+        if localized_name and card.get("name", "") != localized_name:
+            errors.append(
+                f"defense mirror {defense_id}: cards.name='{card.get('name', '')}' "
+                f"!= localization_zh.{name_key}='{localized_name}'"
+            )
+    return errors
+
+
 def validate(schema: dict[str, Any], tables: dict[str, list[dict[str, str]]]) -> tuple[list[str], list[str]]:
     errors: list[str] = []
     warnings: list[str] = []
@@ -180,6 +230,8 @@ def validate(schema: dict[str, Any], tables: dict[str, list[dict[str, str]]]) ->
                         f"{table_name}:{row_index}: {field_name} '{value}' "
                         f"does not exist in {target_table}.{target_column}"
                     )
+
+    errors.extend(check_defense_card_mirror(tables))
 
     return errors, warnings
 
