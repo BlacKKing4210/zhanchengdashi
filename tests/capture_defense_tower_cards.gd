@@ -7,6 +7,7 @@ var app: Node2D
 var capture_viewport: SubViewport
 var output_dir = ""
 var capture_card_id = "defense_territory_tower"
+var capture_level = 1
 
 
 func _ready() -> void:
@@ -16,6 +17,9 @@ func _ready() -> void:
 	var requested_card_id = OS.get_environment("ZC_DEFENSE_TOWER_CAPTURE_CARD_ID")
 	if not requested_card_id.is_empty():
 		capture_card_id = requested_card_id
+	var requested_level = OS.get_environment("ZC_DEFENSE_TOWER_CAPTURE_LEVEL")
+	if requested_level.is_valid_int():
+		capture_level = maxi(1, requested_level.to_int())
 	var make_dir_error = DirAccess.make_dir_recursive_absolute(output_dir)
 	if make_dir_error != OK:
 		push_error("Unable to create defense tower capture directory: %s" % error_string(make_dir_error))
@@ -33,7 +37,7 @@ func _ready() -> void:
 	await get_tree().process_frame
 	app.call("_layout", Vector2(720, 1280))
 	app.set("card_counts", {capture_card_id: 1})
-	app.set("card_levels", {capture_card_id: 1})
+	app.set("card_levels", {capture_card_id: capture_level})
 	app.set("screen", "deck")
 	app.set("selected_card_id", capture_card_id)
 	app.set_process(false)
@@ -57,7 +61,7 @@ func _ready() -> void:
 	app.call("_show_building_card_preview", tile, tower_key)
 	await _capture("tower_battle_detail_720x1280.png")
 
-	print("DEFENSE_TOWER_CAPTURE_PASS: %s (%s)" % [output_dir, capture_card_id])
+	print("DEFENSE_TOWER_CAPTURE_PASS: %s (%s Lv.%d)" % [output_dir, capture_card_id, capture_level])
 	app.queue_free()
 	capture_viewport.queue_free()
 	await get_tree().process_frame

@@ -121,6 +121,19 @@ static func is_animal_card(card: Dictionary) -> bool:
 	return true
 
 
+static func is_defense_card(card: Dictionary) -> bool:
+	var card_id = String(card.get("id", ""))
+	if card_id.begins_with("defense_"):
+		return true
+	var tags = card.get("tags", [])
+	if typeof(tags) != TYPE_ARRAY:
+		return false
+	for tag in tags:
+		if String(tag) in ["defense", "tower"]:
+			return true
+	return false
+
+
 static func is_ranged_animal(card: Dictionary) -> bool:
 	if not is_animal_card(card):
 		return false
@@ -141,7 +154,9 @@ static func upgrade_hp_bonus(card: Dictionary, card_levels: Dictionary) -> int:
 
 static func card_stats(card: Dictionary, card_levels: Dictionary) -> Dictionary:
 	var id = String(card.get("id", ""))
-	var mult = card_multiplier(card_levels, id)
+	# Producer table values for defense towers are already effect-adjusted final
+	# combat stats. Card level remains a collection value and must not scale them.
+	var mult = 1.0 if is_defense_card(card) else card_multiplier(card_levels, id)
 	var hp_bonus = upgrade_hp_bonus(card, card_levels)
 	var max_hp = roundi(float(card.get("base_max_hp", 1)) * mult)
 	var minimum_interval = 1.0 if is_animal_card(card) else 0.1

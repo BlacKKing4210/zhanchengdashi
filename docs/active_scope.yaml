@@ -391,9 +391,60 @@ active_modules:
     art_direction: A
     art_status: APPROVED_RUNTIME
     remaining_gates: [android_device_not_run, apk_not_requested]
+  - task_id: REQ-20260827-DEFENSE-TOWER-STATS-UI-V13
+    feature_id: F-ZC-DEFENSE-TOWER-005
+    version: v1.3.0
+    phase: closure
+    domain: cross_domain
+    owner: codex-primary
+    status: COMPLETE
+    started_on: "2026-08-27"
+    completed_on: "2026-08-27"
+    fingerprint: 96E182CD014100DA0E653D51B19F3F2060F1CF899EC20A46005BA15BA8CE359F
+    rag_gate_receipt: temp/rag/receipts/rag-gate.json
+    rag_task_receipt: temp/rag/receipts/tasks/REQ-20260827-DEFENSE-TOWER-STATS-UI-V13.json
+    control_intake: temp/control/REQ-20260827-DEFENSE-TOWER-STATS-UI-V13.json
+    decision_receipt: docs/receipts/REQ-20260827-DEFENSE-TOWER-STATS-UI-V13-DECISION-001.md
+    read_only_receipt: docs/receipts/REQ-20260827-DEFENSE-TOWER-STATS-UI-V13-READ-ONLY-002.md
+    completion_receipt: docs/receipts/REQ-20260827-DEFENSE-TOWER-STATS-UI-V13-CLOSE-003.md
+    evidence_root: output/qa/F-ZC-DEFENSE-TOWER-005/stats-ui-v1.3
+    release_status: LOCAL_IMPLEMENTATION_VALIDATED
+    remote_write_status: NOT_AUTHORIZED
+    remaining_gates: [android_device_not_run, apk_not_requested]
 queued_modules: []
 
 shared_locks:
+  defense_tower_stats_ui_v13_20260827:
+    task_id: REQ-20260827-DEFENSE-TOWER-STATS-UI-V13
+    owner: codex-primary
+    status: RELEASED
+    acquired_on: "2026-08-27"
+    hold_reason: producer_requires_ten_tower_final_stats_at_all_levels_exact_skill_text_and_hidden_range_interval_on_all_player_pages
+    released_on: "2026-08-27"
+    release_reason: ten_tower_all_level_final_stats_exact_skill_text_two_page_ui_contract_gpu_visual_acceptance_regression_docx_and_independent_review_complete
+    write_set:
+      - config/tables/cards.csv
+      - runtime/config/cards.json
+      - scripts/app/systems/card_rules.gd
+      - scripts/app/main.gd
+      - tests/test_card_upgrade_health_rules.gd
+      - tests/test_battle_unit_inspection.gd
+      - tests/test_defense_deck_integration.gd
+      - tests/test_defense_tower_skills.gd
+      - tests/test_defense_tower_ui_contract.gd
+      - tests/test_defense_tower_ui_contract.tscn
+      - tests/capture_defense_tower_cards.gd
+      - tools/build_defense_tower_system_docx.py
+      - docs/DEFENSE_TOWER_SYSTEM_DESIGN_v1.3.docx
+      - docs/CURRENT_GAME_DESIGN.md
+      - docs/active_scope.yaml
+      - knowledge/knowledge_manifest.csv
+      - docs/receipts/REQ-20260827-DEFENSE-TOWER-STATS-UI-V13-DECISION-001.md
+      - docs/receipts/REQ-20260827-DEFENSE-TOWER-STATS-UI-V13-READ-ONLY-002.md
+      - docs/receipts/REQ-20260827-DEFENSE-TOWER-STATS-UI-V13-CLOSE-003.md
+      - output/qa/F-ZC-DEFENSE-TOWER-005/stats-ui-v1.3/
+    evidence_root: output/qa/F-ZC-DEFENSE-TOWER-005/stats-ui-v1.3
+    remote_write_authorized: false
   defense_tower_a_runtime_20260827:
     task_id: REQ-20260826-DEFENSE-TOWER-REDESIGN-V1
     owner: codex-primary

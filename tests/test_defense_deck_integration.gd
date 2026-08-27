@@ -242,7 +242,7 @@ func _test_green_defense_replacement_guard() -> void:
 
 func _test_defense_tower_combat_stats() -> void:
 	var expected = {
-		"defense_watch_tower": [1, 5, 2.0, 1.5, "基础防御塔，无特殊效果"],
+		"defense_watch_tower": [1, 5, 2.0, 1.5, ""],
 		"defense_longshot_tower": [1, 5, 3.5, 1.5, "攻击距离+1.5，优先攻击远程"],
 		"defense_cannon_tower": [2, 6, 2.0, 1.5, "攻击+1"],
 		"defense_plunder_tower": [1, 7, 2.0, 1.5, "攻击时，掠夺1金币"],
@@ -259,44 +259,33 @@ func _test_defense_tower_combat_stats() -> void:
 		if card.is_empty():
 			continue
 		var target: Array = expected[card_id]
-		var level_one_stats = CardRules.card_stats(card, {card_id: 1})
-		var adjusted_level_one: Dictionary = app.call("_card_stats_with_levels", card, {card_id: 1})
-		_expect_equal(int(adjusted_level_one.get("attack", 0)), int(target[0]), "%s level-one attack is the producer final value" % card_id)
-		_expect_equal(int(adjusted_level_one.get("max_hp", 0)), int(target[1]), "%s level-one health is the producer final value" % card_id)
-		_expect_close(
-			float(adjusted_level_one.get("attack_range_cells", 0.0)),
-			float(target[2]),
-			"%s level-one range is stored as the producer final tile distance" % card_id
-		)
-		_expect_close(
-			float(adjusted_level_one.get("attack_range", 0.0)),
-			float(target[2]) * MainApp.HEX_SIZE,
-			"%s converts final tile distance to world units once" % card_id
-		)
-		_expect_close(
-			float(adjusted_level_one.get("summon_interval_sec", 0.0)),
-			float(target[3]),
-			"%s level-one interval is the producer final value" % card_id
-		)
 		_expect_equal(String(card.get("skill_text", "")), String(target[4]), "%s exposes the full producer design in skill text" % card_id)
-		var upgraded_stats = CardRules.card_stats(card, {card_id: 8})
-		var adjusted_upgraded: Dictionary = app.call("_card_stats_with_levels", card, {card_id: 8})
-		_expect_close(
-			float(adjusted_upgraded.get("attack_range", 0.0)),
-			float(upgraded_stats.get("attack_range", 0.0)) * MainApp.HEX_SIZE,
-			"%s upgrade range has no legacy half-tile bonus" % card_id
-		)
-		var expected_upgraded_interval = float(target[3]) if card_id == "defense_storm_obelisk" else float(upgraded_stats.get("summon_interval_sec", 0.0))
-		_expect_close(
-			float(adjusted_upgraded.get("summon_interval_sec", 0.0)),
-			expected_upgraded_interval,
-			"%s upgrade interval follows its attack or fixed skill-cooldown contract" % card_id
-		)
-		_expect_close(
-			float(app.call("_building_delay", "tower", BoardRules.PLAYER, card_id)),
-			float(adjusted_level_one.get("summon_interval_sec", 0.0)),
-			"%s building timer uses its card interval" % card_id
-		)
+		for level in [1, 2, 3, 8, 10]:
+			var adjusted_stats: Dictionary = app.call("_card_stats_with_levels", card, {card_id: level})
+			_expect_equal(int(adjusted_stats.get("attack", 0)), int(target[0]), "%s level %d attack is the producer final value" % [card_id, level])
+			_expect_equal(int(adjusted_stats.get("max_hp", 0)), int(target[1]), "%s level %d health is the producer final value" % [card_id, level])
+			_expect_close(
+				float(adjusted_stats.get("attack_range_cells", 0.0)),
+				float(target[2]),
+				"%s level %d range stays at the producer final tile distance" % [card_id, level]
+			)
+			_expect_close(
+				float(adjusted_stats.get("attack_range", 0.0)),
+				float(target[2]) * MainApp.HEX_SIZE,
+				"%s level %d converts final tile distance to world units once" % [card_id, level]
+			)
+			_expect_close(
+				float(adjusted_stats.get("summon_interval_sec", 0.0)),
+				float(target[3]),
+				"%s level %d interval is the producer final value" % [card_id, level]
+			)
+			app.set("card_levels", {card_id: level})
+			_expect_close(
+				float(app.call("_building_delay", "tower", BoardRules.PLAYER, card_id)),
+				float(target[3]),
+				"%s level %d building timer uses the producer final interval" % [card_id, level]
+			)
+	app.set("card_levels", {})
 
 
 func _expect_true(value: bool, label: String) -> void:

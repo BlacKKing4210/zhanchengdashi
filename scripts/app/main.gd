@@ -2411,7 +2411,7 @@ func _card_stats_with_levels(card: Dictionary, levels: Dictionary) -> Dictionary
 	var range_tiles = maxf(0.0, float(stats.get("attack_range", 0.0)))
 	stats["attack_range_cells"] = range_tiles
 	stats["attack_range"] = DefenseTowerRules.range_world(range_tiles, HEX_SIZE)
-	var interval_multiplier = CardRules.card_multiplier(levels, String(card.get("id", "")))
+	var interval_multiplier = 1.0
 	var interval_source = float(card.get("base_summon_interval_sec", 1.5))
 	if DefenseTowerRules.uses_global_animal_pulse(card):
 		interval_multiplier = 1.0
@@ -8249,9 +8249,14 @@ func _tile_display_card(tile: Dictionary) -> Dictionary:
 	var building = String(tile.get("building", ""))
 	if building == "mine":
 		var mine_card_id = String(tile.get("site_card", MINE_CARD_ID))
-		return _card_by_id(mine_card_id if mine_card_id != "" else MINE_CARD_ID)
-	if building == "barracks" or building == "hall" or building == "tower":
-		return _card_by_id(String(tile.get("site_card", "")))
+		var mine_card = _card_by_id(mine_card_id if mine_card_id != "" else MINE_CARD_ID)
+		return mine_card if _card_kind(mine_card) == CARD_KIND_MINE else {}
+	if building == "barracks" or building == "hall":
+		var animal_card = _card_by_id(String(tile.get("site_card", "")))
+		return animal_card if _card_kind(animal_card) == CARD_KIND_ANIMAL else {}
+	if building == "tower":
+		var defense_card = _card_by_id(String(tile.get("site_card", "")))
+		return defense_card if _card_kind(defense_card) == CARD_KIND_DEFENSE else {}
 	return {}
 
 
@@ -8626,14 +8631,14 @@ func _draw_building_card_summary(rect: Rect2, card: Dictionary, team: int) -> vo
 	draw_circle(rect.position + Vector2(7, 14), 6.0, team_color)
 	draw_circle(rect.position + Vector2(7, 14), 6.0, COLOR_LINE, false, 1.0)
 	_draw_text_fit(_building_card_summary_title(card, team), Rect2(rect.position + Vector2(18, 0), Vector2(rect.size.x - 18, 28)), 23, Color.WHITE)
-	_draw_detail_stat_icon_value(rect.position + Vector2(0, 31), "attack", str(int(stats["attack"])), COLOR_ORANGE, Color(0.84, 0.88, 1.0), 54.0)
-	_draw_detail_stat_icon_value(rect.position + Vector2(92, 31), "hp", str(int(stats["max_hp"])), COLOR_RED, Color(0.84, 0.88, 1.0), 58.0)
-	if _card_kind(card) == CARD_KIND_DEFENSE:
-		_draw_text_center(_defense_range_text(stats), Rect2(rect.position + Vector2(190, 32), Vector2(82, 26)), 16, Color(0.84, 0.88, 1.0))
-		_draw_text_center("%.1fs" % float(stats.get("summon_interval_sec", 0.0)), Rect2(rect.position + Vector2(282, 32), Vector2(82, 26)), 16, Color(0.84, 0.88, 1.0))
+	var is_defense = _card_kind(card) == CARD_KIND_DEFENSE
+	var attack_x = 158.0 if is_defense else 0.0
+	var hp_x = 260.0 if is_defense else 92.0
+	_draw_detail_stat_icon_value(rect.position + Vector2(attack_x, 31), "attack", str(int(stats["attack"])), COLOR_ORANGE, Color(0.84, 0.88, 1.0), 54.0)
+	_draw_detail_stat_icon_value(rect.position + Vector2(hp_x, 31), "hp", str(int(stats["max_hp"])), COLOR_RED, Color(0.84, 0.88, 1.0), 58.0)
 	var skill_text = _card_ui_skill_text(card)
 	if skill_text != "":
-		_draw_text_center_wrapped("技能：" + skill_text, Rect2(rect.position + Vector2(0, 59), Vector2(rect.size.x, 31)), 14 if _card_kind(card) == CARD_KIND_DEFENSE else 17, Color(0.78, 0.86, 1.0), 2)
+		_draw_text_center_wrapped("技能：" + skill_text, Rect2(rect.position + Vector2(0, 59), Vector2(rect.size.x, 31)), 14 if is_defense else 17, Color(0.78, 0.86, 1.0), 2)
 
 
 func _building_card_summary_title(card: Dictionary, team: int) -> String:
@@ -8810,10 +8815,8 @@ func _draw_card_detail(rect: Rect2) -> void:
 		_draw_detail_stat_icon_value(rect.position + Vector2(242, 18), "gold", "+%d" % MINE_INCOME, COLOR_GOLD)
 		_draw_text_center("%d秒" % int(INCOME_INTERVAL), Rect2(rect.position + Vector2(342, 20), Vector2(72, 28)), 18, COLOR_LINE)
 	elif kind == CARD_KIND_DEFENSE:
-		_draw_detail_stat_icon_value(rect.position + Vector2(142, 18), "attack", str(int(stats["attack"])), COLOR_ORANGE)
-		_draw_detail_stat_icon_value(rect.position + Vector2(232, 18), "hp", str(int(stats["max_hp"])), COLOR_RED)
-		_draw_text_center(_defense_range_text(stats), Rect2(rect.position + Vector2(326, 20), Vector2(82, 28)), 18, COLOR_LINE)
-		_draw_text_center("%.1fs" % float(stats["summon_interval_sec"]), Rect2(rect.position + Vector2(424, 20), Vector2(72, 28)), 18, COLOR_LINE)
+		_draw_detail_stat_icon_value(rect.position + Vector2(232, 18), "attack", str(int(stats["attack"])), COLOR_ORANGE)
+		_draw_detail_stat_icon_value(rect.position + Vector2(332, 18), "hp", str(int(stats["max_hp"])), COLOR_RED)
 	else:
 		_draw_detail_stat_icon_value(rect.position + Vector2(142, 18), "attack", str(int(stats["attack"])), COLOR_ORANGE)
 		_draw_detail_stat_icon_value(rect.position + Vector2(232, 18), "hp", str(int(stats["max_hp"])), COLOR_RED)
@@ -8832,13 +8835,6 @@ func _draw_card_detail(rect: Rect2) -> void:
 
 func _card_detail_skill_text(card: Dictionary) -> String:
 	return _card_ui_skill_text(card)
-
-
-func _defense_range_text(stats: Dictionary) -> String:
-	var range_cells = maxf(0.0, float(stats.get("attack_range_cells", 0.0)))
-	if is_equal_approx(range_cells, float(roundi(range_cells))):
-		return "%d格" % roundi(range_cells)
-	return "%.1f格" % range_cells
 
 
 func _can_show_equip_button(card_id: String) -> bool:

@@ -1761,7 +1761,7 @@
     "skill_cooldown_sec": null,
     "skill_chance": null,
     "skill_target": null,
-    "skill_text": "基础防御塔，无特殊效果",
+    "skill_text": null,
     "tags": [
       "building",
       "defense",

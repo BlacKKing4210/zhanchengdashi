@@ -9,7 +9,8 @@ func _init() -> void:
 	_test_ranged_animals_gain_health_every_two_levels()
 	_test_melee_summon_animals_gain_health_every_level()
 	_test_melee_animals_gain_health_every_level()
-	_test_non_animal_cards_do_not_receive_the_animal_rule()
+	_test_defense_cards_keep_producer_final_stats()
+	_test_non_defense_buildings_keep_percentage_scaling()
 	_test_non_health_animal_stats_keep_the_level_multiplier()
 	if failures == 0:
 		print("Card upgrade health rule tests passed.")
@@ -43,14 +44,30 @@ func _test_melee_animals_gain_health_every_level() -> void:
 		_expect_equal(int(CardRules.card_stats(melee_card, {"melee": level})["max_hp"]), 10 + level - 1, "melee level %d has exact fixed health" % level)
 
 
-func _test_non_animal_cards_do_not_receive_the_animal_rule() -> void:
+func _test_defense_cards_keep_producer_final_stats() -> void:
 	var building_card = _card("tower", 10, 80.0, "", ["building", "defense", "tower"])
 	_expect_false(CardRules.is_animal_card(building_card), "building is not an animal")
+	_expect_true(CardRules.is_defense_card(building_card), "defense tags identify a defense tower")
 	_expect_false(CardRules.is_ranged_or_summon_animal(building_card), "ranged building does not receive the animal rule")
 	_expect_equal(CardRules.upgrade_hp_bonus(building_card, {"tower": 8}), 0, "building receives no animal health bonus")
 	for level in range(1, 9):
-		var expected = roundi(10.0 * CardRules.card_multiplier({"tower": level}, "tower"))
-		_expect_equal(int(CardRules.card_stats(building_card, {"tower": level})["max_hp"]), expected, "building level %d keeps percentage health scaling" % level)
+		var stats = CardRules.card_stats(building_card, {"tower": level})
+		_expect_equal(int(stats["attack"]), 10, "defense level %d keeps producer final attack" % level)
+		_expect_equal(int(stats["max_hp"]), 10, "defense level %d keeps producer final health" % level)
+		_expect_close(float(stats["attack_range"]), 80.0, "defense level %d keeps producer final range" % level)
+		_expect_close(float(stats["summon_interval_sec"]), 5.0, "defense level %d keeps producer final interval" % level)
+
+
+func _test_non_defense_buildings_keep_percentage_scaling() -> void:
+	var mine_card = _card("mine", 10, 80.0, "", ["building", "mine", "gold_mine"])
+	_expect_false(CardRules.is_animal_card(mine_card), "mine is not an animal")
+	_expect_false(CardRules.is_defense_card(mine_card), "mine is not a defense tower")
+	var stats = CardRules.card_stats(mine_card, {"mine": 3})
+	var mult = CardRules.card_multiplier({"mine": 3}, "mine")
+	_expect_equal(int(stats["attack"]), roundi(10.0 * mult), "mine attack keeps the existing percentage scaling")
+	_expect_equal(int(stats["max_hp"]), roundi(10.0 * mult), "mine health keeps the existing percentage scaling")
+	_expect_close(float(stats["attack_range"]), 80.0 * mult, "mine range keeps the existing percentage scaling")
+	_expect_close(float(stats["summon_interval_sec"]), 5.0 / mult, "mine interval keeps the existing percentage scaling")
 
 
 func _test_non_health_animal_stats_keep_the_level_multiplier() -> void:

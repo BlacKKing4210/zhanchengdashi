@@ -16,7 +16,7 @@ ROOT = Path(__file__).resolve().parents[1]
 TEMPLATE = Path(
     r"C:\Users\76398\.codex\skills\game-feature-design-docs\assets\general-feature-design-template.docx"
 )
-OUTPUT = ROOT / "docs" / "DEFENSE_TOWER_SYSTEM_DESIGN_v1.2.docx"
+OUTPUT = ROOT / "docs" / "DEFENSE_TOWER_SYSTEM_DESIGN_v1.3.docx"
 
 NAVY = "17243C"
 BLUE = "2E75B6"
@@ -29,7 +29,7 @@ GRAY = "F2F2F2"
 WHITE = "FFFFFF"
 
 TOWERS = [
-    ("defense_watch_tower", "兔子哨塔", 2, "绿色", 1, 5, 2.0, 1.5, "基础防御塔，无特殊效果", "耳形屋脊＋单弩", "基础单体"),
+    ("defense_watch_tower", "兔子哨塔", 2, "绿色", 1, 5, 2.0, 1.5, "", "耳形屋脊＋单弩", "基础单体"),
     ("defense_longshot_tower", "猎鹰瞭望塔", 3, "蓝色", 1, 5, 3.5, 1.5, "攻击距离+1.5，优先攻击远程", "翼形檐口＋长望远镜", "远程优先"),
     ("defense_cannon_tower", "野猪重弩塔", 3, "蓝色", 2, 6, 2.0, 1.5, "攻击+1", "獠牙扶壁＋重型弩箭", "高单发"),
     ("defense_plunder_tower", "松鼠掠金塔", 3, "蓝色", 1, 7, 2.0, 1.5, "攻击时，掠夺1金币", "螺旋卷扬＋金币钩", "经济压制"),
@@ -80,6 +80,16 @@ def shade_row(row, color: str, text_color: str | None = None) -> None:
             set_cell_text_color(cell, text_color)
 
 
+def set_row_pagination(row, *, repeat_header: bool = False) -> None:
+    tr_pr = row._tr.get_or_add_trPr()
+    cant_split = OxmlElement("w:cantSplit")
+    tr_pr.append(cant_split)
+    if repeat_header:
+        table_header = OxmlElement("w:tblHeader")
+        table_header.set(qn("w:val"), "true")
+        tr_pr.append(table_header)
+
+
 def clear_document_body(doc: Document) -> None:
     body = doc._element.body
     for child in list(body):
@@ -121,7 +131,7 @@ def set_document_defaults(doc: Document) -> None:
     header = section.header
     paragraph = header.paragraphs[0]
     paragraph.alignment = WD_ALIGN_PARAGRAPH.RIGHT
-    run = paragraph.add_run("丛林法则｜F-ZC-DEFENSE-TOWER-005｜V1.2")
+    run = paragraph.add_run("丛林法则｜F-ZC-DEFENSE-TOWER-005｜V1.3")
     run.font.name = "Microsoft YaHei"
     run._element.rPr.rFonts.set(qn("w:eastAsia"), "Microsoft YaHei")
     run.font.size = Pt(8.5)
@@ -177,6 +187,7 @@ def add_table(doc: Document, headers: list[str], rows: list[list[str]], widths: 
     table.style = "Table Grid"
     table.autofit = False
     header = table.rows[0]
+    set_row_pagination(header, repeat_header=True)
     for index, value in enumerate(headers):
         cell = header.cells[index]
         cell.text = value
@@ -189,6 +200,7 @@ def add_table(doc: Document, headers: list[str], rows: list[list[str]], widths: 
         set_cell_margins(cell)
     for row_index, values in enumerate(rows):
         row = table.add_row()
+        set_row_pagination(row)
         for index, value in enumerate(values):
             cell = row.cells[index]
             cell.text = value
@@ -239,7 +251,7 @@ def add_title_page(doc: Document) -> None:
     paragraph = doc.add_paragraph()
     paragraph.alignment = WD_ALIGN_PARAGRAPH.CENTER
     paragraph.paragraph_format.space_before = Pt(18)
-    run = paragraph.add_run("F-ZC-DEFENSE-TOWER-005  ·  V1.2  ·  2026-08-27")
+    run = paragraph.add_run("F-ZC-DEFENSE-TOWER-005  ·  V1.3  ·  2026-08-27")
     set_run_font(run, 11, False, "6B7280")
 
     doc.add_paragraph()
@@ -247,11 +259,11 @@ def add_title_page(doc: Document) -> None:
     table.style = "Table Grid"
     table.alignment = WD_TABLE_ALIGNMENT.CENTER
     metadata = [
-        ("文档状态", "IMPLEMENTATION_CONTRACT；方案 A 已批准；动物同风格低细节正式资产与运行时实装中"),
-        ("正式来源", "制作人 10 塔表＋2026-08-27 方案 A、动物同风格、大色块、少细节实装决策"),
+        ("文档状态", "IMPLEMENTATION_CONTRACT；V1.3 数值与页面显示修订；方案 A 运行时美术保持不变"),
+        ("正式来源", "制作人 10 塔表＋2026-08-27 全等级最终属性与页面隐藏距离/攻击间隔决策"),
         ("负责人", "制作人：user-producer｜实现：codex-primary"),
         ("目标运行环境", "Godot 4.6｜720×1280 竖屏"),
-        ("数据口径", "表中攻击、生命、距离、间隔均为效果后最终基础属性"),
+        ("数据口径", "表中攻击、生命、距离、间隔均为所有卡牌等级不再成长的效果后最终属性"),
     ]
     for index, (key, value) in enumerate(metadata):
         table.cell(index, 0).text = key
@@ -279,6 +291,7 @@ def add_version_control(doc: Document) -> None:
             ["V1.0", "codex-primary", "user-producer", "2026-08-26", "10 塔最终属性、特殊技能、描述、UI 与整套美术包装合同"],
             ["V1.1", "codex-primary", "user-producer", "2026-08-27", "方案 B 曾进入生产准备，未绑定运行时即被后续制作人决策取代"],
             ["V1.2", "codex-primary", "user-producer", "2026-08-27", "改用方案 A；严格对齐已有动物画风，以大色块、粗轮廓和低细节生产并实装十塔"],
+            ["V1.3", "codex-primary", "user-producer", "2026-08-27", "十塔四项属性在所有等级固定为制作人最终表；页面仅显示攻击、生命及原表技能描述"],
         ],
         [1.5, 2.6, 2.6, 2.4, 8.0],
     )
@@ -287,9 +300,9 @@ def add_version_control(doc: Document) -> None:
         ["责任方", "负责人", "状态", "完成条件"],
         [
             ["策划", "user-producer", "已给定最终表", "数值及字面效果一致"],
-            ["程序", "codex-primary", "已实现并通过机制回归", "行为测试、回归与运行验证通过"],
-            ["美术", "user-producer / codex-primary", "方案 A 已批准，动物同风格低细节正式资产生产中", "十张 480×480 RGBA 通过整板、Alpha、小图、风格与运行切片验收"],
-            ["QA", "codex-primary", "机制已通过，运行时美术待验收", "配置、机制、720×1280 玩家可见证据与性能通过"],
+            ["程序", "codex-primary", "V1.3 已实现并通过回归", "全等级属性锁定、两处页面隐藏和行为测试通过"],
+            ["美术", "user-producer / codex-primary", "方案 A 运行时资产已验收，本次不改", "保留十张 480×480 RGBA 与现有绑定"],
+            ["QA", "codex-primary", "V1.3 已验收", "配置、机制、720×1280 玩家可见证据与性能通过"],
         ],
         [2.2, 3.2, 3.0, 8.5],
     )
@@ -301,7 +314,7 @@ def add_design_content(doc: Document) -> None:
         doc,
         ["术语", "定义"],
         [
-            ["最终基础属性", "卡牌 Lv.1 建成时的攻击、生命、距离（格）、攻击间隔（秒）；已包含包装效果。"],
+            ["最终属性", "制作人表中的攻击、生命、距离（格）、攻击间隔（秒）；已包含包装效果，且防御塔卡在所有等级均保持该值。"],
             ["技能机制", "由稳定 skill_id 驱动的目标选择、金币转移、多目标、击杀奖励、领地目标或全体脉冲。"],
             ["包装效果", "玩家用于理解塔定位的直接文案；除明确技能机制外，不再修改最终基础属性。"],
             ["我方领地", "目标动物当前位置所在格，其可视归属阵营与塔所属阵营为同盟。"],
@@ -313,7 +326,7 @@ def add_design_content(doc: Document) -> None:
     add_heading(doc, "2.1 主要目标", 2)
     add_bullets(doc, [
         "把制作人给定的 10 座塔一一落到卡牌数据、战斗属性、特殊行为和技能描述。",
-        "玩家在卡牌详情和战斗建筑详情中能直接读懂每座塔的定位。",
+        "玩家在卡牌详情和战斗建筑详情中只看到攻击、生命及制作人原表技能描述，不显示距离和攻击间隔。",
         "保留旧存档依赖的 4 个稳定塔 ID，新增 6 个塔 ID，避免账号与 AI 卡组失效。",
         "按已批准方案 A 建立 10 座建筑优先、动物同风格的极简包装：使用大色块、粗深色轮廓和少量平涂阴影，并用真实运行切片证明卡牌与战场可读性。",
     ])
@@ -326,7 +339,7 @@ def add_design_content(doc: Document) -> None:
     add_heading(doc, "2.3 非目标", 2)
     add_bullets(doc, [
         "本版本不调整塔的抽卡品质总概率。",
-        "本版本不改变卡牌等级成长公式；Lv.1 必须精确等于制作人表。",
+        "本版本不改变动物、金矿及其他非防御塔卡的等级成长；仅防御塔四项战斗属性在所有等级固定为制作人表。",
         "本版本不改变塔的碰撞、占地、生命条数据或未解锁塔的通用剪影规则。",
         "不新增塔升级树、弹药、主动施法或新的战斗页面。",
     ])
@@ -334,15 +347,15 @@ def add_design_content(doc: Document) -> None:
     add_heading(doc, "3. 功能概述", 1)
     add_numbered(doc, [
         "玩家获得并把防御塔卡放入编组；绿色兔子哨塔仍是初始强制塔。",
-        "战斗解锁塔地块后，系统按该塔卡 Lv.1 基础属性与卡牌等级成长创建建筑。",
+        "战斗解锁塔地块后，系统按该塔卡的制作人最终属性创建建筑；卡牌等级不放大塔的攻击、生命、距离或攻击间隔。",
         "塔按攻击间隔结算；普通塔单体攻击，特殊塔通过 skill_id 改变选敌或结算。",
-        "卡牌详情与战斗中的塔详情显示完整技能描述，不解析中文文案驱动逻辑。",
+        "卡牌详情与战斗中的塔详情仅显示攻击、生命及完整技能描述；基础塔原表技能为空时不显示技能行。",
         "方案 A 的动物同风格低细节正式资源通过代表塔运行切片后，每座已建成塔按 site_card -> art_path 显示唯一建筑化动物主题 PNG；缺图或旧存档回退通用塔。",
     ])
     add_callout(
         doc,
         "最终属性硬规则",
-        "表中攻击、生命、距离与攻击间隔已经考虑“+1”“+200%”“+1格”等效果。运行时只读取最终值，禁止再次加成。",
+        "表中攻击、生命、距离与攻击间隔已经考虑“+1”“+200%”“+1格”等效果。十塔在任意卡牌等级都只读取这些最终值，禁止等级倍率或包装文案再次加成。",
     )
 
     add_heading(doc, "4. 系统框架", 1)
@@ -371,8 +384,8 @@ def add_design_content(doc: Document) -> None:
         doc,
         ["页面/状态", "入口", "玩家动作/事件", "反馈", "返回/异常"],
         [
-            ["P-01 收藏/编组卡牌详情", "点击任意防御塔卡", "查看属性与技能描述", "显示攻/血/距离格/间隔；技能允许两行", "未拥有仍可查看；无截断"],
-            ["P-02 战斗塔详情", "点击已建成防御塔", "查看当前等级属性与技能描述", "3 秒详情条，显示塔卡图、品质、属性、技能", "塔被摧毁或换卡立即关闭"],
+            ["P-01 收藏/编组卡牌详情", "点击任意防御塔卡", "查看属性与技能描述", "只显示攻击、生命及原表技能；不显示距离/攻击间隔", "技能为空不显示技能行；其余文案无截断"],
+            ["P-02 战斗塔详情", "点击已建成防御塔", "查看塔属性与技能描述", "3 秒详情条；只显示攻击、生命及原表技能", "塔被摧毁或换卡立即关闭"],
             ["S-01 塔攻击循环", "spawn_timer≤0", "系统选敌并结算", "弹道/脉冲、伤害、金币反馈", "无合法目标则本次空放并进入下一间隔"],
             ["S-02 代表运行切片", "方案 A 鹦鹉双弩塔动物同风格低细节正式图", "打开卡牌详情并在战场建成", "720×1280 同时验证双弩、建筑感、大色块、详情与血条", "BLOCKER/MATERIAL 必须返修"],
             ["S-03 十塔全量绑定", "代表切片通过", "生成整套、标准化、写入 art_path", "已建成塔显示唯一图；未解锁仍是通用剪影", "缺图/空 ID 回退通用塔"],
@@ -400,7 +413,7 @@ def add_design_content(doc: Document) -> None:
         rows,
         [1.0, 1.2, 2.5, 0.8, 0.8, 1.2, 1.2, 6.2, 1.8],
     )
-    add_text(doc, "注：所有行均为 Lv.1 效果后最终基础面板；品质 2/3/4/5 分别映射 common/rare/epic/legendary。", bold=True, color=RED)
+    add_text(doc, "注：所有行均为效果后最终面板，防御塔卡从 Lv.1 到最高等级都必须严格保持这些数值；品质 2/3/4/5 分别映射 common/rare/epic/legendary。", bold=True, color=RED)
 
     add_heading(doc, "7. 配置表调整", 1)
     add_table(
@@ -408,12 +421,12 @@ def add_design_content(doc: Document) -> None:
         ["策划含义", "字段", "类型/单位", "规则"],
         [
             ["塔稳定 ID", "cards.csv::id / defenses.csv::id", "id", "保留 4 个旧 ID，新增 6 个"],
-            ["最终攻击", "cards.csv::attack", "int", "Lv.1 直接读取，不叠加包装"],
+            ["最终攻击", "cards.csv::attack", "int", "所有等级直接读取，不叠加包装或等级倍率"],
             ["最终生命", "cards.csv::max_hp", "int", "建造时写入 hp/max_hp"],
             ["最终距离", "cards.csv::attack_range", "float/格", "战斗判定转换为 格×HEX_SIZE"],
             ["最终间隔", "cards.csv::summon_interval_sec", "float/秒", "允许 0.5 秒，不再强制 1 秒"],
             ["机制 ID", "cards.csv::skill_id", "id", "唯一运行时技能分派键"],
-            ["显示文案", "cards.csv::skill_text", "string", "玩家可见唯一来源；完整显示"],
+            ["显示文案", "cards.csv::skill_text", "string", "玩家可见唯一来源；逐字显示；空值不绘制技能行"],
             ["技能目录", "skills.csv::*", "多字段", "分类与工具引用；行为仍由稳定 ID 实现"],
             ["中文文本", "localization_zh_runtime.csv::*", "string", "塔名及技能描述键"],
         ],
@@ -423,11 +436,11 @@ def add_design_content(doc: Document) -> None:
     add_heading(doc, "8. 系统逻辑", 1)
     add_heading(doc, "8.1 总体结算", 2)
     add_numbered(doc, [
-        "权威战斗端读取塔卡及当前等级，计算面板；距离字段从格转换为世界单位。",
+        "权威战斗端读取塔卡最终面板，不应用卡牌等级倍率；距离字段只在内部从格转换为世界单位。",
         "若为猛犸震地塔，直接执行全体脉冲并结束本次攻击，不再选单体目标。",
         "其他塔先验证粘性锁定；无合法锁定时，按技能策略选择新目标。",
         "对主目标执行一次完整面板攻击；随后结算掠夺、额外目标或击杀奖励。",
-        "重置该塔 spawn_timer 为当前等级攻击间隔；非权威客户端只应用快照。",
+        "重置该塔 spawn_timer 为制作人表中的最终攻击间隔；非权威客户端只应用快照。",
     ])
 
     add_heading(doc, "8.2 特殊机制", 2)
@@ -468,8 +481,8 @@ def add_design_content(doc: Document) -> None:
         [
             ["卡牌塔图", "显示方案 A 唯一 480×480 RGBA 动物同风格低细节塔图，保持等比居中", "cards.csv::art_path", "缺图回退通用 tower.png，不得显示兔子兜底"],
             ["品质", "沿用绿色/蓝色/紫色/金色卡框", "cards.csv::rarity", "无"],
-            ["四项属性", "攻击、生命、X格、X.X秒", "最终等级 stats", "距离保留 0.5 格精度"],
-            ["技能描述", "完整原文；长文最多两行，自适应字号，不显示省略号", "cards.csv::skill_text", "空值显示基础说明"],
+            ["两项可见属性", "仅显示攻击、生命；页面不得显示距离或攻击间隔", "防御塔最终 stats", "内部仍保留距离/间隔用于战斗"],
+            ["技能描述", "严格显示制作人原表；长文最多两行，自适应字号，不显示省略号", "cards.csv::skill_text", "空值不显示技能行，不自行补写说明"],
             ["战斗塔详情", "点击已建成塔显示 3 秒；结构复用动物营地详情条", "tile.site_card", "塔摧毁/卡不匹配立即关闭"],
         ],
         [3.0, 6.0, 4.3, 4.0],
@@ -511,13 +524,13 @@ def add_design_content(doc: Document) -> None:
         "关联卡牌：初始强制绿色塔、抽卡、收藏、编组、升级、段位 AI 卡组。",
         "关联战斗：建筑创建、塔计时、目标锁定、伤害、金币、领地归属、多人权威快照。",
         "关联美术：现有 60 动物风格合同；正式塔图不得复制外部商业游戏资产或识别。",
-        "后续可扩展：塔技能 VFX、独立音效、塔升级外观；均不在 V1.2 范围。",
+        "后续可扩展：塔技能 VFX、独立音效、塔升级外观或非属性升级收益；均不在 V1.3 范围。",
     ])
 
     add_heading(doc, "12. 验收与 QA", 1)
     add_heading(doc, "12.1 交付验收", 2)
     qa_rows = [
-        ["数据", "10 个稳定 ID；品质与 Lv.1 攻/血/距离/间隔逐行等于正式表", "自动测试＋运行时配置导出"],
+        ["数据", "10 个稳定 ID；品质与任意等级攻/血/距离/间隔逐行等于正式表", "自动测试＋运行时配置导出"],
         ["不二次计算", "无统一半格射程；无固定 1 秒；0.5/1.5/5 秒均可生效", "单元测试"],
         ["远程优先", "新目标优先远程；合法旧目标保持", "行为测试"],
         ["掠夺", "最多转移 1；目标为 0 不产币；总量守恒", "行为测试"],
@@ -525,10 +538,10 @@ def add_design_content(doc: Document) -> None:
         ["悬赏", "只对实际击杀动物发 10；建筑和非致死不发", "行为测试"],
         ["领地", "领地内任意距离可攻击；领地外/中立/虚空/建筑不可", "行为测试"],
         ["全体脉冲", "每 5 秒替代普攻；触发时所有存活动物各 1 点", "行为＋性能测试"],
-        ["技能描述", "10 塔均完整显示；最长领地文案不截断", "720×1280 GPU 截图"],
+        ["页面显示", "卡牌详情与战斗塔详情均只显示攻/血；不显示距离/间隔；基础塔无技能行，其余9塔原文完整", "UI合同测试＋720×1280 GPU 截图"],
         ["美术", "恰好 10 张 480×480 RGBA；方案 A 塔体主体≥85%；动物同风格大色块低细节；无完整动物/巨大动物头；Alpha、基线、小图与整板检查通过", "生产 manifest＋浅/深底＋48/56/64/96px 预览"],
         ["运行时绑定", "10 个 art_path 唯一可加载；已建成塔用 site_card 图；未解锁/缺图/空 ID 安全回退通用塔", "Godot 专项测试＋720×1280 GPU 截图"],
-        ["回归", "配置、缩进、Godot 解析、塔卡组、AI、多人权威通过；72 单位 P95=1.210ms＜4ms", "自动回归＋运行证据"],
+        ["回归", "配置、缩进、Godot 解析、塔卡组、AI、多人权威通过；72 单位 P95＜4ms", "自动回归＋运行证据"],
     ]
     add_table(doc, ["验收域", "通过条件", "证据"], qa_rows, [2.4, 10.2, 4.5])
 
@@ -541,6 +554,7 @@ def add_design_content(doc: Document) -> None:
             ["可编辑 Figma/FigJam UE 源", "工具不可用/待补", "user-producer", "不新增页面；文字合同不受影响"],
             ["所有动物是否包含己方", "按字面已实现", "user-producer", "V1.0 包含全部阵营动物"],
             ["新增塔对同品质抽卡池的稀释", "沿用现有机制", "user-producer", "本期不改品质总概率"],
+            ["防御塔卡升级入口", "保留现状", "user-producer", "等级仍可提升，但 V1.3 不再提供四项战斗属性成长；非属性收益另案设计"],
         ],
         [6.3, 3.0, 3.2, 5.0],
     )
@@ -552,8 +566,8 @@ def build() -> None:
     doc = Document(TEMPLATE)
     clear_document_body(doc)
     set_document_defaults(doc)
-    doc.core_properties.title = "防御塔系统重制 V1.2"
-    doc.core_properties.subject = "10座防御塔最终属性、技能机制、方案A动物同风格低细节正式资产与运行时实装"
+    doc.core_properties.title = "防御塔系统重制 V1.3"
+    doc.core_properties.subject = "10座防御塔全等级最终属性、技能描述与页面显示合同；方案A运行时美术保持不变"
     doc.core_properties.author = "codex-primary"
     doc.core_properties.keywords = "Godot, 防御塔, 技能, 建筑化动物包装, F-ZC-DEFENSE-TOWER-005"
     add_title_page(doc)

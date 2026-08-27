@@ -251,6 +251,10 @@ func _test_all_skill_descriptions_wrap_without_ellipsis() -> void:
 	for tower_id in tower_ids:
 		var card: Dictionary = app.call("_card_by_id", tower_id)
 		var text = String(card.get("skill_text", ""))
+		if tower_id == "defense_watch_tower":
+			_expect_equal(text, "", "base tower keeps the producer's blank skill-description cell")
+			_expect_equal(app.call("_card_detail_skill_text", card), "", "base tower does not draw an invented skill line")
+			continue
 		var lines: Array = app.call("_split_text_for_width", text, 370.0, 14, 2)
 		_expect_true(lines.size() >= 1 and lines.size() <= 2, "%s description uses at most two complete lines" % tower_id)
 		_expect_equal("".join(lines), text, "%s description keeps every character without ellipsis" % tower_id)

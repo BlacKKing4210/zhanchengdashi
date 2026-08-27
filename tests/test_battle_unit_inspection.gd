@@ -197,7 +197,7 @@ func _test_battle_summary_title_contract() -> void:
 	var animal_name = String(card.get("name", ""))
 	var rarity_label = String(app.call("_rarity_label", String(card.get("rarity", "common"))))
 	var selected_title = String(app.call("_unit_card_summary_title", unit, card))
-	var camp_title = String(app.call("_building_animal_card_summary_title", card, int(unit.get("team", BoardRules.PLAYER))))
+	var camp_title = String(app.call("_building_card_summary_title", card, int(unit.get("team", BoardRules.PLAYER))))
 	_expect_equal(_substring_count(selected_title, animal_name), 1, "selected-animal summary shows the animal name exactly once")
 	_expect_true(not selected_title.contains(rarity_label), "selected-animal summary omits the rarity label")
 	_expect_equal(_substring_count(camp_title, animal_name), 1, "camp-animal summary shows the animal name exactly once")
