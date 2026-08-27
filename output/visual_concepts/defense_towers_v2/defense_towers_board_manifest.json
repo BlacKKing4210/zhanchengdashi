@@ -1,24 +1,37 @@
 {
   "feature_id": "F-ZC-DEFENSE-TOWER-005",
-  "version": "2.1",
+  "version": "2.2",
   "direction": "architecture_first_animal_motifs",
   "status": "NOT_RUNTIME",
-  "approval": null,
-  "review_status": "READY_FOR_PRODUCER_DIRECTION_SELECTION",
+  "approval": "A",
+  "review_status": "PRODUCER_DIRECTION_A_APPROVED_ANIMAL_STYLE_LOW_DETAIL",
   "reviewed_on": "2026-08-26",
-  "review_summary": "A/B both pass architecture-first direction review; no complete animal stands on a tower.",
+  "approved_on": "2026-08-27",
+  "approval_receipt": "docs/receipts/REQ-20260826-DEFENSE-TOWER-REDESIGN-DECISION-004.md",
+  "superseded_approvals": [
+    {
+      "variant": "B",
+      "receipt": "docs/receipts/REQ-20260826-DEFENSE-TOWER-REDESIGN-DECISION-003.md",
+      "state": "SUPERSEDED_BEFORE_RUNTIME_BINDING"
+    }
+  ],
+  "review_summary": "Producer selected A and required an exact match to the existing animal-image language: thick dark outlines, large flat color blocks and materially fewer details. The v2 board remains direction-only and is not a runtime asset source.",
   "pending_refinements": [
     "formal A03 should restore a minimal blue rarity band",
     "formal A04 should remove the speed-like arrow or turn it into a coin-transfer cue",
     "formal 05 should add one restrained speed arc",
     "formal 02 and 09 rely on skill text for secondary targeting meaning"
   ],
-  "runtime_readiness": "DIRECTION_REVIEW_ONLY_REGENERATE_TRANSPARENT_ASSETS_AFTER_APPROVAL",
+  "runtime_readiness": "DIRECTION_A_APPROVED_REGENERATE_ANIMAL_STYLE_LARGE_COLOR_BLOCK_TRANSPARENT_PRODUCTION_ASSETS_BEFORE_RUNTIME",
   "constraints": [
     "tower_body_is_primary",
     "no_full_animal_on_tower",
     "animal_motifs_are_architectural_only",
-    "one_primary_weapon_or_skill_prop"
+    "one_primary_weapon_or_skill_prop",
+    "three_to_five_major_shapes",
+    "four_to_six_stable_color_roles",
+    "large_flat_color_blocks",
+    "no_micro_brick_rivet_feather_or_coin_texture_detail"
   ],
   "boards": [
     {

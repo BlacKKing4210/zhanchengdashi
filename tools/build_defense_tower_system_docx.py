@@ -16,7 +16,7 @@ ROOT = Path(__file__).resolve().parents[1]
 TEMPLATE = Path(
     r"C:\Users\76398\.codex\skills\game-feature-design-docs\assets\general-feature-design-template.docx"
 )
-OUTPUT = ROOT / "docs" / "DEFENSE_TOWER_SYSTEM_DESIGN_v1.0.docx"
+OUTPUT = ROOT / "docs" / "DEFENSE_TOWER_SYSTEM_DESIGN_v1.2.docx"
 
 NAVY = "17243C"
 BLUE = "2E75B6"
@@ -121,7 +121,7 @@ def set_document_defaults(doc: Document) -> None:
     header = section.header
     paragraph = header.paragraphs[0]
     paragraph.alignment = WD_ALIGN_PARAGRAPH.RIGHT
-    run = paragraph.add_run("丛林法则｜F-ZC-DEFENSE-TOWER-005｜V1.0")
+    run = paragraph.add_run("丛林法则｜F-ZC-DEFENSE-TOWER-005｜V1.2")
     run.font.name = "Microsoft YaHei"
     run._element.rPr.rFonts.set(qn("w:eastAsia"), "Microsoft YaHei")
     run.font.size = Pt(8.5)
@@ -130,7 +130,7 @@ def set_document_defaults(doc: Document) -> None:
     footer = section.footer
     paragraph = footer.paragraphs[0]
     paragraph.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    run = paragraph.add_run("内部制作评审｜2026-08-26")
+    run = paragraph.add_run("内部制作评审｜2026-08-27")
     run.font.name = "Microsoft YaHei"
     run._element.rPr.rFonts.set(qn("w:eastAsia"), "Microsoft YaHei")
     run.font.size = Pt(8.5)
@@ -239,7 +239,7 @@ def add_title_page(doc: Document) -> None:
     paragraph = doc.add_paragraph()
     paragraph.alignment = WD_ALIGN_PARAGRAPH.CENTER
     paragraph.paragraph_format.space_before = Pt(18)
-    run = paragraph.add_run("F-ZC-DEFENSE-TOWER-005  ·  V1.0  ·  2026-08-26")
+    run = paragraph.add_run("F-ZC-DEFENSE-TOWER-005  ·  V1.2  ·  2026-08-27")
     set_run_font(run, 11, False, "6B7280")
 
     doc.add_paragraph()
@@ -247,8 +247,8 @@ def add_title_page(doc: Document) -> None:
     table.style = "Table Grid"
     table.alignment = WD_TABLE_ALIGNMENT.CENTER
     metadata = [
-        ("文档状态", "制作人指令已固化；机制与 UI 已验证；美术整板待审批"),
-        ("正式来源", "制作人于 2026-08-26 提供的 10 塔表"),
+        ("文档状态", "IMPLEMENTATION_CONTRACT；方案 A 已批准；动物同风格低细节正式资产与运行时实装中"),
+        ("正式来源", "制作人 10 塔表＋2026-08-27 方案 A、动物同风格、大色块、少细节实装决策"),
         ("负责人", "制作人：user-producer｜实现：codex-primary"),
         ("目标运行环境", "Godot 4.6｜720×1280 竖屏"),
         ("数据口径", "表中攻击、生命、距离、间隔均为效果后最终基础属性"),
@@ -275,7 +275,11 @@ def add_version_control(doc: Document) -> None:
     add_table(
         doc,
         ["版本", "编写人", "审核/批准", "日期", "更新内容"],
-        [["V1.0", "codex-primary", "user-producer", "2026-08-26", "10 塔最终属性、特殊技能、描述、UI 与整套美术包装合同"]],
+        [
+            ["V1.0", "codex-primary", "user-producer", "2026-08-26", "10 塔最终属性、特殊技能、描述、UI 与整套美术包装合同"],
+            ["V1.1", "codex-primary", "user-producer", "2026-08-27", "方案 B 曾进入生产准备，未绑定运行时即被后续制作人决策取代"],
+            ["V1.2", "codex-primary", "user-producer", "2026-08-27", "改用方案 A；严格对齐已有动物画风，以大色块、粗轮廓和低细节生产并实装十塔"],
+        ],
         [1.5, 2.6, 2.6, 2.4, 8.0],
     )
     add_table(
@@ -284,8 +288,8 @@ def add_version_control(doc: Document) -> None:
         [
             ["策划", "user-producer", "已给定最终表", "数值及字面效果一致"],
             ["程序", "codex-primary", "已实现并通过机制回归", "行为测试、回归与运行验证通过"],
-            ["美术", "user-producer / codex-primary", "整板待审批", "整套审核通过后切图与战场绑定"],
-            ["QA", "codex-primary", "已通过（美术待审）", "配置、机制、720×1280 玩家可见证据通过"],
+            ["美术", "user-producer / codex-primary", "方案 A 已批准，动物同风格低细节正式资产生产中", "十张 480×480 RGBA 通过整板、Alpha、小图、风格与运行切片验收"],
+            ["QA", "codex-primary", "机制已通过，运行时美术待验收", "配置、机制、720×1280 玩家可见证据与性能通过"],
         ],
         [2.2, 3.2, 3.0, 8.5],
     )
@@ -311,7 +315,7 @@ def add_design_content(doc: Document) -> None:
         "把制作人给定的 10 座塔一一落到卡牌数据、战斗属性、特殊行为和技能描述。",
         "玩家在卡牌详情和战斗建筑详情中能直接读懂每座塔的定位。",
         "保留旧存档依赖的 4 个稳定塔 ID，新增 6 个塔 ID，避免账号与 AI 卡组失效。",
-        "用同一套动物风格建立 10 座建筑优先的极简包装，并通过整板审批后再进入运行时。",
+        "按已批准方案 A 建立 10 座建筑优先、动物同风格的极简包装：使用大色块、粗深色轮廓和少量平涂阴影，并用真实运行切片证明卡牌与战场可读性。",
     ])
     add_heading(doc, "2.2 次要目标", 2)
     add_bullets(doc, [
@@ -323,7 +327,7 @@ def add_design_content(doc: Document) -> None:
     add_bullets(doc, [
         "本版本不调整塔的抽卡品质总概率。",
         "本版本不改变卡牌等级成长公式；Lv.1 必须精确等于制作人表。",
-        "本轮不在美术整板批准前提交或绑定 10 张正式运行时 PNG。",
+        "本版本不改变塔的碰撞、占地、生命条数据或未解锁塔的通用剪影规则。",
         "不新增塔升级树、弹药、主动施法或新的战斗页面。",
     ])
 
@@ -333,7 +337,7 @@ def add_design_content(doc: Document) -> None:
         "战斗解锁塔地块后，系统按该塔卡 Lv.1 基础属性与卡牌等级成长创建建筑。",
         "塔按攻击间隔结算；普通塔单体攻击，特殊塔通过 skill_id 改变选敌或结算。",
         "卡牌详情与战斗中的塔详情显示完整技能描述，不解析中文文案驱动逻辑。",
-        "美术整板审批后，每座塔用唯一建筑化动物主题 PNG 替换通用塔图；未审批前维持现有图标。",
+        "方案 A 的动物同风格低细节正式资源通过代表塔运行切片后，每座已建成塔按 site_card -> art_path 显示唯一建筑化动物主题 PNG；缺图或旧存档回退通用塔。",
     ])
     add_callout(
         doc,
@@ -370,7 +374,8 @@ def add_design_content(doc: Document) -> None:
             ["P-01 收藏/编组卡牌详情", "点击任意防御塔卡", "查看属性与技能描述", "显示攻/血/距离格/间隔；技能允许两行", "未拥有仍可查看；无截断"],
             ["P-02 战斗塔详情", "点击已建成防御塔", "查看当前等级属性与技能描述", "3 秒详情条，显示塔卡图、品质、属性、技能", "塔被摧毁或换卡立即关闭"],
             ["S-01 塔攻击循环", "spawn_timer≤0", "系统选敌并结算", "弹道/脉冲、伤害、金币反馈", "无合法目标则本次空放并进入下一间隔"],
-            ["S-02 美术审核", "打开 10 塔整板 A/B", "制作人选定或反馈修改", "批准后切分 10 张透明 PNG", "未批准保持 NOT_RUNTIME"],
+            ["S-02 代表运行切片", "方案 A 鹦鹉双弩塔动物同风格低细节正式图", "打开卡牌详情并在战场建成", "720×1280 同时验证双弩、建筑感、大色块、详情与血条", "BLOCKER/MATERIAL 必须返修"],
+            ["S-03 十塔全量绑定", "代表切片通过", "生成整套、标准化、写入 art_path", "已建成塔显示唯一图；未解锁仍是通用剪影", "缺图/空 ID 回退通用塔"],
         ],
         [3.2, 3.2, 4.0, 4.2, 3.0],
     )
@@ -461,7 +466,7 @@ def add_design_content(doc: Document) -> None:
         doc,
         ["元素", "显示规则", "数据源", "异常/空状态"],
         [
-            ["卡牌塔图", "整板批准后显示唯一 480×480 RGBA 塔图", "cards.csv::art_path", "未批准沿用通用 tower.png"],
+            ["卡牌塔图", "显示方案 A 唯一 480×480 RGBA 动物同风格低细节塔图，保持等比居中", "cards.csv::art_path", "缺图回退通用 tower.png，不得显示兔子兜底"],
             ["品质", "沿用绿色/蓝色/紫色/金色卡框", "cards.csv::rarity", "无"],
             ["四项属性", "攻击、生命、X格、X.X秒", "最终等级 stats", "距离保留 0.5 格精度"],
             ["技能描述", "完整原文；长文最多两行，自适应字号，不显示省略号", "cards.csv::skill_text", "空值显示基础说明"],
@@ -474,13 +479,16 @@ def add_design_content(doc: Document) -> None:
     add_heading(doc, "10.1 美术资源需求", 2)
     art_rows = []
     for index, (_, name, tier, color, _attack, _hp, _distance, _interval, _text, theme, _role) in enumerate(TOWERS, start=1):
-        art_rows.append([f"T-{index:02d}", name, theme, f"品质{tier}/{color}", "480×480 RGBA；透明；主体落地线 y=425±5；待整板审批"])
+        art_rows.append([f"T-{index:02d}", name, theme, f"品质{tier}/{color}", "方案 A；动物同风格大色块低细节；480×480 RGBA；透明；建筑基线 y=438±4；运行时绑定"])
     add_table(doc, ["ID", "名称", "唯一记忆点", "品质", "规格/状态"], art_rows, [1.2, 3.0, 4.8, 2.2, 6.5])
     add_bullets(doc, [
-        "风格：粗深色墨线、白色贴纸边、紧凑 Q 版、两档平涂阴影、透明背景；第一眼必须是可工作的防御建筑。",
-        "构图：塔体占主体轮廓至少 85%；动物元素仅建筑化为屋脊、檐口、扶壁、甲片、纹样、机括或导管；每塔只有一个主武器/技能道具。",
-        "禁用：完整动物站、坐、骑乘、驾驶或停驻在塔上；独立巨大动物头；文字、数字、UI 框、场景背景、渐变光效与碎小装饰。",
-        "流程：两套 5×2 整板 → 制作人批准 → 切分/标准化 → 代表塔 720×1280 运行切片 → 全量绑定。",
+        "风格：与现有动物 PNG 一致的紧凑 Q 版平面插画；粗深色墨线、大面积纯色或两档平涂、极少纹理、透明背景；第一眼必须是可工作的防御建筑。",
+        "复杂度预算：每塔只用 3～5 个主形状、4～6 个稳定色彩角色、2～4 块大面积墙体分区；禁止逐块砖缝、微小铆钉、密集羽毛线、金币纹理、碎旗和装饰噪点。",
+        "构图：塔体占主体轮廓至少 85%；动物元素仅建筑化为屋脊、檐口、扶壁、甲片、纹样、机括或导管；每塔只有一个主武器/技能道具，双弩塔可用一对同构武器。",
+        "禁用：完整动物站、坐、骑乘、驾驶或停驻在塔上；独立巨大动物头；眼鼻嘴构成的脸形；文字、数字、UI 框、场景背景、渐变光效与碎小装饰。",
+        "流程：方案 A 方向批准 → 鹦鹉双弩塔动物同风格低细节代表图 → 720×1280 代表运行切片 → 其余九塔 → 5×2 整板冻结像素与哈希 → 十塔全量绑定。",
+        "透明规范：480×480 RGBA8；视觉中心 x=240±6；建筑基线 y=438±4；四角至少 24×24 全透明；不保留白底、格线、文字或烘焙地面阴影。",
+        "脸形禁用：不得以眼点、鼻孔、喙、象鼻或嘴形成动物面部关系；鹦鹉双弩塔的金色三角件只可读作无眼雨棚/箭槽。",
     ])
 
     add_heading(doc, "10.2 音乐音效需求", 2)
@@ -503,7 +511,7 @@ def add_design_content(doc: Document) -> None:
         "关联卡牌：初始强制绿色塔、抽卡、收藏、编组、升级、段位 AI 卡组。",
         "关联战斗：建筑创建、塔计时、目标锁定、伤害、金币、领地归属、多人权威快照。",
         "关联美术：现有 60 动物风格合同；正式塔图不得复制外部商业游戏资产或识别。",
-        "后续可扩展：塔技能 VFX、独立音效、塔升级外观；均不在 V1.0 范围。",
+        "后续可扩展：塔技能 VFX、独立音效、塔升级外观；均不在 V1.2 范围。",
     ])
 
     add_heading(doc, "12. 验收与 QA", 1)
@@ -518,7 +526,8 @@ def add_design_content(doc: Document) -> None:
         ["领地", "领地内任意距离可攻击；领地外/中立/虚空/建筑不可", "行为测试"],
         ["全体脉冲", "每 5 秒替代普攻；触发时所有存活动物各 1 点", "行为＋性能测试"],
         ["技能描述", "10 塔均完整显示；最长领地文案不截断", "720×1280 GPU 截图"],
-        ["美术", "A/B 整板均以建筑为主体且无完整动物站塔；批准前为 NOT_RUNTIME", "制作人整板评审"],
+        ["美术", "恰好 10 张 480×480 RGBA；方案 A 塔体主体≥85%；动物同风格大色块低细节；无完整动物/巨大动物头；Alpha、基线、小图与整板检查通过", "生产 manifest＋浅/深底＋48/56/64/96px 预览"],
+        ["运行时绑定", "10 个 art_path 唯一可加载；已建成塔用 site_card 图；未解锁/缺图/空 ID 安全回退通用塔", "Godot 专项测试＋720×1280 GPU 截图"],
         ["回归", "配置、缩进、Godot 解析、塔卡组、AI、多人权威通过；72 单位 P95=1.210ms＜4ms", "自动回归＋运行证据"],
     ]
     add_table(doc, ["验收域", "通过条件", "证据"], qa_rows, [2.4, 10.2, 4.5])
@@ -528,7 +537,7 @@ def add_design_content(doc: Document) -> None:
         doc,
         ["问题/决策", "状态", "责任人", "结论及影响"],
         [
-            ["10 塔建筑化动物包装整板 A/B 选择", "待制作人审批", "user-producer", "已确认不站动物；批准前不切分、不绑定运行时"],
+            ["10 塔建筑化动物包装方向", "已批准方案 A；方案 B 已被取代", "user-producer", "对齐现有动物画风；大色块、粗轮廓、低细节；v2 方向板仍为 NOT_RUNTIME"],
             ["可编辑 Figma/FigJam UE 源", "工具不可用/待补", "user-producer", "不新增页面；文字合同不受影响"],
             ["所有动物是否包含己方", "按字面已实现", "user-producer", "V1.0 包含全部阵营动物"],
             ["新增塔对同品质抽卡池的稀释", "沿用现有机制", "user-producer", "本期不改品质总概率"],
@@ -543,8 +552,8 @@ def build() -> None:
     doc = Document(TEMPLATE)
     clear_document_body(doc)
     set_document_defaults(doc)
-    doc.core_properties.title = "防御塔系统重制 V1.0"
-    doc.core_properties.subject = "10座防御塔最终属性、技能机制、完整描述与建筑化动物主题包装"
+    doc.core_properties.title = "防御塔系统重制 V1.2"
+    doc.core_properties.subject = "10座防御塔最终属性、技能机制、方案A动物同风格低细节正式资产与运行时实装"
     doc.core_properties.author = "codex-primary"
     doc.core_properties.keywords = "Godot, 防御塔, 技能, 建筑化动物包装, F-ZC-DEFENSE-TOWER-005"
     add_title_page(doc)

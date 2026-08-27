@@ -1,0 +1,295 @@
+{
+  "feature_id": "F-ZC-DEFENSE-TOWER-005",
+  "version": "v1.2.0",
+  "direction": "A_existing_animal_style_large_color_blocks_low_detail_architecture_first",
+  "status": "RUNTIME_READY",
+  "source_board": "output/visual_concepts/defense_towers_v3/defense_towers_production_board_a.png",
+  "source_board_sha256": "fd82fe002ba144c7dde14f803dbc2dc7b5d910c2d863046f03e21ca2290e7d60",
+  "canvas": [
+    480,
+    480
+  ],
+  "baseline_target_y": 438,
+  "assets": [
+    {
+      "index": 1,
+      "tower_id": "defense_watch_tower",
+      "name": "兔子哨塔",
+      "rarity": 2,
+      "path": "assets/art/buildings/defense_towers/defense_watch_tower.png",
+      "sha256": "c0929f9c05cd25f06b48a7f315b8efd1eb3597a459d74d350d54fccac1d8eaeb",
+      "size": [
+        480,
+        480
+      ],
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "bbox": [
+        79,
+        20,
+        401,
+        438
+      ],
+      "visual_center_x": 240.0,
+      "baseline_y": 438,
+      "bbox_occupancy_pct": 58.42,
+      "visible_pixel_pct": 39.87,
+      "transparent_corners_24px": true
+    },
+    {
+      "index": 2,
+      "tower_id": "defense_longshot_tower",
+      "name": "猎鹰瞭望塔",
+      "rarity": 3,
+      "path": "assets/art/buildings/defense_towers/defense_longshot_tower.png",
+      "sha256": "81e44f136f150dfa6a101789fac639e2db58280e12b48ff6b9103203d9e59c5e",
+      "size": [
+        480,
+        480
+      ],
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "bbox": [
+        59,
+        20,
+        421,
+        438
+      ],
+      "visual_center_x": 240.0,
+      "baseline_y": 438,
+      "bbox_occupancy_pct": 65.68,
+      "visible_pixel_pct": 35.37,
+      "transparent_corners_24px": true
+    },
+    {
+      "index": 3,
+      "tower_id": "defense_cannon_tower",
+      "name": "野猪重弩塔",
+      "rarity": 3,
+      "path": "assets/art/buildings/defense_towers/defense_cannon_tower.png",
+      "sha256": "2622ace9dc2dbe7c49248e841315fec23db2d12c8464caeb840da4b8128e3f2e",
+      "size": [
+        480,
+        480
+      ],
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "bbox": [
+        24,
+        78,
+        456,
+        438
+      ],
+      "visual_center_x": 240.0,
+      "baseline_y": 438,
+      "bbox_occupancy_pct": 67.5,
+      "visible_pixel_pct": 55.21,
+      "transparent_corners_24px": true
+    },
+    {
+      "index": 4,
+      "tower_id": "defense_plunder_tower",
+      "name": "松鼠掠金塔",
+      "rarity": 3,
+      "path": "assets/art/buildings/defense_towers/defense_plunder_tower.png",
+      "sha256": "1dcf0b4fff458477b86c7598e43b2b999f43fb5daf397876cd53555498aded68",
+      "size": [
+        480,
+        480
+      ],
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "bbox": [
+        97,
+        20,
+        382,
+        438
+      ],
+      "visual_center_x": 239.5,
+      "baseline_y": 438,
+      "bbox_occupancy_pct": 51.71,
+      "visible_pixel_pct": 36.59,
+      "transparent_corners_24px": true
+    },
+    {
+      "index": 5,
+      "tower_id": "defense_rapid_tower",
+      "name": "麻雀速弩塔",
+      "rarity": 4,
+      "path": "assets/art/buildings/defense_towers/defense_rapid_tower.png",
+      "sha256": "38a4d2051ff4e6325450d8c75d364982dc3a13b5d7d87d59152f5d97d3568ace",
+      "size": [
+        480,
+        480
+      ],
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "bbox": [
+        49,
+        20,
+        431,
+        438
+      ],
+      "visual_center_x": 240.0,
+      "baseline_y": 438,
+      "bbox_occupancy_pct": 69.3,
+      "visible_pixel_pct": 33.71,
+      "transparent_corners_24px": true
+    },
+    {
+      "index": 6,
+      "tower_id": "defense_repair_beacon",
+      "name": "龟甲壁垒塔",
+      "rarity": 4,
+      "path": "assets/art/buildings/defense_towers/defense_repair_beacon.png",
+      "sha256": "abb8be0c8e2f91fbf4202a10898e505f639d46821f1930297a6b0bf2ca8c6d4f",
+      "size": [
+        480,
+        480
+      ],
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "bbox": [
+        24,
+        23,
+        456,
+        438
+      ],
+      "visual_center_x": 240.0,
+      "baseline_y": 438,
+      "bbox_occupancy_pct": 77.81,
+      "visible_pixel_pct": 59.18,
+      "transparent_corners_24px": true
+    },
+    {
+      "index": 7,
+      "tower_id": "defense_twinshot_tower",
+      "name": "鹦鹉双弩塔",
+      "rarity": 4,
+      "path": "assets/art/buildings/defense_towers/defense_twinshot_tower.png",
+      "sha256": "52276d4bed1638b5fe5229ed5ce5b0a8c06b4596e63b8e48d1ef451faea92106",
+      "size": [
+        480,
+        480
+      ],
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "bbox": [
+        26,
+        20,
+        453,
+        438
+      ],
+      "visual_center_x": 239.5,
+      "baseline_y": 438,
+      "bbox_occupancy_pct": 77.47,
+      "visible_pixel_pct": 45.1,
+      "transparent_corners_24px": true
+    },
+    {
+      "index": 8,
+      "tower_id": "defense_bounty_tower",
+      "name": "老虎赏金塔",
+      "rarity": 5,
+      "path": "assets/art/buildings/defense_towers/defense_bounty_tower.png",
+      "sha256": "2b4a6d9a8e9c2bc8b94fa70fd3132f20ad3630807391c0141dffdd06da9f09b7",
+      "size": [
+        480,
+        480
+      ],
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "bbox": [
+        57,
+        20,
+        422,
+        438
+      ],
+      "visual_center_x": 239.5,
+      "baseline_y": 438,
+      "bbox_occupancy_pct": 66.22,
+      "visible_pixel_pct": 45.81,
+      "transparent_corners_24px": true
+    },
+    {
+      "index": 9,
+      "tower_id": "defense_territory_tower",
+      "name": "金雕领空塔",
+      "rarity": 5,
+      "path": "assets/art/buildings/defense_towers/defense_territory_tower.png",
+      "sha256": "789d5b7433c29e07a7307975764c8bfe9bdfa6fd570d6376d82747894316c0e5",
+      "size": [
+        480,
+        480
+      ],
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "bbox": [
+        106,
+        20,
+        374,
+        438
+      ],
+      "visual_center_x": 240.0,
+      "baseline_y": 438,
+      "bbox_occupancy_pct": 48.62,
+      "visible_pixel_pct": 30.1,
+      "transparent_corners_24px": true
+    },
+    {
+      "index": 10,
+      "tower_id": "defense_storm_obelisk",
+      "name": "猛犸震地塔",
+      "rarity": 5,
+      "path": "assets/art/buildings/defense_towers/defense_storm_obelisk.png",
+      "sha256": "dd63e6022bd5493220f9fc8ce775a5b28eb89887571840015c9a9018faa61efd",
+      "size": [
+        480,
+        480
+      ],
+      "mode": "RGBA",
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "bbox": [
+        26,
+        20,
+        454,
+        438
+      ],
+      "visual_center_x": 240.0,
+      "baseline_y": 438,
+      "bbox_occupancy_pct": 77.65,
+      "visible_pixel_pct": 53.37,
+      "transparent_corners_24px": true
+    }
+  ]
+}

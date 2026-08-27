@@ -1748,7 +1748,7 @@
     "name": "兔子哨塔",
     "rarity": "common",
     "tier": 2,
-    "art_path": "res://assets/art/buildings/tower.png",
+    "art_path": "res://assets/art/buildings/defense_towers/defense_watch_tower.png",
     "attack": 1,
     "max_hp": 5,
     "move_speed": 0.0,
@@ -1770,14 +1770,14 @@
       "starter",
       "rabbit"
     ],
-    "design_notes": "品质2基础塔；最终属性直接读取；独立塔图待整板批准。"
+    "design_notes": "品质2基础塔；最终属性直接读取；方案A动物同风格低细节正式塔图。"
   },
   {
     "id": "defense_longshot_tower",
     "name": "猎鹰瞭望塔",
     "rarity": "rare",
     "tier": 3,
-    "art_path": "res://assets/art/buildings/tower.png",
+    "art_path": "res://assets/art/buildings/defense_towers/defense_longshot_tower.png",
     "attack": 1,
     "max_hp": 5,
     "move_speed": 0.0,
@@ -1800,14 +1800,14 @@
       "falcon",
       "ranged_priority"
     ],
-    "design_notes": "品质3远射塔；3.5格为效果后最终距离；独立塔图待整板批准。"
+    "design_notes": "品质3远射塔；3.5格为效果后最终距离；方案A动物同风格低细节正式塔图。"
   },
   {
     "id": "defense_cannon_tower",
     "name": "野猪重弩塔",
     "rarity": "rare",
     "tier": 3,
-    "art_path": "res://assets/art/buildings/tower.png",
+    "art_path": "res://assets/art/buildings/defense_towers/defense_cannon_tower.png",
     "attack": 2,
     "max_hp": 6,
     "move_speed": 0.0,
@@ -1830,14 +1830,14 @@
       "boar",
       "heavy_bolt"
     ],
-    "design_notes": "品质3强攻塔；攻击2为效果后最终攻击；独立塔图待整板批准。"
+    "design_notes": "品质3强攻塔；攻击2为效果后最终攻击；方案A动物同风格低细节正式塔图。"
   },
   {
     "id": "defense_plunder_tower",
     "name": "松鼠掠金塔",
     "rarity": "rare",
     "tier": 3,
-    "art_path": "res://assets/art/buildings/tower.png",
+    "art_path": "res://assets/art/buildings/defense_towers/defense_plunder_tower.png",
     "attack": 1,
     "max_hp": 7,
     "move_speed": 0.0,
@@ -1860,14 +1860,14 @@
       "squirrel",
       "economy"
     ],
-    "design_notes": "成功直接攻击后转移最多1金币；独立塔图待整板批准。"
+    "design_notes": "成功直接攻击后转移最多1金币；方案A动物同风格低细节正式塔图。"
   },
   {
     "id": "defense_rapid_tower",
     "name": "麻雀速弩塔",
     "rarity": "epic",
     "tier": 4,
-    "art_path": "res://assets/art/buildings/tower.png",
+    "art_path": "res://assets/art/buildings/defense_towers/defense_rapid_tower.png",
     "attack": 1,
     "max_hp": 6,
     "move_speed": 0.0,
@@ -1890,14 +1890,14 @@
       "sparrow",
       "rapid"
     ],
-    "design_notes": "品质4速射塔；0.5秒为效果后最终间隔；独立塔图待整板批准。"
+    "design_notes": "品质4速射塔；0.5秒为效果后最终间隔；方案A动物同风格低细节正式塔图。"
   },
   {
     "id": "defense_repair_beacon",
     "name": "龟甲壁垒塔",
     "rarity": "epic",
     "tier": 4,
-    "art_path": "res://assets/art/buildings/tower.png",
+    "art_path": "res://assets/art/buildings/defense_towers/defense_repair_beacon.png",
     "attack": 1,
     "max_hp": 21,
     "move_speed": 0.0,
@@ -1920,14 +1920,14 @@
       "turtle",
       "tank"
     ],
-    "design_notes": "保留旧内部ID；生命21为效果后最终生命；独立塔图待整板批准。"
+    "design_notes": "保留旧内部ID；生命21为效果后最终生命；方案A动物同风格低细节正式塔图。"
   },
   {
     "id": "defense_twinshot_tower",
     "name": "鹦鹉双弩塔",
     "rarity": "epic",
     "tier": 4,
-    "art_path": "res://assets/art/buildings/tower.png",
+    "art_path": "res://assets/art/buildings/defense_towers/defense_twinshot_tower.png",
     "attack": 1,
     "max_hp": 10,
     "move_speed": 0.0,
@@ -1950,14 +1950,14 @@
       "parrot",
       "multi_target"
     ],
-    "design_notes": "额外命中一个不同敌方动物；3格为效果后最终距离；独立塔图待整板批准。"
+    "design_notes": "额外命中一个不同敌方动物；3格为效果后最终距离；方案A动物同风格低细节正式塔图。"
   },
   {
     "id": "defense_bounty_tower",
     "name": "老虎赏金塔",
     "rarity": "legendary",
     "tier": 5,
-    "art_path": "res://assets/art/buildings/tower.png",
+    "art_path": "res://assets/art/buildings/defense_towers/defense_bounty_tower.png",
     "attack": 3,
     "max_hp": 12,
     "move_speed": 0.0,
@@ -1980,14 +1980,14 @@
       "tiger",
       "bounty"
     ],
-    "design_notes": "仅实际击杀动物奖励10金币；攻击3为效果后最终攻击；独立塔图待整板批准。"
+    "design_notes": "仅实际击杀动物奖励10金币；攻击3为效果后最终攻击；方案A动物同风格低细节正式塔图。"
   },
   {
     "id": "defense_territory_tower",
     "name": "金雕领空塔",
     "rarity": "legendary",
     "tier": 5,
-    "art_path": "res://assets/art/buildings/tower.png",
+    "art_path": "res://assets/art/buildings/defense_towers/defense_territory_tower.png",
     "attack": 1,
     "max_hp": 12,
     "move_speed": 0.0,
@@ -2010,14 +2010,14 @@
       "golden_eagle",
       "territory"
     ],
-    "design_notes": "仅目标动物位于塔方或盟友领地时合法；独立塔图待整板批准。"
+    "design_notes": "仅目标动物位于塔方或盟友领地时合法；方案A动物同风格低细节正式塔图。"
   },
   {
     "id": "defense_storm_obelisk",
     "name": "猛犸震地塔",
     "rarity": "legendary",
     "tier": 5,
-    "art_path": "res://assets/art/buildings/tower.png",
+    "art_path": "res://assets/art/buildings/defense_towers/defense_storm_obelisk.png",
     "attack": 1,
     "max_hp": 12,
     "move_speed": 0.0,
@@ -2040,6 +2040,6 @@
       "mammoth",
       "global_pulse"
     ],
-    "design_notes": "保留旧内部ID；全体脉冲替代单体攻击；独立塔图待整板批准。"
+    "design_notes": "保留旧内部ID；全体脉冲替代单体攻击；方案A动物同风格低细节正式塔图。"
   }
 ]

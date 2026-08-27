@@ -1,6 +1,6 @@
 schema_version: 1
 scope_id: SCOPE-001
-updated_on: "2026-08-25"
+updated_on: "2026-08-27"
 purpose: authoritative active priorities task ownership and shared write locks
 
 authority:
@@ -368,25 +368,69 @@ active_modules:
     remaining_gates: [android_device_not_run, apk_not_requested, aliyun_remote_write_not_authorized]
   - task_id: REQ-20260826-DEFENSE-TOWER-REDESIGN-V1
     feature_id: F-ZC-DEFENSE-TOWER-005
-    version: v1.0.0
-    phase: art_direction_review
+    version: v1.2.0
+    phase: closure
     domain: cross_domain
     owner: codex-primary
-    status: WAITING_PRODUCER_APPROVAL
+    status: COMPLETE
     started_on: "2026-08-26"
-    fingerprint: 5B074EA7D03C87B9852BCF10D46B31D39112EEFDEE71D9A4C7BDF28A4D1B4661
+    resumed_on: "2026-08-27"
+    completed_on: "2026-08-27"
+    fingerprint: 0E777AD6F930601837F574B05CE0E6BEE9083CDBD07A2FD7D3E6B324D8CF0BF9
     rag_gate_receipt: temp/rag/receipts/rag-gate.json
     rag_task_receipt: temp/rag/receipts/tasks/REQ-20260826-DEFENSE-TOWER-REDESIGN-V1.json
     control_intake: temp/control/REQ-20260826-DEFENSE-TOWER-REDESIGN-V1.json
     read_only_receipt: docs/receipts/REQ-20260826-DEFENSE-TOWER-REDESIGN-READ-ONLY-001.md
     milestone_receipt: docs/receipts/REQ-20260826-DEFENSE-TOWER-REDESIGN-MILESTONE-002.md
-    release_status: LOCAL_IMPLEMENTATION_VALIDATED_ART_PENDING
-    implementation_status: MECHANICS_CONFIG_UI_COMPLETE
-    art_status: DIRECTION_BOARDS_A_B_READY_NOT_RUNTIME
-    remaining_gates: [producer_direction_selection, transparent_runtime_asset_generation, representative_runtime_slice, full_runtime_binding]
+    decision_receipt: docs/receipts/REQ-20260826-DEFENSE-TOWER-REDESIGN-DECISION-004.md
+    superseded_decision_receipt: docs/receipts/REQ-20260826-DEFENSE-TOWER-REDESIGN-DECISION-003.md
+    runtime_slice_receipt: docs/receipts/REQ-20260826-DEFENSE-TOWER-REDESIGN-RUNTIME-SLICE-005.md
+    completion_receipt: docs/receipts/REQ-20260826-DEFENSE-TOWER-REDESIGN-CLOSE-006.md
+    release_status: LOCAL_RUNTIME_ART_A_VALIDATED
+    implementation_status: MECHANICS_CONFIG_UI_AND_RUNTIME_ART_COMPLETE
+    art_direction: A
+    art_status: APPROVED_RUNTIME
+    remaining_gates: [android_device_not_run, apk_not_requested]
 queued_modules: []
 
 shared_locks:
+  defense_tower_a_runtime_20260827:
+    task_id: REQ-20260826-DEFENSE-TOWER-REDESIGN-V1
+    owner: codex-primary
+    status: RELEASED
+    acquired_on: "2026-08-27"
+    hold_reason: producer_selected_direction_a_and_required_existing_animal_style_large_color_blocks_low_detail_then_ten_transparent_towers_card_and_battle_runtime_integration
+    released_on: "2026-08-27"
+    release_reason: ten_direction_a_towers_card_and_battle_runtime_binding_gpu_visual_acceptance_scoped_regression_and_closure_receipts_complete
+    write_set:
+      - .gitignore
+      - assets/art/buildings/defense_towers/
+      - config/tables/cards.csv
+      - runtime/config/cards.json
+      - scripts/app/main.gd
+      - tests/test_defense_deck_integration.gd
+      - tests/test_defense_tower_art_integration.gd
+      - tests/test_defense_tower_art_integration.tscn
+      - tests/capture_defense_tower_cards.gd
+      - tests/capture_defense_tower_cards.tscn
+      - tests/capture_defense_tower_art_catalog.gd
+      - tests/capture_defense_tower_art_catalog.tscn
+      - tools/build_defense_tower_runtime_assets.py
+      - tools/build_defense_tower_system_docx.py
+      - docs/DEFENSE_TOWER_SYSTEM_DESIGN_v1.2.docx
+      - docs/CURRENT_GAME_DESIGN.md
+      - docs/active_scope.yaml
+      - knowledge/knowledge_manifest.csv
+      - docs/receipts/REQ-20260826-DEFENSE-TOWER-REDESIGN-DECISION-003.md
+      - docs/receipts/REQ-20260826-DEFENSE-TOWER-REDESIGN-DECISION-004.md
+      - docs/receipts/REQ-20260826-DEFENSE-TOWER-REDESIGN-RUNTIME-SLICE-005.md
+      - docs/receipts/REQ-20260826-DEFENSE-TOWER-REDESIGN-CLOSE-006.md
+      - output/visual_concepts/defense_towers_v2/defense_towers_board_manifest.json
+      - output/visual_concepts/defense_towers_v3/
+      - output/qa/F-ZC-DEFENSE-TOWER-005/runtime-art-a/
+    evidence_root: temp/qa/F-ZC-DEFENSE-TOWER-005/runtime-art-a
+    runtime_art_integration_authorized: true
+    remote_write_authorized: false
   defense_tower_redesign_20260826:
     task_id: REQ-20260826-DEFENSE-TOWER-REDESIGN-V1
     owner: codex-primary

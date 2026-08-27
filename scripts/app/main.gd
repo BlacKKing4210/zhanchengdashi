@@ -386,6 +386,7 @@ func _ready() -> void:
 	page_router.register_page(SCREEN_BATTLE)
 	page_router.go_to(screen)
 	_load_cards()
+	_prewarm_defense_tower_art()
 	_init_player_collection()
 	_init_deck()
 	_init_enemy_deck()
@@ -7963,7 +7964,11 @@ func _draw_building(center: Vector2, tile: Dictionary) -> void:
 	if building == "barracks" or building == "hall":
 		_draw_quality_camp(center + Vector2(0, -7), _building_visual_rarity(tile), true)
 	elif building == "tower":
-		_draw_quality_tower(center + Vector2(0, -7), _building_visual_rarity(tile), true)
+		var tower_texture = _tower_card_texture(tile)
+		if tower_texture != null:
+			_draw_texture_contained(tower_texture, Rect2(center + Vector2(-42, -58), Vector2(84, 84)))
+		else:
+			_draw_quality_tower(center + Vector2(0, -7), _building_visual_rarity(tile), true)
 	elif building == "mine":
 		_draw_quality_mine(center + Vector2(0, -7), true)
 	else:
@@ -8248,6 +8253,13 @@ func _tile_display_card(tile: Dictionary) -> Dictionary:
 	if building == "barracks" or building == "hall" or building == "tower":
 		return _card_by_id(String(tile.get("site_card", "")))
 	return {}
+
+
+func _tower_card_texture(tile: Dictionary) -> Texture2D:
+	var card = _tile_display_card(tile)
+	if card.is_empty() or _card_kind(card) != CARD_KIND_DEFENSE:
+		return null
+	return _card_art_texture_or_null(card)
 
 
 func _tile_animal_card(tile: Dictionary) -> Dictionary:
@@ -8784,7 +8796,9 @@ func _draw_card_detail(rect: Rect2) -> void:
 	var rarity_fill = _rarity_color(String(card.get("rarity", "common")))
 	var art_rect = Rect2(rect.position + Vector2(20, 12), Vector2(88, 78))
 	var name_rect = Rect2(rect.position + Vector2(14, 92), Vector2(104, 28))
-	if detail_motion_progress >= 0.0:
+	if _card_kind(card) == CARD_KIND_DEFENSE:
+		_draw_texture_contained(_card_texture(card), Rect2(art_rect.position + Vector2(5, 0), Vector2(78, 78)))
+	elif detail_motion_progress >= 0.0:
 		_draw_animal_texture_at_foot(_card_texture(card), Vector2(art_rect.get_center().x, art_rect.end.y), art_rect.size, UnitMotionFeedback.power_up_pose(detail_motion_progress), _animal_art_display_scale(card))
 	else:
 		_draw_animal_art_in_rect(card, art_rect)
@@ -9442,17 +9456,33 @@ func _nav_rect(index: int) -> Rect2:
 	return main_page_layout.navigation_rect(index, NAV_ITEMS.size())
 
 
-func _card_texture(card: Dictionary) -> Texture2D:
+func _card_art_texture_or_null(card: Dictionary) -> Texture2D:
 	var path = String(card.get("art_path", ""))
-	if path != "":
-		if texture_cache.has(path):
-			return texture_cache[path]
-		if ResourceLoader.exists(path):
-			var texture = load(path) as Texture2D
-			if texture != null:
-				texture_cache[path] = texture
-				return texture
+	if path == "":
+		return null
+	if texture_cache.has(path):
+		return texture_cache[path] as Texture2D
+	if not ResourceLoader.exists(path):
+		texture_cache[path] = null
+		return null
+	var texture = load(path) as Texture2D
+	texture_cache[path] = texture
+	return texture
+
+
+func _card_texture(card: Dictionary) -> Texture2D:
+	var texture = _card_art_texture_or_null(card)
+	if texture != null:
+		return texture
+	if _card_kind(card) == CARD_KIND_DEFENSE:
+		return BUILDING_ART["tower"]
 	return UNIT_ART["rabbit"]
+
+
+func _prewarm_defense_tower_art() -> void:
+	for card in cards:
+		if _card_kind(card) == CARD_KIND_DEFENSE:
+			_card_art_texture_or_null(card)
 
 
 func _account_avatar_texture(avatar_id: String) -> Texture2D:
