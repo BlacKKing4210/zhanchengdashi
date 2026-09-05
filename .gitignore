@@ -48,6 +48,8 @@ export_presets.cfg
 config/tables/*.csv.import
 config/tables/*.translation
 assets/ui/formal_arcade/**/*.import
+assets/ui/handdrawn/*.import
+assets/art/terrain/handdrawn/*.import
 assets/art/buildings/defense_towers/*.import
 output/diagrams/*.import
 output/formal_page_options/*.import

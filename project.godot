@@ -13,8 +13,8 @@ config_version=5
 config/name="丛林法则"
 run/main_scene="res://scenes/bootstrap.tscn"
 config/features=PackedStringArray("4.6", "Forward Plus")
-boot_splash/bg_color=Color(0.925, 0.741, 0.376, 1)
-boot_splash/image="res://assets/branding/loading_portrait_1080x1920.png"
+boot_splash/bg_color=Color(0.957, 0.933, 0.89, 1)
+boot_splash/image="res://assets/ui/handdrawn/loading.png"
 config/icon="res://assets/branding/app_icon_1024.png"
 boot_splash/minimum_display_time=1000
 

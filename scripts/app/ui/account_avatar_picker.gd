@@ -1,4 +1,5 @@
 extends CanvasLayer
+const UISkin = preload("res://scripts/app/ui/handdrawn_ui_skin.gd")
 
 signal avatar_selected(avatar_id: String)
 signal locked_avatar_pressed(display_name: String, unlock_hint: String)
@@ -7,10 +8,10 @@ signal panel_closed
 const AccountIdentityRules = preload("res://scripts/shared/account_identity_rules.gd")
 
 const COLOR_BACKDROP = Color(0.03, 0.04, 0.06, 0.82)
-const COLOR_PANEL = Color(0.96, 0.86, 0.66, 1.0)
+const COLOR_PANEL = UISkin.RAISED
 const COLOR_INK = Color(0.09, 0.12, 0.18, 1.0)
 const COLOR_MUTED = Color(0.32, 0.30, 0.28, 1.0)
-const COLOR_SELECTED = Color(1.0, 0.51, 0.10, 1.0)
+const COLOR_SELECTED = Color("8b651c")
 const COLOR_LOCKED = Color(0.34, 0.35, 0.39, 1.0)
 const RARITY_COLORS = {
 	"common": Color(0.34, 0.78, 0.38, 1.0),
@@ -214,7 +215,7 @@ func _create_avatar_button(entry: Dictionary, tile_size: Vector2) -> Button:
 	var unlocked = AccountIdentityRules.avatar_is_unlocked(avatar_id, card_counts, current_avatar_id)
 	var selected = avatar_id == selected_avatar_id
 	var border_color = COLOR_SELECTED if selected else (rarity_color if unlocked else COLOR_LOCKED)
-	var fill_color = Color(1.0, 0.97, 0.86, 1.0) if unlocked else Color(0.52, 0.51, 0.48, 1.0)
+	var fill_color = UISkin.PRIMARY if selected else (UISkin.rarity(rarity) if unlocked else UISkin.SURFACE)
 	var button = Button.new()
 	button.name = "Avatar_%s" % String(entry.get("card_id", avatar_id))
 	button.text = ""
@@ -256,7 +257,7 @@ func _create_avatar_button(entry: Dictionary, tile_size: Vector2) -> Button:
 	name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	name_label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	content.add_child(name_label)
-	var rarity_label = _label(String(RARITY_NAMES.get(rarity, "普通")), 16, rarity_color if unlocked else COLOR_LOCKED)
+	var rarity_label = _label(String(RARITY_NAMES.get(rarity, "普通")), 16, rarity_color.darkened(0.38) if unlocked else COLOR_LOCKED)
 	rarity_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	content.add_child(rarity_label)
 	var state_label = _label("已选" if selected else ("可用" if unlocked else "锁定"), 16, COLOR_SELECTED if selected else (Color(0.18, 0.46, 0.23) if unlocked else Color(0.25, 0.25, 0.25)))
@@ -299,7 +300,7 @@ func _button(text: String) -> Button:
 	button.text = text
 	button.mouse_filter = Control.MOUSE_FILTER_STOP
 	button.add_theme_font_size_override("font_size", 23)
-	button.add_theme_color_override("font_color", Color.WHITE)
+	button.add_theme_color_override("font_color", UISkin.INK)
 	button.add_theme_stylebox_override("normal", _style_box(Color(0.47, 0.50, 0.63), COLOR_INK, 3, 8))
 	button.add_theme_stylebox_override("hover", _style_box(Color(0.55, 0.59, 0.74), COLOR_SELECTED, 3, 8))
 	button.add_theme_stylebox_override("pressed", _style_box(Color(0.39, 0.42, 0.56), COLOR_INK, 3, 8))
@@ -314,12 +315,8 @@ func _label(text: String, font_size: int, color: Color) -> Label:
 	return label
 
 
-func _style_box(fill: Color, border: Color, border_width: int, radius: int) -> StyleBoxFlat:
-	var style = StyleBoxFlat.new()
-	style.bg_color = fill
-	style.border_color = border
-	style.set_border_width_all(border_width)
-	style.set_corner_radius_all(radius)
+func _style_box(fill: Color, _border: Color, _border_width: int, radius: int) -> StyleBoxFlat:
+	var style = UISkin.panel(UISkin.surface_color(fill), radius).duplicate()
 	style.content_margin_left = 10.0
 	style.content_margin_top = 8.0
 	style.content_margin_right = 10.0

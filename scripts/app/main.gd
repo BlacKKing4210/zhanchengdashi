@@ -15,6 +15,9 @@ const DeckService = preload("res://scripts/foundation/deck/deck_service.gd")
 const GachaService = preload("res://scripts/foundation/gacha/gacha_service.gd")
 const PageRouter = preload("res://scripts/foundation/ui/page_router.gd")
 const MainPageLayout = preload("res://scripts/foundation/ui/main_page_layout.gd")
+const HanddrawnSkin = preload("res://scripts/app/ui/handdrawn_ui_skin.gd")
+var drawing_battle_world: bool = false
+var canvas_view_size = Vector2(720, 1280)
 const BattleAnalyticsContract = preload("res://scripts/shared/battle_analytics_contract.gd")
 const AccountIdentityRules = preload("res://scripts/shared/account_identity_rules.gd")
 const GmResourceRules = preload("res://scripts/app/systems/gm_resource_rules.gd")
@@ -692,7 +695,7 @@ func _handle_multiplayer_pointer_input(event: InputEvent) -> bool:
 			return true
 		if event.pressed and event.button_index in [MOUSE_BUTTON_WHEEL_UP, MOUSE_BUTTON_WHEEL_DOWN]:
 			_layout(get_viewport_rect().size)
-			if _battle_view_rect().has_point(_screen_to_canvas(event.position)):
+			if _battle_view_rect().has_point(_screen_to_canvas(event.position)) and not _battle_hud_has_point(_screen_to_canvas(event.position)) and not pause_open and not game_over:
 				board_pan.y += 84.0 if event.button_index == MOUSE_BUTTON_WHEEL_UP else -84.0
 				_clamp_board_pan()
 				return true
@@ -719,7 +722,7 @@ func _begin_board_pointer(screen_pos: Vector2) -> void:
 	board_pointer_last = screen_pos
 	board_pointer_distance = 0.0
 	var canvas_pos = _screen_to_canvas(screen_pos)
-	board_pointer_started_in_view = _battle_view_rect().has_point(canvas_pos) and not pause_open and not game_over
+	board_pointer_started_in_view = _battle_view_rect().has_point(canvas_pos) and not _battle_hud_has_point(canvas_pos) and not pause_open and not game_over
 
 
 func _move_board_pointer(screen_pos: Vector2, relative: Vector2) -> void:
@@ -738,6 +741,9 @@ func _end_board_pointer(screen_pos: Vector2) -> void:
 	if not board_pointer_down:
 		return
 	var should_tap = not board_pointer_dragged
+	# A gesture that began on an overlay must never fall through on release.
+	if _battle_hud_has_point(_screen_to_canvas(board_pointer_start)):
+		should_tap = should_tap and board_pointer_distance < BOARD_DRAG_THRESHOLD and _battle_hud_has_point(_screen_to_canvas(screen_pos))
 	board_pointer_down = false
 	board_pointer_started_in_view = false
 	board_pointer_distance = 0.0
@@ -800,7 +806,7 @@ func _handle_tap(screen_pos: Vector2) -> void:
 		pause_open = true
 		GameAudio.set_paused_mix(true)
 		return
-	if _uses_axial_battle_map() and not _battle_view_rect().has_point(pos):
+	if _battle_hud_has_point(pos) or (_uses_axial_battle_map() and not _battle_view_rect().has_point(pos)):
 		return
 	if _select_unit_at_canvas(pos):
 		_clear_building_card_preview(true)
@@ -855,12 +861,11 @@ func _draw() -> void:
 
 func _draw_full_bleed_background(view_size: Vector2) -> void:
 	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
-	draw_rect(Rect2(Vector2.ZERO, view_size), BACKGROUND_BASE_COLOR)
-	var top_band_height = clampf(canvas_offset.y + 220.0 * canvas_scale, 0.0, view_size.y)
-	draw_rect(Rect2(0.0, 0.0, view_size.x, top_band_height), BACKGROUND_TOP_COLOR)
+	draw_rect(Rect2(Vector2.ZERO, view_size), HanddrawnSkin.PAPER)
 
 
 func _layout(view_size: Vector2) -> void:
+	canvas_view_size = view_size
 	canvas_scale = minf(view_size.x / DESIGN_SIZE.x, view_size.y / DESIGN_SIZE.y)
 	canvas_scale = maxf(canvas_scale, 0.001)
 	canvas_offset = (view_size - DESIGN_SIZE * canvas_scale) * 0.5
@@ -898,15 +903,33 @@ func _screen_to_canvas(pos: Vector2) -> Vector2:
 
 
 func _battle_view_rect() -> Rect2:
-	return Rect2(64, 110, 592, 982)
+	return Rect2(-canvas_offset / canvas_scale, canvas_view_size / canvas_scale)
+
+
+func _battle_hud_has_point(pos: Vector2) -> bool:
+	if Rect2(26, 1132, 668, 118).has_point(pos) or _pause_button_rect().grow(5).has_point(pos):
+		return true
+	for rect in [Rect2(46, 18, 186, 44), Rect2(250, 18, 220, 44), Rect2(488, 18, 186, 44)]:
+		if rect.grow(5).has_point(pos): return true
+	if _should_draw_3v3_team_scoreboard():
+		if _multiplayer_team_scoreboard_rect(0).has_point(pos) or _multiplayer_team_scoreboard_rect(1).has_point(pos): return true
+	return battle_mode == BATTLE_MODE_MULTIPLAYER and multiplayer_free_for_all and Rect2(500, 148, 148, 184).has_point(pos)
 
 
 func _reset_multiplayer_board_pan() -> void:
 	var view_rect = _battle_view_rect()
 	var player_base = _battle_base_key(_local_control_team())
 	var base_pos = MultiplayerRules.hex_center(player_base, Vector2.ZERO, HEX_SIZE)
-	var desired_pos = view_rect.position + Vector2(view_rect.size.x * 0.5, view_rect.size.y * 0.76)
+	# Initial framing uses the HUD-safe area; drawing/culling still use the whole screen.
+	var focus_rect = Rect2(20, 144, 680, 968)
+	var desired_pos = focus_rect.position + Vector2(focus_rect.size.x * 0.5, focus_rect.size.y * 0.76)
 	board_pan = desired_pos - view_rect.get_center() - base_pos * _battle_camera_zoom()
+	var projected_bounds = Rect2(multiplayer_board_bounds.position * _battle_camera_zoom(), multiplayer_board_bounds.size * _battle_camera_zoom())
+	for axis in range(2):
+		if projected_bounds.size[axis] <= focus_rect.size[axis]:
+			board_pan[axis] = focus_rect.get_center()[axis] - view_rect.get_center()[axis] - projected_bounds.get_center()[axis]
+		else:
+			board_pan[axis] = clampf(board_pan[axis], focus_rect.end[axis] - view_rect.get_center()[axis] - projected_bounds.end[axis], focus_rect.position[axis] - view_rect.get_center()[axis] - projected_bounds.position[axis])
 	_clamp_board_pan()
 
 
@@ -6518,8 +6541,10 @@ func _draw_lobby_screen() -> void:
 	_draw_top_bar()
 	_draw_text_center("丛林法则", Rect2(40, 66, 640, 64), 46, Color.WHITE)
 	var scene_rect = Rect2(58, 144, 604, 680)
-	_box(scene_rect, Color(0.39, 0.63, 0.87), COLOR_LINE, 5)
-	draw_rect(scene_rect.grow(-14), Color(0.48, 0.78, 0.39))
+	_box(scene_rect, HanddrawnSkin.SAGE, COLOR_LINE, 0)
+	for index in range(16):
+		var dot = scene_rect.position + Vector2(36 + (index * 113) % 524, 48 + (index * 137) % 582)
+		draw_circle(dot, 3.0, Color(0.48, 0.55, 0.30, 0.12))
 	_draw_rank_castle(Rect2(224, 218, 272, 280))
 	_draw_lobby_deck_animals(scene_rect.grow(-34))
 	_draw_rank_panel(Rect2(58, 842, 604, 92))
@@ -6565,7 +6590,26 @@ func _setup_account_fields() -> void:
 	account_password_field.add_theme_font_size_override("font_size", 22)
 	account_password_field.text_submitted.connect(_on_account_password_text_submitted)
 	add_child(account_password_field)
+	for field in [account_username_field, account_name_field, account_password_field]:
+		_apply_handdrawn_input_theme(field)
 	_set_account_fields_visible(false)
+
+
+func _apply_handdrawn_input_theme(field: LineEdit) -> void:
+	var normal = HanddrawnSkin.panel(HanddrawnSkin.RAISED, 10, false).duplicate()
+	normal.content_margin_left = 12
+	normal.content_margin_right = 12
+	var focus = normal.duplicate()
+	focus.bg_color = HanddrawnSkin.PRIMARY.lightened(0.30)
+	focus.border_color = Color("9c772b")
+	focus.set_border_width_all(2)
+	field.add_theme_stylebox_override("normal", normal)
+	field.add_theme_stylebox_override("read_only", normal)
+	field.add_theme_stylebox_override("focus", focus)
+	field.add_theme_color_override("font_color", HanddrawnSkin.INK)
+	field.add_theme_color_override("font_uneditable_color", Color("675e51"))
+	field.add_theme_color_override("caret_color", HanddrawnSkin.INK)
+	field.add_theme_color_override("font_placeholder_color", Color("675e51"))
 
 
 func _on_account_username_text_submitted(_value: String) -> void:
@@ -6622,6 +6666,7 @@ func _setup_online_room_code_field() -> void:
 	focus_style.set_border_width_all(5)
 	online_room_code_field.add_theme_stylebox_override("normal", normal_style)
 	online_room_code_field.add_theme_stylebox_override("focus", focus_style)
+	_apply_handdrawn_input_theme(online_room_code_field)
 	online_room_code_field.text_changed.connect(_on_online_room_code_text_changed)
 	online_room_code_field.text_submitted.connect(_on_online_room_code_text_submitted)
 	add_child(online_room_code_field)
@@ -7090,7 +7135,7 @@ func _draw_account_center() -> void:
 	_cta(_account_close_rect(), "关闭", false)
 	draw_line(Vector2(92, 264), Vector2(628, 264), Color(0.36, 0.27, 0.16, 0.45), 2.0)
 	if player_agreement_open:
-		_draw_text_fit("欢迎使用《丛林法则》。请文明游戏并妥善保管账号。游戏进度由服务器保存；禁止利用漏洞、外挂或干扰其他玩家。我们仅处理提供账号与游戏服务所需的数据。账号中心可切换本机拥有的档案；新建账号会从全新进度开始。", Rect2(108, 294, 504, 468), 24, COLOR_LINE)
+		_draw_paragraph("欢迎使用《丛林法则》。请文明游戏并妥善保管账号。游戏进度由服务器保存；禁止利用漏洞、外挂或干扰其他玩家。我们仅处理提供账号与游戏服务所需的数据。账号中心可切换本机拥有的档案；新建账号会从全新进度开始。", Rect2(108, 294, 504, 468), 24, COLOR_LINE)
 		_cta(_agreement_back_rect(), "返回账号中心", true)
 		return
 	if account_switch_open:
@@ -7176,14 +7221,14 @@ func _draw_account_switcher() -> void:
 
 func _draw_lobby_multiplayer_button() -> void:
 	var rect = _multiplayer_start_rect()
-	_box(rect, COLOR_BLUE.darkened(0.14), COLOR_LINE, 5)
+	_box(rect, HanddrawnSkin.SURFACE, COLOR_LINE, 0)
 	_draw_text_center("多人对战", _multiplayer_button_title_rect(), 25, Color.WHITE)
 	_draw_multiplayer_hot_badge()
 
 
 func _draw_multiplayer_hot_badge() -> void:
 	var rect = _multiplayer_hot_badge_rect()
-	_box(rect, COLOR_RED, COLOR_LINE, 3)
+	draw_style_box(HanddrawnSkin.panel(Color("ddab91"), 7), rect)
 	_draw_text_center(MULTIPLAYER_HOT_BADGE_TEXT, rect.grow(-2.0), 15, Color.WHITE)
 
 
@@ -7195,7 +7240,7 @@ func _draw_room_screen() -> void:
 	for players_per_side in range(1, 4):
 		var mode_rect = _room_mode_rect(players_per_side)
 		var selected = players_per_side == room_players_per_side
-		_box(mode_rect, COLOR_ORANGE if selected else COLOR_PURPLE, COLOR_LINE, 4)
+		_box(mode_rect, HanddrawnSkin.PRIMARY if selected else HanddrawnSkin.SURFACE, COLOR_LINE, 0)
 		_draw_text_center("%dV%d" % [players_per_side, players_per_side], mode_rect, 24, Color.WHITE)
 	if not online_room_active:
 		_draw_online_room_entry()
@@ -7215,11 +7260,9 @@ func _draw_room_screen() -> void:
 	_box(fill_rect, Color(1.0, 0.96, 0.82), COLOR_LINE, 4)
 	_draw_text_fit("随机玩家补位", Rect2(fill_rect.position + Vector2(20, 13), Vector2(190, 32)), 24, COLOR_LINE)
 	var toggle_rect = Rect2(fill_rect.position + Vector2(fill_rect.size.x - 92, 12), Vector2(72, 36))
-	draw_rect(toggle_rect, COLOR_GREEN if room_fill_with_ai else Color(0.48, 0.49, 0.54))
-	draw_rect(toggle_rect, COLOR_LINE, false, 3)
+	draw_style_box(HanddrawnSkin.panel(HanddrawnSkin.SAGE if room_fill_with_ai else HanddrawnSkin.LOCKED, 18, false), toggle_rect)
 	var knob_x = toggle_rect.position.x + (toggle_rect.size.x - 18.0 if room_fill_with_ai else 18.0)
 	draw_circle(Vector2(knob_x, toggle_rect.get_center().y), 13, Color.WHITE)
-	draw_circle(Vector2(knob_x, toggle_rect.get_center().y), 13, COLOR_LINE, false, 2)
 
 	_cta(_room_leave_rect(), "离开房间", false)
 	var action = _room_primary_action_state()
@@ -7228,7 +7271,7 @@ func _draw_room_screen() -> void:
 
 func _draw_online_room_entry() -> void:
 	var panel = Rect2(48, 240, 624, 650)
-	_box(panel, Color(0.20, 0.24, 0.46, 0.96), COLOR_LINE, 5)
+	_box(panel, HanddrawnSkin.SURFACE, COLOR_LINE, 0)
 	var status_text = "正在连接服务器…"
 	var status_color = COLOR_YELLOW
 	if online_connection_state == "connected":
@@ -7258,11 +7301,9 @@ func _draw_online_room_entry() -> void:
 	_box(fill_rect, Color(1.0, 0.96, 0.82), COLOR_LINE, 4)
 	_draw_text_fit("创建时随机补位", Rect2(fill_rect.position + Vector2(20, 12), Vector2(250, 32)), 22, COLOR_LINE)
 	var toggle_rect = Rect2(fill_rect.position + Vector2(fill_rect.size.x - 92, 10), Vector2(72, 36))
-	draw_rect(toggle_rect, COLOR_GREEN if room_fill_with_ai else Color(0.48, 0.49, 0.54))
-	draw_rect(toggle_rect, COLOR_LINE, false, 3)
+	draw_style_box(HanddrawnSkin.panel(HanddrawnSkin.SAGE if room_fill_with_ai else HanddrawnSkin.LOCKED, 18, false), toggle_rect)
 	var knob_x = toggle_rect.position.x + (toggle_rect.size.x - 18.0 if room_fill_with_ai else 18.0)
 	draw_circle(Vector2(knob_x, toggle_rect.get_center().y), 13, Color.WHITE)
-	draw_circle(Vector2(knob_x, toggle_rect.get_center().y), 13, COLOR_LINE, false, 2)
 	_cta(_room_online_retry_rect(), "重新连接", online_connection_state != "connected")
 	_draw_text_center("客户端只需出站连接；公网服务器需开放 UDP 24567", Rect2(72, 836, 576, 28), 16, Color(0.84, 0.88, 1.0))
 
@@ -7372,14 +7413,13 @@ func _draw_lobby_animal(area: Rect2, card: Dictionary, anchor: Vector2, index: i
 func _draw_rank_panel(rect: Rect2) -> void:
 	var state = _player_rank_state()
 	var visual = RankingRules.visual_for_key(String(state["key"]))
-	var panel_color = Color.from_string(String(visual.get("panel_color", "")), Color(0.16, 0.13, 0.38, 0.94))
+	var panel_color = HanddrawnSkin.SURFACE
 	var accent_color = Color.from_string(String(visual.get("accent_color", "")), COLOR_YELLOW)
-	var text_color = Color.from_string(String(visual.get("text_color", "")), Color.WHITE)
+	var text_color = HanddrawnSkin.INK
 	_box(rect, panel_color, COLOR_LINE, 4)
-	draw_rect(Rect2(rect.position + Vector2(5, 5), Vector2(7, rect.size.y - 10)), accent_color)
 	_draw_text_fit(String(state["display"]), Rect2(rect.position + Vector2(22, 10), Vector2(260, 34)), 28, text_color)
 	_draw_text_right("段位赛", Rect2(rect.position + Vector2(350, 12), Vector2(228, 28)), 20, text_color)
-	_draw_star_track(Rect2(rect.position + Vector2(22, 52), Vector2(176, 20)), int(state["stars"]), int(state["max_stars"]), accent_color, panel_color.lightened(0.18))
+	_draw_star_track(Rect2(rect.position + Vector2(22, 52), Vector2(176, 20)), int(state["stars"]), int(state["max_stars"]), accent_color, panel_color.darkened(0.10))
 	var profile = _player_profile()
 	_draw_text_fit("胜 %d  负 %d" % [int(profile.get("wins", 0)), int(profile.get("losses", 0))], Rect2(rect.position + Vector2(224, 52), Vector2(160, 24)), 18, text_color)
 
@@ -7423,9 +7463,7 @@ func _draw_star_track(rect: Rect2, stars: int, max_stars: int, filled_color: Col
 	radius = maxf(2.0, radius)
 	for i in range(max_stars):
 		var center = rect.position + Vector2(radius + float(i) * (radius * 2.0 + gap), rect.size.y * 0.5)
-		draw_circle(center + Vector2(0, 2), radius, Color(0, 0, 0, 0.22))
 		draw_circle(center, radius, filled_color if i < stars else empty_color)
-		draw_arc(center, radius + 0.8, 0.0, TAU, 18, COLOR_LINE, 1.2, true)
 
 
 func _draw_gacha_screen() -> void:
@@ -7541,7 +7579,7 @@ func _draw_deck_screen() -> void:
 	_draw_background()
 	_draw_top_bar()
 	_draw_text_center("出战编组", Rect2(40, 68, 640, 58), 42, Color.WHITE)
-	_box(Rect2(34, 140, 652, 360), COLOR_PURPLE, COLOR_LINE, 5)
+	_box(Rect2(34, 140, 652, 360), HanddrawnSkin.SURFACE, COLOR_LINE, 0)
 	for i in range(DECK_SIZE):
 		var slot_rect = _deck_slot_rect(i)
 		var card_id = String(deck[i])
@@ -7551,7 +7589,7 @@ func _draw_deck_screen() -> void:
 	_draw_card_detail(Rect2(34, 520, 652, 128))
 	_draw_text_center("所有卡牌", Rect2(0, 670, DESIGN_SIZE.x, 42), 34, Color.WHITE)
 	var collection_frame = _collection_frame_rect()
-	_box(collection_frame, Color(0.55, 0.78, 0.43), COLOR_LINE, 4)
+	_box(collection_frame, HanddrawnSkin.SURFACE, COLOR_LINE, 0)
 	var collection_view = _collection_view_rect()
 	var collection_cards = _available_collection_cards()
 	deck_scroll = clampf(deck_scroll, 0.0, _collection_max_scroll_for_count(collection_cards.size()))
@@ -7562,7 +7600,6 @@ func _draw_deck_screen() -> void:
 			continue
 		var card = collection_cards[i]
 		_draw_card_clipped(rect, card, String(card["id"]) == selected_card_id, collection_view)
-	draw_rect(collection_frame, COLOR_LINE, false, 4)
 
 
 func _draw_deck_slot_breath(rect: Rect2, index: int) -> void:
@@ -7576,7 +7613,7 @@ func _draw_deck_slot_breath(rect: Rect2, index: int) -> void:
 
 func _draw_battle_screen() -> void:
 	_draw_background()
-	_draw_board_frame()
+	drawing_battle_world = true
 	for key in tiles.keys():
 		_draw_tile(key, tiles[key])
 	_draw_unlockable_tile_borders()
@@ -7584,8 +7621,7 @@ func _draw_battle_screen() -> void:
 		_draw_unit(unit)
 	for effect in effects:
 		_draw_effect(effect)
-	if _uses_axial_battle_map():
-		_draw_board_view_mask()
+	drawing_battle_world = false
 	_draw_top_bar()
 	_draw_match_status()
 	if _should_draw_3v3_team_scoreboard():
@@ -7601,11 +7637,7 @@ func _draw_battle_screen() -> void:
 
 
 func _draw_background() -> void:
-	draw_rect(Rect2(Vector2.ZERO, DESIGN_SIZE), BACKGROUND_BASE_COLOR)
-	draw_rect(Rect2(0, 0, DESIGN_SIZE.x, 220), BACKGROUND_TOP_COLOR)
-	for i in range(12):
-		var x = 40.0 + fmod(float(i) * 96.0 + ui_time * 8.0, DESIGN_SIZE.x)
-		_grass(Vector2(x, 82.0 + float(i % 4) * 36.0))
+	draw_rect(_battle_view_rect(), HanddrawnSkin.PAPER)
 
 
 func _draw_top_bar() -> void:
@@ -7719,13 +7751,15 @@ func _rank_result_text() -> String:
 
 
 func _draw_nav() -> void:
-	draw_rect(Rect2(0, 1138, DESIGN_SIZE.x, 142), Color(0.24, 0.21, 0.58))
+	draw_rect(Rect2(0, 1138, DESIGN_SIZE.x, 142), HanddrawnSkin.PAPER)
 	for i in range(NAV_ITEMS.size()):
 		var item = NAV_ITEMS[i]
 		var rect = _nav_rect(i)
 		var id = String(item["id"])
 		var active = (screen == id) or (screen == SCREEN_LOBBY and id == SCREEN_LOBBY)
-		_box(rect, COLOR_BLUE if active else COLOR_PURPLE, COLOR_LINE, 3)
+		_box(rect, HanddrawnSkin.PRIMARY if active else HanddrawnSkin.SURFACE, COLOR_LINE, 0)
+		if active:
+			draw_style_box(HanddrawnSkin.panel(Color("a67719"), 3, false), Rect2(rect.get_center().x - 15, rect.end.y - 8, 30, 5))
 		_draw_nav_icon(rect, i, bool(item.get("locked", false)))
 		_draw_text_center(String(item["label"]), Rect2(rect.position + Vector2(0, 84), Vector2(rect.size.x, 34)), 23, Color.WHITE)
 
@@ -7733,11 +7767,11 @@ func _draw_nav() -> void:
 func _draw_nav_icon(rect: Rect2, index: int, locked: bool) -> void:
 	var c = rect.position + Vector2(rect.size.x * 0.5, 42)
 	if index == 0:
-		_box(Rect2(c + Vector2(-28, -10), Vector2(56, 42)), Color(0.92, 0.74, 0.38), COLOR_LINE, 3)
+		draw_style_box(HanddrawnSkin.panel(HanddrawnSkin.PRIMARY, 4, false), Rect2(c + Vector2(-28, -10), Vector2(56, 42)))
 		draw_rect(Rect2(c + Vector2(-32, -28), Vector2(64, 20)), COLOR_RED)
 	elif index == 1:
-		_box(Rect2(c + Vector2(-28, -26), Vector2(46, 58)), COLOR_YELLOW, COLOR_LINE, 3)
-		_box(Rect2(c + Vector2(-8, -22), Vector2(46, 58)), Color(0.65, 0.28, 0.95), COLOR_LINE, 3)
+		draw_style_box(HanddrawnSkin.panel(HanddrawnSkin.PRIMARY, 4, false), Rect2(c + Vector2(-28, -26), Vector2(46, 58)))
+		draw_style_box(HanddrawnSkin.panel(HanddrawnSkin.LILAC, 4, false), Rect2(c + Vector2(-8, -22), Vector2(46, 58)))
 	elif index == 2:
 		draw_line(c + Vector2(-26, -22), c + Vector2(22, 22), Color.WHITE, 8, true)
 		draw_line(c + Vector2(26, -22), c + Vector2(-22, 22), Color.WHITE, 8, true)
@@ -7746,30 +7780,17 @@ func _draw_nav_icon(rect: Rect2, index: int, locked: bool) -> void:
 		draw_circle(c, 18, Color(1.0, 0.95, 0.55))
 		_draw_text_center("抽", Rect2(c + Vector2(-24, -22), Vector2(48, 44)), 24, COLOR_LINE)
 	else:
-		_box(Rect2(c + Vector2(-26, -24), Vector2(52, 52)), COLOR_ORANGE, COLOR_LINE, 3)
+		draw_style_box(HanddrawnSkin.panel(HanddrawnSkin.PEACH, 4, false), Rect2(c + Vector2(-26, -24), Vector2(52, 52)))
 	if locked:
 		_draw_lock(c + Vector2(34, -30))
 
 
 func _draw_board_frame() -> void:
-	_box(Rect2(36, 82, 648, 1038), Color(0.95, 0.80, 0.50), Color(0.37, 0.55, 0.25), 5)
-	_box(Rect2(64, 110, 592, 982), Color(0.62, 0.88, 0.45), Color(0.25, 0.48, 0.22), 4)
+	pass # Compatibility hook: terrain is the full-page backdrop, never framed.
 
 
 func _draw_board_view_mask() -> void:
-	var outer = Rect2(36, 82, 648, 1038)
-	var view = _battle_view_rect()
-	var frame_fill = Color(0.95, 0.80, 0.50)
-	draw_rect(Rect2(0, 0, DESIGN_SIZE.x, outer.position.y), BACKGROUND_TOP_COLOR)
-	draw_rect(Rect2(0, outer.end.y, DESIGN_SIZE.x, DESIGN_SIZE.y - outer.end.y), BACKGROUND_BASE_COLOR)
-	draw_rect(Rect2(0, outer.position.y, outer.position.x, outer.size.y), BACKGROUND_BASE_COLOR)
-	draw_rect(Rect2(outer.end.x, outer.position.y, DESIGN_SIZE.x - outer.end.x, outer.size.y), BACKGROUND_BASE_COLOR)
-	draw_rect(Rect2(outer.position, Vector2(outer.size.x, view.position.y - outer.position.y)), frame_fill)
-	draw_rect(Rect2(Vector2(outer.position.x, view.end.y), Vector2(outer.size.x, outer.end.y - view.end.y)), frame_fill)
-	draw_rect(Rect2(Vector2(outer.position.x, view.position.y), Vector2(view.position.x - outer.position.x, view.size.y)), frame_fill)
-	draw_rect(Rect2(Vector2(view.end.x, view.position.y), Vector2(outer.end.x - view.end.x, view.size.y)), frame_fill)
-	draw_rect(outer, Color(0.37, 0.55, 0.25), false, 5.0)
-	draw_rect(view, Color(0.25, 0.48, 0.22), false, 4.0)
+	pass # Viewport edges provide clipping; no board-sized UI mask.
 
 
 func _draw_tile(key: Vector2i, tile: Dictionary) -> void:
@@ -7777,25 +7798,17 @@ func _draw_tile(key: Vector2i, tile: Dictionary) -> void:
 	if _uses_axial_battle_map() and not _is_world_pos_visible(world_center, HEX_SIZE * 1.1):
 		return
 	var center = _world_to_canvas(world_center)
-	var points = _hex_points(center)
 	var local_team = _local_control_team()
 	var can_unlock = _can_unlock(key, local_team)
 	var unlock_cost = _unlock_cost(key, local_team)
 	var visual_team = BoardRules.visual_owner(tile)
-	var fill = Color(0.88, 0.80, 0.58, 0.68)
-	var line = Color(0.61, 0.52, 0.35, 0.48)
-	var line_width = 2.0
 	var is_eliminated_gray = int(tile.get("eliminated_team", NEUTRAL)) != NEUTRAL and visual_team == NEUTRAL
-	if is_eliminated_gray:
-		fill = Color(0.48, 0.50, 0.52, 0.82)
-		line = Color(0.28, 0.30, 0.32, 0.80)
-		line_width = 3.0
-	elif visual_team != NEUTRAL:
-		fill = _team_color(visual_team)
-		line = fill.darkened(0.34)
-		line_width = 3.0
-	draw_polygon(points, PackedColorArray([fill, fill, fill, fill, fill, fill]))
-	draw_polyline(_closed_points(points), line, line_width)
+	var terrain_id = 3 if is_eliminated_gray else HanddrawnSkin.terrain_index(visual_team, battle_mode == BATTLE_MODE_MULTIPLAYER and not multiplayer_free_for_all, battle_match_seed)
+	var radius = HEX_SIZE * _battle_camera_zoom()
+	# Rotate the supplied flat-top PNG into the unchanged pointy-top world grid.
+	_set_tracked_draw_transform(canvas_offset + center * canvas_scale, PI * 0.5, Vector2.ONE * canvas_scale)
+	draw_texture_rect(HanddrawnSkin.TERRAIN[terrain_id], Rect2(-radius + 0.8, -radius * 0.866 + 0.8, radius * 2.0 - 1.6, radius * 1.732 - 1.6), false, Color(1, 1, 1, 0.78))
+	_set_tracked_draw_transform(canvas_offset, 0.0, Vector2.ONE * canvas_scale)
 	_draw_world_tile_content(center, tile, can_unlock, unlock_cost)
 
 
@@ -8187,13 +8200,12 @@ func _initialize_battle_team_colors(match_seed: int) -> void:
 		_set_team_palette(int(teams[index]), hue, random)
 
 
-func _set_team_palette(team: int, hue: float, random: RandomNumberGenerator) -> void:
-	var normalized_hue = fposmod(hue, 1.0)
-	var team_color = Color.from_hsv(
-		normalized_hue,
-		random.randf_range(0.30, 0.36),
-		random.randf_range(0.78, 0.84)
-	)
+func _set_team_palette(team: int, _hue: float, random: RandomNumberGenerator) -> void:
+	# Keep RNG consumption stable; palette changes must not perturb gameplay seeds.
+	random.randf_range(0.30, 0.36)
+	random.randf_range(0.78, 0.84)
+	var terrain_id = HanddrawnSkin.terrain_index(team, battle_mode == BATTLE_MODE_MULTIPLAYER and not multiplayer_free_for_all, battle_match_seed)
+	var team_color: Color = HanddrawnSkin.TERRAIN_COLORS[terrain_id]
 	team_territory_colors[team] = team_color
 	team_unlocked_colors[team] = team_color
 
@@ -8711,7 +8723,7 @@ func _draw_result_player_row(rect: Rect2, entry: Dictionary, is_local: bool) -> 
 	var line = COLOR_GOLD if is_local else Color(0.20, 0.18, 0.28, 0.46)
 	_box(rect, fill, line, 4 if is_local else 2)
 	var placement = int(entry.get("placement", 0))
-	draw_circle(rect.position + Vector2(32, rect.size.y * 0.5), 20.0, COLOR_GOLD if placement == 1 else COLOR_PURPLE)
+	draw_circle(rect.position + Vector2(32, rect.size.y * 0.5), 20.0, HanddrawnSkin.PRIMARY if placement == 1 else HanddrawnSkin.LILAC)
 	_draw_text_center(str(placement), Rect2(rect.position + Vector2(12, rect.size.y * 0.5 - 20), Vector2(40, 40)), 22, Color.WHITE)
 	var badge = "  自己" if is_local else ""
 	_draw_text_fit("第%d名  %s%s" % [placement, String(entry.get("name", "玩家")), badge], Rect2(rect.position + Vector2(66, 8), Vector2(rect.size.x - 82, 28)), 20, COLOR_LINE)
@@ -8729,28 +8741,32 @@ func _draw_card(rect: Rect2, card: Dictionary, selected: bool, show_collection_s
 		return
 	var owned = not show_collection_state or _card_total_count(String(card.get("id", ""))) > 0
 	var fill = _rarity_color(String(card.get("rarity", "common")))
-	_box(rect, fill.darkened(0.06) if owned else Color(0.35, 0.36, 0.40), COLOR_LINE, 4)
 	if selected:
-		_box(rect.grow(5), Color(1.0, 0.91, 0.22, 0.28), COLOR_YELLOW, 4)
+		_box(rect.grow(5), HanddrawnSkin.RAISED, Color.TRANSPARENT, 0)
+		if screen == SCREEN_DECK:
+			var tip = rect.end + Vector2(-rect.size.x * 0.5, 7)
+			draw_colored_polygon(PackedVector2Array([tip + Vector2(-8, 0), tip + Vector2(8, 0), tip + Vector2(0, 8)]), Color("b78121"))
+	_box(rect, fill if owned else HanddrawnSkin.LOCKED, COLOR_LINE, 0)
 	var tint = Color.WHITE if owned else Color(0.35, 0.35, 0.35, 0.85)
 	var card_id = String(card.get("id", ""))
 	var name_rect = Rect2(rect.position + Vector2(8, rect.size.y - 48), Vector2(rect.size.x - 16, 22))
-	var progress_rect = Rect2(rect.position + Vector2(12, rect.size.y - 22), Vector2(rect.size.x - 24, 14))
-	var art_top = rect.position.y + 12.0
-	var art_bottom = name_rect.position.y - 5.0 if show_name else rect.end.y - 8.0
-	var art_size = minf(rect.size.x - 30.0, maxf(44.0, art_bottom - art_top))
+	var progress_rect = Rect2(rect.position + Vector2(34, rect.size.y - 24), Vector2(rect.size.x - 42, 20))
+	var art_top = rect.position.y + 8.0
+	var art_bottom = name_rect.position.y if show_name else rect.end.y - 8.0
+	var art_size = minf(rect.size.x - 20.0, maxf(44.0, art_bottom - art_top))
 	var art_rect = Rect2(Vector2(rect.position.x + (rect.size.x - art_size) * 0.5, art_top), Vector2(art_size, art_size))
 	_draw_animal_art_in_rect(card, art_rect, tint)
 	if not show_name:
 		return
-	_box(name_rect, Color(0, 0, 0, 0.30), Color(1, 1, 1, 0.18), 1)
 	if not show_collection_state:
 		_draw_text_center(String(card.get("name", "")), name_rect, 15, Color.WHITE)
 	elif owned:
-		_draw_text_center("Lv.%d  %s" % [_card_level(card_id), String(card.get("name", ""))], name_rect, 15, Color.WHITE)
-		_draw_upgrade_progress(progress_rect, card_id, false)
+		_draw_text_center(String(card.get("name", "")), name_rect, 16, Color.WHITE)
+		_draw_upgrade_progress(progress_rect, card_id, true)
+		_draw_card_level_badge(Rect2(rect.position + Vector2(4, rect.size.y - 30), Vector2(28, 28)), card_id)
 	else:
-		_draw_text_center("未拥有", name_rect, 15, Color.WHITE)
+		_draw_lock(art_rect.get_center())
+		_draw_text_center(String(card.get("name", "")), name_rect, 15, Color.WHITE)
 		_draw_empty_progress(progress_rect)
 
 
@@ -8763,25 +8779,32 @@ func _draw_card_clipped(rect: Rect2, card: Dictionary, selected: bool, clip_rect
 		return
 	var owned = _card_total_count(String(card.get("id", ""))) > 0
 	var fill = _rarity_color(String(card.get("rarity", "common")))
-	_box_clipped(rect, fill.darkened(0.06) if owned else Color(0.35, 0.36, 0.40), COLOR_LINE, 4, clip_rect)
 	if selected:
-		_box_clipped(rect.grow(5), Color(1.0, 0.91, 0.22, 0.28), COLOR_YELLOW, 4, clip_rect)
+		_box_clipped(rect.grow(5), HanddrawnSkin.RAISED, Color.TRANSPARENT, 0, clip_rect)
+	_box_clipped(rect, fill if owned else HanddrawnSkin.LOCKED, COLOR_LINE, 0, clip_rect)
 	var tint = Color.WHITE if owned else Color(0.35, 0.35, 0.35, 0.85)
 	var card_id = String(card.get("id", ""))
 	var name_rect = Rect2(rect.position + Vector2(8, rect.size.y - 48), Vector2(rect.size.x - 16, 22))
-	var progress_rect = Rect2(rect.position + Vector2(12, rect.size.y - 22), Vector2(rect.size.x - 24, 14))
-	var art_top = rect.position.y + 12.0
-	var art_bottom = name_rect.position.y - 5.0
-	var art_size = minf(rect.size.x - 30.0, maxf(44.0, art_bottom - art_top))
+	var progress_rect = Rect2(rect.position + Vector2(34, rect.size.y - 24), Vector2(rect.size.x - 42, 20))
+	var art_top = rect.position.y + 8.0
+	var art_bottom = name_rect.position.y
+	var art_size = minf(rect.size.x - 20.0, maxf(44.0, art_bottom - art_top))
 	var art_rect = Rect2(Vector2(rect.position.x + (rect.size.x - art_size) * 0.5, art_top), Vector2(art_size, art_size))
 	_draw_animal_art_in_rect(card, art_rect, tint, clip_rect)
-	_box_clipped(name_rect, Color(0, 0, 0, 0.30), Color(1, 1, 1, 0.18), 1, clip_rect)
 	if owned:
-		_draw_text_center_clipped("Lv.%d  %s" % [_card_level(card_id), String(card.get("name", ""))], name_rect, 15, Color.WHITE, clip_rect)
-		_draw_upgrade_progress_clipped(progress_rect, card_id, false, clip_rect)
+		_draw_text_center_clipped(String(card.get("name", "")), name_rect, 16, Color.WHITE, clip_rect)
+		_draw_upgrade_progress_clipped(progress_rect, card_id, true, clip_rect)
+		var badge = Rect2(rect.position + Vector2(4, rect.size.y - 30), Vector2(28, 28))
+		if clip_rect.encloses(badge): _draw_card_level_badge(badge, card_id)
 	else:
-		_draw_text_center_clipped("未拥有", name_rect, 15, Color.WHITE, clip_rect)
+		if clip_rect.encloses(art_rect): _draw_lock(art_rect.get_center())
+		_draw_text_center_clipped(String(card.get("name", "")), name_rect, 15, Color.WHITE, clip_rect)
 		_draw_empty_progress_clipped(progress_rect, clip_rect)
+
+
+func _draw_card_level_badge(rect: Rect2, card_id: String) -> void:
+	draw_style_box(HanddrawnSkin.panel(HanddrawnSkin.PRIMARY, 10, false), rect)
+	_draw_text_center(str(_card_level(card_id)), rect, 18, HanddrawnSkin.INK)
 
 
 func _draw_card_detail(rect: Rect2) -> void:
@@ -8800,7 +8823,7 @@ func _draw_card_detail(rect: Rect2) -> void:
 	var stats = _card_stats(card)
 	var rarity_fill = _rarity_color(String(card.get("rarity", "common")))
 	var art_rect = Rect2(rect.position + Vector2(20, 12), Vector2(88, 78))
-	var name_rect = Rect2(rect.position + Vector2(14, 92), Vector2(104, 28))
+	var name_rect = Rect2(rect.position + Vector2(10, 90), Vector2(124, 32))
 	if _card_kind(card) == CARD_KIND_DEFENSE:
 		_draw_texture_contained(_card_texture(card), Rect2(art_rect.position + Vector2(5, 0), Vector2(78, 78)))
 	elif detail_motion_progress >= 0.0:
@@ -8808,26 +8831,25 @@ func _draw_card_detail(rect: Rect2) -> void:
 	else:
 		_draw_animal_art_in_rect(card, art_rect)
 	_box(name_rect, rarity_fill.darkened(0.16), Color(1, 1, 1, 0.18), 1)
-	_draw_text_center("Lv.%d  %s" % [_card_level(card_id), String(card.get("name", ""))], name_rect, 15, Color.WHITE)
+	# Keep the complete tower/animal name, including long names, at normal type size.
+	_draw_card_level_badge(Rect2(name_rect.position, Vector2(26, name_rect.size.y)), card_id)
+	_draw_text_center(String(card.get("name", "")), Rect2(name_rect.position + Vector2(28, 0), Vector2(name_rect.size.x - 28, name_rect.size.y)), 15, Color.WHITE)
 	var kind = _card_kind(card)
 	if kind == CARD_KIND_MINE:
-		_draw_detail_stat_icon_value(rect.position + Vector2(142, 18), "hp", str(int(stats["max_hp"])), COLOR_RED)
-		_draw_detail_stat_icon_value(rect.position + Vector2(242, 18), "gold", "+%d" % MINE_INCOME, COLOR_GOLD)
-		_draw_text_center("%d秒" % int(INCOME_INTERVAL), Rect2(rect.position + Vector2(342, 20), Vector2(72, 28)), 18, COLOR_LINE)
+		_draw_detail_stat_icon_value(rect.position + Vector2(170, 18), "hp", str(int(stats["max_hp"])), COLOR_RED)
+		_draw_detail_stat_icon_value(rect.position + Vector2(270, 18), "gold", "+%d" % MINE_INCOME, COLOR_GOLD)
+		_draw_text_center("%d秒" % int(INCOME_INTERVAL), Rect2(rect.position + Vector2(370, 20), Vector2(72, 28)), 18, COLOR_LINE)
 	elif kind == CARD_KIND_DEFENSE:
-		_draw_detail_stat_icon_value(rect.position + Vector2(232, 18), "attack", str(int(stats["attack"])), COLOR_ORANGE)
-		_draw_detail_stat_icon_value(rect.position + Vector2(332, 18), "hp", str(int(stats["max_hp"])), COLOR_RED)
+		_draw_detail_stat_icon_value(rect.position + Vector2(213, 18), "attack", str(int(stats["attack"])), COLOR_ORANGE)
+		_draw_detail_stat_icon_value(rect.position + Vector2(313, 18), "hp", str(int(stats["max_hp"])), COLOR_RED)
 	else:
-		_draw_detail_stat_icon_value(rect.position + Vector2(142, 18), "attack", str(int(stats["attack"])), COLOR_ORANGE)
-		_draw_detail_stat_icon_value(rect.position + Vector2(232, 18), "hp", str(int(stats["max_hp"])), COLOR_RED)
+		_draw_detail_stat_icon_value(rect.position + Vector2(213, 18), "attack", str(int(stats["attack"])), COLOR_ORANGE)
+		_draw_detail_stat_icon_value(rect.position + Vector2(313, 18), "hp", str(int(stats["max_hp"])), COLOR_RED)
 	var skill_text = _card_detail_skill_text(card)
 	if skill_text != "":
-		if kind == CARD_KIND_DEFENSE:
-			_draw_text_center_wrapped(skill_text, Rect2(rect.position + Vector2(138, 48), Vector2(370, 42)), 14, COLOR_PURPLE, 2)
-		else:
-			_draw_text_center(skill_text, Rect2(rect.position + Vector2(138, 54), Vector2(370, 28)), 16, COLOR_PURPLE)
+		_draw_text_center_wrapped(skill_text, Rect2(rect.position + Vector2(138, 48), Vector2(336, 42)), 16, COLOR_PURPLE, 2)
 	var cost = _next_upgrade_cost(card_id)
-	_draw_upgrade_progress(Rect2(rect.position + Vector2(138, 92), Vector2(352, 18)), card_id, true)
+	_draw_upgrade_progress(Rect2(rect.position + Vector2(138, 92), Vector2(336, 22)), card_id, true)
 	if _can_show_equip_button(card_id):
 		_cta(_equip_button_rect(), "选择中" if pending_equip_card_id == card_id else "上阵", true)
 	_cta(_upgrade_button_rect(), "升级", cost >= 0 and _card_spare_count(card_id) >= cost)
@@ -8899,15 +8921,13 @@ func _draw_upgrade_progress(rect: Rect2, card_id: String, show_label: bool) -> v
 	var cost = _next_upgrade_cost(card_id)
 	var max_value = max(1, cost)
 	var pct = 1.0 if cost < 0 else clampf(float(spare) / float(max_value), 0.0, 1.0)
-	var fill = COLOR_GREEN if cost >= 0 and spare >= cost else Color(0.26, 0.54, 0.92)
+	var fill = Color("99c3a8") if cost >= 0 and spare >= cost else HanddrawnSkin.BLUE
 	if cost < 0:
 		fill = COLOR_GOLD
-	draw_rect(Rect2(rect.position + Vector2(0, 3), rect.size), Color(0, 0, 0, 0.22))
-	draw_rect(rect, Color(0.08, 0.10, 0.18, 0.82))
-	var inner = Rect2(rect.position + Vector2(3, 3), rect.size - Vector2(6, 6))
+	draw_style_box(HanddrawnSkin.panel(HanddrawnSkin.SURFACE.darkened(0.12), 4, false), rect)
+	var inner = rect
 	if inner.size.x > 0.0 and inner.size.y > 0.0:
-		draw_rect(Rect2(inner.position, Vector2(inner.size.x * pct, inner.size.y)), fill)
-	draw_rect(rect, COLOR_LINE, false, 2)
+		draw_style_box(HanddrawnSkin.panel(fill, 4, false), Rect2(inner.position, Vector2(inner.size.x * pct, inner.size.y)))
 	if show_label:
 		var label = "满级" if cost < 0 else "%d/%d" % [spare, cost]
 		var label_size = 13 if rect.size.y <= 18.0 else 16
@@ -8915,9 +8935,7 @@ func _draw_upgrade_progress(rect: Rect2, card_id: String, show_label: bool) -> v
 
 
 func _draw_empty_progress(rect: Rect2) -> void:
-	draw_rect(Rect2(rect.position + Vector2(0, 3), rect.size), Color(0, 0, 0, 0.18))
-	draw_rect(rect, Color(0.08, 0.10, 0.18, 0.55))
-	draw_rect(rect, COLOR_LINE, false, 2)
+	draw_style_box(HanddrawnSkin.panel(HanddrawnSkin.SURFACE.darkened(0.12), 4, false), rect)
 
 
 func _draw_upgrade_progress_clipped(rect: Rect2, card_id: String, show_label: bool, clip_rect: Rect2) -> void:
@@ -8925,15 +8943,13 @@ func _draw_upgrade_progress_clipped(rect: Rect2, card_id: String, show_label: bo
 	var cost = _next_upgrade_cost(card_id)
 	var max_value = max(1, cost)
 	var pct = 1.0 if cost < 0 else clampf(float(spare) / float(max_value), 0.0, 1.0)
-	var fill = COLOR_GREEN if cost >= 0 and spare >= cost else Color(0.26, 0.54, 0.92)
+	var fill = Color("99c3a8") if cost >= 0 and spare >= cost else HanddrawnSkin.BLUE
 	if cost < 0:
 		fill = COLOR_GOLD
-	_draw_rect_clipped(Rect2(rect.position + Vector2(0, 3), rect.size), Color(0, 0, 0, 0.22), clip_rect)
-	_draw_rect_clipped(rect, Color(0.08, 0.10, 0.18, 0.82), clip_rect)
-	var inner = Rect2(rect.position + Vector2(3, 3), rect.size - Vector2(6, 6))
+	_draw_rect_clipped(rect, HanddrawnSkin.SURFACE.darkened(0.12), clip_rect)
+	var inner = rect
 	if inner.size.x > 0.0 and inner.size.y > 0.0:
 		_draw_rect_clipped(Rect2(inner.position, Vector2(inner.size.x * pct, inner.size.y)), fill, clip_rect)
-	_draw_rect_outline_clipped(rect, COLOR_LINE, 2, clip_rect)
 	if show_label:
 		var label = "满级" if cost < 0 else "%d/%d" % [spare, cost]
 		var label_size = 13 if rect.size.y <= 18.0 else 16
@@ -8941,16 +8957,15 @@ func _draw_upgrade_progress_clipped(rect: Rect2, card_id: String, show_label: bo
 
 
 func _draw_empty_progress_clipped(rect: Rect2, clip_rect: Rect2) -> void:
-	_draw_rect_clipped(Rect2(rect.position + Vector2(0, 3), rect.size), Color(0, 0, 0, 0.18), clip_rect)
-	_draw_rect_clipped(rect, Color(0.08, 0.10, 0.18, 0.55), clip_rect)
-	_draw_rect_outline_clipped(rect, COLOR_LINE, 2, clip_rect)
+	_draw_rect_clipped(rect, HanddrawnSkin.SURFACE.darkened(0.12), clip_rect)
 
 
 func _box_clipped(rect: Rect2, fill: Color, line: Color, width: float, clip_rect: Rect2) -> void:
-	_draw_rect_clipped(Rect2(rect.position + Vector2(0, 5), rect.size), Color(0, 0, 0, 0.20), clip_rect)
-	_draw_rect_clipped(rect, fill, clip_rect)
-	if width > 0.0 and line.a > 0.0:
-		_draw_rect_outline_clipped(rect, line, width, clip_rect)
+	if clip_rect.encloses(rect):
+		_box(rect, fill, line, width)
+	else:
+		# Preserve actual scrolling clipping; no blurred/faded collection mask.
+		_draw_rect_clipped(rect, HanddrawnSkin.surface_color(fill), clip_rect)
 
 
 func _draw_texture_rect_clipped(texture: Texture2D, rect: Rect2, clip_rect: Rect2, tint: Color = Color.WHITE) -> void:
@@ -9022,22 +9037,21 @@ func _draw_toast() -> void:
 
 
 func _resource(rect: Rect2, label: String, value: String, color: Color) -> void:
-	_box(rect, Color(1, 1, 1, 0.92), COLOR_LINE, 3)
-	draw_circle(rect.position + Vector2(22, rect.size.y * 0.5), 12, color)
-	_draw_text_fit(label, Rect2(rect.position + Vector2(40, 0), Vector2(50, rect.size.y)), 16, COLOR_LINE)
-	_draw_text_right(value, Rect2(rect.position + Vector2(86, 0), Vector2(rect.size.x - 96, rect.size.y)), 20, COLOR_LINE)
+	_box(rect, HanddrawnSkin.SURFACE, COLOR_LINE, 0)
+	_draw_coin_icon(rect.position + Vector2(23, rect.size.y * 0.5), COLOR_BLUE if label.contains("券") else color)
+	# Until the approved distinctive icon atlas is ready, keep short resource names.
+	_draw_text_fit(label, Rect2(rect.position + Vector2(41, 0), Vector2(64, rect.size.y)), 16, HanddrawnSkin.INK)
+	var value_x = 98.0 if label.length() > 2 else 82.0
+	_draw_text_right(value, Rect2(rect.position + Vector2(value_x, 0), Vector2(rect.size.x - value_x - 14, rect.size.y)), 20, HanddrawnSkin.INK)
 
 
 func _cta(rect: Rect2, label: String, primary: bool) -> void:
-	_box(rect, COLOR_ORANGE if primary else Color(0.46, 0.50, 0.62), COLOR_LINE, 5)
-	_draw_text_center(label, rect, 26, Color.WHITE)
+	_box(rect, HanddrawnSkin.PRIMARY if primary else HanddrawnSkin.SURFACE, COLOR_LINE, 0)
+	_draw_text_center(label, rect, 26, HanddrawnSkin.INK)
 
 
-func _box(rect: Rect2, fill: Color, line: Color, width: float) -> void:
-	draw_rect(Rect2(rect.position + Vector2(0, 5), rect.size), Color(0, 0, 0, 0.20))
-	draw_rect(rect, fill)
-	if width > 0.0 and line.a > 0.0:
-		draw_rect(rect, line, false, width)
+func _box(rect: Rect2, fill: Color, _line: Color, _width: float) -> void:
+	draw_style_box(HanddrawnSkin.panel(HanddrawnSkin.surface_color(fill), minf(14.0, rect.size.y * 0.22)), rect)
 
 
 func _draw_text_fit(text: String, rect: Rect2, size: int, color: Color) -> void:
@@ -9053,6 +9067,19 @@ func _draw_text_right(text: String, rect: Rect2, size: int, color: Color) -> voi
 func _draw_text_center(text: String, rect: Rect2, size: int, color: Color) -> void:
 	var label = _fit_text(text, rect.size.x, size)
 	_draw_text_native(label, rect, size, color, HORIZONTAL_ALIGNMENT_CENTER)
+
+
+func _draw_paragraph(text: String, rect: Rect2, size: int, color: Color) -> void:
+	var line = ""
+	var row = 0
+	for character in text:
+		if font.get_string_size(line + character, HORIZONTAL_ALIGNMENT_LEFT, -1, size).x > rect.size.x:
+			_draw_text_native(line, Rect2(rect.position + Vector2(0, row * size * 1.65), Vector2(rect.size.x, size * 1.65)), size, color, HORIZONTAL_ALIGNMENT_LEFT)
+			row += 1
+			line = ""
+		line += character
+	if not line.is_empty():
+		_draw_text_native(line, Rect2(rect.position + Vector2(0, row * size * 1.65), Vector2(rect.size.x, size * 1.65)), size, color, HORIZONTAL_ALIGNMENT_LEFT)
 
 
 func _draw_text_center_wrapped(
@@ -9108,6 +9135,8 @@ func _split_text_for_width(text: String, max_width: float, size: int, max_lines:
 
 
 func _draw_text_native(label: String, rect: Rect2, size: int, color: Color, alignment: HorizontalAlignment) -> void:
+	if not drawing_battle_world and color.v > 0.68:
+		color = Color(HanddrawnSkin.INK, color.a) if color.s < 0.42 else Color(color.darkened(0.40), color.a)
 	var screen_rect = _text_screen_rect(rect)
 	var native_size = _native_font_size_for_scale(size, _effective_text_scale())
 	var restore_origin = text_draw_origin
@@ -9163,8 +9192,9 @@ func _grass(pos: Vector2) -> void:
 
 
 func _draw_lock(center: Vector2) -> void:
-	_box(Rect2(center + Vector2(-10, -1), Vector2(20, 14)), COLOR_LINE, Color(0.88, 0.91, 1.0), 2)
-	draw_arc(center + Vector2(0, -1), 8, PI, TAU, 14, Color(0.88, 0.91, 1.0), 2.5)
+	draw_style_box(HanddrawnSkin.panel(HanddrawnSkin.INK, 3), Rect2(center + Vector2(-10, -1), Vector2(20, 17)))
+	draw_arc(center + Vector2(0, -1), 8, PI, TAU, 18, HanddrawnSkin.INK, 4, true)
+	draw_circle(center + Vector2(0, 5), 2, HanddrawnSkin.RAISED)
 
 
 func _hex_center(key: Vector2i) -> Vector2:
@@ -9498,15 +9528,7 @@ func _building_texture(building: String) -> Texture2D:
 
 
 func _rarity_color(rarity: String) -> Color:
-	match rarity:
-		"legendary":
-			return COLOR_GOLD
-		"epic":
-			return Color(0.67, 0.26, 0.90)
-		"rare":
-			return Color(0.24, 0.62, 1.0)
-		_:
-			return Color(0.34, 0.78, 0.38)
+	return HanddrawnSkin.rarity(rarity)
 
 
 func _rarity_sort_rank(rarity: String) -> int:

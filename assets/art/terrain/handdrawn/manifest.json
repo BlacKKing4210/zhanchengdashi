@@ -1,0 +1,14 @@
+{
+  "source": "output/visual_concepts/reference_exact_20260905/references/hex/ (producer-supplied originals)",
+  "pixel_policy": "Byte-identical source copies. Godot rotates flat-top images 90 degrees into the existing pointy-top grid, and blends at 0.78 opacity over warm paper. No gameplay geometry changes.",
+  "files": {
+    "yellow.png": {"source": "图层 31 拷贝 2.png", "sha256": "ee1fe02515c5fb1aa326953d1ac8a301bc9d609f260a5780c9410d6591c8d457"},
+    "blue.png": {"source": "图层 31 拷贝 3.png", "sha256": "f2493f5cd98a23f672dc95d1acdf78ac9c5c274cee680068b45f972925ba4f8b"},
+    "lilac.png": {"source": "图层 31 拷贝 4.png", "sha256": "5f10708b88562a22f249ec4befdf71df75ff9a47d84d50c1e6d1d80cddb608af"},
+    "gray.png": {"source": "图层 31 拷贝 5.png", "sha256": "9f5d841786928dc2e5729625a44a61285ebcea0c03a744dbd8887ff477c5bd4c"},
+    "lime.png": {"source": "图层 31 拷贝 6.png", "sha256": "402b012d5db28de45e0522a55c0953a6b118f7310238c1dc8230a69289540d17"},
+    "orange.png": {"source": "图层 31 拷贝 7.png", "sha256": "6ea88c8cb4c6f0c5dacd2e8b1551b1a9b63943a4f029cdfa56dd622dca1091db"},
+    "pink.png": {"source": "图层 31 拷贝 8.png", "sha256": "523795b7f9415d4495491ed7402ca9966aba0c6f86a26000e50ae115bf466792"},
+    "cream.png": {"source": "图层 31 拷贝 9 - 智能对象组.png", "sha256": "d313570d889129d8dd1b05bfe86532f4158df78d9481e2c32019bd9b457587b4"}
+  }
+}

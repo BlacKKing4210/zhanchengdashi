@@ -1,0 +1,7 @@
+{
+  "approval": "Producer chose B: borderless surfaces with shallow shadows, 2026-09-06",
+  "ui_source": ["output/visual_concepts/ui_border_ab_20260906/B_lobby_borderless.png", "output/visual_concepts/ui_border_ab_20260906/B_deck_borderless.png"],
+  "implementation": "scripts/app/ui/handdrawn_ui_skin.gd; independent drawing and native controls, not flattened interactive-page images",
+  "loading": {"file": "loading.png", "source": "output/visual_concepts/reference_exact_20260905/images/22_loading.png", "sha256": "b0ec33a24a38043b3202eb71ce1fc0d3a15a1063bd3b04757ba48392f3af0a7c", "usage": "static engine boot illustration, no baked UI or fake progress"},
+  "icons": {"status": "NOT_RUNTIME_ALPHA_CLEANUP_PENDING_PERMISSION", "reason": "Built-in image generation and one background-edit retry both returned RGB with baked checkerboard. User asked whether local alpha cleanup is authorized; candidate images are not bound into the game."}
+}

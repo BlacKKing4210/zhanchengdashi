@@ -414,6 +414,28 @@ active_modules:
 queued_modules: []
 
 shared_locks:
+  ui_b_runtime_20260906:
+    task_id: REQ-20260906-UI-B-IMPLEMENT
+    owner: codex-primary
+    status: RELEASED
+    delivery_status: CORE_IMPLEMENTED_ICON_ALPHA_PERMISSION_PENDING
+    completion_receipt: docs/receipts/REQ-20260906-UI-B-CLOSE.md
+    write_set:
+      - scripts/app/main.gd
+      - scripts/app/ui/handdrawn_ui_skin.gd
+      - scripts/app/ui/runtime_gm_panel.gd
+      - scripts/app/ui/account_avatar_picker.gd
+      - assets/ui/handdrawn
+      - project.godot
+      - .gitignore
+      - assets/art/terrain/handdrawn
+      - tests/test_handdrawn_ui_skin.gd
+      - tests/test_handdrawn_ui_skin.tscn
+      - output/runtime_ui_b_20260906
+      - docs/active_scope.yaml
+      - docs/CURRENT_GAME_VISUAL_CONCEPT_OPTIONS.md
+      - docs/receipts/REQ-20260906-UI-B-READ-ONLY.md
+      - docs/receipts/REQ-20260906-UI-B-CLOSE.md
   defense_tower_stats_ui_v13_20260827:
     task_id: REQ-20260827-DEFENSE-TOWER-STATS-UI-V13
     owner: codex-primary

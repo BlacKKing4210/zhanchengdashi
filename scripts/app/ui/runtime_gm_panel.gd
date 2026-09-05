@@ -4,15 +4,16 @@ signal resource_change_requested(resource_id: String, operation_id: String, amou
 signal panel_closed
 
 const GmResourceRules = preload("res://scripts/app/systems/gm_resource_rules.gd")
+const UISkin = preload("res://scripts/app/ui/handdrawn_ui_skin.gd")
 
 const COLOR_BACKDROP = Color(0.025, 0.035, 0.06, 0.82)
-const COLOR_PANEL = Color(0.08, 0.11, 0.18, 0.98)
+const COLOR_PANEL = UISkin.RAISED
 const COLOR_BORDER = Color(0.33, 0.70, 1.0, 1.0)
-const COLOR_FIELD = Color(0.12, 0.16, 0.25, 1.0)
-const COLOR_TEXT = Color(0.94, 0.97, 1.0, 1.0)
-const COLOR_MUTED = Color(0.65, 0.72, 0.82, 1.0)
-const COLOR_SUCCESS = Color(0.43, 0.90, 0.58, 1.0)
-const COLOR_ERROR = Color(1.0, 0.49, 0.44, 1.0)
+const COLOR_FIELD = UISkin.SURFACE
+const COLOR_TEXT = UISkin.INK
+const COLOR_MUTED = Color("675e51")
+const COLOR_SUCCESS = Color("356345")
+const COLOR_ERROR = Color("a12f27")
 
 var context: Dictionary = {}
 var backdrop: ColorRect
@@ -169,7 +170,7 @@ func _build_ui() -> void:
 	body.add_theme_constant_override("separation", 20)
 	scroll_container.add_child(body)
 
-	var warning = _label("仅限调试构建 · 互联网对战禁用 · 不写入已登录账号", 23, Color(1.0, 0.79, 0.36))
+	var warning = _label("仅限调试构建 · 互联网对战禁用 · 不写入已登录账号", 23, Color("876017"))
 	warning.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	body.add_child(warning)
 
@@ -358,6 +359,15 @@ func _option_button(control_name: String) -> OptionButton:
 	option.mouse_filter = Control.MOUSE_FILTER_STOP
 	option.add_theme_font_size_override("font_size", 27)
 	option.add_theme_color_override("font_color", COLOR_TEXT)
+	option.add_theme_color_override("font_hover_color", COLOR_TEXT)
+	option.add_theme_color_override("font_pressed_color", COLOR_TEXT)
+	option.add_theme_color_override("icon_normal_color", COLOR_MUTED)
+	var popup = option.get_popup()
+	popup.add_theme_stylebox_override("panel", _style_box(UISkin.RAISED, Color.TRANSPARENT, 0, 12))
+	popup.add_theme_stylebox_override("hover", _style_box(UISkin.PRIMARY, Color.TRANSPARENT, 0, 8))
+	popup.add_theme_color_override("font_color", COLOR_TEXT)
+	popup.add_theme_color_override("font_hover_color", COLOR_TEXT)
+	popup.add_theme_font_size_override("font_size", 24)
 	option.add_theme_stylebox_override("normal", _style_box(COLOR_FIELD, Color(0.27, 0.35, 0.49), 2, 12))
 	option.add_theme_stylebox_override("hover", _style_box(Color(0.16, 0.22, 0.34), COLOR_BORDER, 2, 12))
 	return option
@@ -370,6 +380,9 @@ func _button(text: String, minimum_width: float) -> Button:
 	button.mouse_filter = Control.MOUSE_FILTER_STOP
 	button.add_theme_font_size_override("font_size", 25)
 	button.add_theme_color_override("font_color", COLOR_TEXT)
+	button.add_theme_color_override("font_hover_color", COLOR_TEXT)
+	button.add_theme_color_override("font_pressed_color", COLOR_TEXT)
+	button.add_theme_color_override("font_disabled_color", COLOR_MUTED)
 	button.add_theme_stylebox_override("normal", _style_box(Color(0.16, 0.40, 0.68), COLOR_BORDER, 2, 12))
 	button.add_theme_stylebox_override("hover", _style_box(Color(0.21, 0.50, 0.82), Color(0.57, 0.85, 1.0), 3, 12))
 	button.add_theme_stylebox_override("pressed", _style_box(Color(0.11, 0.30, 0.54), COLOR_BORDER, 2, 12))
@@ -385,12 +398,8 @@ func _label(text: String, font_size: int, color: Color) -> Label:
 	return label
 
 
-func _style_box(fill: Color, border: Color, border_width: int, radius: int) -> StyleBoxFlat:
-	var style = StyleBoxFlat.new()
-	style.bg_color = fill
-	style.border_color = border
-	style.set_border_width_all(border_width)
-	style.set_corner_radius_all(radius)
+func _style_box(fill: Color, _border: Color, _border_width: int, radius: int) -> StyleBoxFlat:
+	var style = UISkin.panel(UISkin.surface_color(fill), radius).duplicate()
 	style.content_margin_left = 18.0
 	style.content_margin_top = 12.0
 	style.content_margin_right = 18.0
