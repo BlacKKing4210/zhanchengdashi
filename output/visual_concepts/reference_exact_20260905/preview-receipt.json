@@ -1,0 +1,27 @@
+{
+  "request": "ALL_PAGE_REFERENCE_EXACT_PREVIEWS_20260905",
+  "scope": "Preview images only; no runtime UI, art binding, scenes, values, APK or server changes.",
+  "latest_direction": "Continue preview-only revision: supplied hex assets as image references, tile-family bottom navigation, lighter rank panel, restore actual animal attack/HP/skill detail, remove deck-list fog. Six views revised; other preview views retained.",
+  "owner": "current primary agent",
+  "branch": "codex/animal-art-integration-20260811",
+  "baseline_commit": "1b0957d7f3fccc6a6ec00c8e4e593c4f4b4125a2",
+  "write_set": [
+    "output/visual_concepts/reference_exact_20260905/**",
+    "docs/CURRENT_GAME_VISUAL_CONCEPT_OPTIONS.md (candidate listing only)"
+  ],
+  "formal_source": "User-provided original mockups and latest correction; current Godot screen inventory is content grounding only.",
+  "rag": "temp/rag/context/REQ-20260905-ALL-PAGE-ART-PREVIEW.md",
+  "skills": [
+    "ui-ux-pro-max",
+    "ui-design-priority",
+    "imagegen",
+    "game-studio-orchestrator",
+    "game-project-control-plane",
+    "game-project-rag",
+    "game-visual-quality-pipeline"
+  ],
+  "baseline_capture": "Ignored temp-only SubViewport fixture, in-memory demonstration state; no live account login/persistence or gameplay-save changes.",
+  "data_boundary": "Main reconstruction retains producer sample top counters and repeated cards. Squirrel detail is grounded in current attack2, HP5 and capture5-gold skill, with isolated-fixture progress7/1. Extended mockups use fake U-DEMO account IDs; no new economy adopted.",
+  "acceptance": "Producer review required. Images are not engine screenshots, interactive UI, runtime parity evidence, or an approved implementation specification.",
+  "cleanup": "Preview runner exits; no persistent service; no APK; no imports/code/config committed. Preserve unrelated workbook and untracked user changes."
+}

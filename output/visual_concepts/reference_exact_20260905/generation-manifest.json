@@ -1,0 +1,205 @@
+{
+  "status": "ART_PREVIEW_PENDING_PRODUCER_REVIEW",
+  "engine_changes": false,
+  "generated_with": "built-in image_gen",
+  "dates": "2026-09-05/06",
+  "pages": [
+    {
+      "id": "02_deck_reference",
+      "title": "编组 · 属性技能与清晰列表",
+      "group": "主界面复刻",
+      "src": "images/02_deck_reference.png",
+      "revised": true,
+      "source_image": "C:/Users/76398/.codex/generated_images/019feef3-0034-7a90-b271-0ef2a651b042/exec-fad1d5be-72fe-4bee-b194-7e448db2f172.png",
+      "prompt": "Edit Image1 出战编组 art mockup. Preserve its flat chibi art, thick rounded card outlines, cream background, top counters, 4x2 deck and four-column collection. Replace ONLY the oversized zebra detail block with the compact detail arrangement from Image2: left squirrel art plus blue 'Lv.1 松鼠'; top orange paw icon 2 and red heart icon 5; middle complete Chinese '参与占领地块时获得5金币。'; bottom mint progress '7/1' and yellow 升级 button. No 上阵 because equipped. No range/interval. Detail about 11% screen height, more space for collection. Remove ALL bottom fog, fade, blur and cloud overlays; cards fully sharp/opaque up to list boundary. Squirrel cards named 松鼠 and parrot cards 鹦鹉, other card content unchanged. Five nav fills yellow/blue/green/lilac/orange, second helmet selected. Complete portrait screen, no frame or annotations."
+    },
+    {
+      "id": "01_lobby",
+      "title": "战斗大厅",
+      "group": "大厅与抽卡",
+      "src": "images/01_lobby.png",
+      "revised": true,
+      "source_image": "C:/Users/76398/.codex/generated_images/019feef3-0034-7a90-b271-0ef2a651b042/exec-88934c2d-9245-45d0-8eb3-010b47a62081.png",
+      "prompt": "Use case: precise-object-edit. Edit Image 1 portrait game lobby mockup. Change ONLY: (1) five bottom navigation button fills: shop butter yellow, helmet sky blue, selected swords fresh lime green with cream inset highlight, arch lilac, fox peach orange. Use flat cheerful hues and sparse irregular flecks matching supplied hex tile palette images 2-5; retain all dark thick rounded outlines, icons, lock and positions. (2) Replace brown wooden rank strip with light warm cream/butter yellow flat handdrawn panel and dark readable lettering. Preserve 黄金3星, 段位赛, 胜192 负137 and fifteen small dots with first three filled. No wood grain or brown gradient. Keep upper lobby, title, animals, castle, currency60 and blue paw ticket10, single and multiplayer buttons, all geometry unchanged. Sharp complete portrait screen, same aspect ratio, no annotations or phone frame."
+    },
+    {
+      "id": "04_gacha_empty",
+      "title": "抽卡－空记录",
+      "group": "大厅与抽卡",
+      "src": "images/04_gacha_empty.png",
+      "revised": false,
+      "source_image": "C:/Users/76398/.codex/generated_images/019feef3-0034-7a90-b271-0ef2a651b042/exec-cb5ce1a4-ec9a-4190-a2e5-f30a45fc9f85.png",
+      "prompt": "Only edit TOP LEFT pill: replace its blue ticket0 with a ROUND GOLD PAW COIN and WHITE60. Do NOT change top RIGHT blue ticket0. Do NOT change central 抽卡券 blue ticket0. Keep everythingelse exactlysame, including both zero ticketcounters, headings, buttons and nav."
+    },
+    {
+      "id": "05_gacha_result",
+      "title": "抽卡－十连结果",
+      "group": "大厅与抽卡",
+      "src": "images/05_gacha_result.png",
+      "revised": false,
+      "source_image": "C:/Users/76398/.codex/generated_images/019feef3-0034-7a90-b271-0ef2a651b042/exec-a0d74b6a-be47-49cd-b626-3bcf17b9db16.png",
+      "prompt": "Make only these corrections, keeping all existing illustration, colors, text positions, card layout and navigation pixel-stable elsewhere: (1) REMOVE the blue ticket icon and number10 appearing INSIDE EACH bottom yellow button. Buttons must display ONLY 抽1次 and 抽10次 respectively, centered, no cost line at all. (2) On the green 兔子哨塔 card (second row fourth column), change the YELLOW circular level badge from1 to3, consistent with Lv.3 above it. (3) Recolor card progress fill to MINT TEAL like reference. Do not change any creature/name or addcontent."
+    },
+    {
+      "id": "06_room_entry",
+      "title": "互联网房间－进入",
+      "group": "互联网房间",
+      "src": "images/06_room_entry.png",
+      "revised": false,
+      "source_image": "C:/Users/76398/.codex/generated_images/019feef3-0034-7a90-b271-0ef2a651b042/exec-652d534d-b320-4a4a-83fa-8cd1be6f937d.png",
+      "prompt": "Only2changes to this existing full-screen image, everythingelse remains exactlysame: replace top-right lightning icon with lightblue rectangular NOTCHED ADMISSION TICKET with darkblue paw stamp, quantity stays10. In bottomnavigation move the cream ACTIVE background from third crossed-swords tab to FIFTH FOX tab; third must be samegrey as other inactive tabs. Do not reorder icons, removeclouds, move anybuttons or add progressbars."
+    },
+    {
+      "id": "07_room_error",
+      "title": "互联网房间－连接失败",
+      "group": "互联网房间",
+      "src": "images/07_room_error.png",
+      "revised": false,
+      "source_image": "C:/Users/76398/.codex/generated_images/019feef3-0034-7a90-b271-0ef2a651b042/exec-fdf9fa63-96ac-4dbd-8ef8-9accb8e280ce.png",
+      "prompt": "Create disconnected state of this same room screen. Keep layout/art unchanged. Change green connection status to red 服务器连接失败，请检查地址或公网服务. Make 创建3V3房间 grey disabled. Keep 加入房间 grey disabled. Make 重新连接 yellow active. All other fields, counters, toggle, tabs and fox-active nav unchanged."
+    },
+    {
+      "id": "08_room_host",
+      "title": "互联网房间－房主",
+      "group": "互联网房间",
+      "src": "images/08_room_host.png",
+      "revised": false,
+      "source_image": "C:/Users/76398/.codex/generated_images/019feef3-0034-7a90-b271-0ef2a651b042/exec-50ee14c3-b132-4e0b-93e2-9478adcb5bc9.png",
+      "prompt": "Precise content cleanup ONLY. Each of the SIX room participant rows currently has an erroneous navy footer with green8/15progressbar and yellow1circle. COMPLETELY REMOVE these SIX footers/bars/circles/numbers, filling their area with the same lightcream as each participant row interior. Each participant box should contain ONLY the name and 房主/已准备 text already there, no stats or progression of anykind. Keep all six row outer rectangles at current positions and sizes, their names and readiness, team colors, roomcode, resourceicons, buttons, layout and fifth-active nav EXACTLYunchanged. Do not add portraits."
+    },
+    {
+      "id": "09_room_guest",
+      "title": "互联网房间－玩家准备",
+      "group": "互联网房间",
+      "src": "images/09_room_guest.png",
+      "revised": false,
+      "source_image": "C:/Users/76398/.codex/generated_images/019feef3-0034-7a90-b271-0ef2a651b042/exec-966fe492-8814-4dd7-b646-37d56dda4585.png",
+      "prompt": "Change ONLY the bottom-right yellowbutton label 开始 to 准备. All other pixels, room slots, names, colors, resourceicons and navigation stay unchanged. This is the guest-ready state."
+    },
+    {
+      "id": "10_battle_single",
+      "title": "战斗－单人",
+      "group": "战斗与结算",
+      "src": "images/10_battle_single.png",
+      "revised": true,
+      "source_image": "C:/Users/76398/.codex/generated_images/019feef3-0034-7a90-b271-0ef2a651b042/exec-b75db17f-9aff-4005-a72f-19fb5c2e8894.png",
+      "prompt": "Edit only the hexagonal terrain in Image1 single-player battle mockup. Replace the smooth geometric pastel tiles with the actual supplied handdrawn hex tile appearance from images2-5: lilac, bright lime, golden yellow, cream. Match their flat top/bottom silhouette, lightly irregular brush-cut edge and sparse large colored flecks; tile them neatly with narrow cream seams, no dark grid lines, no gradients. Preserve overall purple-vs-green territory regions, all animal identities and positions, castle/buildings, 25/50/250 prices, tight health bars, top counters, pause button and bottom Chinese explanation verbatim. Do not add/remove UI, units or decorative props. Full crisp portrait screenshot, no frame or annotations."
+    },
+    {
+      "id": "11_battle_ffa",
+      "title": "战斗－六人混战",
+      "group": "战斗与结算",
+      "src": "images/11_battle_ffa.png",
+      "revised": true,
+      "source_image": "C:/Users/76398/.codex/generated_images/019feef3-0034-7a90-b271-0ef2a651b042/exec-dc5dbdb3-ce36-4286-9961-41af48883a5f.png",
+      "prompt": "Edit Image1 six-player battle screen. Replace ONLY the smooth terrain tile surfaces with handdrawn flecked hex assets matching Images2-5: sky blue, lime, lilac, coral pink, plus same-family yellow and peach for the other factions. Preserve six territory color regions, all animal locations, compact HP bars and numbered ownership badges, top 60 / 06:00 第2/6 / blue paw ticket10, complete six-row 地块排名, bottom help text. Terrain has sparse irregular colored flecks and rough handpainted edges separated by thin cream seams. No shiny shading. Restore the missing square pause button at board upper-right, directly above the ranking panel; shift ranking panel down only enough for zero overlap. Keep same portrait framing, clear typography, no extra UI or annotations."
+    },
+    {
+      "id": "12_battle_team",
+      "title": "战斗－3V3",
+      "group": "战斗与结算",
+      "src": "images/12_battle_team.png",
+      "revised": true,
+      "source_image": "C:/Users/76398/.codex/generated_images/019feef3-0034-7a90-b271-0ef2a651b042/exec-18e62fe7-5de2-4780-8982-39cf83976e49.png",
+      "prompt": "Edit only terrain tile surfaces of Image1 3V3 battle UI to match supplied handpainted hex tiles Images2-5. Bright flat sky blue, lime, lilac, coral pink, plus same-family yellow and orange; sparse irregular flecks, softly jagged edges, narrow cream seams. Preserve the six colored territory shapes, animal illustrations and positions, compact HP bars, all UI geometry, top counters, 3V3 我3-敌3, both faction score panels each108格, pause button, and complete bottom instructions. Do not move, crop or add UI. Clear flat cartoon screenshot, no annotations or phone frame."
+    },
+    {
+      "id": "13_pause",
+      "title": "战斗－暂停",
+      "group": "战斗与结算",
+      "src": "images/13_pause.png",
+      "revised": false,
+      "source_image": "C:/Users/76398/.codex/generated_images/019feef3-0034-7a90-b271-0ef2a651b042/exec-c962927d-fc32-4862-8ea0-bab8c296e2a9.png",
+      "prompt": "Edit this game screenshot into its pause state. Keep this image unchanged underneath a dark translucent scrim. Add one small centered pale cream rounded box, thick dark outline. Header 战斗暂停. Exactly two stacked buttons: yellow 继续战斗 and gray 退出战斗. Same bold outlined Chinese/cartoon UI style. No other changes, no bottom navigation. Return one portrait image."
+    },
+    {
+      "id": "14_victory",
+      "title": "战斗－胜利结算",
+      "group": "战斗与结算",
+      "src": "images/14_victory.png",
+      "revised": false,
+      "source_image": "C:/Users/76398/.codex/generated_images/019feef3-0034-7a90-b271-0ef2a651b042/exec-53e796c9-63cf-4e8a-ae44-33e28b8af86a.png",
+      "prompt": "Only edit the rewardline under 胜利: remove the words 奖励：+3抽卡券 and retain exactly one centered blue ticket icon followed by +3. Keep all other text, stats, modal, buttons and background unchanged."
+    },
+    {
+      "id": "15_defeat",
+      "title": "战斗－失败结算",
+      "group": "战斗与结算",
+      "src": "images/15_defeat.png",
+      "revised": false,
+      "source_image": "C:/Users/76398/.codex/generated_images/019feef3-0034-7a90-b271-0ef2a651b042/exec-d15a96b8-5c6d-4aa2-8d12-633b459abb15.png",
+      "prompt": "Create the DEFEAT state of image1, keeping the sameexact layout/skin/background. Change only: gold 胜利 title to coralred 失败. Rewardline should contain ONLY one BLUE TICKETicon +1 centered, no duplicate verbalrewardline. Myrow text 第2名 小松果 自己;青铜2星 → 青铜1星;-1星. Otherplayerrow text第1名 森林来客;青铜1星 → 青铜2星;+1星. Keep button返回主界面, all geometry, dimmed battlefield and other labels unchanged. No other newelements. This is oneportrait gameeffectpreview."
+    },
+    {
+      "id": "16_account",
+      "title": "设置与账号",
+      "group": "账号系列",
+      "src": "images/16_account.png",
+      "revised": false,
+      "source_image": "C:/Users/76398/.codex/generated_images/019feef3-0034-7a90-b271-0ef2a651b042/exec-936821c9-af18-415b-b1b6-dab896085cbe.png",
+      "prompt": "Make2corrections to image1 while keeping the entire account modal's exact position, size, contents and typography UNCHANGED. (1) Replace ONLY the large animal/hex decorative background BEHIND the modal with a uniformly darkened version of image2's actual castle lobby, fitted to portrait. The account modal must remain the main content, with no large animals visible around its edge. (2) Replace top-right lightning icon with a lightblue rectangular NOTCHED admission ticket with darkbluepaw stamp,10. Preserve all modalcopy, buttons and fakeID U-DEMO-20260905. No other changes."
+    },
+    {
+      "id": "17_login",
+      "title": "账号－登录注册",
+      "group": "账号系列",
+      "src": "images/17_login.png",
+      "revised": false,
+      "source_image": "C:/Users/76398/.codex/generated_images/019feef3-0034-7a90-b271-0ef2a651b042/exec-754765cf-2f8a-4276-8925-f168b55f8b30.png",
+      "prompt": "Create one full portrait game UI concept at 720×1280, no phone/device/frame or extra captions. Image1 is the target page: preserve its layout, text, existing buttons and content; image2 is the user's approved STYLE MASTER, use only its exact thick charcoal rounded edges, creamy flat face colors, bold white Chinese titles with dark outlines and flat yellow/grey button style. This is a clean low-detail 2D cartoon skin, NOT a layout redesign. Do NOT add any controls, numbers, card-progress bars or level circles that aren't in target image1. Master's card labels and stats are NOT appropriate for non-card pages. Modal background should be the dimmed lobby from image1, not new animal artwork from the master. Body text clean dark Chinese on cream, readable line wrapping instead of tiny/shrunken/ellipsized text. Keep all buttons inside screen. Top-left coin60, top-right BLUE ADMISSION TICKET10, rectangular notched blue paper with dark pawprint, NO lightning or gem. Reference-style five icon nav below dimmed scrim, no tab labels, current section only selected. Existing controls and data ONLY. No ornamental elements, cards or footer bars added to forms. No gradients, watercolor, grain, bevels or new feature ideas. Crisp final preview.\nLogin/register modal. Preserve title 设置与账号, top-right 关闭; heading账号信息. Two input rows:账号 placeholder输入账号（3–32位） and密码 placeholder输入密码（8–72位）, buttons登录 yellow,注册 grey. Connection状态 connected. Lower 玩家协议, 声音设置, 音乐：开 and音效：开. Keep all coordinates and spacious gaps from source1; no social login, email, forgot-password links or keyboard drawn. This is existing screen skinned in exact reference button style. No progressbars or cardlevelbadges anywhere in form."
+    },
+    {
+      "id": "18_account_switch",
+      "title": "账号－切换",
+      "group": "账号系列",
+      "src": "images/18_account_switch.png",
+      "revised": false,
+      "source_image": "C:/Users/76398/.codex/generated_images/019feef3-0034-7a90-b271-0ef2a651b042/exec-67ad3ac1-b530-4c49-b098-d4e6cd37d85d.png",
+      "prompt": "Create one full portrait game UI concept at 720×1280, no phone/device/frame or extra captions. Image1 is the target page: preserve its layout, text, existing buttons and content; image2 is the user's approved STYLE MASTER, use only its exact thick charcoal rounded edges, creamy flat face colors, bold white Chinese titles with dark outlines and flat yellow/grey button style. This is a clean low-detail 2D cartoon skin, NOT a layout redesign. Do NOT add any controls, numbers, card-progress bars or level circles that aren't in target image1. Master's card labels and stats are NOT appropriate for non-card pages. Modal background should be the dimmed lobby from image1, not new animal artwork from the master. Body text clean dark Chinese on cream, readable line wrapping instead of tiny/shrunken/ellipsized text. Keep all buttons inside screen. Top-left coin60, top-right BLUE ADMISSION TICKET10, rectangular notched blue paper with dark pawprint, NO lightning or gem. Reference-style five icon nav below dimmed scrim, no tab labels, current section only selected. Existing controls and data ONLY. No ornamental elements, cards or footer bars added to forms. No gradients, watercolor, grain, bevels or new feature ideas. Crisp final preview.\nAccount switcher. Exact title设置与账号 and关闭. Body heading选择要使用的账号, exactly2compact rows: squirrel avatar 小松果, U-DEMO-20260905 · 青铜2星, 当前; parrotavatar彩虹羽, U-DEMO-000002 · 白银3星, 切换. Keep rows compact at334 and392. No levelcircles, 8/15bars or carddetails because this is account list, NOT animal cards. Big empty cream area below rows as source. 新建账号 yellow button at824, helper创建后立即开始全新游戏,绑定/登录账号 grey at1002. All inside same overlay, dimmed source lobby behind."
+    },
+    {
+      "id": "19_avatar",
+      "title": "账号－头像选择",
+      "group": "账号系列",
+      "src": "images/19_avatar.png",
+      "revised": false,
+      "source_image": "C:/Users/76398/.codex/generated_images/019feef3-0034-7a90-b271-0ef2a651b042/exec-720cd006-3c93-4eb2-a0d7-07f456dc6b0d.png",
+      "prompt": "Create one full portrait game UI concept at 720×1280, no phone/device/frame or extra captions. Image1 is the target page: preserve its layout, text, existing buttons and content; image2 is the user's approved STYLE MASTER, use only its exact thick charcoal rounded edges, creamy flat face colors, bold white Chinese titles with dark outlines and flat yellow/grey button style. This is a clean low-detail 2D cartoon skin, NOT a layout redesign. Do NOT add any controls, numbers, card-progress bars or level circles that aren't in target image1. Master's card labels and stats are NOT appropriate for non-card pages. Modal background should be the dimmed lobby from image1, not new animal artwork from the master. Body text clean dark Chinese on cream, readable line wrapping instead of tiny/shrunken/ellipsized text. Keep all buttons inside screen. Top-left coin60, top-right BLUE ADMISSION TICKET10, rectangular notched blue paper with dark pawprint, NO lightning or gem. Reference-style five icon nav below dimmed scrim, no tab labels, current section only selected. Existing controls and data ONLY. No ornamental elements, cards or footer bars added to forms. No gradients, watercolor, grain, bevels or new feature ideas. Crisp final preview.\nAvatar selection fullscreen overlay. Source exactly 4-column scroll grid, 60 total with6unlocked54locked. Header选择动物头像,关闭. Count全部动物60 · 已解锁6 · 锁定54. Preserve all visible animals in source: row1老鼠/蚂蚁/麻雀/青蛙 all普通 locked. row2兔子普通可用 /鸡普通锁定/鸽子普通锁定/仓鼠普通锁定. row3蜗牛普通锁定/蝌蚪普通锁定/猫稀有可用/狗稀有锁定. row4鸭稀有锁定/松鼠稀有已选/刺猬稀有锁定/乌龟稀有锁定. Partial fifthrow after scroll. Draw animals in exact simple flat handdrawn reference style. Quality shown by border AND explicittext, locked greyed but distinguishable with explicit锁定 and lockicon. Selectedsquirrel coral outer frame. NO progression8/15bars or levelbadges because source is avatar selector. Footer exact未拥有的头像会显示“锁定”；点击可查看获得方式。 All footer visible, scrollbar right, no controls hidden beyond device."
+    },
+    {
+      "id": "20_agreement",
+      "title": "账号－玩家协议",
+      "group": "账号系列",
+      "src": "images/20_agreement.png",
+      "revised": false,
+      "source_image": "C:/Users/76398/.codex/generated_images/019feef3-0034-7a90-b271-0ef2a651b042/exec-b7dfdf9b-7787-44b4-b6eb-9fb1b9410854.png",
+      "prompt": "Create one full portrait game UI concept at 720×1280, no phone/device/frame or extra captions. Image1 is the target page: preserve its layout, text, existing buttons and content; image2 is the user's approved STYLE MASTER, use only its exact thick charcoal rounded edges, creamy flat face colors, bold white Chinese titles with dark outlines and flat yellow/grey button style. This is a clean low-detail 2D cartoon skin, NOT a layout redesign. Do NOT add any controls, numbers, card-progress bars or level circles that aren't in target image1. Master's card labels and stats are NOT appropriate for non-card pages. Modal background should be the dimmed lobby from image1, not new animal artwork from the master. Body text clean dark Chinese on cream, readable line wrapping instead of tiny/shrunken/ellipsized text. Keep all buttons inside screen. Top-left coin60, top-right BLUE ADMISSION TICKET10, rectangular notched blue paper with dark pawprint, NO lightning or gem. Reference-style five icon nav below dimmed scrim, no tab labels, current section only selected. Existing controls and data ONLY. No ornamental elements, cards or footer bars added to forms. No gradients, watercolor, grain, bevels or new feature ideas. Crisp final preview.\nPlayer agreement overlay. Same shell as source. Title玩家协议,关闭. Body must wrap inside original large text region x108,y294,w504,h468 as short readable paragraphs, not one-line ellipsis. Use EXACT supplied existing content: 欢迎使用《丛林法则》。请文明游戏并妥善保管账号。游戏进度由服务器保存；禁止利用漏洞、外挂或干扰其他玩家。我们仅处理提供账号与游戏服务所需的数据。账号中心可切换本机拥有的档案；新建账号会从全新进度开始。 No legal additions, checkbox or marketing lines. Existing bottom yellow 返回账号中心 button atx154,y1064,w412,h64. Keep emptyspace natural. Same reference darkstrokecream/yellow visualstyle, body text dark clean sans, notwhiteoutlined."
+    },
+    {
+      "id": "21_gm",
+      "title": "辅助－GM调试",
+      "group": "辅助页面",
+      "src": "images/21_gm.png",
+      "revised": false,
+      "source_image": "C:/Users/76398/.codex/generated_images/019feef3-0034-7a90-b271-0ef2a651b042/exec-3e16ab11-48f3-4c89-985b-acc16fd9217f.png",
+      "prompt": "Exact edit only: DELETE the entire row of five navigation icons shown at the BOTTOM of this GM image. GM is opened during battle, so that bottom area must show only dimmed battle background/cream floor beneath the existing GM overlay; never a navigation bar. Keep GM panel same bounds and all texts, labels, dropdowns, numbers, button and header UNCHANGED. Do not add newcontrols. Preserve portraitcanvas."
+    },
+    {
+      "id": "22_loading",
+      "title": "启动加载图",
+      "group": "辅助页面",
+      "src": "images/22_loading.png",
+      "revised": true,
+      "source_image": "C:/Users/76398/.codex/generated_images/019feef3-0034-7a90-b271-0ef2a651b042/exec-7c49b512-04df-4c51-b407-d9d33055e9e6.png",
+      "prompt": "Edit only the background hex tiles of Image1 lion loading illustration, replacing their surfaces with the supplied actual hex tile art from Images2-5. Preserve source tiles' exact cheerful flat colors, broad irregular spots and soft ragged brush edge: lime, sky blue, lilac, yellow; retain matching coral/orange in existing regions. No gradients or additional shading on tile fills. Keep lion character, crown, flag, all positions, scale, cream whitespace above, outline style and portrait framing completely unchanged. No text, UI, border or new props."
+    }
+  ],
+  "tile_source": "D:/AI/art/新UI/l六边形icon",
+  "tile_policy": "Original PNGs copied unchanged to references/hex. Generated full-page images use them as visual inputs, not deterministic pixel-for-pixel runtime compositing.",
+  "data_boundary": "Main deck artwork retains the producer's sample top counters and duplicated cards. Detail panel uses current squirrel attack2, HP5, skill text and isolated-fixture progress7/1. No balance changes.",
+  "known_limitations": [
+    "These are raster art previews, not interactive UI or runtime parity evidence.",
+    "Six primary/loading views revised for the latest feedback; remaining pages retained from previous preview batch.",
+    "Paused/result overlay backgrounds and other menu navigation retain earlier preview styling; final cross-state propagation is not yet approved or implemented."
+  ]
+}
