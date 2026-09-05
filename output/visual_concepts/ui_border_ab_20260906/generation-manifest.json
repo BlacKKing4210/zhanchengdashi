@@ -1,0 +1,87 @@
+{
+  "request": "REQ-20260906-UI-BORDER-AB",
+  "scope": "Two preview-only border treatments on deck and lobby; no runtime or formal art approval",
+  "owner": "codex-primary",
+  "producer": "user",
+  "baseline": "69ed1a51c050bd5efef16ae1ffdf8964a74565e9",
+  "write_set": [
+    "output/visual_concepts/ui_border_ab_20260906/**",
+    "docs/CURRENT_GAME_VISUAL_CONCEPT_OPTIONS.md (candidate index only)"
+  ],
+  "rag_context": "temp/rag/context/REQ-20260906-UI-BORDER-AB.md",
+  "rag_status": "READY",
+  "rag_citations": 8,
+  "selection": "Subtle raised card with small downward indicator, no red perimeter",
+  "nav_states": "Unselected warm greige, selected muted butter yellow plus short indicator; preserve lock",
+  "detail_axis": "Center stat pair, full skill text and progress on one vertical axis; portrait left, upgrade action right",
+  "data": "Preserve demo counters, all current sample values, animal IDs and skill wording",
+  "non_goals": [
+    "no APK",
+    "no gameplay or UI implementation",
+    "no permanent service",
+    "no formal approval change"
+  ],
+  "cleanup": "No temporary app run; retain original images and unrelated user changes",
+  "state": "OPTIONS_READY_PENDING_PRODUCER_SELECTION",
+  "generator": "built-in image_gen",
+  "variants": {
+    "A": "Thin warm taupe / fill-related outlines, restrained 2D paper edges",
+    "B": "Borderless surface blocks and shallow contact shadows"
+  },
+  "images": [
+    {
+      "id": "A_deck",
+      "file": "A_deck_soft_outline.png",
+      "title": "A · 编组 / 柔和描边",
+      "source": "C:\\Users\\76398\\.codex\\generated_images\\019feef3-0034-7a90-b271-0ef2a651b042\\exec-0708ac93-aa88-4f93-9025-c2fac11def59.png",
+      "prompt": "Edit Image1 game deck screen, OPTION A soft colored outlines. Image2 lobby is the target low-saturation palette. Keep same portrait canvas, sections, card grid, animals, values, counters and full Chinese text. Apply these corrections precisely:\n1. Bottom nav has only TWO background states: all four unselected buttons identical warm greige #DCD6C8, selected second helmet 编组 muted butter yellow #E6CE8B with a small ochre indicator dash. Keep 5 icons and labels.\n2. Remove red/white selection perimeter from third top-row squirrel card. Instead slightly raise selected card with a shallow ochre shadow and ONE small downward triangle centered under it, no selection ring or red.\n3. Detail panel left squirrel and Lv.1 松鼠 stays left; 升级 stays right. Between them, center the paw2 + heart5 stat pair, full skill '参与占领地块时获得5金币。', and mint progress bar '7/1' on precisely the SAME vertical centerline, three evenly spaced rows. Stats do not start at the left edge. Progress bar center matches skill center, excluding upgrade button.\n4. Lower card-surface saturation to soft sage, dusty lilac, muted peach and powder blue matching Image2; preserve rich animal identity and clear readable contrast. No fluorescent orange/lime. No haze or bottom fade.\n5. Replace pure-black UI outlines on cards, buttons, panels and nav with thinner 2-3px colored taupe/olive/slate outlines related to each fill. Flat 2D paper, restrained little bottom shadow. Keep original dark ink outlines of animal/icon illustrations untouched. Dark warm readable text; not black heavy outlined lettering. No added controls or annotations. Complete crisp portrait mockup.",
+      "followup_prompts": [
+        "Precise alignment-only edit of this 854px-wide portrait UI. In the middle squirrel detail panel, align these THREE independent elements to the exact same vertical axis x=440px: (1) the entire paw2 plus heart5 stats group as one centered group, shift it about22px RIGHT; (2) the full skill sentence 参与占领地块时获得5金币。, shift it about16px LEFT; (3) keep the progress bar7/1 where it is, center approximately440px. Each row must have identical horizontal center, creating a clean vertical stack. Keep all y positions, spacing, font sizes, wording, bar width, portrait left and upgrade button right untouched. Do not draw any guide line. Everything else on the screen absolutely unchanged.",
+        "Change ONLY first and second cards in the TOP row: restore their locked state with one clearly visible white padlock centered over each animal, like the original screen. All other cards unlocked. Preserve every other pixel, especially the already aligned stat pair, skill and progress in the middle detail panel, muted palette, selected third-card triangle and two-state bottom navigation. Do not change any layout, color, text, border or animal."
+      ]
+    },
+    {
+      "id": "B_deck",
+      "file": "B_deck_borderless.png",
+      "title": "B · 编组 / 无描边浅投影",
+      "source": "C:\\Users\\76398\\.codex\\generated_images\\019feef3-0034-7a90-b271-0ef2a651b042\\exec-b6c5dfbe-ce4f-4b8e-9d89-24ae39323c98.png",
+      "prompt": "Create OPTION B from this exact deck mockup by changing ONLY how UI surfaces are separated. Remove ALL outline strokes from rectangular cards, panels, currency pills, progress tracks and buttons. Use flat opaque paper-colored surface blocks, restrained 3px downward contact shadows and small rounded corners instead. NO black UI border, NO taupe UI border, NO inset bevel, NO shiny 3D or glow. Keep the animal and icon drawings' original dark ink outlines untouched. Preserve EXACT muted palette, all section positions/sizes, all values/text, two locked top-left cards, selected third squirrel slightly raised with small ochre triangle below. Keep stat pair, skill sentence and progress centered together at x440 of854 width. Navigation still four identical warm greige unselected items and only second 编组 muted-yellow selected with little dash. All other content unchanged. Keep crisp contrast, no fog/fade, no phoneframe or annotations.",
+      "followup_prompts": [
+        "Change ONLY the three resource numbers at the very top of this deck UI: 484/34, 5035K, 119. Render these same values in solid dark warm charcoal #3F392F with NO white outline, to give strong contrast against their pale greige pills. Preserve every other part of the image: all layout, animals, card states and shadows, values, Chinese wording, centered detail stack, borderless surfaces and two-state navigation. No other edits."
+      ]
+    },
+    {
+      "id": "A_lobby",
+      "file": "A_lobby_soft_outline.png",
+      "title": "A · 大厅 / 柔和描边",
+      "source": "C:\\Users\\76398\\.codex\\generated_images\\019feef3-0034-7a90-b271-0ef2a651b042\\exec-1b776b0f-7ec4-4b0b-a215-0858f42068ff.png",
+      "prompt": "Edit Image1 lobby to match Image2 OPTION A deck: replace thick black UI borders with thin warm taupe/slate outlines; muted paper palette, dark warm readable text without heavy black outline. Keep character/illustration ink outlines intact. Bottom nav only two fills: all four unselected warm greige, third swords selected butter yellow with small indicator dash. Preserve five icons and shop lock; labels 商店 编组 战斗 抽卡 房间. Primary single button muted butter yellow, multiplayer warm greige. Rank light cream, first3 of15dots ochre, remaining12grey. Keep ALL original lobby geometry, animals, castle, gold60/ticket10, rank texts, buttons and HOT badge. Same portrait canvas, no extra UI, no annotations.",
+      "followup_prompts": []
+    },
+    {
+      "id": "B_lobby",
+      "file": "B_lobby_borderless.png",
+      "title": "B · 大厅 / 无描边浅投影",
+      "source": "C:\\Users\\76398\\.codex\\generated_images\\019feef3-0034-7a90-b271-0ef2a651b042\\exec-0c940dd8-db10-4e0c-9cb9-13078be00432.png",
+      "prompt": "Edit Image1 OPTION A lobby into OPTION B, matching borderless paper surfaces of Image2 deck. ONLY change surface separation: remove outline strokes and inset edge highlights from UI panels, buttons, currency pills, nav items and rank strip; use flat opaque color fills and short shallow contact shadows. Keep all geometry, colors, icons, animals, castle, labels, values and HOT badge. Drawings retain their original ink contours. Top currency counts60 and10 and all UI text must be dark warm charcoal for high readability on pale fills. Bottom nav still exactly four warm greige unselected surfaces and one butter-yellow selected swords 战斗 with small dash; shop remains locked. No black or taupe UI outlines, no bevel, no glow, no layout changes. Full portrait mockup, no annotations.",
+      "followup_prompts": []
+    }
+  ],
+  "review": {
+    "two_nav_background_states": true,
+    "no_red_card_selection": true,
+    "shared_detail_visual_axis": true,
+    "muted_card_backgrounds": true,
+    "full_skill_text": true,
+    "sharp_card_list": true,
+    "character_ink_preserved": true,
+    "contrast_followup": "B resource counts darkened for legibility",
+    "runtime_acceptance": false
+  },
+  "limits": [
+    "Raster visual candidates only; no editable runtime layout or engine parity approval.",
+    "Sample resource counters and duplicated cards are inherited from the producer's previous mockup.",
+    "Generated geometry and decorative rank-dot totals are illustrative and must not be used as implementation values."
+  ],
+  "reusable_method_candidate": "none"
+}

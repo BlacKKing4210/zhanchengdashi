@@ -143,3 +143,10 @@ Producer -> Creative Director -> Art Director -> Visual Development Artist -> Co
 - `references/hex/` 保留制作人指定目录的原始 PNG；整页生成图使用这些素材作图像参考，不宣称逐像素贴图合成。
 - 全部图像、提示词与示意数据边界见同目录 `generation-manifest.json`。其余页面仍为上一轮预览；跨状态统一与运行时适配尚未验收。
 - 状态：`ART_PREVIEW_PENDING_PRODUCER_REVIEW`。仅为美术效果图，不修改游戏脚本、场景、正式配置或资源绑定，不作为可交互原型、运行时对齐验收或实装授权。
+
+## 12. 2026-09-06 UI 边框双方案候选
+
+- 对比页：`output/visual_concepts/ui_border_ab_20260906/index.html`，A/B 各含编组和大厅两张图。
+- 两版共用低饱和配色、两态导航、非红框选中方式，以及属性/技能/进度条居中排列；完整技能和动物线稿保留。
+- A 为细柔和描边；B 为无描边色块加短浅投影，选中卡保留浅色强调。只供比较视觉方向，不替代正式布局或运行时规范。
+- 状态：`OPTIONS_READY_PENDING_PRODUCER_SELECTION`。等待制作人选 A/B；未改游戏运行内容，未覆盖上一轮候选。提示词、示意数据边界与生成限制见候选目录内 `generation-manifest.json`。
