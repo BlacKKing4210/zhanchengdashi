@@ -8778,7 +8778,7 @@ func _draw_card(rect: Rect2, card: Dictionary, selected: bool, show_collection_s
 		_draw_text_center(String(card.get("name", "")), name_rect, 16, Color.WHITE)
 		_draw_upgrade_progress(progress_rect, card_id, true)
 		_draw_card_level_badge(Rect2(rect.position + Vector2(4, rect.size.y - 30), Vector2(28, 28)), card_id)
-		_draw_card_upgrade_dot(rect, card_id, rect)
+		_draw_card_upgrade_dot(rect, card_id, rect.grow(5.0))
 	else:
 		_draw_lock(art_rect.get_center())
 		_draw_text_center(String(card.get("name", "")), name_rect, 15, Color.WHITE)
@@ -8811,7 +8811,8 @@ func _draw_card_clipped(rect: Rect2, card: Dictionary, selected: bool, clip_rect
 		_draw_upgrade_progress_clipped(progress_rect, card_id, true, clip_rect)
 		var badge = Rect2(rect.position + Vector2(4, rect.size.y - 30), Vector2(28, 28))
 		if clip_rect.encloses(badge): _draw_card_level_badge(badge, card_id)
-		_draw_card_upgrade_dot(rect, card_id, clip_rect)
+		# Let the rim badge use 5 px of the existing panel padding, not clip to the card.
+		_draw_card_upgrade_dot(rect, card_id, clip_rect.grow(5.0))
 	else:
 		if clip_rect.encloses(art_rect): _draw_lock(art_rect.get_center())
 		_draw_text_center_clipped(String(card.get("name", "")), name_rect, 15, Color.WHITE, clip_rect)
@@ -8819,7 +8820,8 @@ func _draw_card_clipped(rect: Rect2, card: Dictionary, selected: bool, clip_rect
 
 
 func _card_upgrade_dot_rect(rect: Rect2) -> Rect2:
-	return Rect2(Vector2(rect.end.x - 22.0, rect.position.y + 4.0), Vector2(18, 18))
+	# Center sits on the rounded top-right rim; 5 px overhang on both edges.
+	return Rect2(Vector2(rect.end.x - 13.0, rect.position.y - 5.0), Vector2(18, 18))
 
 
 func _draw_card_upgrade_dot(rect: Rect2, card_id: String, clip_rect: Rect2) -> void:

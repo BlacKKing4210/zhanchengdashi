@@ -71,13 +71,19 @@ func _ready() -> void:
 		app.card_counts[id] = 1000
 		check(not app._card_can_upgrade(id), "max level: " + id)
 	set_deck_state()
+	var corner_card = Rect2(20, 20, 126, 140)
+	var corner_dot = app._card_upgrade_dot_rect(corner_card)
+	check(corner_dot.get_center() == Vector2(142, 24), "badge centered on rounded top-right rim")
+	check(corner_dot.end.x - corner_card.end.x == 5.0 and corner_card.position.y - corner_dot.position.y == 5.0, "badge overlaps both edges by five pixels")
 	var gpu = DisplayServer.get_name() != "headless"
 	if gpu:
 		app.probe = true
 		var before = await render_image()
-		check(near(before.get_pixel(133, 33), UISkin.UPGRADE_DOT), "equipped dot rendered top-right")
-		check(near(before.get_pixel(293, 33), UISkin.UPGRADE_DOT), "collection dot rendered top-right")
-		check(near(before.get_pixel(453, 33), UISkin.PAPER), "scrolled notification clipped")
+		check(near(before.get_pixel(142, 24), UISkin.UPGRADE_DOT), "equipped dot rendered on corner")
+		check(near(before.get_pixel(302, 24), UISkin.UPGRADE_DOT), "collection first-row dot rendered on corner")
+		check(near(before.get_pixel(147, 24), UISkin.UPGRADE_DOT), "equipped dot extends past card edge")
+		check(near(before.get_pixel(307, 24), UISkin.UPGRADE_DOT), "collection dot extends past card edge")
+		check(near(before.get_pixel(462, 24), UISkin.PAPER), "scrolled notification clipped")
 		check(near(before.get_pixel(40, 215), UISkin.GOLD), "legendary actual card pixels are gold")
 		check(near(before.get_pixel(28, 410), UISkin.PRIMARY), "ready upgrade rendered primary")
 		check(near(before.get_pixel(208, 410), UISkin.SECONDARY), "secondary button rendered teal")
@@ -92,13 +98,21 @@ func _ready() -> void:
 	if gpu:
 		app.probe = true
 		var after = await render_image()
-		check(near(after.get_pixel(133, 33), UISkin.BLUE), "equipped dot pixels removed after upgrade")
-		check(near(after.get_pixel(293, 33), UISkin.BLUE), "collection dot pixels removed after upgrade")
+		check(near(after.get_pixel(147, 24), UISkin.PAPER), "equipped overhang pixels removed after upgrade")
+		check(near(after.get_pixel(307, 24), UISkin.PAPER), "collection overhang pixels removed after upgrade")
 		check(near(after.get_pixel(28, 410), UISkin.DISABLED), "upgrade button disables with dot removal")
 		app.probe = false
 		await check_relogin_affordance()
 		if "--capture-ui-states" in OS.get_cmdline_user_args():
 			await capture_pages()
+		if "--capture-dot-corner" in OS.get_cmdline_user_args():
+			set_deck_state()
+			app.screen = "deck"
+			app.card_counts["defense_longshot_tower"] = 2
+			var folder = "res://output/runtime_ui_dot_corner_20260906/"
+			DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(folder))
+			var frame = await render_image()
+			check(frame.save_png(ProjectSettings.globalize_path(folder + "deck_corner_badges.png")) == OK, "corner badge page capture")
 	app.queue_free()
 	await get_tree().process_frame
 	print("UI_ACTION_STATES ", "PASS" if failures == 0 else "FAIL", " checks=", checks, " failures=", failures, " gpu=", gpu)

@@ -414,6 +414,18 @@ active_modules:
 queued_modules: []
 
 shared_locks:
+  ui_dot_corner_20260906:
+    task_id: REQ-20260906-DOT-CORNER
+    owner: codex-primary
+    status: RELEASED
+    delivery_status: CORNER_BADGE_RUNTIME_VERIFIED
+    receipt: docs/receipts/REQ-20260906-DOT-CORNER.md
+    write_set:
+      - scripts/app/main.gd
+      - tests/test_ui_action_states.gd
+      - docs/receipts/REQ-20260906-DOT-CORNER.md
+      - docs/active_scope.yaml
+      - output/runtime_ui_dot_corner_20260906
   ui_states_20260906:
     task_id: REQ-20260906-UI-STATES
     owner: codex-primary
