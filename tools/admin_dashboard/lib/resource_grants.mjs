@@ -6,7 +6,7 @@ const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3
 const SAFE_RECEIPT_ID_PATTERN = /^(?:[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|invalid-[0-9a-f]{32})$/;
 const CARD_ID_PATTERN = /^[A-Za-z0-9_.:-]{1,64}$/;
 const USER_ID_PATTERN = /^[A-Za-z0-9_.:-]{1,80}$/;
-const MAX_GRANTS = 20;
+const MAX_GRANTS = 256;
 const MAX_GRANT_AMOUNT = 100_000;
 const MAX_ENTRY_BYTES = 8 * 1024 * 1024;
 const MAX_LIST_ENTRIES = 200;
@@ -346,7 +346,7 @@ export async function findGrantEntry(commandRoot, commandId) {
     ?? await readGrantEntryFromBucket(commandRoot, "pending", normalizedId);
 }
 
-export function prepareGrantCommand({ body, accountSnapshot, actor, now = Date.now() }) {
+export function prepareGrantCommand({ body, accountSnapshot, animalCatalog, actor, now = Date.now() }) {
   if (!body || typeof body !== "object" || Array.isArray(body)) throw new GrantError(400, "invalid_grant_request");
   if (!accountSnapshot || accountSnapshot.availability !== "ready" || !Array.isArray(accountSnapshot.accounts)) {
     throw new GrantError(503, "account_snapshot_unavailable");
@@ -391,7 +391,19 @@ export function prepareGrantCommand({ body, accountSnapshot, actor, now = Date.n
   const primaryGrant = body.grant && typeof body.grant === "object" && !Array.isArray(body.grant)
     ? { ...body.grant, resource: body.grant.type }
     : null;
-  const requestedGrants = primaryGrant ? [primaryGrant] : body.grants;
+  let requestedGrants = primaryGrant ? [primaryGrant] : body.grants;
+  if (primaryGrant?.resource === "all_animals") {
+    if (scope !== "target") throw new GrantError(400, "all_animals_single_target_required");
+    if (primaryGrant.amount !== 1) throw new GrantError(400, "invalid_grant_amount");
+    if (!Array.isArray(animalCatalog) || animalCatalog.length < 1 || animalCatalog.length > MAX_GRANTS) {
+      throw new GrantError(503, "animal_catalog_unavailable");
+    }
+    const cardIds = animalCatalog.map((animal) => safeCardId(animal?.card_id));
+    if (cardIds.some((id) => !id) || new Set(cardIds).size !== cardIds.length) {
+      throw new GrantError(503, "animal_catalog_unavailable");
+    }
+    requestedGrants = cardIds.sort().map((card_id) => ({ resource: "card_copies", card_id, amount: 1 }));
+  }
   if (!Array.isArray(requestedGrants) || requestedGrants.length < 1 || requestedGrants.length > MAX_GRANTS) {
     throw new GrantError(400, "invalid_grants");
   }
@@ -437,6 +449,7 @@ export function prepareGrantCommand({ body, accountSnapshot, actor, now = Date.n
 export function createGrantPreview({
   body,
   accountSnapshot,
+  animalCatalog,
   actor,
   sessionId,
   secret,
@@ -453,6 +466,7 @@ export function createGrantPreview({
   const command = prepareGrantCommand({
     body: { ...body, confirmation },
     accountSnapshot,
+    animalCatalog,
     actor,
     now,
   });

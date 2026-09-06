@@ -8,7 +8,30 @@ ownership:
 
 environments:
   staging:
-    readiness: deployed_v1_3_1_staging_public_functional_with_declared_temporary_player_name_and_executor_observability_limits
+    readiness: deployed_v1_4_0_staging_public_functional_with_declared_temporary_player_name_and_executor_observability_limits
+    latest_release:
+      version: v1.4.0-aliyun-staging-rc2
+      verified_at: "2026-09-06T22:56:00+08:00"
+      scope: admin_node_all_animals_and_existing_game_executor_grant_limit_only_plus_tls_renewal_repair
+      receipt: docs/receipts/REQ-20260906-ADMIN-ALL-ANIMALS.md
+      node_archive_sha256: f4f1c10af9fe54e73fbc3352cf69f68d694a4ea4dfd73c225bd29be320a1c2ba
+      game_elf_sha256: 69c33449882ac2409c444af4b9d1e19edfd8e491fa578f2de46a5766e47f7d58
+      baseline_game_elf_sha256: 5318144037f2f81a962c22510ab2764557eca289534bc043b023789495e376f1
+      baseline_isolation: previous_deployed_v1_3_source_plus_only_MAX_ADMIN_COMMAND_GRANTS_20_to_256
+      account_count: 30
+      animal_catalog_count: 60
+      live_real_resource_grants_executed: false
+      queue_counts: {pending: 0, processed: 2, failed: 0}
+      preserved: [player_authority_sha256, administrator_state_sha256, existing_command_receipts, fisher_service_fingerprint, nginx_service_fingerprint]
+      external_https_root: HTTP_200_trusted_certificate
+      external_health: HTTP_200_live_true
+      protected_accounts_without_session: HTTP_401
+      linux_isolated_executor: PASS_60_animals_atomicity_restart_replay
+      certificate_renewal_service: Result_success_ExecMainStatus_0_timer_active
+      certificate_expires_utc: "2026-09-11T15:18:24Z"
+      backup: /var/backups/junglelaw-admin-dashboard/admin-all-animals-20260906
+      rollback: verified_backup_and_retained_previous_release_ready_not_executed
+      limitations: [no_live_player_grant_test, legacy_accounts_without_real_username, executor_heartbeat_not_observed, production_not_authorized]
     cloud_service: alibaba_cloud_simple_application_server_swas
     instance:
       id: 5753aa004b904138a06cc5437df6a468
@@ -24,7 +47,7 @@ environments:
     public_endpoints:
       - url: https://106.15.61.103/
         purpose: junglelaw_admin_dashboard
-        approval_state: deployed_v1_3_1_external_https_visible_grant_action_player_name_fallback_and_retained_authority_accepted_2026-08-23
+        approval_state: deployed_v1_4_0_external_trusted_https_and_all_animals_single_target_accepted_2026-09-06
     ports:
       - protocol: tcp
         port: 22
@@ -66,7 +89,7 @@ environments:
         observed_state: present
       - purpose: admin_dashboard
         path: /opt/junglelaw-admin
-        observed_state: present_current_points_to_JungleLaw-admin-dashboard-v1.3.1-aliyun-staging-rc1
+        observed_state: present_current_points_to_JungleLaw-admin-dashboard-v1.4.0-aliyun-staging-rc2
       - purpose: admin_dashboard_state
         path: /var/lib/junglelaw-admin-dashboard
         observed_state: present_root_managed_service_private
@@ -90,7 +113,7 @@ environments:
       account_snapshot: "deployed version 2 generated 2026-08-23T12:09:27+08:00; SHA-256 c57b4eacd3ad952bd1d0e2382adc3012484111edee33de4b099f7c072064a380 unchanged during v1.3.1 RC1; 30 sanitized account rows; zero username/display_name fields, therefore v1.3.1 uses explicitly labeled stable temporary names until a separately authorized identity projection ships; 27 accounts with a non-empty saved deck; 65 Chinese card-name mappings"
       match_analytics: "deployed version 3; controlled battle type and authority dimensions; 60 animal records; zero players and zero placement samples"
       balance_decision_status: "not_ready: current authoritative analytics contain no match or placement evidence"
-    tls_and_reverse_proxy: "deployed: Node.js terminates TLS directly on public IPv4 106.15.61.103:443 as non-root junglelaw-admin with only CAP_NET_BIND_SERVICE; environment runtime port and certificate health port both equal 443; production Let's Encrypt shortlived lineage junglelaw-admin-ip has SAN 106.15.61.103, issuer YE2, expires 2026-08-28T05:37:38Z, and is atomically projected root:junglelaw-admin 0640; Certbot 5.7.0 timer is active/enabled twice daily with randomized delay; nginx TCP 80 was not edited, reloaded, or restarted"
+    tls_and_reverse_proxy: "Node direct TLS on 106.15.61.103:443 as junglelaw-admin; trusted Let\u0027s Encrypt short-lived IP certificate expires 2026-09-11T15:18:24Z. Root-owned pair projection and renewal reconciliation fixed in v1.4; renewal service succeeded and timer active 2026-09-06. Nginx TCP 80 unchanged."
     health_checks:
       - "not_ready: systemd is degraded because kdump failed"
       - "passed: external certificate-verified GET https://106.15.61.103/api/health without insecure TLS bypass returned HTTP 200, ok=true and live=true"
@@ -105,9 +128,9 @@ environments:
       - "passed v1.3.1: actual command queues /var/lib/junglelaw/admin_commands/{pending,processed,failed} each contain zero JSON commands; authority and account-snapshot hashes were unchanged; no real resource grant was submitted"
       - "passed v1.3.1: only junglelaw-admin-dashboard.service restarted; JungleLaw game, Fisher and nginx MainPID/start-time/restart/status fingerprints remained identical; error-priority admin journal is empty"
       - "declared v1.3.1 limitation: current remote records have no real username, so the UI shows a stable explicitly labeled temporary name until a separately authorized identity/game-server projection is deployed"
-    backup_plan: "executed: root-only receipt /var/backups/junglelaw-admin-dashboard/admin-dashboard-predeploy-JungleLaw-admin-dashboard-v1.3.1-aliyun-staging-rc1-20260823T102538Z; payload.tar.sha256 and receipt.sha256 passed; prior immutable release, current link, admin state/audit and protected configuration were captured; shared-host service fingerprints and authority/snapshot hashes were bound; no Alibaba Cloud snapshot was deleted"
-    rollback_plan: "ready and evidence-bound after successful v1.3.1 RC1 acceptance: restore the current pointer to JungleLaw-admin-dashboard-v1.3.0-aliyun-staging-rc2 and use the exact v1.3.1 RC1 root-only backup receipt if state restoration is required; rollback was not executed"
-    monitoring: "junglelaw-server.service, fisher-server.service, nginx.service and junglelaw-admin-dashboard.service active/enabled with NRestarts=0 and ExecMainStatus=0; only admin MainPID changed as expected; junglelaw-admin-dashboard-cert-renew.timer remains active/enabled; external TLS/root/health, protected-login and journal checks passed; independent executor-heartbeat alert routing remains declared post-staging observability work"
+    backup_plan: "executed 2026-09-06: root-only /var/backups/junglelaw-admin-dashboard/admin-all-animals-20260906 contains verified state.tar checksum, old game ELF, certificate pair/helper and preserved previous admin release. Player authority and administrator state hashes unchanged."
+    rollback_plan: "ready: restore game ELF from admin-all-animals-20260906 backup and current link to JungleLaw-admin-dashboard-v1.3.1-aliyun-staging-rc1 using scoped graceful stop/start. Do not overwrite live player data after reopening service. Rollback not executed; keep repaired valid TLS pair."
+    monitoring: "2026-09-06: JungleLaw game/admin active, NRestarts=0 and ExecMainStatus=0; Fisher/nginx fingerprints unchanged. Trusted external HTTPS/root/health passed; renewal service success and timer active. Executor heartbeat remains not_observed and readiness endpoint 503; no real player grant probe."
   production:
     ssh_alias: null
     region: null
@@ -133,6 +156,6 @@ authorization:
   staging_remote_writes: true
   production_remote_writes: false
   staging_scope: OpenClaw-ejrr_junglelaw_only
-  explicit_user_confirmation: "fulfilled_2026-08-23_OpenClaw-ejrr_staging_JungleLaw_node_only_v1_3_1_continuation_authorized"
+  explicit_user_confirmation: "producer_2026-09-06_update_admin_add_single_account_all_animals_and_continue; prior OpenClaw-ejrr staging authorization retained; minimal executor grant-limit and HTTPS renewal repair only"
   state_directory_quarantine_restore: true
   destructive_state_deletion: false

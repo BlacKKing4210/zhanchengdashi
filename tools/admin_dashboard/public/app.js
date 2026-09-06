@@ -944,6 +944,14 @@ function validateGrantDraft(draft) {
 
 function grantDescription(draft) {
   if (!draft) return "—";
+  if (draft.grant?.type === "all_animals") return "全部动物各 1 份";
+  if (draft.grants?.length > 1) {
+    const grants = draft.grants;
+    if (grants.every((grant) => grant.resource === "card_copies" && grant.amount === grants[0].amount)) {
+      return `${formatNumber(grants.length)} 种卡牌 · 每种 ${formatNumber(grants[0].amount)} 份`;
+    }
+    return `${formatNumber(grants.length)} 项资源`;
+  }
   const rawGrant = draft.grant || draft.grants?.[0] || {};
   const type = rawGrant.type || rawGrant.resource;
   if (type === "card_copies") return `${cardDisplayName(rawGrant.card_id)}副本 × ${formatNumber(rawGrant.amount)}`;
@@ -1133,6 +1141,16 @@ function renderGrants() {
     element("h2", { id: "grant-form-heading", text: "发放资源" }),
     selectionStatus,
   );
+  const allAnimalsButton = element("button", {
+    className: "primary grant-submit-button",
+    type: "button",
+    text: "一键发放全部动物（各1份）",
+    disabled: selectedIds.length !== 1 || state.grantBusy,
+  });
+  form.append(allAnimalsButton, element("p", {
+    className: "grant-operation-note",
+    text: "测试快捷指令：仅选 1 名玩家即可点击；每种动物增加 1 份，不改等级、阵容或抽卡券。",
+  }));
   if (selectionNotice) form.append(selectionNotice);
   const grantType = element("select", { name: "grant_type" });
   grantType.append(new Option("抽卡券", "gacha_tickets"), new Option("卡牌副本", "card_copies"));
@@ -1154,7 +1172,7 @@ function renderGrants() {
     className: "primary grant-submit-button",
     type: "submit",
     text: submitButtonText,
-    disabled: selectionInvalid,
+    disabled: selectionInvalid || state.grantBusy,
     attrs: { "aria-describedby": "grant-selection-status" },
   });
   const primaryFields = element("div", { className: "grant-primary-fields" });
@@ -1165,9 +1183,9 @@ function renderGrants() {
   form.append(
     primaryFields,
     cardField,
+    submitButton,
     labeledControl("发放原因", reason),
     error,
-    submitButton,
     element("p", { className: "grant-operation-note", text: "后台只创建一条幂等指令；处理成功后才显示到账。" }),
   );
   function captureFormValues() {
@@ -1188,8 +1206,58 @@ function renderGrants() {
   grantType.addEventListener("change", updateConditionalFields);
   form.addEventListener("input", captureFormValues);
   updateConditionalFields();
+  allAnimalsButton.addEventListener("click", async () => {
+    if (state.grantBusy || selectedIds.length !== 1) return;
+    const userId = selectedIds[0];
+    // Keep the key across ambiguous network failures and page rerenders.
+    if (state.allAnimalsAttempt?.userId !== userId) {
+      state.allAnimalsAttempt = { userId, key: generateIdempotencyKey() };
+    }
+    const key = state.allAnimalsAttempt.key;
+    state.grantBusy = true;
+    allAnimalsButton.disabled = true;
+    submitButton.disabled = true;
+    allAnimalsButton.textContent = "正在发放全部动物…";
+    error.textContent = "";
+    try {
+      const payload = await request("/api/resource-grants/preview", {
+        method: "POST", mutation: true,
+        body: JSON.stringify({
+          target: { kind: "user", user_id: userId },
+          grant: { type: "all_animals", amount: 1 },
+          reason: "测试：一键发放全部动物各1份",
+          idempotency_key: key,
+        }),
+      });
+      const contract = payload.preview;
+      if (!contract?.preview_token || contract.idempotency_key !== key
+        || contract.scope !== "target" || contract.target_count !== 1
+        || contract.target_user_ids?.[0] !== userId) {
+        throw Object.assign(new Error("invalid preview response"), { code: "invalid_preview_token" });
+      }
+      state.grantResult = await submitScopedGrant(contract, key);
+      // Pending is still the same command. Do not generate a new grant on retry.
+      if (grantStatusMeta(state.grantResult.status).terminal) state.allAnimalsAttempt = null;
+      state.selectedGrantUserIds.clear();
+      state.grantBusy = false;
+      renderActiveTab();
+      announce(grantStatusMeta(state.grantResult.status).label);
+      document.querySelector("#grant-receipt")?.focus();
+    } catch (requestError) {
+      error.textContent = requestError.code === "animal_catalog_unavailable"
+        ? "动物目录尚未就绪，未创建指令。请刷新数据后重试。"
+        : `${apiErrorMessage(requestError.code)} 重试会沿用同一指令，不会重复到账。`;
+      error.focus();
+    } finally {
+      state.grantBusy = false;
+      allAnimalsButton.disabled = selectedIds.length !== 1;
+      allAnimalsButton.textContent = "一键发放全部动物（各1份）";
+      submitButton.disabled = selectionInvalid;
+    }
+  });
   form.addEventListener("submit", async (event) => {
     event.preventDefault();
+    if (state.grantBusy) return;
     error.textContent = "";
     captureFormValues();
     const draft = buildGrantDraft(form);
@@ -1200,7 +1268,9 @@ function renderGrants() {
       return;
     }
     const idempotencyKey = generateIdempotencyKey();
+    state.grantBusy = true;
     submitButton.disabled = true;
+    allAnimalsButton.disabled = true;
     try {
       const payload = await request("/api/resource-grants/preview", {
         method: "POST",
@@ -1242,6 +1312,7 @@ function renderGrants() {
     } finally {
       state.grantBusy = false;
       submitButton.disabled = false;
+      allAnimalsButton.disabled = selectedIds.length !== 1;
     }
   });
   const workspace = element("div", { className: "grant-workspace" });

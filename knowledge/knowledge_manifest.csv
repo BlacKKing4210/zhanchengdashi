@@ -1,4 +1,5 @@
 source_id,path,kind,authority,status,version,owner,feature_ids,tags,updated_at,expires_at,access_scope,conflict_group,resolution_state
+ZC_ADMIN_V140_CLOSE,docs/receipts/REQ-20260906-ADMIN-ALL-ANIMALS.md,qa,canonical,active,v1.4.0,producer,F-ZC-ADMIN-001,all-animals;single-target;atomic-grant;tls-renewal;staging;no-live-grant;closure,2026-09-06,,project,,
 PROJECT_AGENTS,AGENTS.md,workflow,canonical,active,v1,producer,GLOBAL,authority;workflow,2026-07-27,,project,,
 PROJECT_WORKFLOW,docs/WORKFLOW.md,workflow,canonical,active,v1,producer,GLOBAL,workflow;gates,2026-07-27,,project,,
 PROJECT_PROFILE,docs/project_profile.yaml,workflow,canonical,active,v1,producer,GLOBAL,profile;roles;sources,2026-07-27,,project,,

@@ -1,8 +1,7 @@
 #!/usr/bin/env bash
 # Renew a Let's Encrypt short-lived IP lineage with pinned Certbot 5.7.0, or
-# deploy the lineage as a root-owned pair. The renew mode only calls Certbot;
-# Certbot's saved deploy-hook calls deploy mode, which never calls Certbot and
-# therefore cannot recurse. This helper never edits or reloads nginx.
+# deploy the lineage as a root-owned pair. Renew also reconciles a previously
+# renewed but undeployed lineage. Deploy never calls Certbot or reloads nginx.
 set -Eeuo pipefail
 
 MODE="${1:-renew}"
@@ -41,14 +40,17 @@ validate_pair() {
 	local private_key="$1"
 	local full_chain="$2"
 	local expected_ip="$3"
+	local require_fresh="${4:-1}"
 	local key_public_hash
 	local cert_public_hash
 	[[ -s "${private_key}" ]] || fail "private key is missing or empty: ${private_key}"
 	[[ -s "${full_chain}" ]] || fail "certificate chain is missing or empty: ${full_chain}"
 	openssl pkey -in "${private_key}" -noout >/dev/null \
 		|| fail "private key cannot be parsed: ${private_key}"
-	openssl x509 -in "${full_chain}" -noout -checkend 86400 \
-		|| fail 'certificate is invalid or expires within 24 hours'
+	if [[ "${require_fresh}" == '1' ]]; then
+		openssl x509 -in "${full_chain}" -noout -checkend 86400 \
+			|| fail 'certificate is invalid or expires within 24 hours'
+	fi
 	openssl x509 -in "${full_chain}" -noout -ext subjectAltName \
 		| grep -Fq "IP Address:${expected_ip}" \
 		|| fail "certificate SAN does not contain IP address ${expected_ip}"
@@ -147,10 +149,11 @@ fi
 if [[ "${MODE}" == 'renew' ]]; then
 	systemctl is-active --quiet "${DASHBOARD_SERVICE}" \
 		|| fail 'dashboard must already be active before a renewal deployment'
-	# The root-owned Certbot directory deploy-hook wrapper invokes this helper
-	# in deploy mode only for the approved lineage. renew never calls deploy
-	# directly and deploy never calls Certbot.
 	"${CERTBOT_BIN}" renew --quiet --cert-name "${CERT_NAME}"
+	# Certbot may already have renewed successfully while its deploy hook failed.
+	# Reconcile even when no new issuance is due; deploy cannot recurse.
+	RENEWED_LINEAGE="/etc/letsencrypt/live/${CERT_NAME}" RENEWED_DOMAINS="${CERT_IP}" \
+		"$0" deploy
 	exit 0
 fi
 
@@ -178,7 +181,7 @@ if [[ -f "${TLS_DIRECTORY}/privkey.pem" || -f "${TLS_DIRECTORY}/fullchain.pem" ]
 		|| fail 'deployed TLS private key mode must be 0640'
 	[[ "$(stat -c '%a' "${TLS_DIRECTORY}/fullchain.pem")" == '640' ]] \
 		|| fail 'deployed TLS full chain mode must be 0640'
-	validate_pair "${TLS_DIRECTORY}/privkey.pem" "${TLS_DIRECTORY}/fullchain.pem" "${CERT_IP}"
+	validate_pair "${TLS_DIRECTORY}/privkey.pem" "${TLS_DIRECTORY}/fullchain.pem" "${CERT_IP}" 0
 	if [[ "$(certificate_fingerprint "${SOURCE_CERT}")" == "$(certificate_fingerprint "${TLS_DIRECTORY}/fullchain.pem")" ]]; then
 		printf '%s\n' 'Certificate lineage is unchanged; dashboard restart is not required.'
 		exit 0
@@ -236,7 +239,8 @@ if ! systemctl restart "${DASHBOARD_SERVICE}"; then
 	systemctl restart "${DASHBOARD_SERVICE}" >/dev/null 2>&1 || true
 	fail 'dashboard restart with the new certificate failed; previous pair restored'
 fi
-if ! curl --fail --silent --show-error --max-time 15 \
+if ! curl --fail --silent --show-error --max-time 5 \
+	--retry 8 --retry-delay 1 --retry-connrefused --retry-max-time 25 \
 	--connect-to "${CERT_IP}:${HEALTH_PORT}:127.0.0.1:${HEALTH_PORT}" \
 	--output /dev/null "https://${CERT_IP}:${HEALTH_PORT}/api/health"; then
 	restore_previous_pair "${TEMPORARY_DIRECTORY}" "${HAD_PREVIOUS_PAIR}"

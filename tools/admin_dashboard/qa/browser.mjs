@@ -1,0 +1,72 @@
+// Short-lived synthetic fixture only. Always closes its ephemeral listener.
+import fs from "node:fs/promises";
+import path from "node:path";
+import assert from "node:assert/strict";
+import { createRequire } from "node:module";
+import { createDashboardServer } from "../server.mjs";
+const require = createRequire(process.env.QA_NODE_PACKAGE);
+const { chromium } = require("playwright");
+const root = path.resolve("temp/qa/admin-all-animals-20260906/browser-run");
+await fs.mkdir(root, { recursive: true });
+const fixtures = path.join(root, `fixture-${Date.now()}`);
+await fs.mkdir(fixtures);
+const accounts = Array.from({ length: 30 }, (_, i) => ({ user_id: `U-QA-${i}`, username: `测试玩家${i}`, profile_revision: 1, deck: ["fox"], resources: { gacha_tickets: i }, rank_key: "gold", rank_stars: 3, elo: 1000 }));
+await fs.writeFile(path.join(fixtures, "admin_accounts_snapshot.json"), JSON.stringify({ version: 2, generated_at_unix: Date.now()/1000, accounts, card_names: { fox: "狐狸" } }));
+await fs.writeFile(path.join(fixtures, "dashboard_snapshot.json"), JSON.stringify({ version: 3, generated_at_unix: Date.now()/1000, animals: Array.from({ length: 60 }, (_,i) => ({ card_id: `species_${i}`, name: `动物${i}` })) }));
+const app = await createDashboardServer({ host: "127.0.0.1", port: 0, snapshotPath: path.join(fixtures, "dashboard_snapshot.json"), accountSnapshotPath: path.join(fixtures, "admin_accounts_snapshot.json"), stateDirectory: path.join(fixtures, "state"), commandRoot: path.join(fixtures, "commands") });
+let browser;
+try {
+  await app.state.initializeOwner("qa-owner", "Isolated browser test password");
+  const address = await app.listen();
+  browser = await chromium.launch({ executablePath: process.env.QA_CHROME, headless: true });
+  const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
+  const errors = [];
+  page.on("pageerror", e => errors.push(e.message));
+  await page.goto(`http://127.0.0.1:${address.port}`);
+  await page.locator('input[name="username"]').fill("qa-owner");
+  await page.locator('input[name="password"]').fill("Isolated browser test password");
+  await page.getByRole("button", { name: "安全登录", exact: true }).click();
+  await page.getByRole("tab", { name: "资源发放", exact: true }).click();
+  const shortcut = page.getByRole("button", { name: "一键发放全部动物（各1份）", exact: true });
+  await shortcut.waitFor();
+  assert.equal(await shortcut.isDisabled(), true);
+  await page.locator("tbody input[type=checkbox]").first().check();
+  assert.equal(await shortcut.isEnabled(), true);
+  const box = await shortcut.boundingBox();
+  assert.ok(box.y >= 0 && box.y + box.height <= 900, "shortcut visible without scrolling");
+  await page.screenshot({ path: path.join(root, "desktop.png") });
+  await page.locator("tbody input[type=checkbox]").nth(1).check();
+  assert.equal(await shortcut.isDisabled(), true);
+  await page.locator("tbody input[type=checkbox]").nth(1).uncheck();
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.evaluate(() => scrollTo(0, 0));
+  await page.screenshot({ path: path.join(root, "mobile.png") });
+  const mobileBox = await shortcut.boundingBox();
+  assert.ok(mobileBox.y >= 0 && mobileBox.y + mobileBox.height <= 844, "mobile shortcut visible without scrolling");
+  const standardBox = await page.getByRole("button", { name: "向已选 1 人发放资源", exact: true }).boundingBox();
+  assert.ok(standardBox.y >= 0 && standardBox.y + standardBox.height <= 844, "ordinary grant CTA remains visible on mobile");
+  assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true);
+  // Use the actual authenticated API via the UI. Only this disposable fixture queue is written.
+  const responsePromise = page.waitForResponse(r => new URL(r.url()).pathname === "/api/resource-grants" && r.request().method() === "POST");
+  await shortcut.click();
+  const response = await responsePromise;
+  assert.equal(response.status(), 202);
+  const responseBody = await response.json();
+  assert.equal(responseBody.command.grants.length, 60);
+  assert.equal(responseBody.command.target_count, 1);
+  const commandPath = path.join(fixtures, "commands", "pending", `${responseBody.command.command_id}.json`);
+  const command = JSON.parse(await fs.readFile(commandPath, "utf8"));
+  assert.deepEqual(command.target_user_ids, ["U-QA-0"]);
+  // Synthetic executor receipt for UI result presentation only; real executor tested separately.
+  await fs.mkdir(path.join(fixtures, "commands", "processed"), { recursive: true });
+  await fs.writeFile(path.join(fixtures, "commands", "processed", `${command.command_id}.json`), JSON.stringify({ ...command, status: "processed", processed_at_unix: Date.now()/1000 }));
+  await page.getByRole("heading", { name: "发放成功", exact: true }).waitFor();
+  assert.match(await page.locator("#grant-receipt").innerText(), /60 种卡牌/);
+  assert.deepEqual(errors, []);
+  await page.screenshot({ path: path.join(root, "result.png") });
+  console.log("ALL_ANIMALS_BROWSER_PASS desktop mobile single-selection actual-API one-command full-receipt");
+} finally {
+  await browser?.close();
+  await app.close();
+  await fs.rm(fixtures, { recursive: true, force: true });
+}

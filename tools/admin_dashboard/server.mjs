@@ -381,6 +381,8 @@ export async function createDashboardServer(overrides = {}) {
       const preview = createGrantPreview({
         body,
         accountSnapshot: accounts,
+        animalCatalog: body?.grant?.type === "all_animals"
+          ? (await readDashboardSnapshot(config.snapshotPath)).animals : undefined,
         actor: session.user.username,
         sessionId: session.session_hash,
         secret: previewSecret,
