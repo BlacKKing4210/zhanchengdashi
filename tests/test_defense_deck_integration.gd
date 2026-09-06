@@ -242,15 +242,15 @@ func _test_green_defense_replacement_guard() -> void:
 
 func _test_defense_tower_combat_stats() -> void:
 	var expected = {
-		"defense_watch_tower": [1, 5, 2.0, 1.5, ""],
-		"defense_longshot_tower": [1, 5, 3.5, 1.5, "攻击距离+1.5，优先攻击远程"],
-		"defense_cannon_tower": [2, 6, 2.0, 1.5, "攻击+1"],
-		"defense_plunder_tower": [1, 7, 2.0, 1.5, "攻击时，掠夺1金币"],
+		"defense_watch_tower": [1, 5, 2.0, 1.0, ""],
+		"defense_longshot_tower": [1, 5, 3.5, 1.0, "攻击距离+1.5，优先攻击远程"],
+		"defense_cannon_tower": [2, 6, 2.0, 1.0, "攻击+1"],
+		"defense_plunder_tower": [1, 7, 2.0, 1.0, "攻击时，掠夺1金币"],
 		"defense_rapid_tower": [1, 6, 2.0, 0.5, "攻击速度+200%"],
-		"defense_repair_beacon": [1, 21, 2.0, 1.5, "生命值+200%"],
-		"defense_twinshot_tower": [1, 10, 3.0, 1.5, "攻击目标+1，攻击距离+1"],
-		"defense_bounty_tower": [3, 12, 2.0, 1.5, "攻击+2，击杀时，获得10金币"],
-		"defense_territory_tower": [1, 12, 2.0, 1.5, "无视攻击距离，只要敌人处于我方领地上即可攻击"],
+		"defense_repair_beacon": [1, 21, 2.0, 1.0, "生命值+200%"],
+		"defense_twinshot_tower": [1, 10, 3.0, 1.0, "攻击目标+1，攻击距离+1"],
+		"defense_bounty_tower": [3, 12, 2.0, 1.0, "攻击+2，击杀时，获得10金币"],
+		"defense_territory_tower": [1, 12, 2.0, 1.0, "无视攻击距离，只要敌人处于我方领地上即可攻击"],
 		"defense_storm_obelisk": [1, 12, 2.0, 5.0, "每5秒对所有动物造成1点伤害"],
 	}
 	for card_id in expected.keys():
@@ -262,8 +262,8 @@ func _test_defense_tower_combat_stats() -> void:
 		_expect_equal(String(card.get("skill_text", "")), String(target[4]), "%s exposes the full producer design in skill text" % card_id)
 		for level in [1, 2, 3, 8, 10]:
 			var adjusted_stats: Dictionary = app.call("_card_stats_with_levels", card, {card_id: level})
-			_expect_equal(int(adjusted_stats.get("attack", 0)), int(target[0]), "%s level %d attack is the producer final value" % [card_id, level])
-			_expect_equal(int(adjusted_stats.get("max_hp", 0)), int(target[1]), "%s level %d health is the producer final value" % [card_id, level])
+			_expect_equal(int(adjusted_stats.get("attack", 0)), floori(float(target[0]) + (level - 1) * float(card.attack_lv) + 0.000001), "%s level %d attack is the producer final value" % [card_id, level])
+			_expect_equal(int(adjusted_stats.get("max_hp", 0)), floori(float(target[1]) + (level - 1) * float(card.max_hp_lv) + 0.000001), "%s level %d health is the producer final value" % [card_id, level])
 			_expect_close(
 				float(adjusted_stats.get("attack_range_cells", 0.0)),
 				float(target[2]),
@@ -271,7 +271,7 @@ func _test_defense_tower_combat_stats() -> void:
 			)
 			_expect_close(
 				float(adjusted_stats.get("attack_range", 0.0)),
-				float(target[2]) * MainApp.HEX_SIZE,
+				float(target[2]) * sqrt(3.0) * MainApp.HEX_SIZE,
 				"%s level %d converts final tile distance to world units once" % [card_id, level]
 			)
 			_expect_close(

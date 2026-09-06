@@ -233,6 +233,17 @@ def validate(schema: dict[str, Any], tables: dict[str, list[dict[str, str]]]) ->
 
     errors.extend(check_defense_card_mirror(tables))
 
+    # A changed description must be implemented, not silently interpreted as an
+    # obsolete effect or a no-op. Match the engine's exact-text compiler keys.
+    profile_source = ROOT / "scripts/app/systems/animal_skill_rules.gd"
+    supported = set(re.findall(r'^\t"([^"]+)": \{', profile_source.read_text(encoding="utf-8"), re.MULTILINE))
+    for row in tables.get("cards", []):
+        card_id = row.get("id", "")
+        if card_id == "gold_mine_card" or card_id.startswith("defense_"):
+            continue
+        if row.get("skill_text", "").strip() not in supported:
+            errors.append(f"cards:{card_id}: animal skill_text has no implemented runtime profile")
+
     return errors, warnings
 
 

@@ -2,7 +2,7 @@ extends RefCounted
 
 const LEVEL_COSTS = [1, 2, 5, 10, 20, 30, 50, 80, 100]
 const LEVEL_STAT_STEP = 0.105
-const MELEE_ATTACK_RANGE = 40.0
+const MELEE_ATTACK_RANGE = 0.0
 
 const GACHA_RATES = [
 	{"rarity": "common", "label": "绿色", "rate": 80.0},
@@ -35,6 +35,8 @@ static func card_from_row(row: Dictionary) -> Dictionary:
 		"tier": tier,
 		"art_path": string_from_value(row.get("art_path", "")),
 		"base_attack": attack,
+		"attack_lv": float_from_value(row.get("attack_lv", 0.0)),
+		"max_hp_lv": float_from_value(row.get("max_hp_lv", 0.0)),
 		"base_max_hp": int(row.get("max_hp", 40 + tier * 18)),
 		"base_move_speed": float(row.get("move_speed", 58.0 + tier * 2.0)),
 		"base_attack_range": float(row.get("attack_range", 42.0)),
@@ -113,12 +115,8 @@ static func card_multiplier(card_levels: Dictionary, card_id: String) -> float:
 
 
 static func is_animal_card(card: Dictionary) -> bool:
-	var tags = card.get("tags", [])
-	if typeof(tags) == TYPE_ARRAY:
-		for tag in tags:
-			if String(tag) in ["building", "mine", "gold_mine", "defense", "tower"]:
-				return false
-	return true
+	# Role tags (beaver supports buildings) are not entity types.
+	return String(card.get("id", "")) != "gold_mine_card" and not is_defense_card(card)
 
 
 static func is_defense_card(card: Dictionary) -> bool:
@@ -145,37 +143,32 @@ static func is_ranged_or_summon_animal(card: Dictionary) -> bool:
 
 
 static func upgrade_hp_bonus(card: Dictionary, card_levels: Dictionary) -> int:
-	if not is_animal_card(card):
-		return 0
 	var level = max(1, card_level(card_levels, String(card.get("id", ""))))
-	if is_ranged_animal(card):
-		return floori(float(level) / 2.0)
-	return level - 1
+	return floori(float(level - 1) * float(card.get("max_hp_lv", 0.0)) + 0.000001)
 
 static func card_stats(card: Dictionary, card_levels: Dictionary) -> Dictionary:
 	var id = String(card.get("id", ""))
-	# Producer table values for defense towers are already effect-adjusted final
-	# combat stats. Card level remains a collection value and must not scale them.
-	var mult = 1.0 if is_defense_card(card) else card_multiplier(card_levels, id)
+	var upgrades = maxi(0, card_level(card_levels, id) - 1)
 	var hp_bonus = upgrade_hp_bonus(card, card_levels)
-	var max_hp = roundi(float(card.get("base_max_hp", 1)) * mult)
+	var attack_exact = float(card.get("base_attack", 1)) + upgrades * float(card.get("attack_lv", 0.0))
+	var hp_exact = float(card.get("base_max_hp", 1)) + upgrades * float(card.get("max_hp_lv", 0.0))
 	var minimum_interval = 1.0 if is_animal_card(card) else 0.1
-	if is_animal_card(card):
-		max_hp = roundi(float(card.get("base_max_hp", 1))) + hp_bonus
 	return {
-		"attack": maxi(0, roundi(float(card.get("base_attack", 1)) * mult)),
-		"max_hp": maxi(1, max_hp),
-		"move_speed": float(card.get("base_move_speed", 60.0)) * mult,
-		"attack_range": float(card.get("base_attack_range", 42.0)) * mult,
-		"summon_interval_sec": maxf(minimum_interval, float(card.get("base_summon_interval_sec", 3.5)) / mult),
+		"attack": maxi(0, floori(attack_exact + 0.000001)),
+		"max_hp": maxi(1, floori(hp_exact + 0.000001)),
+		"attack_exact": attack_exact,
+		"max_hp_exact": hp_exact,
+		"move_speed": float(card.get("base_move_speed", 1.0)),
+		"attack_range": float(card.get("base_attack_range", 0.0)),
+		"summon_interval_sec": maxf(minimum_interval, float(card.get("base_summon_interval_sec", 5.0))),
 		"upgrade_hp_bonus": hp_bonus,
 	}
 
 
-static func attack_range_label(value: float, hex_size: float) -> String:
-	if value <= hex_size * 1.5:
+static func attack_range_label(value: float, _hex_size: float) -> String:
+	if value <= 0.0:
 		return "近战"
-	if value <= hex_size * 2.6:
+	if value <= 2.0:
 		return "远程"
 	return "超远程"
 

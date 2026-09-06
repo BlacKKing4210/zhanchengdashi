@@ -47,6 +47,8 @@
         "move_speed": { "type": "float", "required": true },
         "attack_range": { "type": "float", "required": true },
         "summon_interval_sec": { "type": "float", "required": true },
+        "attack_lv": { "type": "float", "required": true },
+        "max_hp_lv": { "type": "float", "required": true },
         "skill_id": { "type": "id", "required": false },
         "skill_trigger": {
           "type": "enum",

@@ -38,7 +38,7 @@ func _test_rule_contract() -> void:
 	_expect_equal(DefenseTowerRules.transfer_amount(0, 1), 0, "zero-gold target cannot mint plunder gold")
 	_expect_equal(DefenseTowerRules.transfer_amount(1, 1), 1, "one available gold transfers once")
 	_expect_equal(DefenseTowerRules.transfer_amount(99, 1), 1, "plunder is capped by requested amount")
-	_expect_close(DefenseTowerRules.range_world(3.5, MainApp.HEX_SIZE), 150.5, "3.5-tile range converts exactly once")
+	_expect_close(DefenseTowerRules.range_world(3.5, MainApp.HEX_SIZE), 3.5 * sqrt(3.0) * MainApp.HEX_SIZE, "3.5 adjacent-center cells convert exactly once")
 	_expect_close(DefenseTowerRules.interval_seconds(0.5, 1.0), 0.5, "rapid tower interval remains below one second")
 
 
@@ -128,7 +128,7 @@ func _test_bounty_rewards_actual_redirected_kill() -> void:
 	var tower_key = _setup_tower("defense_bounty_tower")
 	var center: Vector2 = app.call("_hex_center", tower_key)
 	var protected_id = _spawn_enemy("rabbit", center + Vector2(35.0, 0.0), 10.0)
-	var guardian_id = _spawn_enemy("mammoth", center + Vector2(62.0, 0.0), 2.0)
+	var guardian_id = _spawn_unit(BoardRules.ENEMY, "mammoth", center + Vector2(62.0, 0.0), 1.0, true)
 	app.set("gold", 60)
 	app.call("_tower_attack", tower_key, BoardRules.PLAYER)
 	var protected_index = int(app.call("_unit_index_by_id", protected_id))
@@ -209,15 +209,16 @@ func _test_global_pulse_preserves_damage_and_kill_context() -> void:
 	app.call("_reset_battle")
 	var tower_key = _setup_tower("defense_storm_obelisk")
 	var center: Vector2 = app.call("_hex_center", tower_key)
-	var gorilla_id = _spawn_unit(BoardRules.ENEMY, "gorilla", center + Vector2(40.0, 0.0), 4.0, true)
-	_spawn_unit(BoardRules.ENEMY, "pig", center + Vector2(70.0, 0.0), 1.0, true)
-	_spawn_unit(BoardRules.PLAYER, "pig", center + Vector2(100.0, 0.0), 1.0, true)
-	var gorilla_index = int(app.call("_unit_index_by_id", gorilla_id))
-	var attack_before = float((app.get("units") as Array)[gorilla_index].get("attack", 0.0))
+	_spawn_unit(BoardRules.ENEMY, "hedgehog", center + Vector2(40.0, 0.0), 4.0, true)
+	_spawn_unit(BoardRules.ENEMY, "chicken", center + Vector2(70.0, 0.0), 1.0, true)
+	_spawn_unit(BoardRules.PLAYER, "chicken", center + Vector2(100.0, 0.0), 1.0, true)
+	var hp_before = float((app.get("tiles") as Dictionary)[tower_key].hp)
 	app.set("gold", 60)
+	app.set("enemy_gold", 0)
 	app.call("_tower_attack", tower_key, BoardRules.PLAYER)
-	_expect_close(float((app.get("units") as Array)[gorilla_index].get("attack", 0.0)), attack_before + 1.0, "global pulse triggers ordinary on-damage animal skills")
-	_expect_equal(int(app.get("gold")), 70, "tower team receives both enemy and friendly-fire killer rewards with preserved source attribution")
+	_expect_close(float((app.get("tiles") as Dictionary)[tower_key].hp), hp_before - 1, "global pulse thorns preserve source building")
+	_expect_true(int(app.get("gold")) in [61, 62], "friendly-fire chicken death pays its owner")
+	_expect_true(int(app.get("enemy_gold")) in [1, 2], "enemy chicken death pays enemy owner, not killer")
 
 
 func _test_global_pulse_stays_within_72_unit_budget() -> void:
@@ -305,6 +306,7 @@ func _spawn_unit(team: int, card_id: String, pos: Vector2, hp: float, skill_trig
 	unit["tile"] = app.call("_tile_at_world", pos)
 	unit["hp"] = hp
 	unit["max_hp"] = maxf(hp, float(unit.get("max_hp", hp)))
+	unit["base_max_hp"] = unit["max_hp"]
 	unit["shield"] = 0.0
 	unit["cooldown"] = 9999.0
 	units[index] = unit

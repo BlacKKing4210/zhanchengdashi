@@ -414,6 +414,13 @@ active_modules:
 queued_modules: []
 
 shared_locks:
+  animal_table_v3_20260906:
+    task_id: REQ-20260906-ANIMAL-TABLE-V3
+    owner: codex-primary
+    status: RELEASED
+    completion_receipt: docs/receipts/REQ-20260906-ANIMAL-TABLE-V3-CLOSE.md
+    write_set: [config/schema/config_schema.json, config/tables/cards.csv, config/tables/defenses.csv, runtime/config/cards.json, runtime/config/defenses.json, scripts/app/main.gd, scripts/app/systems/card_rules.gd, scripts/app/systems/defense_tower_rules.gd, scripts/app/systems/animal_skill_rules.gd, scripts/app/systems/animal_skill_runtime.gd, tests/test_animal_table_v3.gd, tools/config_csv.py]
+    evidence_root: temp/animal_v3
   retaliation_distance_20260906:
     task_id: REQ-20260906-RETALIATION-DISTANCE-001
     owner: codex-primary

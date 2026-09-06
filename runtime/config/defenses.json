@@ -6,7 +6,7 @@
     "max_hp": 5,
     "attack_range": 2.0,
     "base_damage": 1,
-    "attack_cooldown_sec": 1.5,
+    "attack_cooldown_sec": 1.0,
     "skill_id": "defense_basic",
     "unlock_stage": "stage_tutorial_01",
     "tags": [
@@ -23,7 +23,7 @@
     "max_hp": 5,
     "attack_range": 3.5,
     "base_damage": 1,
-    "attack_cooldown_sec": 1.5,
+    "attack_cooldown_sec": 1.0,
     "skill_id": "defense_far_sight",
     "unlock_stage": "stage_field_01",
     "tags": [
@@ -40,7 +40,7 @@
     "max_hp": 6,
     "attack_range": 2.0,
     "base_damage": 2,
-    "attack_cooldown_sec": 1.5,
+    "attack_cooldown_sec": 1.0,
     "skill_id": "defense_heavy_bolt",
     "unlock_stage": "stage_field_01",
     "tags": [
@@ -57,7 +57,7 @@
     "max_hp": 7,
     "attack_range": 2.0,
     "base_damage": 1,
-    "attack_cooldown_sec": 1.5,
+    "attack_cooldown_sec": 1.0,
     "skill_id": "defense_plunder",
     "unlock_stage": "stage_field_01",
     "tags": [
@@ -91,7 +91,7 @@
     "max_hp": 21,
     "attack_range": 2.0,
     "base_damage": 1,
-    "attack_cooldown_sec": 1.5,
+    "attack_cooldown_sec": 1.0,
     "skill_id": "defense_shell_bastion",
     "unlock_stage": "stage_field_01",
     "tags": [
@@ -108,7 +108,7 @@
     "max_hp": 10,
     "attack_range": 3.0,
     "base_damage": 1,
-    "attack_cooldown_sec": 1.5,
+    "attack_cooldown_sec": 1.0,
     "skill_id": "defense_twin_shot",
     "unlock_stage": "stage_field_01",
     "tags": [
@@ -125,7 +125,7 @@
     "max_hp": 12,
     "attack_range": 2.0,
     "base_damage": 3,
-    "attack_cooldown_sec": 1.5,
+    "attack_cooldown_sec": 1.0,
     "skill_id": "defense_bounty",
     "unlock_stage": "stage_field_01",
     "tags": [
@@ -142,7 +142,7 @@
     "max_hp": 12,
     "attack_range": 2.0,
     "base_damage": 1,
-    "attack_cooldown_sec": 1.5,
+    "attack_cooldown_sec": 1.0,
     "skill_id": "defense_territory",
     "unlock_stage": "stage_field_01",
     "tags": [

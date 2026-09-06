@@ -3,6 +3,9 @@ extends Node2D
 const CardRules = preload("res://scripts/app/systems/card_rules.gd")
 const BoardRules = preload("res://scripts/app/systems/board_rules.gd")
 const DefenseTowerRules = preload("res://scripts/app/systems/defense_tower_rules.gd")
+const AnimalSkillRules = preload("res://scripts/app/systems/animal_skill_rules.gd")
+const AnimalSkillRuntime = preload("res://scripts/app/systems/animal_skill_runtime.gd")
+var animal_skills = AnimalSkillRuntime.new(self)
 const MultiplayerRules = preload("res://scripts/app/systems/multiplayer_rules.gd")
 const ClassicMapRules = preload("res://scripts/app/systems/classic_map_rules.gd")
 const RankingRules = preload("res://scripts/app/systems/ranking_rules.gd")
@@ -2437,7 +2440,13 @@ func _card_stats_for_team(card: Dictionary, team: int) -> Dictionary:
 
 func _card_stats_with_levels(card: Dictionary, levels: Dictionary) -> Dictionary:
 	var stats = CardRules.card_stats(card, levels)
+	var cell_size = sqrt(3.0) * HEX_SIZE
+	stats["move_speed"] = float(stats["move_speed"]) * cell_size
+	stats["attack_range_cells"] = float(stats["attack_range"])
 	if _card_kind(card) != CARD_KIND_DEFENSE:
+		# Zero denotes contact melee (adjacent centers), not a zero-radius hitbox.
+		# This also lets fixed two-cell jumps engage a target on the other parity.
+		stats["attack_range"] = float(stats["attack_range"]) * cell_size if float(stats["attack_range"]) > 0.0 else cell_size * 1.01
 		return stats
 	var range_tiles = maxf(0.0, float(stats.get("attack_range", 0.0)))
 	stats["attack_range_cells"] = range_tiles
@@ -2473,6 +2482,8 @@ func _card_ui_skill_text(card: Dictionary) -> String:
 		return skill_text
 	if skill_text == "":
 		return range_label
+	if skill_text.contains("远程"):
+		return skill_text
 	return "%s · %s" % [range_label, skill_text]
 
 
@@ -2588,6 +2599,7 @@ func _try_upgrade_selected_card() -> void:
 
 
 func _reset_battle() -> void:
+	animal_skills.shots.clear()
 	tiles.clear()
 	units.clear()
 	effects.clear()
@@ -3307,6 +3319,9 @@ func _update_units(delta: float) -> void:
 		var previous_tile = unit.get("tile", _tile_at_world(Vector2(unit["pos"])))
 		unit["tile"] = previous_tile
 		unit = _ensure_unit_navigation_target(unit)
+		units[i] = unit
+		if float(unit.get("stun_timer", 0.0)) <= 0 and animal_skills.tick_motion(i, delta):
+			continue
 		if float(unit.get("stun_timer", 0.0)) > 0.0:
 			units[i] = unit
 			continue
@@ -3334,6 +3349,10 @@ func _update_units(delta: float) -> void:
 			var movement_target: Dictionary = attack_target if bool(unit.get("attack_target_chase", false)) else _unit_navigation_target(unit)
 			if not movement_target.is_empty():
 				var movement_pos = Vector2(movement_target["pos"])
+				if animal_skills.profile(unit).has("charge"):
+					continue
+				if animal_skills.begin_jump(i, movement_pos):
+					continue
 				if Vector2(unit["pos"]).distance_to(movement_pos) > 1.0:
 					unit = _move_unit_toward_target(unit, movement_target, movement_pos, delta)
 		var current_tile = _tile_at_world(Vector2(unit["pos"]))
@@ -3543,6 +3562,7 @@ func _tower_attack(key: Vector2i, team: int) -> void:
 		var stats = _card_stats_for_team(tower_card, team)
 		damage = float(stats["attack"])
 		attack_range = float(stats["attack_range"])
+	damage += float(tile.get("animal_attack_bonus", 0))
 	if building == "tower" and DefenseTowerRules.uses_global_animal_pulse(tower_card):
 		tower_target_locks.erase(key)
 		_tower_global_animal_pulse(key, team, tower_card)
@@ -3565,7 +3585,7 @@ func _tower_attack(key: Vector2i, team: int) -> void:
 		_play_world_sfx("tower_attack", center, team, -3.0)
 		_projectile(center, Vector2(target.get("pos", units[target_index].get("pos", center))), team)
 		attacked = true
-		_damage_unit(target_index, damage, -1, team, true, key, true, kill_report)
+		_damage_unit(target_index, damage, -1, team, true, key, true, kill_report, false, true)
 	elif String(target.get("kind", "")) == "building":
 		var target_key: Vector2i = target.get("key", MultiplayerRules.INVALID_KEY)
 		if target_key == MultiplayerRules.INVALID_KEY:
@@ -3781,7 +3801,7 @@ func _tower_attack_extra_units(
 		var target_id = int(units[best_index].get("id", -1))
 		excluded_ids[target_id] = true
 		_projectile(center, Vector2(units[best_index].get("pos", center)), team)
-		_damage_unit(best_index, damage, -1, team, true, key, true, kill_report)
+		_damage_unit(best_index, damage, -1, team, true, key, true, kill_report, false, true)
 		remaining -= 1
 
 
@@ -3843,7 +3863,8 @@ func _damage_unit(
 	source_key: Vector2i = MultiplayerRules.INVALID_KEY,
 	trigger_retaliation: bool = true,
 	kill_report: Variant = null,
-	allow_friendly_fire: bool = false
+	allow_friendly_fire: bool = false,
+	is_attack: bool = false
 ) -> bool:
 	if index < 0 or index >= units.size():
 		return false
@@ -3852,13 +3873,17 @@ func _damage_unit(
 		return false
 	if not allow_friendly_fire and source_team != NEUTRAL and _are_allies(int(unit.get("team", NEUTRAL)), source_team):
 		return false
+	if is_attack and randf() < float(animal_skills.profile(unit).get("dodge", 0)):
+		unit["dodge_time"] = 0.3
+		animal_skills.feedback(Vector2(unit.pos), "miss", false)
+		return false
 	if trigger_reactive:
 		var guardian_index = _damage_guardian_index(index, source_team)
 		if guardian_index >= 0:
 			_pulse(Vector2(units[index]["pos"]), COLOR_BLUE)
 			_damage_unit(guardian_index, damage, source_index, source_team, false, source_key, true, kill_report, allow_friendly_fire)
 			return false
-	var final_damage = _incoming_unit_damage(index, damage)
+	var final_damage = animal_skills.incoming(index, damage, source_index, source_key) if unit.has("animal_profile") else _incoming_unit_damage(index, damage)
 	var impact_damage = final_damage
 	var absorbed_damage = 0.0
 	var shield = float(unit.get("shield", 0.0))
@@ -3876,8 +3901,11 @@ func _damage_unit(
 	_pulse(Vector2(units[index]["pos"]), COLOR_YELLOW)
 	if trigger_retaliation and final_damage > 0.0 and float(units[index]["hp"]) > 0.0:
 		_lock_retaliation_target(index, source_index, source_team, source_key)
-	if trigger_reactive and final_damage > 0.0 and float(units[index]["hp"]) > 0.0:
-		_apply_unit_damage_skill(index, source_index, source_team)
+	if trigger_reactive and final_damage > 0.0:
+		if unit.has("animal_profile"):
+			animal_skills.on_damage(index, source_index, source_key)
+		elif float(units[index]["hp"]) > 0.0:
+			_apply_unit_damage_skill(index, source_index, source_team)
 	if float(units[index]["hp"]) <= 0.0 and not bool(units[index].get("death_handled", false)):
 		units[index]["death_handled"] = true
 		if typeof(kill_report) == TYPE_ARRAY:
@@ -3997,6 +4025,7 @@ func _spawn_unit(team: int, key: Vector2i, card_id: String, is_extra: bool = fal
 		"id": next_unit_id,
 		"team": team,
 		"card": String(card.get("id", card_id)),
+		"animal_profile": AnimalSkillRules.compile_text(String(card.get("skill_text", ""))),
 		"skill_trigger": String(card.get("skill_trigger", "")),
 		"skill_effect": String(card.get("skill_effect", "")),
 		"skill_power": float(card.get("skill_power", 0.0)),
@@ -4012,8 +4041,8 @@ func _spawn_unit(team: int, key: Vector2i, card_id: String, is_extra: bool = fal
 		"attack": float(stats["attack"]),
 		"base_attack": float(stats["attack"]),
 		"attack_bonus": 0.0,
-		"speed": float(stats["move_speed"]) * UNIT_MOVE_SPEED_MULT,
-		"base_speed": float(stats["move_speed"]) * UNIT_MOVE_SPEED_MULT,
+		"speed": float(stats["move_speed"]),
+		"base_speed": float(stats["move_speed"]),
 		"speed_bonus": 0.0,
 		"range": float(stats["attack_range"]),
 		"base_range": float(stats["attack_range"]),
@@ -4047,9 +4076,9 @@ func _spawn_unit(team: int, key: Vector2i, card_id: String, is_extra: bool = fal
 		_apply_unit_spawn_skill(spawned_index)
 	_pulse(base_pos, Color(0.75, 0.95, 1.0))
 	_play_world_sfx("unit_spawn", spawn_pos, team, -7.0 if is_extra else 0.0)
-	if not is_extra:
+	if not is_extra and skill_triggers_enabled:
 		for n in range(_card_extra_spawn_count(card)):
-			_spawn_unit(team, key, String(card.get("id", card_id)), true, n + 1)
+			_spawn_unit(team, key, String(card.get("id", card_id)), true, n + 1, spawn_context)
 
 
 func _ensure_unit_navigation_target(unit: Dictionary) -> Dictionary:
@@ -4310,6 +4339,9 @@ func _keys_in_hex_radius(center: Vector2i, radius: int) -> Array:
 
 
 func _refresh_unit_skill_state(delta: float) -> void:
+	if units.is_empty() or units[0].has("animal_profile"):
+		animal_skills.tick(delta)
+		return
 	for i in range(units.size()):
 		var unit = units[i]
 		if float(unit.get("hp", 0.0)) <= 0.0:
@@ -4346,6 +4378,9 @@ func _refresh_unit_skill_state(delta: float) -> void:
 
 
 func _refresh_unit_aura_bonuses() -> void:
+	if not units.is_empty() and units[0].has("animal_profile"):
+		animal_skills.refresh_auras()
+		return
 	for i in range(units.size()):
 		var unit = units[i]
 		if float(unit.get("hp", 0.0)) <= 0.0:
@@ -4385,6 +4420,9 @@ func _unit_has_priority_attack_text(unit: Dictionary) -> bool:
 
 
 func _unit_attack_target(attacker_index: int, target: Dictionary, distance: float) -> void:
+	if attacker_index >= 0 and attacker_index < units.size() and units[attacker_index].has("animal_profile"):
+		animal_skills.attack(attacker_index, target)
+		return
 	if attacker_index < 0 or attacker_index >= units.size():
 		return
 	var attacker = units[attacker_index]
@@ -4472,7 +4510,8 @@ func _damage_guardian_index(target_index: int, source_team: int) -> int:
 		return -1
 	var target = units[target_index]
 	var target_team = int(target.get("team", NEUTRAL))
-	if _are_allies(source_team, target_team) or _unit_skill_text(target).contains("承受伤害"):
+	var target_guards = animal_skills.profile(target).has("guard") if target.has("animal_profile") else _unit_skill_text(target).contains("承受伤害")
+	if _are_allies(source_team, target_team) or target_guards:
 		return -1
 	var target_pos = Vector2(target.get("pos", Vector2.ZERO))
 	var best_index = -1
@@ -4480,10 +4519,11 @@ func _damage_guardian_index(target_index: int, source_team: int) -> int:
 	for i in range(units.size()):
 		if i == target_index or not _are_allies(int(units[i].get("team", NEUTRAL)), target_team) or float(units[i].get("hp", 0.0)) <= 0.0:
 			continue
-		if not _unit_skill_text(units[i]).contains("承受伤害"):
+		var guards = animal_skills.profile(units[i]).has("guard") if units[i].has("animal_profile") else _unit_skill_text(units[i]).contains("承受伤害")
+		if not guards:
 			continue
 		var distance = target_pos.distance_to(Vector2(units[i].get("pos", Vector2.ZERO)))
-		if distance <= SKILL_SUPPORT_RADIUS and distance < best_distance:
+		if distance <= sqrt(3.0) * HEX_SIZE and distance < best_distance:
 			best_distance = distance
 			best_index = i
 	return best_index
@@ -4505,6 +4545,9 @@ func _lose_unit_hp(index: int, amount: float, source_index: int = -1, source_tea
 
 
 func _apply_unit_spawn_skill(index: int) -> void:
+	if index >= 0 and index < units.size() and units[index].has("animal_profile"):
+		animal_skills.on_spawn(index)
+		return
 	if index < 0 or index >= units.size():
 		return
 	var unit = units[index]
@@ -4635,6 +4678,10 @@ func _handle_unit_death(index: int, source_index: int, source_team: int) -> void
 	if int(dead.get("id", -1)) == selected_unit_id:
 		selected_unit_id = -1
 	_queue_unit_death_snapshot(dead, source_index, source_team)
+	if dead.has("animal_profile"):
+		_play_world_sfx("unit_death", Vector2(dead.pos), int(dead.team), -3)
+		animal_skills.on_death(index, source_index, source_team)
+		return
 	_play_world_sfx("unit_death", Vector2(dead.get("pos", Vector2.ZERO)), int(dead.get("team", NEUTRAL)), -3.0)
 	var team = int(dead.get("team", NEUTRAL))
 	var text = _unit_skill_text(dead)
@@ -4743,6 +4790,9 @@ func _apply_unit_kill_skill(index: int, target: Dictionary) -> void:
 
 
 func _apply_unit_capture_skill(index: int, key: Vector2i) -> void:
+	if index >= 0 and index < units.size() and units[index].has("animal_profile"):
+		animal_skills.on_capture(index)
+		return
 	if index < 0 or index >= units.size():
 		return
 	var unit = units[index]
@@ -8119,8 +8169,23 @@ func _draw_unit(unit: Dictionary) -> void:
 		selection_color.a = 0.94
 		draw_circle(selection_center, maxf(28.0, 30.0 * visual_scale), selection_color, false, 2.4, true)
 	draw_circle(pos + Vector2(0, 14), 17.0 * visual_scale * camera_zoom, Color(0, 0, 0, 0.18))
+	var aura = String(animal_skills.profile(unit).get("aura", ""))
+	if aura != "":
+		var aura_color = {"stats": Color("75df9f"), "critical": Color("efbe57"), "jump": Color("87cbef")}.get(aura, Color.WHITE)
+		var foot = pos + Vector2(0, 14)
+		var phase = Time.get_ticks_msec() * 0.0007
+		draw_arc(foot, 23 * camera_zoom, phase, phase + TAU, 32, Color(aura_color, 0.75), 2, true)
+		draw_arc(foot, 18 * camera_zoom, -phase, -phase + PI * 1.6, 24, Color(aura_color, 0.48), 2, true)
+		for n in range(4):
+			var direction = Vector2.from_angle(phase + n * PI * 0.5)
+			draw_line(foot + direction * 20 * camera_zoom, foot + direction * 26 * camera_zoom, aura_color, 2, true)
+	if unit.has("charge_windup"):
+		var charge_dir = world_pos.direction_to(Vector2(unit.get("charge_finish", world_pos)))
+		draw_line(pos, pos + charge_dir * 38, Color("e58c39"), 3, true)
+		draw_arc(pos + Vector2(0, 14), 23, -PI * 0.5, -PI * 0.5 + TAU * (1 - float(unit.charge_windup) / 2), 30, Color("ffce50"), 3, true)
 	var texture = _card_texture(card)
 	var pose = UnitMotionFeedback.pose(unit)
+	pose["offset"] = Vector2(pose.get("offset", Vector2.ZERO)) + Vector2(sin(float(unit.get("dodge_time", 0)) / 0.3 * PI) * 18, -float(unit.get("jump_height", 0)))
 	var bottom_padding_ratio = _animal_art_bottom_padding_ratio(card)
 	var source_rect = Rect2()
 	var sequence_sample = UnitSequenceAnimation.sample_for_unit(card_id, unit, Time.get_ticks_msec() * 0.001)
@@ -8370,6 +8435,23 @@ func _is_building_card_preview_current() -> bool:
 
 func _draw_effect(effect: Dictionary) -> void:
 	var kind = String(effect.get("kind", "pulse"))
+	if kind in ["combat_text", "skill_splash", "combat_projectile"]:
+		var point = _world_to_canvas(Vector2(effect.get("pos", Vector2.ZERO)))
+		var progress = 1 - float(effect.time) / maxf(0.01, float(effect.get("duration", 1)))
+		if kind == "combat_text":
+			var critical = bool(effect.get("critical", false))
+			var color = Color("ed403f") if critical else Color("f8f4df")
+			color.a = minf(1, float(effect.time) * 3)
+			var box = Rect2(point + Vector2(-45, -112 - progress * 28), Vector2(90, 40))
+			draw_style_box(HanddrawnSkin.panel(Color(0.15, 0.12, 0.10, color.a * 0.88), 8), Rect2(box.position + Vector2(8, 4), box.size - Vector2(16, 8)))
+			_draw_text_center(String(effect.text), box, 29 if critical else 24, color)
+		elif kind == "skill_splash":
+			draw_circle(point, sqrt(3.0) * HEX_SIZE * _battle_camera_zoom() * progress, Color(1, 0.72, 0.22, (1 - progress) * 0.22))
+			draw_arc(point, sqrt(3.0) * HEX_SIZE * _battle_camera_zoom() * progress, 0, TAU, 32, Color(1, 0.88, 0.46, 1 - progress), 3, true)
+		else:
+			draw_line(_world_to_canvas(Vector2(effect.get("from", effect.pos))), point, Color("fff1ad"), 3, true)
+			draw_circle(point, 4, Color("ffe478"))
+		return
 	if _uses_axial_battle_map():
 		if kind == "projectile":
 			if not _is_world_pos_visible(Vector2(effect.get("from", Vector2.ZERO)), 80.0) and not _is_world_pos_visible(Vector2(effect.get("to", Vector2.ZERO)), 80.0):

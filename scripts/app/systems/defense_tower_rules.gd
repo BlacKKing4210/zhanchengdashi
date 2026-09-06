@@ -44,7 +44,7 @@ static func uses_global_animal_pulse(card: Dictionary) -> bool:
 
 
 static func range_world(range_tiles: float, hex_size: float) -> float:
-	return maxf(0.0, range_tiles) * maxf(0.0, hex_size)
+	return maxf(0.0, range_tiles) * maxf(0.0, hex_size) * sqrt(3.0)
 
 
 static func interval_seconds(base_interval: float, level_multiplier: float) -> float:

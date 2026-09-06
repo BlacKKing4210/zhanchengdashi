@@ -68,6 +68,8 @@ FIELD_LABEL_OVERRIDES = {
     "attack_cooldown_sec": "攻击冷却（秒）",
     "skill_cooldown_sec": "技能冷却（秒）",
     "summon_interval_sec": "召唤间隔（秒）",
+    "attack_lv": "等级成长攻击力",
+    "max_hp_lv": "等级成长生命值",
     "time_limit_sec": "时间限制（秒）",
     "cooldown_sec": "冷却时间（秒）",
     "duration_sec": "持续时间（秒）",
