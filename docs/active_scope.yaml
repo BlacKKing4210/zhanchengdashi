@@ -414,6 +414,19 @@ active_modules:
 queued_modules: []
 
 shared_locks:
+  retaliation_distance_20260906:
+    task_id: REQ-20260906-RETALIATION-DISTANCE-001
+    owner: codex-primary
+    status: RELEASED
+    receipt: docs/receipts/REQ-20260906-RETALIATION-DISTANCE-001.md
+    write_set:
+      - scripts/app/main.gd
+      - tests/test_battle_income_retaliation.gd
+      - docs/CURRENT_GAME_DESIGN.md
+      - docs/CURRENT_GAME_DESIGN.docx
+      - docs/receipts/REQ-20260906-RETALIATION-DISTANCE-001.md
+      - docs/active_scope.yaml
+      - knowledge/knowledge_manifest.csv
   ui_dot_corner_20260906:
     task_id: REQ-20260906-DOT-CORNER
     owner: codex-primary

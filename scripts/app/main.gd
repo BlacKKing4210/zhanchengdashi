@@ -3898,8 +3898,13 @@ func _lock_retaliation_target(
 	var unit: Dictionary = units[unit_index]
 	if float(unit.get("hp", 0.0)) <= 0.0 or _are_allies(int(unit.get("team", NEUTRAL)), source_team):
 		return
-	if not _locked_unit_attack_target(unit).is_empty():
+	var unit_pos = Vector2(unit.get("pos", Vector2.ZERO))
+	var current_target = _locked_unit_attack_target(unit)
+	# A target in range means combat, including the wait between attacks.
+	if not current_target.is_empty() and unit_pos.distance_to(Vector2(current_target["pos"])) <= float(unit.get("range", 0.0)):
 		return
+	if current_target.is_empty():
+		current_target = _unit_navigation_target(unit)
 	var target: Dictionary = {}
 	if source_index >= 0 and source_index < units.size() and source_index != unit_index:
 		var source_unit: Dictionary = units[source_index]
@@ -3920,6 +3925,12 @@ func _lock_retaliation_target(
 		}
 	if target.is_empty():
 		return
+	if not current_target.is_empty():
+		var distance_advantage = unit_pos.distance_to(Vector2(current_target["pos"])) - unit_pos.distance_to(Vector2(target["pos"]))
+		# One map cell is the center-to-center step between adjacent hexes.
+		var one_cell = sqrt(3.0) * HEX_SIZE
+		if distance_advantage <= one_cell or is_equal_approx(distance_advantage, one_cell):
+			return
 	units[unit_index] = _lock_unit_attack_target(unit, target, true)
 
 

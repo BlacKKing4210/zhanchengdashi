@@ -115,3 +115,4 @@ ZC_DEFENSE_TOWER_SYSTEM_DESIGN_V13,docs/DEFENSE_TOWER_SYSTEM_DESIGN_v1.3.docx,de
 ZC_DEFENSE_TOWER_STATS_UI_V13_DECISION,docs/receipts/REQ-20260827-DEFENSE-TOWER-STATS-UI-V13-DECISION-001.md,qa,canonical,active,v1.3.0,producer,F-ZC-DEFENSE-TOWER-005,制作人决策;严格表值;全等级固定;隐藏距离;隐藏攻击间隔;空技能,2026-08-27,,project,,
 ZC_DEFENSE_TOWER_STATS_UI_V13_READONLY,docs/receipts/REQ-20260827-DEFENSE-TOWER-STATS-UI-V13-READ-ONLY-002.md,qa,approved,active,v1.3.0,producer,F-ZC-DEFENSE-TOWER-005,只读回执;等级倍率根因;两处页面;RAG;写锁,2026-08-27,,project,,
 ZC_DEFENSE_TOWER_STATS_UI_V13_CLOSE,docs/receipts/REQ-20260827-DEFENSE-TOWER-STATS-UI-V13-CLOSE-003.md,qa,canonical,active,v1.3.0,producer,F-ZC-DEFENSE-TOWER-005,关闭回执;全等级最终属性;技能原文;两处UI;GPU截图;DOCX;性能;独立审查,2026-08-27,,project,,
+ZC_RETALIATION_DISTANCE_V11,docs/receipts/REQ-20260906-RETALIATION-DISTANCE-001.md,qa,canonical,active,v1.1.0,engineering_owner,F-ZC-BATTLE-ECONOMY-AI-MAP-004,受击转火;一格;距离差;攻击冷却;反击追击;导航;边界回归,2026-09-06,,project,,
