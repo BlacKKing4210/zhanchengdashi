@@ -414,6 +414,22 @@ active_modules:
 queued_modules: []
 
 shared_locks:
+  ui_states_20260906:
+    task_id: REQ-20260906-UI-STATES
+    owner: codex-primary
+    status: RELEASED
+    delivery_status: FOUR_REQUESTED_UI_CORRECTIONS_COMPLETE
+    completion_receipt: docs/receipts/REQ-20260906-UI-STATES-CLOSE.md
+    read_only_receipt: docs/receipts/REQ-20260906-UI-STATES-READ-ONLY.md
+    write_set:
+      - scripts/app/main.gd
+      - scripts/app/ui/handdrawn_ui_skin.gd
+      - tests/test_ui_action_states.gd
+      - tests/test_ui_action_states.tscn
+      - output/runtime_ui_states_20260906
+      - docs/active_scope.yaml
+      - docs/receipts/REQ-20260906-UI-STATES-READ-ONLY.md
+      - docs/receipts/REQ-20260906-UI-STATES-CLOSE.md
   ui_b_runtime_20260906:
     task_id: REQ-20260906-UI-B-IMPLEMENT
     owner: codex-primary

@@ -2409,6 +2409,14 @@ func _next_upgrade_cost(card_id: String) -> int:
 	return CardRules.next_upgrade_cost(card_levels, card_id)
 
 
+func _card_can_upgrade(card_id: String) -> bool:
+	# Match the real upgrade guards; one state for dots, progress and button.
+	if card_id == "" or _card_total_count(card_id) <= 0:
+		return false
+	var cost = _next_upgrade_cost(card_id)
+	return cost >= 0 and _card_spare_count(card_id) >= cost
+
+
 func _card_multiplier(card_id: String) -> float:
 	return CardRules.card_multiplier(card_levels, card_id)
 
@@ -7174,9 +7182,10 @@ func _draw_account_center() -> void:
 		var credential_button_label = "查看" if _account_password_available_for_view() else "重新登录"
 		if account_password_revealed and _account_password_available_for_view():
 			credential_button_label = "隐藏"
+		# Missing credentials still offer an actionable re-login path.
 		_cta(_account_password_view_rect(), credential_button_label, _account_password_available_for_view())
 		_cta(_account_credentials_copy_rect(), "复制", _account_password_available_for_view())
-		_cta(_account_identity_save_rect(), "保存用户名与头像" if OnlineRoom.current_identity_complete else "完成注册", not account_identity_saving)
+		_cta(_account_identity_save_rect(), "保存用户名与头像" if OnlineRoom.current_identity_complete else "完成注册", true, not account_identity_saving)
 		_draw_text_center("保存中…" if account_identity_saving else "点击头像选择全部动物；用户名允许重名", Rect2(104, 686, 512, 20), 15, Color(0.35, 0.29, 0.22))
 	_cta(_account_agreement_rect(), "玩家协议", false)
 	_draw_text_fit("声音设置", Rect2(104, 806, 120, 32), 22, COLOR_LINE)
@@ -7221,7 +7230,7 @@ func _draw_account_switcher() -> void:
 
 func _draw_lobby_multiplayer_button() -> void:
 	var rect = _multiplayer_start_rect()
-	_box(rect, HanddrawnSkin.SURFACE, COLOR_LINE, 0)
+	_box(rect, HanddrawnSkin.SECONDARY, COLOR_LINE, 0)
 	_draw_text_center("多人对战", _multiplayer_button_title_rect(), 25, Color.WHITE)
 	_draw_multiplayer_hot_badge()
 
@@ -7240,7 +7249,7 @@ func _draw_room_screen() -> void:
 	for players_per_side in range(1, 4):
 		var mode_rect = _room_mode_rect(players_per_side)
 		var selected = players_per_side == room_players_per_side
-		_box(mode_rect, HanddrawnSkin.PRIMARY if selected else HanddrawnSkin.SURFACE, COLOR_LINE, 0)
+		_box(mode_rect, HanddrawnSkin.PRIMARY if selected else HanddrawnSkin.SECONDARY, COLOR_LINE, 0)
 		_draw_text_center("%dV%d" % [players_per_side, players_per_side], mode_rect, 24, Color.WHITE)
 	if not online_room_active:
 		_draw_online_room_entry()
@@ -7266,7 +7275,7 @@ func _draw_room_screen() -> void:
 
 	_cta(_room_leave_rect(), "离开房间", false)
 	var action = _room_primary_action_state()
-	_cta(_room_primary_action_rect(), String(action["label"]), bool(action["enabled"]))
+	_cta(_room_primary_action_rect(), String(action["label"]), true, bool(action["enabled"]))
 
 
 func _draw_online_room_entry() -> void:
@@ -7287,7 +7296,7 @@ func _draw_online_room_entry() -> void:
 		status_text = "尚未连接互联网房间服务器"
 	_draw_text_center(status_text, Rect2(72, 264, 576, 34), 19, status_color)
 
-	_cta(_room_online_create_rect(), "创建 %dV%d 房间" % [room_players_per_side, room_players_per_side], online_connection_state == "connected")
+	_cta(_room_online_create_rect(), "创建 %dV%d 房间" % [room_players_per_side, room_players_per_side], true, online_connection_state == "connected")
 	_draw_text_center("或输入房主分享的6位房间码", Rect2(72, 418, 576, 30), 18, Color.WHITE)
 	if online_room_code_field == null:
 		_box(_room_online_code_input_rect(), Color(1.0, 0.96, 0.83), COLOR_LINE, 4)
@@ -7295,7 +7304,7 @@ func _draw_online_room_entry() -> void:
 		if code_text == "":
 			code_text = "点击后直接输入数字"
 		_draw_text_center(code_text, _room_online_code_input_rect(), 28 if online_room_join_code != "" else 17, COLOR_PURPLE)
-	_cta(_room_online_join_rect(), "加入房间", online_connection_state == "connected" and online_room_join_code.length() == ONLINE_ROOM_CODE_LENGTH)
+	_cta(_room_online_join_rect(), "加入房间", true, online_connection_state == "connected" and online_room_join_code.length() == ONLINE_ROOM_CODE_LENGTH)
 
 	var fill_rect = _room_entry_ai_fill_rect()
 	_box(fill_rect, Color(1.0, 0.96, 0.82), COLOR_LINE, 4)
@@ -7304,7 +7313,7 @@ func _draw_online_room_entry() -> void:
 	draw_style_box(HanddrawnSkin.panel(HanddrawnSkin.SAGE if room_fill_with_ai else HanddrawnSkin.LOCKED, 18, false), toggle_rect)
 	var knob_x = toggle_rect.position.x + (toggle_rect.size.x - 18.0 if room_fill_with_ai else 18.0)
 	draw_circle(Vector2(knob_x, toggle_rect.get_center().y), 13, Color.WHITE)
-	_cta(_room_online_retry_rect(), "重新连接", online_connection_state != "connected")
+	_cta(_room_online_retry_rect(), "重新连接", false)
 	_draw_text_center("客户端只需出站连接；公网服务器需开放 UDP 24567", Rect2(72, 836, 576, 28), 16, Color(0.84, 0.88, 1.0))
 
 
@@ -7489,8 +7498,8 @@ func _draw_gacha_screen() -> void:
 				_draw_gacha_card_back(_gacha_reward_card_rect(i, display_count), i)
 
 	var can_draw = not _is_gacha_animating()
-	_cta(_gacha_draw_rect(), "抽1次", can_draw and gacha_tickets > 0)
-	_cta(_gacha_ten_draw_rect(), "抽10次", can_draw and gacha_tickets >= 10)
+	_cta(_gacha_draw_rect(), "抽1次", true, can_draw and gacha_tickets > 0)
+	_cta(_gacha_ten_draw_rect(), "抽10次", true, can_draw and gacha_tickets >= 10)
 
 
 func _draw_gacha_reward_card(index: int, card: Dictionary, count: int) -> void:
@@ -7757,7 +7766,7 @@ func _draw_nav() -> void:
 		var rect = _nav_rect(i)
 		var id = String(item["id"])
 		var active = (screen == id) or (screen == SCREEN_LOBBY and id == SCREEN_LOBBY)
-		_box(rect, HanddrawnSkin.PRIMARY if active else HanddrawnSkin.SURFACE, COLOR_LINE, 0)
+		_box(rect, HanddrawnSkin.PRIMARY if active else HanddrawnSkin.NAV_IDLE, COLOR_LINE, 0)
 		if active:
 			draw_style_box(HanddrawnSkin.panel(Color("a67719"), 3, false), Rect2(rect.get_center().x - 15, rect.end.y - 8, 30, 5))
 		_draw_nav_icon(rect, i, bool(item.get("locked", false)))
@@ -7839,8 +7848,13 @@ func _draw_unlockable_tile_borders() -> void:
 		if _uses_axial_battle_map() and not _is_world_pos_visible(world_center, HEX_SIZE * 1.1):
 			continue
 		var unlock_cost = _unlock_cost(key, local_team)
-		var line = COLOR_YELLOW if _gold_for_team(local_team) >= unlock_cost else Color(0.78, 0.72, 0.62)
-		draw_polyline(_closed_points(_hex_points(_world_to_canvas(world_center))), line, 4.0)
+		var points = _closed_points(_hex_points(_world_to_canvas(world_center)))
+		if _gold_for_team(local_team) >= unlock_cost:
+			# A narrow gold under-stroke keeps bright yellow readable on yellow land.
+			draw_polyline(points, HanddrawnSkin.TILE_READY_EDGE, 6.0, true)
+			draw_polyline(points, HanddrawnSkin.TILE_READY, 3.5, true)
+		else:
+			draw_polyline(points, HanddrawnSkin.TILE_UNAVAILABLE, 4.0, true)
 
 
 func _draw_site(center: Vector2, tile: Dictionary, cost: int) -> void:
@@ -8764,6 +8778,7 @@ func _draw_card(rect: Rect2, card: Dictionary, selected: bool, show_collection_s
 		_draw_text_center(String(card.get("name", "")), name_rect, 16, Color.WHITE)
 		_draw_upgrade_progress(progress_rect, card_id, true)
 		_draw_card_level_badge(Rect2(rect.position + Vector2(4, rect.size.y - 30), Vector2(28, 28)), card_id)
+		_draw_card_upgrade_dot(rect, card_id, rect)
 	else:
 		_draw_lock(art_rect.get_center())
 		_draw_text_center(String(card.get("name", "")), name_rect, 15, Color.WHITE)
@@ -8796,10 +8811,26 @@ func _draw_card_clipped(rect: Rect2, card: Dictionary, selected: bool, clip_rect
 		_draw_upgrade_progress_clipped(progress_rect, card_id, true, clip_rect)
 		var badge = Rect2(rect.position + Vector2(4, rect.size.y - 30), Vector2(28, 28))
 		if clip_rect.encloses(badge): _draw_card_level_badge(badge, card_id)
+		_draw_card_upgrade_dot(rect, card_id, clip_rect)
 	else:
 		if clip_rect.encloses(art_rect): _draw_lock(art_rect.get_center())
 		_draw_text_center_clipped(String(card.get("name", "")), name_rect, 15, Color.WHITE, clip_rect)
 		_draw_empty_progress_clipped(progress_rect, clip_rect)
+
+
+func _card_upgrade_dot_rect(rect: Rect2) -> Rect2:
+	return Rect2(Vector2(rect.end.x - 22.0, rect.position.y + 4.0), Vector2(18, 18))
+
+
+func _draw_card_upgrade_dot(rect: Rect2, card_id: String, clip_rect: Rect2) -> void:
+	if not _card_can_upgrade(card_id):
+		return
+	var dot = _card_upgrade_dot_rect(rect)
+	# Fully clip the notification while a row enters/leaves the collection.
+	if not clip_rect.encloses(dot):
+		return
+	draw_circle(dot.get_center(), 9.0, HanddrawnSkin.RAISED, true, -1.0, true)
+	draw_circle(dot.get_center(), 7.0, HanddrawnSkin.UPGRADE_DOT, true, -1.0, true)
 
 
 func _draw_card_level_badge(rect: Rect2, card_id: String) -> void:
@@ -8830,7 +8861,7 @@ func _draw_card_detail(rect: Rect2) -> void:
 		_draw_animal_texture_at_foot(_card_texture(card), Vector2(art_rect.get_center().x, art_rect.end.y), art_rect.size, UnitMotionFeedback.power_up_pose(detail_motion_progress), _animal_art_display_scale(card))
 	else:
 		_draw_animal_art_in_rect(card, art_rect)
-	_box(name_rect, rarity_fill.darkened(0.16), Color(1, 1, 1, 0.18), 1)
+	_box(name_rect, rarity_fill, Color(1, 1, 1, 0.18), 1)
 	# Keep the complete tower/animal name, including long names, at normal type size.
 	_draw_card_level_badge(Rect2(name_rect.position, Vector2(26, name_rect.size.y)), card_id)
 	_draw_text_center(String(card.get("name", "")), Rect2(name_rect.position + Vector2(28, 0), Vector2(name_rect.size.x - 28, name_rect.size.y)), 15, Color.WHITE)
@@ -8848,11 +8879,10 @@ func _draw_card_detail(rect: Rect2) -> void:
 	var skill_text = _card_detail_skill_text(card)
 	if skill_text != "":
 		_draw_text_center_wrapped(skill_text, Rect2(rect.position + Vector2(138, 48), Vector2(336, 42)), 16, COLOR_PURPLE, 2)
-	var cost = _next_upgrade_cost(card_id)
 	_draw_upgrade_progress(Rect2(rect.position + Vector2(138, 92), Vector2(336, 22)), card_id, true)
 	if _can_show_equip_button(card_id):
 		_cta(_equip_button_rect(), "选择中" if pending_equip_card_id == card_id else "上阵", true)
-	_cta(_upgrade_button_rect(), "升级", cost >= 0 and _card_spare_count(card_id) >= cost)
+	_cta(_upgrade_button_rect(), "升级", true, _card_can_upgrade(card_id))
 
 
 func _card_detail_skill_text(card: Dictionary) -> String:
@@ -8921,7 +8951,7 @@ func _draw_upgrade_progress(rect: Rect2, card_id: String, show_label: bool) -> v
 	var cost = _next_upgrade_cost(card_id)
 	var max_value = max(1, cost)
 	var pct = 1.0 if cost < 0 else clampf(float(spare) / float(max_value), 0.0, 1.0)
-	var fill = Color("99c3a8") if cost >= 0 and spare >= cost else HanddrawnSkin.BLUE
+	var fill = Color("99c3a8") if _card_can_upgrade(card_id) else HanddrawnSkin.BLUE
 	if cost < 0:
 		fill = COLOR_GOLD
 	draw_style_box(HanddrawnSkin.panel(HanddrawnSkin.SURFACE.darkened(0.12), 4, false), rect)
@@ -8943,7 +8973,7 @@ func _draw_upgrade_progress_clipped(rect: Rect2, card_id: String, show_label: bo
 	var cost = _next_upgrade_cost(card_id)
 	var max_value = max(1, cost)
 	var pct = 1.0 if cost < 0 else clampf(float(spare) / float(max_value), 0.0, 1.0)
-	var fill = Color("99c3a8") if cost >= 0 and spare >= cost else HanddrawnSkin.BLUE
+	var fill = Color("99c3a8") if _card_can_upgrade(card_id) else HanddrawnSkin.BLUE
 	if cost < 0:
 		fill = COLOR_GOLD
 	_draw_rect_clipped(rect, HanddrawnSkin.SURFACE.darkened(0.12), clip_rect)
@@ -9045,9 +9075,10 @@ func _resource(rect: Rect2, label: String, value: String, color: Color) -> void:
 	_draw_text_right(value, Rect2(rect.position + Vector2(value_x, 0), Vector2(rect.size.x - value_x - 14, rect.size.y)), 20, HanddrawnSkin.INK)
 
 
-func _cta(rect: Rect2, label: String, primary: bool) -> void:
-	_box(rect, HanddrawnSkin.PRIMARY if primary else HanddrawnSkin.SURFACE, COLOR_LINE, 0)
-	_draw_text_center(label, rect, 26, HanddrawnSkin.INK)
+func _cta(rect: Rect2, label: String, primary: bool, enabled: bool = true) -> void:
+	# Secondary is an action, not a disabled primary or an information panel.
+	_box(rect, HanddrawnSkin.action_fill(primary, enabled), COLOR_LINE, 0)
+	_draw_text_center(label, rect, 26, HanddrawnSkin.INK if enabled else HanddrawnSkin.DISABLED_INK)
 
 
 func _box(rect: Rect2, fill: Color, _line: Color, _width: float) -> void:

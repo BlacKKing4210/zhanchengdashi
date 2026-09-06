@@ -4,7 +4,16 @@ const PAPER = Color("f4eee3")
 const SURFACE = Color("e9dfce")
 const RAISED = Color("f6f0e7")
 const INK = Color("332f29")
-const PRIMARY = Color("f2d28a")
+const PRIMARY = Color("f3c454")
+const SECONDARY = Color("87babb")
+const NAV_IDLE = Color("b6c9c6")
+const DISABLED = Color("ddd7cc")
+const DISABLED_INK = Color("625d55")
+const GOLD = Color("ecc45f")
+const UPGRADE_DOT = Color("e94b4f")
+const TILE_READY = Color("fff000")
+const TILE_READY_EDGE = Color("9d721b")
+const TILE_UNAVAILABLE = Color(0.78, 0.72, 0.62)
 const SAGE = Color("ced4a9")
 const BLUE = Color("b8cfdf")
 const LILAC = Color("cdb9d6")
@@ -43,7 +52,7 @@ static func panel(fill: Color, radius: float = 12.0, shadow: bool = true) -> Sty
 
 
 static func surface_color(fill: Color) -> Color:
-	if fill in [PAPER, SURFACE, RAISED, INK, PRIMARY, SAGE, BLUE, LILAC, PEACH, PROGRESS, LOCKED]:
+	if fill in [PAPER, SURFACE, RAISED, INK, PRIMARY, SECONDARY, NAV_IDLE, DISABLED, GOLD, SAGE, BLUE, LILAC, PEACH, PROGRESS, LOCKED]:
 		return fill
 	var mapped = SURFACE
 	if fill.v > 0.90 and fill.s < 0.20: mapped = RAISED
@@ -58,8 +67,13 @@ static func rarity(rarity_id: String) -> Color:
 		"common": return SAGE
 		"rare": return BLUE
 		"epic": return LILAC
-		"legendary": return PEACH
+		"legendary": return GOLD
 	return SURFACE
+
+
+static func action_fill(primary: bool, enabled: bool) -> Color:
+	if not enabled: return DISABLED
+	return PRIMARY if primary else SECONDARY
 
 
 static func terrain_index(team: int, team_mode: bool, seed_value: int) -> int:
