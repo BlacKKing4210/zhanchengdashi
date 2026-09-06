@@ -11,6 +11,8 @@ var app: Node
 
 class FakeOnlineRoomService extends Node:
 	var current_account_name = "橘猫队长"
+	var current_username = "橘猫队长"
+	var current_identity_complete = true
 	var ready_requests = []
 	var start_requests = 0
 	var leave_requests = 0
@@ -78,7 +80,7 @@ func _test_contextual_room_action_path() -> void:
 	app.add_child(fake_service)
 	app.set("online_room_service", fake_service)
 	app.call("_on_online_room_snapshot", _room_snapshot_for_guest(10, false))
-	_expect_equal(String(app.call("_online_player_name")), "橘猫队长", "room requests prefer the authenticated account name")
+	_expect_equal(String(app.call("_online_player_name")), "橘猫队长", "room requests prefer the player nickname")
 
 	var guest_action: Dictionary = app.call("_room_primary_action_state")
 	_expect_equal(String(guest_action.get("label", "")), "准备", "guest sees ready in the right action slot")
@@ -176,7 +178,7 @@ func _test_room_snapshot_and_match_bridge() -> void:
 	_expect_true(bool(app.get("online_room_active")), "authoritative room snapshot activates internet room state")
 	_expect_equal(int(app.get("local_team_id")), 4, "guest uses its server-assigned team")
 	_expect_equal(String((app.get("room_human_teams") as Dictionary).get(1, "")), "橘猫队长", "host account name comes from server snapshot")
-	_expect_equal(String((app.get("room_human_teams") as Dictionary).get(4, "")), "夜航星", "guest account name comes from server snapshot")
+	_expect_equal(String((app.get("room_human_teams") as Dictionary).get(4, "")), "神秘玩家", "unnamed local player does not inherit a stale server label")
 
 	app.call("_on_online_match_started", {
 		"match_id": "123456-1",
@@ -328,7 +330,7 @@ func _legacy_three_vs_three_host_snapshot(revision: int, unready_team: int = 0, 
 		1: "薄荷汽水",
 		2: "猫尾草",
 		3: "月湾渔火",
-		4: "未命名玩家",
+		4: "神秘玩家",
 		5: "晨雾旅人",
 		6: "青柠苏打",
 	}

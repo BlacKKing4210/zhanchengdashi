@@ -34,6 +34,8 @@ const ACCOUNT_STORE_PATH = "res://scripts/server/player_account_store.gd"
 const MATCH_ANALYTICS_STORE_PATH = "res://scripts/server/match_analytics_store.gd"
 const AccountCredentialRules = preload("res://scripts/shared/account_credential_rules.gd")
 const AccountIdentityRules = preload("res://scripts/shared/account_identity_rules.gd")
+const PlayerDisplayName = preload("res://scripts/shared/player_display_name.gd")
+const IdentityRpc = preload("res://scripts/network/account_identity_rpc.gd")
 const BattleAnalyticsContract = preload("res://scripts/shared/battle_analytics_contract.gd")
 const DEVICE_CREDENTIAL_PATH = "user://client/device_account.json"
 const MAX_PLAYER_NAME_LENGTH = 24
@@ -93,10 +95,12 @@ var _automatic_auth_retry_used = false
 var _auto_credential_request_pending = false
 var _admin_command_timer: Timer
 var _account_store_factory = Callable()
+var server_identity_rpc_supported = false
 
 
 func _ready() -> void:
 	_wire_multiplayer_signals()
+	_identity_rpc_node()
 	server_host = default_server_host()
 	server_port = default_server_port()
 	bind_host = default_bind_host()
@@ -332,7 +336,8 @@ func send_authority_snapshot(snapshot: Dictionary) -> bool:
 	if not _payload_fits(snapshot, MAX_SNAPSHOT_BYTES):
 		_emit_local_failure("authority_snapshot", "战斗快照过大")
 		return false
-	rpc_id(SERVER_PEER_ID, "_rpc_submit_authority_snapshot", snapshot.duplicate(true))
+	# rpc_id serializes synchronously; the caller already owns this deep snapshot.
+	rpc_id(SERVER_PEER_ID, "_rpc_submit_authority_snapshot", snapshot)
 	return true
 
 
@@ -456,15 +461,27 @@ func update_account_identity(username: String, avatar_id: String, expected_revis
 	if _client_session_token.is_empty() or current_user_id.is_empty():
 		_emit_local_failure("update_account_identity", "账号尚未登录")
 		return false
-	rpc_id(
+	if not server_identity_rpc_supported:
+		_emit_local_failure("update_account_identity", "服务器版本较旧，请更新服务器后修改昵称")
+		return false
+	_identity_rpc_node().rpc_id(
 		SERVER_PEER_ID,
-		"_rpc_request_update_account_identity",
+		"update_identity",
 		_client_session_token,
 		username,
 		avatar_id,
 		expected_revision
 	)
 	return true
+
+
+func _identity_rpc_node() -> Node:
+	var bridge = get_node_or_null("AccountIdentityRpc")
+	if bridge == null:
+		bridge = IdentityRpc.new()
+		bridge.name = "AccountIdentityRpc"
+		add_child(bridge)
+	return bridge
 
 
 func current_generated_account_password() -> String:
@@ -707,8 +724,8 @@ func _rpc_request_set_auto_account_credentials(session_token: String, password: 
 	_send_operation_result(sender, "set_auto_account_credentials", result)
 
 
-@rpc("any_peer", "call_remote", "reliable", 0)
-func _rpc_request_update_account_identity(
+func _server_update_account_identity(
+	sender: int,
 	session_token: String,
 	username: String,
 	avatar_id: String,
@@ -716,7 +733,6 @@ func _rpc_request_update_account_identity(
 ) -> void:
 	if not _accept_server_request():
 		return
-	var sender = multiplayer.get_remote_sender_id()
 	if session_token != String(_server_peer_sessions.get(sender, "")):
 		_send_operation_result(sender, "update_account_identity", _failure("invalid_session"))
 		return
@@ -954,7 +970,7 @@ func _rpc_submit_authority_snapshot(snapshot: Dictionary) -> void:
 		"match_id": String(server_match.get("match_id", "")),
 		"authority_peer_id": sender,
 		"sequence": sequence,
-		"snapshot": snapshot.duplicate(true),
+		"snapshot": snapshot,
 	}
 	for peer_id in _room_peer_ids(room_code):
 		if int(peer_id) != sender:
@@ -963,6 +979,7 @@ func _rpc_submit_authority_snapshot(snapshot: Dictionary) -> void:
 
 @rpc("authority", "call_remote", "reliable", 0)
 func _rpc_receive_operation_result(operation: String, result: Dictionary) -> void:
+	server_identity_rpc_supported = bool(result.get("identity_rpc_v2", false))
 	last_operation_error = String(result.get("error", ""))
 	if bool(result.get("ok", false)):
 		_apply_account_operation(operation, result)
@@ -1123,10 +1140,9 @@ func _record_authenticated_client_battle(
 	if user_id.is_empty():
 		return _failure("invalid_session")
 	var username = String(player_profile.get("username", "")).strip_edges()
-	var account_name = String(player_profile.get("account", "")).strip_edges()
 	var roster = [player_profile.merged({
 		"team_id": 1,
-		"display_name": username if not username.is_empty() else (account_name if not account_name.is_empty() else "未命名玩家"),
+		"display_name": PlayerDisplayName.resolve(username) if bool(player_profile.get("identity_complete", false)) else PlayerDisplayName.UNKNOWN,
 	}, true)]
 	var match_id = "client-%s" % (user_id.to_lower() + ":" + report_id).sha256_text()
 	var begin_result = _match_analytics_store.call("begin_match", {
@@ -1397,7 +1413,9 @@ func _snapshot_with_transport_fields(peer_id: int) -> Dictionary:
 
 
 func _send_operation_result(peer_id: int, operation: String, result: Dictionary) -> void:
-	rpc_id(peer_id, "_rpc_receive_operation_result", operation, result.duplicate(true))
+	var response = result.duplicate(true)
+	response["identity_rpc_v2"] = true
+	rpc_id(peer_id, "_rpc_receive_operation_result", operation, response)
 
 
 func _affected_peer_ids(result: Dictionary, room_code: String) -> Array:
@@ -1457,6 +1475,7 @@ func _server_rank_profile(peer_id: int) -> Dictionary:
 		"user_id": String((result as Dictionary).get("user_id", "")),
 		"account": String((result as Dictionary).get("account", "")),
 		"username": String((result as Dictionary).get("username", "")),
+		"identity_complete": bool((result as Dictionary).get("identity_complete", false)),
 		"avatar_id": String((result as Dictionary).get("avatar_id", AccountIdentityRules.DEFAULT_AVATAR_ID)),
 		"rank_key": String((profile as Dictionary).get("rank_key", "bronze")),
 		"rank_stars": maxi(1, int((profile as Dictionary).get("rank_stars", 1))),
@@ -1467,16 +1486,14 @@ func _server_rank_profile(peer_id: int) -> Dictionary:
 
 
 func _server_player_display_name(player_rank: Dictionary, requested_name: String, peer_id: int) -> String:
+	if player_rank.has("identity_complete") and not bool(player_rank.identity_complete):
+		return PlayerDisplayName.UNKNOWN
 	var username = String(player_rank.get("username", "")).strip_edges()
 	if not username.is_empty():
 		return _sanitize_player_name(username, peer_id)
-	var account_name = String(player_rank.get("account", "")).strip_edges()
-	if not account_name.is_empty():
-		return _sanitize_player_name(account_name, peer_id)
-	var fallback_name = _sanitize_player_name(requested_name, peer_id)
-	if fallback_name == "玩家" or _is_generated_player_placeholder(fallback_name):
-		return "未命名玩家"
-	return fallback_name
+	if not String(player_rank.get("user_id", "")).is_empty():
+		return PlayerDisplayName.UNKNOWN
+	return PlayerDisplayName.resolve(_sanitize_player_name(requested_name, peer_id))
 
 
 func _registry_call(method: String, arguments: Array) -> Dictionary:
@@ -1551,6 +1568,8 @@ func _poll_admin_commands() -> void:
 
 
 func _apply_account_operation(operation: String, result: Dictionary) -> void:
+	if operation not in ["login_account", "authenticate_installation", "switch_account", "create_new_account", "set_auto_account_credentials", "load_player_profile", "save_player_profile", "update_account_identity", "logout_account", "list_accounts"]:
+		return
 	if operation in ["login_account", "authenticate_installation", "switch_account", "create_new_account", "set_auto_account_credentials"]:
 		_client_session_token = String(result.get("session_token", ""))
 		current_user_id = String(result.get("user_id", ""))
@@ -1597,6 +1616,8 @@ func _apply_account_operation(operation: String, result: Dictionary) -> void:
 	if not current_username.is_empty():
 		local_player_name = _sanitize_player_name(current_username, local_peer_id())
 	account_state_changed.emit({
+		"operation": operation,
+		"conflict": bool(result.get("conflict", false)),
 		"user_id": current_user_id,
 		"account": current_account_name,
 		"username": current_username,

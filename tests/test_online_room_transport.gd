@@ -158,8 +158,8 @@ func _run_loopback_test() -> void:
 		if typeof(slot_value) == TYPE_DICTIONARY and String((slot_value as Dictionary).get("kind", "")) == "human":
 			var display_name = String((slot_value as Dictionary).get("display_name", ""))
 			_expect_true(
-				display_name in [String(host.get("current_account_name")), String(guest.get("current_account_name"))],
-				"server publishes an authenticated account name for every human slot"
+				display_name == "神秘玩家",
+				"server never exposes generated IDs for unnamed humans"
 			)
 			_expect_false(display_name in ["房主", "访客"], "client-supplied role placeholders cannot replace account names")
 			_expect_true(String((slot_value as Dictionary).get("rank_key", "")).length() > 0, "room snapshot includes each human player's rank tier")
@@ -167,6 +167,12 @@ func _run_loopback_test() -> void:
 			_expect_true(typeof((slot_value as Dictionary).get("deck", null)) == TYPE_ARRAY, "room snapshot includes each human player's deck")
 			_expect_true(typeof((slot_value as Dictionary).get("card_levels", null)) == TYPE_DICTIONARY, "room snapshot includes each human player's card levels")
 
+	_expect_true(bool(host.get("server_identity_rpc_supported")), "server advertises isolated identity protocol")
+	_expect_true(bool(host.call("update_account_identity", "松鼠队长", String(host.get("current_avatar_id")), int(host.get("current_identity_revision")))), "chosen nickname sent through separate RPC node")
+	_expect_true(
+		await _wait_until(func(): return String(host.get("current_username")) == "松鼠队长" and bool(host.get("current_identity_complete"))),
+		"isolated identity RPC persists and acknowledges chosen nickname"
+	)
 	guest.operation_failed.connect(func(operation: String, _error: String):
 		if operation == "update_room_options":
 			guest_host_only_failure = true

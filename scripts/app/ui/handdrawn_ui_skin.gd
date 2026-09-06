@@ -5,6 +5,7 @@ const SURFACE = Color("e9dfce")
 const RAISED = Color("f6f0e7")
 const INK = Color("332f29")
 const PRIMARY = Color("f3c454")
+const PROMOTED = Color("f5a13e")
 const SECONDARY = Color("87babb")
 const NAV_IDLE = Color("b6c9c6")
 const DISABLED = Color("ddd7cc")
@@ -52,7 +53,7 @@ static func panel(fill: Color, radius: float = 12.0, shadow: bool = true) -> Sty
 
 
 static func surface_color(fill: Color) -> Color:
-	if fill in [PAPER, SURFACE, RAISED, INK, PRIMARY, SECONDARY, NAV_IDLE, DISABLED, GOLD, SAGE, BLUE, LILAC, PEACH, PROGRESS, LOCKED]:
+	if fill in [PAPER, SURFACE, RAISED, INK, PRIMARY, PROMOTED, SECONDARY, NAV_IDLE, DISABLED, GOLD, SAGE, BLUE, LILAC, PEACH, PROGRESS, LOCKED]:
 		return fill
 	var mapped = SURFACE
 	if fill.v > 0.90 and fill.s < 0.20: mapped = RAISED

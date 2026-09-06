@@ -94,7 +94,7 @@ func data_contract() -> void:
 		var card = app._card_by_id(id)
 		var stats = app._card_stats_with_levels(card, {})
 		eq(stats.attack, card.base_attack, "no static attack doubled " + id)
-		eq(stats.move_speed, float(card.base_move_speed) * CELL, "cell/sec conversion " + id)
+		eq(stats.move_speed, float(card.base_move_speed) * CELL * 0.5, "half-cell/sec baseline " + id)
 		if float(card.base_attack_range) > 0: eq(stats.attack_range, float(card.base_attack_range) * CELL, "range cell conversion " + id)
 	var m = app._card_by_id("mouse")
 	eq(CardRules.card_stats(m, {"mouse": 5}).attack, 1, ".8 growth not rounded up")
@@ -391,6 +391,20 @@ func movement_contract() -> void:
 		if app.tiles.has(candidate + Vector2i(4, 0)) and app.tiles.has(candidate + Vector2i(0, 3)):
 			key = candidate
 			break
+	var walker = spawn("rabbit", 0, app._hex_center(key))
+	app.units[walker].tile = key
+	var origin = Vector2(app.units[walker].pos)
+	var next_key = key + Vector2i(1, 0)
+	var destination = app._hex_center(next_key)
+	var moved = app._move_unit_toward_target(app.units[walker].duplicate(true), {"tile": next_key}, destination, 1.0)
+	eq(origin.distance_to(moved.pos), CELL * 0.5, "configured speed one walks half a cell in one second")
+	moved = app._move_unit_toward_target(moved, {"tile": next_key}, destination, 1.0)
+	eq(Vector2(moved.pos).distance_to(destination), 0, "configured speed one walks one cell in two seconds")
+	var flying = app.units[walker].duplicate(true)
+	flying.flying = true
+	moved = app._move_unit_toward_target(flying, {"tile": next_key}, destination, 1.0)
+	eq(origin.distance_to(moved.pos), CELL * 0.5, "flying uses the same half-cell baseline")
+	reset()
 	var i = spawn("kangaroo", 0, app._hex_center(key))
 	app.units[i].tile = key
 	check(app.animal_skills.begin_jump(i, app._hex_center(key + Vector2i(4, 0))), "jump starts")
@@ -398,6 +412,7 @@ func movement_contract() -> void:
 	if app.units[i].has("motion_trip"):
 		var trip = app.units[i].motion_trip.duplicate()
 		eq(Vector2(trip.start).distance_to(trip.finish), CELL * 2, "jump skips exactly one cell")
+		eq(float(trip.duration), 4.0, "two-cell jump at configured speed one uses four seconds")
 		app.animal_skills.tick_motion(i, float(trip.duration) * 0.5)
 		check(float(app.units[i].jump_height) > 20, "visible jump arc at midpoint")
 		app.animal_skills.tick_motion(i, float(trip.duration) * 0.5)
@@ -416,6 +431,9 @@ func movement_contract() -> void:
 	app.animal_skills.tick_motion(i, 2.0)
 	check(app.units[i].has("motion_trip"), "charge trajectory starts after windup")
 	if app.units[i].has("motion_trip"):
+		var trip = app.units[i].motion_trip
+		eq(Vector2(trip.start).distance_to(trip.finish), CELL * 4, "explicit charge distance remains four cells")
+		eq(float(trip.duration), 0.35, "explicit charge travel time unchanged by movement baseline")
 		for n in range(35): app.animal_skills.tick_motion(i, 0.01)
 		eq(app.units[foe].hp, 95, "swept dash hits once, not each frame")
 

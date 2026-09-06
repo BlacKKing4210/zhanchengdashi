@@ -414,6 +414,29 @@ active_modules:
 queued_modules: []
 
 shared_locks:
+  online_rewards_apk_20260906:
+    task_id: REQ-20260906-ONLINE-REWARDS-APK
+    owner: codex-primary
+    status: RELEASED
+    acquired_on: "2026-09-06"
+    read_only_receipt: docs/receipts/REQ-20260906-ONLINE-REWARDS-APK-001.md
+    write_set:
+      - scripts/app/main.gd
+      - scripts/network/online_room.gd
+      - scripts/network/account_identity_rpc.gd
+      - scripts/app/systems/animal_skill_rules.gd
+      - scripts/app/ui/handdrawn_ui_skin.gd
+      - scripts/shared/
+      - scripts/server/player_account_profile_adapter.gd
+      - config/tables/
+      - runtime/config/
+      - tests/
+      - tools/validate_config.py
+      - tools/verify_online_rewards_apk.py
+      - export_presets.cfg
+    evidence_root: temp/qa/online-rewards-20260906
+    completion_receipt: docs/receipts/REQ-20260906-ONLINE-REWARDS-APK-001.md
+    release_reason: local_implementation_apk_complete_remote_service_authorization_pending
   animal_table_v3_20260906:
     task_id: REQ-20260906-ANIMAL-TABLE-V3
     owner: codex-primary

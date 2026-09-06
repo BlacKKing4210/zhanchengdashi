@@ -10,3 +10,7 @@ default_stage_time_sec,int,180,默认关卡时长
 max_party_size,int,3,默认出战单位上限
 camera_follow_smoothing,float,0.12,相机跟随平滑系数
 enable_debug_menu,bool,true,开发期调试菜单开关
+classic_win_reward_tickets,int,3,主线战斗胜利抽卡券奖励
+classic_loss_reward_tickets,int,1,主线战斗失败抽卡券奖励
+classic_reward_gold_min_multiplier,int,3,主线金币奖励为抽卡券数量的最小倍数
+classic_reward_gold_max_multiplier,int,5,主线金币奖励为抽卡券数量的最大倍数

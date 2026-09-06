@@ -1,5 +1,8 @@
 extends Node2D
 
+const PlayerDisplayName = preload("res://scripts/shared/player_display_name.gd")
+const ProfileSyncRules = preload("res://scripts/shared/profile_sync_rules.gd")
+
 const CardRules = preload("res://scripts/app/systems/card_rules.gd")
 const BoardRules = preload("res://scripts/app/systems/board_rules.gd")
 const DefenseTowerRules = preload("res://scripts/app/systems/defense_tower_rules.gd")
@@ -55,6 +58,8 @@ const MINE_INCOME = 10
 const TOWER_DAMAGE = 44.0
 const BASE_ATTACK_DAMAGE = 2.0
 const TOWER_RANGE = 210.0
+# One configured movement-speed unit travels half a hex cell per second.
+# Table values remain final panel values; apply this baseline only in battle.
 const UNIT_MOVE_SPEED_MULT = 0.5
 const UNIT_ATTACK_SPEED_MULT = 0.5
 const UNIT_BASE_ATTACK_COOLDOWN = 0.85
@@ -342,11 +347,17 @@ var account_clipboard_payload = ""
 var account_clipboard_clear_timer = 0.0
 var account_profile_sync_timer = 0.0
 var account_profile_signature = ""
+var account_confirmed_profile: Dictionary = {}
+var account_pending_profile: Dictionary = {}
+var account_applied_user_id = ""
 var account_selected_avatar_id = AccountIdentityRules.DEFAULT_AVATAR_ID
 var account_identity_saving = false
 var account_avatar_picker = null
 var battle_reward_given = false
 var last_battle_reward_tickets = 0
+var last_battle_reward_gold = 0
+var wallet_gold = STARTING_GOLD
+var reward_rng = RandomNumberGenerator.new()
 var result_text = ""
 var result_player_entries = []
 var result_players_scroll = 0.0
@@ -384,6 +395,7 @@ var text_draw_scale = Vector2.ONE
 
 func _ready() -> void:
 	randomize()
+	reward_rng.randomize()
 	font = ThemeDB.fallback_font
 	main_page_layout = MainPageLayout.new(DESIGN_SIZE)
 	page_router = PageRouter.new()
@@ -1081,6 +1093,7 @@ func _load_rank_database() -> void:
 			if typeof(parsed) == TYPE_DICTIONARY:
 				rank_db = parsed
 	_ensure_rank_database_shape()
+	wallet_gold = int(rank_db.get("wallets", {}).get("local", STARTING_GOLD))
 	_save_rank_database()
 
 
@@ -1100,6 +1113,9 @@ func _ensure_rank_database_shape() -> void:
 
 func _save_rank_database() -> void:
 	_ensure_rank_database_shape()
+	if typeof(rank_db.get("wallets")) != TYPE_DICTIONARY:
+		rank_db["wallets"] = {}
+	rank_db["wallets"][account_applied_user_id if not account_applied_user_id.is_empty() else "local"] = wallet_gold
 	var file = FileAccess.open(RANK_DB_PATH, FileAccess.WRITE)
 	if file == null:
 		_toast("段位数据保存失败")
@@ -1245,19 +1261,14 @@ func _ensure_online_room_connection() -> bool:
 
 func _online_player_name() -> String:
 	if online_room_service != null:
+		if online_room_service.get("current_identity_complete") == false:
+			return PlayerDisplayName.UNKNOWN
 		var username_value = online_room_service.get("current_username")
 		if typeof(username_value) == TYPE_STRING:
 			var username = String(username_value).strip_edges()
 			if not username.is_empty():
 				return username
-		var account_value = online_room_service.get("current_account_name")
-		if typeof(account_value) == TYPE_STRING:
-			var account_name = String(account_value).strip_edges()
-			if not account_name.is_empty():
-				return account_name
-	var profile = _player_profile()
-	var player_name = String(profile.get("name", "")).strip_edges()
-	return player_name if not player_name.is_empty() and player_name != "玩家" else "未命名玩家"
+	return PlayerDisplayName.UNKNOWN
 
 
 func _on_online_server_connected(host: String, port: int, _peer_id: int) -> void:
@@ -1274,6 +1285,7 @@ func _on_online_server_connection_failed(message: String) -> void:
 
 
 func _on_online_server_disconnected() -> void:
+	account_pending_profile.clear()
 	online_connection_state = "offline"
 	_clear_all_account_password_memory()
 	_reset_online_room_state()
@@ -1315,7 +1327,7 @@ func _on_online_operation_completed(operation: String, result: Dictionary) -> vo
 				_toast("用户名与头像已保存")
 				GameAudio.play_sfx("ui_confirm")
 		"save_player_profile":
-			account_profile_signature = JSON.stringify(_server_profile_snapshot())
+			account_profile_sync_timer = 0.0
 		"list_accounts":
 			account_switch_loading = false
 		"switch_account":
@@ -1342,6 +1354,8 @@ func _on_online_operation_completed(operation: String, result: Dictionary) -> vo
 
 
 func _on_online_operation_failed(operation: String, error: String) -> void:
+	if operation == "save_player_profile":
+		account_pending_profile.clear()
 	if operation == online_room_pending_action:
 		_clear_online_room_pending_action()
 	if operation in ["register_account", "login_account"]:
@@ -1369,8 +1383,30 @@ func _on_account_state_changed(state: Dictionary) -> void:
 		var state_account = String(state.get("account", "")).strip_edges()
 		if not account_session_password.is_empty() and state_account.to_lower() != account_session_auth_name.to_lower():
 			_clear_session_account_password()
-		var remote_profile = state.get("profile", {})
-		_apply_server_profile(remote_profile)
+		var remote_profile: Dictionary = state.get("profile", {})
+		var user_id = String(state.get("user_id", ""))
+		var has_remote_wallet = remote_profile.has("wallet_gold")
+		var local_wallet = wallet_gold if user_id == account_applied_user_id else int(rank_db.get("wallets", {}).get(user_id, STARTING_GOLD))
+		if not has_remote_wallet:
+			remote_profile = remote_profile.duplicate(true)
+			remote_profile["wallet_gold"] = local_wallet
+		var operation = String(state.get("operation", ""))
+		var apply_profile = remote_profile
+		if user_id == account_applied_user_id and operation == "save_player_profile" and not account_pending_profile.is_empty():
+			var baseline = account_confirmed_profile if bool(state.get("conflict", false)) else account_pending_profile
+			apply_profile = ProfileSyncRules.rebase(remote_profile, _server_profile_snapshot(), baseline)
+		elif user_id == account_applied_user_id and operation not in ["", "load_player_profile", "login_account", "authenticate_installation", "switch_account", "create_new_account"]:
+			# Room commands and identity-only ACKs are not a profile reload.
+			apply_profile = _server_profile_snapshot()
+		if not has_remote_wallet:
+			# Older servers omit this field: local fallback is already current,
+			# so never add the pending reward delta to it a second time.
+			apply_profile["wallet_gold"] = local_wallet
+		account_applied_user_id = user_id
+		account_confirmed_profile = remote_profile.duplicate(true)
+		if operation == "save_player_profile":
+			account_pending_profile.clear()
+		_apply_server_profile(apply_profile)
 		account_profile_signature = JSON.stringify(remote_profile)
 		_sync_account_identity_editor(false)
 		if not account_manual_login_open:
@@ -1379,6 +1415,9 @@ func _on_account_state_changed(state: Dictionary) -> void:
 		account_identity_saving = false
 		_clear_session_account_password()
 		account_profile_signature = ""
+		account_applied_user_id = ""
+		account_confirmed_profile.clear()
+		account_pending_profile.clear()
 		_set_account_fields_visible(account_center_open and not player_agreement_open)
 
 
@@ -2441,7 +2480,7 @@ func _card_stats_for_team(card: Dictionary, team: int) -> Dictionary:
 func _card_stats_with_levels(card: Dictionary, levels: Dictionary) -> Dictionary:
 	var stats = CardRules.card_stats(card, levels)
 	var cell_size = sqrt(3.0) * HEX_SIZE
-	stats["move_speed"] = float(stats["move_speed"]) * cell_size
+	stats["move_speed"] = float(stats["move_speed"]) * cell_size * UNIT_MOVE_SPEED_MULT
 	stats["attack_range_cells"] = float(stats["attack_range"])
 	if _card_kind(card) != CARD_KIND_DEFENSE:
 		# Zero denotes contact melee (adjacent centers), not a zero-radius hitbox.
@@ -2622,6 +2661,7 @@ func _reset_battle() -> void:
 	pause_open = false
 	battle_reward_given = false
 	last_battle_reward_tickets = 0
+	last_battle_reward_gold = 0
 	result_player_entries.clear()
 	result_players_scroll = 0.0
 	result_text = ""
@@ -5071,7 +5111,7 @@ func _gold_for_team(team: int) -> int:
 
 
 func _display_gold() -> int:
-	return _gold_for_team(_local_control_team()) if screen == SCREEN_BATTLE else gold
+	return _gold_for_team(_local_control_team()) if screen == SCREEN_BATTLE else wallet_gold
 
 
 func _spend_team_gold(team: int, amount: int) -> bool:
@@ -5431,13 +5471,14 @@ func _try_unlock(key: Vector2i) -> bool:
 			_toast("网络已断开，无法执行操作")
 			return true
 		online_command_sequence += 1
-		online_room_service.call("send_battle_command", {
+		var sent = bool(online_room_service.call("send_battle_command", {
 			"action": "unlock_tile",
 			"sequence": online_command_sequence,
 			"q": key.x,
 			"r": key.y,
-		})
-		_pulse(_hex_center(key), _team_color(team).lightened(0.28))
+		}))
+		if sent:
+			_pulse(_hex_center(key), _team_color(team).lightened(0.28))
 		return true
 	return _try_unlock_for_team(key, team, true)
 
@@ -5628,7 +5669,7 @@ func _building_delay(building: String, team: int, card_id: String) -> float:
 
 
 func _battle_reward_tickets(text: String) -> int:
-	return BATTLE_WIN_REWARD_TICKETS if text == "胜利" else BATTLE_LOSS_REWARD_TICKETS
+	return int(ConfigDB.get_global("classic_win_reward_tickets", BATTLE_WIN_REWARD_TICKETS)) if text == "胜利" else int(ConfigDB.get_global("classic_loss_reward_tickets", BATTLE_LOSS_REWARD_TICKETS))
 
 
 func _finish_battle(text: String, play_audio: bool = true) -> void:
@@ -5651,7 +5692,11 @@ func _finish_battle(text: String, play_audio: bool = true) -> void:
 		battle_reward_given = true
 		last_battle_reward_tickets = _battle_reward_tickets(text)
 		gacha_tickets += last_battle_reward_tickets
-		_toast("获得%d张抽卡券" % last_battle_reward_tickets)
+		last_battle_reward_gold = reward_rng.randi_range(last_battle_reward_tickets * int(ConfigDB.get_global("classic_reward_gold_min_multiplier", 3)), last_battle_reward_tickets * int(ConfigDB.get_global("classic_reward_gold_max_multiplier", 5)))
+		wallet_gold += last_battle_reward_gold
+		_save_rank_database()
+		account_profile_sync_timer = 0.0
+		_toast("获得%d张抽卡券、%d金币" % [last_battle_reward_tickets, last_battle_reward_gold])
 
 
 func _play_base_destroy_result_audio(defeated_team: int, attacker: int) -> bool:
@@ -5980,7 +6025,7 @@ func _result_player_name_for_team(team: int) -> String:
 		if typeof(slot_value) == TYPE_DICTIONARY and int((slot_value as Dictionary).get("team_id", NEUTRAL)) == team:
 			var slot_name = String((slot_value as Dictionary).get("display_name", "")).strip_edges()
 			if slot_name != "":
-				return slot_name
+				return _room_human_display_name(slot_value) if String(slot_value.get("kind", "")) == "human" else PlayerDisplayName.resolve(slot_name)
 	if room_human_teams.has(team):
 		return String(room_human_teams[team])
 	return _automated_player_name_for_team(team)
@@ -6008,7 +6053,7 @@ func _result_player_entry(team: int, placement: int, player_name: String, is_loc
 	return {
 		"team": team,
 		"placement": maxi(1, placement),
-		"name": player_name if player_name.strip_edges() != "" else "未命名玩家",
+		"name": PlayerDisplayName.resolve(player_name),
 		"is_local": is_local,
 		"old_rank_display": String(old_rank.get("display", RankingRules.display_for_key_and_stars(String(old_rank.get("key", "bronze")), int(old_rank.get("stars", 1))))),
 		"new_rank_display": String(new_rank.get("display", RankingRules.display_for_key_and_stars(String(new_rank.get("key", "bronze")), int(new_rank.get("stars", 1))))),
@@ -7048,6 +7093,7 @@ func _server_profile_snapshot() -> Dictionary:
 		"card_levels": card_levels.duplicate(true),
 		"deck": deck.duplicate(),
 		"gacha_tickets": gacha_tickets,
+		"wallet_gold": wallet_gold,
 		"rank_stars": int(profile.get("stars", RankingRules.INITIAL_STARS)),
 		"rank_key": String(profile.get("rank_key", RankingRules.INITIAL_RANK_KEY)),
 		"elo": int(profile.get("elo", RankingRules.INITIAL_ELO)),
@@ -7068,6 +7114,7 @@ func _apply_server_profile(value: Variant) -> void:
 	var remote_deck = profile.get("deck", [])
 	deck = (remote_deck as Array).duplicate() if typeof(remote_deck) == TYPE_ARRAY else []
 	gacha_tickets = maxi(0, int(profile.get("gacha_tickets", STARTING_GACHA_TICKETS)))
+	wallet_gold = maxi(0, int(profile.get("wallet_gold", wallet_gold)))
 	var rank_profile = RankingRules.normalize_profile(_player_profile())
 	rank_profile["player_id"] = OnlineRoom.current_user_id
 	rank_profile["rank_key"] = String(profile.get("rank_key", rank_profile["rank_key"]))
@@ -7089,6 +7136,8 @@ func _apply_server_profile(value: Variant) -> void:
 func _update_server_profile_sync(delta: float) -> void:
 	if OnlineRoom.current_user_id == "" or online_room_service == null:
 		return
+	if not account_pending_profile.is_empty():
+		return
 	account_profile_sync_timer -= delta
 	if account_profile_sync_timer > 0.0:
 		return
@@ -7096,7 +7145,9 @@ func _update_server_profile_sync(delta: float) -> void:
 	var snapshot = _server_profile_snapshot()
 	var signature = JSON.stringify(snapshot)
 	if signature != account_profile_signature and bool(online_room_service.call("is_connected_to_server")):
-		OnlineRoom.save_player_profile(snapshot)
+		account_pending_profile = snapshot.duplicate(true)
+		if not OnlineRoom.save_player_profile(snapshot):
+			account_pending_profile.clear()
 
 
 func _handle_account_center_tap(pos: Vector2) -> void:
@@ -7291,7 +7342,7 @@ func _draw_account_switcher() -> void:
 
 func _draw_lobby_multiplayer_button() -> void:
 	var rect = _multiplayer_start_rect()
-	_box(rect, HanddrawnSkin.SECONDARY, COLOR_LINE, 0)
+	_box(rect, HanddrawnSkin.PROMOTED, COLOR_LINE, 0)
 	_draw_text_center("多人对战", _multiplayer_button_title_rect(), 25, Color.WHITE)
 	_draw_multiplayer_hot_badge()
 
@@ -7433,8 +7484,10 @@ func _draw_room_slot(rect: Rect2, team: int, active: bool) -> void:
 			title = "%d号 · 空位" % team
 			detail = "点击复制邀请"
 	_box(rect, fill, COLOR_LINE, 3)
-	_draw_text_fit(title, Rect2(rect.position + Vector2(14, 10), Vector2(rect.size.x - 28, 26)), 20, Color.WHITE)
-	_draw_text_fit(detail, Rect2(rect.position + Vector2(14, 38), Vector2(rect.size.x - 28, 22)), 14, Color(0.94, 0.95, 1.0))
+	var name_lines = _split_text_for_width(title, rect.size.x - 28, 20, 2)
+	for line_index in range(name_lines.size()):
+		_draw_text_native(String(name_lines[line_index]), Rect2(rect.position + Vector2(14, 10 + line_index * 26), Vector2(rect.size.x - 28, 26)), 20, HanddrawnSkin.INK, HORIZONTAL_ALIGNMENT_LEFT)
+	_draw_text_fit(detail, Rect2(rect.position + Vector2(14, 16 + name_lines.size() * 26), Vector2(rect.size.x - 28, 22)), 14, Color(0.94, 0.95, 1.0))
 
 
 func _online_slot_for_team(team: int) -> Dictionary:
@@ -7449,8 +7502,10 @@ func _room_slot_ready_for_display(slot: Dictionary) -> bool:
 
 
 func _room_human_display_name(slot: Dictionary) -> String:
-	var display_name = String(slot.get("display_name", "")).strip_edges()
-	return display_name if not display_name.is_empty() else "未命名玩家"
+	if bool(slot.get("is_local", false)):
+		return _online_player_name()
+	var nickname = String(slot.get("username", slot.get("display_name", "")))
+	return PlayerDisplayName.resolve(nickname, String(slot.get("account", "")), String(slot.get("user_id", "")))
 
 
 func _draw_lobby_deck_animals(area: Rect2) -> void:
@@ -7716,6 +7771,8 @@ func _draw_top_bar() -> void:
 
 
 func _draw_match_status() -> void:
+	if battle_mode == BATTLE_MODE_MULTIPLAYER and not multiplayer_free_for_all:
+		return
 	var rect = Rect2(250, 18, 220, 44)
 	_box(rect, Color(0.15, 0.12, 0.34, 0.92), COLOR_LINE, 3)
 	_draw_text_center(_match_status_text(), rect, 17, Color.WHITE)
@@ -8797,7 +8854,7 @@ func _draw_result_overlay() -> void:
 		var star_text = ("+" if last_multiplayer_star_delta > 0 else "") + str(last_multiplayer_star_delta)
 		_draw_text_center("奖励：%s星  %d抽卡券" % [star_text, reward_tickets], Rect2(panel.position + Vector2(0, 82), Vector2(panel.size.x, 32)), 21, COLOR_LINE)
 	else:
-		_draw_text_center("奖励：+%d 抽卡券" % reward_tickets, Rect2(panel.position + Vector2(0, 82), Vector2(panel.size.x, 32)), 21, COLOR_LINE)
+		_draw_text_center("奖励：%d 抽卡券  %d 金币" % [reward_tickets, last_battle_reward_gold], Rect2(panel.position + Vector2(0, 82), Vector2(panel.size.x, 32)), 21, COLOR_LINE)
 	_draw_text_center("我的结算", Rect2(92, 302, 536, 28), 20, COLOR_PURPLE)
 	var local_entry = {}
 	for entry in result_player_entries:

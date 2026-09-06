@@ -20,7 +20,15 @@ func _ready() -> void:
 		var rarity = String(entry.get("rarity", ""))
 		rarity_counts[rarity] = int(rarity_counts.get(rarity, 0)) + 1
 	_expect(avatar_catalog.size() == 60, "runtime avatar catalog includes all 60 animal cards")
-	_expect(rarity_counts == {"common": 10, "rare": 9, "epic": 21, "legendary": 20}, "avatar catalog preserves every card rarity")
+	var expected_rarity_counts = {"common": 0, "rare": 0, "epic": 0, "legendary": 0}
+	for card in cards:
+		if not String(card.get("art_path", "")).contains("/animals/"):
+			continue
+		var rarity = String(card.get("rarity", "common"))
+		expected_rarity_counts[rarity] = int(expected_rarity_counts.get(rarity, 0)) + 1
+		var matches = avatar_catalog.filter(func(entry): return entry.get("card_id") == card.get("id"))
+		_expect(matches.size() == 1 and matches[0].get("rarity") == rarity, "avatar rarity matches current producer table: " + String(card.id))
+	_expect(rarity_counts == expected_rarity_counts, "avatar catalog preserves every current card rarity")
 	var store = PlayerAccountStore.new(TEST_PATH)
 	var installation_id = "a7".repeat(32)
 	var recovery_secret = "b8".repeat(32)

@@ -233,6 +233,18 @@ def validate(schema: dict[str, Any], tables: dict[str, list[dict[str, str]]]) ->
 
     errors.extend(check_defense_card_mirror(tables))
 
+    reward_values = {row["key"]: row["value"] for row in tables.get("global", [])}
+    try:
+        reward_min = int(reward_values["classic_reward_gold_min_multiplier"])
+        reward_max = int(reward_values["classic_reward_gold_max_multiplier"])
+        if not 3 <= reward_min <= reward_max <= 5:
+            errors.append("classic reward gold multipliers must stay within 3..5")
+        for key in ("classic_win_reward_tickets", "classic_loss_reward_tickets"):
+            if int(reward_values[key]) < 1:
+                errors.append(f"{key} must grant at least one ticket")
+    except (KeyError, ValueError):
+        errors.append("classic battle reward configuration is missing or invalid")
+
     # A changed description must be implemented, not silently interpreted as an
     # obsolete effect or a no-op. Match the engine's exact-text compiler keys.
     profile_source = ROOT / "scripts/app/systems/animal_skill_rules.gd"

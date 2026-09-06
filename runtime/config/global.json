@@ -7,5 +7,9 @@
   "default_stage_time_sec": 180,
   "max_party_size": 3,
   "camera_follow_smoothing": 0.12,
-  "enable_debug_menu": true
+  "enable_debug_menu": true,
+  "classic_win_reward_tickets": 3,
+  "classic_loss_reward_tickets": 1,
+  "classic_reward_gold_min_multiplier": 3,
+  "classic_reward_gold_max_multiplier": 5
 }

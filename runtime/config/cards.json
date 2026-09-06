@@ -538,7 +538,7 @@
     "skill_cooldown_sec": null,
     "skill_chance": null,
     "skill_target": null,
-    "skill_text": "召唤时，立刻提高随机2个友军各3点生命",
+    "skill_text": "出生时，立刻提高随机2个友军各3点生命",
     "tags": [
       "tier_2",
       "common",
@@ -1096,7 +1096,7 @@
     "skill_cooldown_sec": null,
     "skill_chance": null,
     "skill_target": null,
-    "skill_text": "召唤时，对最高攻击力敌人造成6点伤害",
+    "skill_text": "出生时，对最高攻击力敌人造成6点伤害",
     "tags": [
       "tier_4",
       "rare",

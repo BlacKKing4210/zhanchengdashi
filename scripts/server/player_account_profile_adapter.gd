@@ -18,6 +18,7 @@ func normalize_profile(source: Dictionary) -> Dictionary:
 		"card_levels": _positive_int_dictionary(source.get("card_levels", {}), 1),
 		"deck": _string_array(source.get("deck", []), 8),
 		"gacha_tickets": maxi(0, int(source.get("gacha_tickets", 10))),
+		"wallet_gold": maxi(0, int(source.get("wallet_gold", 60))),
 		"rank_stars": maxi(0, int(source.get("rank_stars", 1))),
 		"rank_key": String(source.get("rank_key", "bronze")).strip_edges(),
 		"elo": maxi(0, int(source.get("elo", 1000))),
