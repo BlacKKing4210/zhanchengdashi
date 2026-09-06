@@ -15,6 +15,7 @@ var failures = 0
 var base_key: Vector2i
 
 func _ready() -> void:
+	seed(8421)
 	GameAudio.sfx_enabled = false
 	app = IsolatedApp.new()
 	add_child(app)
@@ -111,7 +112,9 @@ func event_contract() -> void:
 	var dog = spawn("dog")
 	var before = float(app.units[dog].attack)
 	spawn("rabbit")
-	eq(app.units[dog].attack, before + 1, "dog observes allied birth")
+	eq(app.units[dog].attack, before, "ordinary allied birth does not buff dog")
+	app._spawn_unit(app.PLAYER, base_key, "mouse")
+	eq(app.units[dog].attack, before + 1, "dog observes successful extra birth only once")
 	spawn("rabbit", 1)
 	eq(app.units[dog].attack, before + 1, "enemy birth excluded")
 	reset()

@@ -234,6 +234,7 @@ var card_counts = {}
 var card_levels = {}
 var gacha_tickets = STARTING_GACHA_TICKETS
 var last_gacha_cards = []
+var gacha_detail_card_id = ""
 var gacha_pending_cards = []
 var gacha_card_flip_timers = []
 var gacha_fx_timer = 0.0
@@ -938,8 +939,9 @@ func _reset_multiplayer_board_pan() -> void:
 	# Initial framing uses the HUD-safe area; drawing/culling still use the whole screen.
 	var focus_rect = Rect2(20, 144, 680, 968)
 	var desired_pos = focus_rect.position + Vector2(focus_rect.size.x * 0.5, focus_rect.size.y * 0.76)
-	board_pan = desired_pos - view_rect.get_center() - base_pos * _battle_camera_zoom()
-	var projected_bounds = Rect2(multiplayer_board_bounds.position * _battle_camera_zoom(), multiplayer_board_bounds.size * _battle_camera_zoom())
+	board_pan = desired_pos - view_rect.get_center() - _battle_view_vector(base_pos) * _battle_camera_zoom()
+	var view_bounds = _battle_view_bounds(multiplayer_board_bounds)
+	var projected_bounds = Rect2(view_bounds.position * _battle_camera_zoom(), view_bounds.size * _battle_camera_zoom())
 	for axis in range(2):
 		if projected_bounds.size[axis] <= focus_rect.size[axis]:
 			board_pan[axis] = focus_rect.get_center()[axis] - view_rect.get_center()[axis] - projected_bounds.get_center()[axis]
@@ -955,6 +957,7 @@ func _clamp_board_pan() -> void:
 	var bounds = multiplayer_board_bounds
 	if bounds.size.x <= 0.0 or bounds.size.y <= 0.0:
 		bounds = MultiplayerRules.board_bounds(tiles, Vector2.ZERO, HEX_SIZE)
+	bounds = _battle_view_bounds(bounds)
 	var camera_zoom = _battle_camera_zoom()
 	bounds = Rect2(bounds.position * camera_zoom, bounds.size * camera_zoom)
 	var view_center = view_rect.get_center()
@@ -4073,6 +4076,7 @@ func _spawn_unit(team: int, key: Vector2i, card_id: String, is_extra: bool = fal
 		"skill_chance": float(card.get("skill_chance", 1.0)),
 		"skill_target": String(card.get("skill_target", "self")),
 		"skill_triggers_enabled": skill_triggers_enabled,
+		"spawn_origin": String(spawn_context.get("spawn_origin", "ordinary")),
 		"death_summon_lineage": death_summon_lineage,
 		"pos": spawn_pos,
 		"hp": float(stats["max_hp"]),
@@ -4117,8 +4121,10 @@ func _spawn_unit(team: int, key: Vector2i, card_id: String, is_extra: bool = fal
 	_pulse(base_pos, Color(0.75, 0.95, 1.0))
 	_play_world_sfx("unit_spawn", spawn_pos, team, -7.0 if is_extra else 0.0)
 	if not is_extra and skill_triggers_enabled:
+		var extra_context = spawn_context.duplicate(true)
+		extra_context["spawn_origin"] = "birth_extra"
 		for n in range(_card_extra_spawn_count(card)):
-			_spawn_unit(team, key, String(card.get("id", card_id)), true, n + 1, spawn_context)
+			_spawn_unit(team, key, String(card.get("id", card_id)), true, n + 1, extra_context)
 
 
 func _ensure_unit_navigation_target(unit: Dictionary) -> Dictionary:
@@ -5111,7 +5117,7 @@ func _gold_for_team(team: int) -> int:
 
 
 func _display_gold() -> int:
-	return _gold_for_team(_local_control_team()) if screen == SCREEN_BATTLE else wallet_gold
+	return _gold_for_team(_local_control_team()) if screen == SCREEN_BATTLE and not game_over else wallet_gold
 
 
 func _spend_team_gold(team: int, amount: int) -> bool:
@@ -6339,6 +6345,29 @@ func _handle_gacha_tap(pos: Vector2) -> void:
 	if _gacha_draw_rect().has_point(pos):
 		_draw_gacha_rewards(1)
 		return
+	if not gacha_detail_card_id.is_empty():
+		if _upgrade_button_rect().has_point(pos):
+			selected_card_id = gacha_detail_card_id
+			_try_upgrade_selected_card()
+			return
+		if _equip_button_rect().has_point(pos) and _can_show_equip_button(gacha_detail_card_id):
+			selected_card_id = gacha_detail_card_id
+			page_router.go_to(SCREEN_DECK)
+			screen = SCREEN_DECK
+			gacha_detail_card_id = ""
+			_start_equip_selected_card()
+			return
+	for i in range(last_gacha_cards.size()):
+		if _gacha_reward_card_rect(i, last_gacha_cards.size()).has_point(pos):
+			var card_id = String(last_gacha_cards[i])
+			if gacha_detail_card_id == card_id:
+				gacha_detail_card_id = ""
+			else:
+				gacha_detail_card_id = card_id
+				_show_card_detail(card_id)
+			return
+	if not _gacha_detail_rect().has_point(pos):
+		gacha_detail_card_id = ""
 
 
 func _draw_gacha_rewards(count: int) -> void:
@@ -6347,6 +6376,7 @@ func _draw_gacha_rewards(count: int) -> void:
 		_toast("抽卡券不足")
 		return
 	gacha_tickets -= count
+	gacha_detail_card_id = ""
 	last_gacha_cards.clear()
 	gacha_pending_cards.clear()
 	gacha_card_flip_timers.clear()
@@ -6498,6 +6528,7 @@ func _handle_nav(pos: Vector2) -> bool:
 			screen = SCREEN_DECK
 		elif id == SCREEN_GACHA:
 			screen = SCREEN_GACHA
+			gacha_detail_card_id = ""
 			pending_equip_card_id = ""
 		elif id == SCREEN_LOBBY:
 			screen = SCREEN_LOBBY
@@ -7616,6 +7647,8 @@ func _draw_gacha_screen() -> void:
 	var can_draw = not _is_gacha_animating()
 	_cta(_gacha_draw_rect(), "抽1次", true, can_draw and gacha_tickets > 0)
 	_cta(_gacha_ten_draw_rect(), "抽10次", true, can_draw and gacha_tickets >= 10)
+	if not gacha_detail_card_id.is_empty() and last_gacha_cards.has(gacha_detail_card_id):
+		_draw_card_detail(_gacha_detail_rect(), gacha_detail_card_id)
 
 
 func _draw_gacha_reward_card(index: int, card: Dictionary, count: int) -> void:
@@ -7634,7 +7667,7 @@ func _draw_gacha_reward_card(index: int, card: Dictionary, count: int) -> void:
 			_draw_card(flipped_rect, card, true)
 			_draw_gacha_card_glow(rect, progress)
 		return
-	_draw_card(rect, card, true)
+	_draw_card(rect, card, String(card.get("id", "")) == gacha_detail_card_id)
 
 
 func _gacha_reward_card_rect(index: int, count: int) -> Rect2:
@@ -7931,11 +7964,14 @@ func _draw_tile(key: Vector2i, tile: Dictionary) -> void:
 	var visual_team = BoardRules.visual_owner(tile)
 	var is_eliminated_gray = int(tile.get("eliminated_team", NEUTRAL)) != NEUTRAL and visual_team == NEUTRAL
 	var terrain_id = 3 if is_eliminated_gray else HanddrawnSkin.terrain_index(visual_team, battle_mode == BATTLE_MODE_MULTIPLAYER and not multiplayer_free_for_all, battle_match_seed)
-	var radius = HEX_SIZE * _battle_camera_zoom()
-	# Rotate the supplied flat-top PNG into the unchanged pointy-top world grid.
-	_set_tracked_draw_transform(canvas_offset + center * canvas_scale, PI * 0.5, Vector2.ONE * canvas_scale)
-	draw_texture_rect(HanddrawnSkin.TERRAIN[terrain_id], Rect2(-radius + 0.8, -radius * 0.866 + 0.8, radius * 2.0 - 1.6, radius * 1.732 - 1.6), false, Color(1, 1, 1, 0.78))
-	_set_tracked_draw_transform(canvas_offset, 0.0, Vector2.ONE * canvas_scale)
+	var points = _terrain_hex_points(center)
+	var radius = HEX_SIZE * _battle_camera_zoom() * 0.96
+	var uv = PackedVector2Array()
+	for point in points:
+		uv.append((point - center) / (Vector2(radius * 2.0, radius * sqrt(3.0)) * 1.08) + Vector2(0.5, 0.5))
+	# Clip slightly inside the irregular PNG alpha edge. Regular geometry makes
+	# every seam equal without changing original pixels or the approved opacity.
+	draw_polygon(points, PackedColorArray([Color(1, 1, 1, 0.78)]), uv, HanddrawnSkin.TERRAIN[terrain_id])
 	_draw_world_tile_content(center, tile, can_unlock, unlock_cost)
 
 
@@ -8237,11 +8273,15 @@ func _draw_unit(unit: Dictionary) -> void:
 			var direction = Vector2.from_angle(phase + n * PI * 0.5)
 			draw_line(foot + direction * 20 * camera_zoom, foot + direction * 26 * camera_zoom, aura_color, 2, true)
 	if unit.has("charge_windup"):
-		var charge_dir = world_pos.direction_to(Vector2(unit.get("charge_finish", world_pos)))
+		var charge_dir = _battle_view_vector(world_pos.direction_to(Vector2(unit.get("charge_finish", world_pos))))
 		draw_line(pos, pos + charge_dir * 38, Color("e58c39"), 3, true)
 		draw_arc(pos + Vector2(0, 14), 23, -PI * 0.5, -PI * 0.5 + TAU * (1 - float(unit.charge_windup) / 2), 30, Color("ffce50"), 3, true)
 	var texture = _card_texture(card)
-	var pose = UnitMotionFeedback.pose(unit)
+	var visual_unit = unit.duplicate()
+	for direction_key in ["motion_direction", "motion_move_direction", "motion_pending_direction"]:
+		if visual_unit.has(direction_key):
+			visual_unit[direction_key] = _battle_view_vector(Vector2(visual_unit[direction_key]))
+	var pose = UnitMotionFeedback.pose(visual_unit)
 	pose["offset"] = Vector2(pose.get("offset", Vector2.ZERO)) + Vector2(sin(float(unit.get("dodge_time", 0)) / 0.3 * PI) * 18, -float(unit.get("jump_height", 0)))
 	var bottom_padding_ratio = _animal_art_bottom_padding_ratio(card)
 	var source_rect = Rect2()
@@ -8516,6 +8556,8 @@ func _draw_effect(effect: Dictionary) -> void:
 		elif effect.has("pos") and not _is_world_pos_visible(_effect_world_position(effect), 120.0):
 			return
 	if kind == UnitMotionFeedback.KIND_DEATH:
+		var visual_effect = effect.duplicate()
+		visual_effect["direction"] = _battle_view_vector(Vector2(effect.get("direction", Vector2.RIGHT)))
 		var dead_card = _card_by_id(String(effect.get("card_id", "")))
 		if dead_card.is_empty():
 			return
@@ -8536,7 +8578,7 @@ func _draw_effect(effect: Dictionary) -> void:
 			dead_texture,
 			dead_pos + Vector2(0, 14),
 			Vector2(44, 44),
-			UnitMotionFeedback.death_pose(effect),
+			UnitMotionFeedback.death_pose(visual_effect),
 			_battle_animal_art_visual_scale(dead_card),
 			dead_bottom_padding,
 			dead_source_rect
@@ -8990,8 +9032,8 @@ func _draw_card_level_badge(rect: Rect2, card_id: String) -> void:
 	_draw_text_center(str(_card_level(card_id)), rect, 18, HanddrawnSkin.INK)
 
 
-func _draw_card_detail(rect: Rect2) -> void:
-	var card = _card_by_id(selected_card_id)
+func _draw_card_detail(rect: Rect2, detail_card_id: String = "") -> void:
+	var card = _card_by_id(detail_card_id if not detail_card_id.is_empty() else selected_card_id)
 	var pop = 0.0
 	var detail_motion_progress = -1.0
 	if detail_upgrade_motion_timer > 0.0:
@@ -9392,18 +9434,42 @@ func _multiplayer_camera_offset() -> Vector2:
 
 func _world_to_canvas(pos: Vector2) -> Vector2:
 	if _uses_axial_battle_map():
-		return pos * _battle_camera_zoom() + _multiplayer_camera_offset()
-	return pos
+		return _battle_view_vector(pos) * _battle_camera_zoom() + _multiplayer_camera_offset()
+	var center = _battle_view_rect().get_center()
+	return center + _battle_view_vector(pos - center)
 
 
 func _canvas_to_world(pos: Vector2) -> Vector2:
 	if _uses_axial_battle_map():
-		return (pos - _multiplayer_camera_offset()) / _battle_camera_zoom()
-	return pos
+		var projected = (pos - _multiplayer_camera_offset()) / _battle_camera_zoom()
+		return Vector2(-projected.y, projected.x)
+	var center = _battle_view_rect().get_center()
+	var projected = pos - center
+	return center + Vector2(-projected.y, projected.x)
+
+
+func _battle_view_vector(value: Vector2) -> Vector2:
+	# Quarter-turn presentation only: authority, navigation and distances stay
+	# in the original world coordinates, compatible with online snapshots.
+	return Vector2(value.y, -value.x)
+
+
+func _battle_view_bounds(bounds: Rect2) -> Rect2:
+	return Rect2(Vector2(bounds.position.y, -bounds.end.x), Vector2(bounds.size.y, bounds.size.x))
 
 
 func _hex_points(center: Vector2) -> PackedVector2Array:
-	return BoardRules.hex_points(center, HEX_SIZE * _battle_camera_zoom())
+	var points = PackedVector2Array()
+	for point in BoardRules.hex_points(Vector2.ZERO, HEX_SIZE * _battle_camera_zoom()):
+		points.append(center + _battle_view_vector(point))
+	return points
+
+
+func _terrain_hex_points(center: Vector2) -> PackedVector2Array:
+	var points = _hex_points(center)
+	for i in range(points.size()):
+		points[i] = center + (points[i] - center) * 0.96
+	return points
 
 
 func _closed_points(points: PackedVector2Array) -> PackedVector2Array:
@@ -9642,15 +9708,23 @@ func _gacha_ten_draw_rect() -> Rect2:
 
 
 func _upgrade_button_rect() -> Rect2:
+	if screen == SCREEN_GACHA:
+		return Rect2(_gacha_detail_rect().position + Vector2(488, 82), Vector2(116, 36))
 	return Rect2(522, 602, 116, 36)
 
 
 func _equip_button_rect() -> Rect2:
+	if screen == SCREEN_GACHA:
+		return Rect2(_gacha_detail_rect().position + Vector2(488, 40), Vector2(116, 34))
 	return Rect2(522, 560, 116, 34)
 
 
+func _gacha_detail_rect() -> Rect2:
+	return Rect2(34, 958, 652, 128)
+
+
 func _pause_button_rect() -> Rect2:
-	return Rect2(610, 78, 62, 56)
+	return Rect2(610, 116 if _should_draw_3v3_team_scoreboard() else 78, 62, 56)
 
 
 func _pause_continue_rect() -> Rect2:

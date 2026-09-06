@@ -352,7 +352,7 @@
     "skill_cooldown_sec": null,
     "skill_chance": null,
     "skill_target": null,
-    "skill_text": "友军出生进行召唤时，攻击+1",
+    "skill_text": "友军出生时每额外召唤1只动物，自身攻击+1",
     "tags": [
       "tier_2",
       "common",

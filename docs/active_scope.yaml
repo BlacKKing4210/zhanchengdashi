@@ -436,6 +436,17 @@ shared_locks:
     remote_target: OpenClaw-ejrr
     remote_environment: staging
     real_resource_grant_authorized: false
+  dog_rewards_gacha_20260906:
+    task_id: REQ-20260906-DOG-REWARDS-GACHA
+    owner: codex-primary
+    status: RELEASED
+    read_only_receipt: docs/receipts/REQ-20260906-DOG-REWARDS-GACHA.md
+    write_set: [scripts/app/main.gd, scripts/app/systems/animal_skill_runtime.gd, scripts/app/systems/animal_skill_rules.gd, config/tables/cards.csv, runtime/config/cards.json, tests/]
+    evidence_root: temp/qa/dog-rewards-gacha-20260906
+    continuation_receipt: docs/receipts/REQ-20260906-ALL-ANIMALS-AUDIT.md
+    additional_write_set: [assets/art/terrain/handdrawn/manifest.json, export_presets.cfg, docs/CURRENT_GAME_DESIGN.md, outputs/019feef3-0034-7a90-b271-0ef2a651b042/]
+    completion_receipt: docs/receipts/REQ-20260906-ALL-ANIMALS-AUDIT.md
+    release_reason: local_animal_terrain_corrections_and_test_apk_complete_cloud_identity_pending
   online_rewards_apk_20260906:
     task_id: REQ-20260906-ONLINE-REWARDS-APK
     owner: codex-primary

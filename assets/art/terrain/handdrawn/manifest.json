@@ -1,6 +1,6 @@
 {
   "source": "output/visual_concepts/reference_exact_20260905/references/hex/ (producer-supplied originals)",
-  "pixel_policy": "Byte-identical source copies. Godot rotates flat-top images 90 degrees into the existing pointy-top grid, and blends at 0.78 opacity over warm paper. No gameplay geometry changes.",
+  "pixel_policy": "Byte-identical source copies. Flat-top presentation uses a minus-90-degree world-to-canvas projection and inverse input. Original texture interiors use 1.08 UV zoom and regular hex clipping at 0.96 radius scale for equal six-side seams, retaining original 0.78 opacity. No gameplay/world geometry or original pixel changes.",
   "files": {
     "yellow.png": {"source": "图层 31 拷贝 2.png", "sha256": "ee1fe02515c5fb1aa326953d1ac8a301bc9d609f260a5780c9410d6591c8d457"},
     "blue.png": {"source": "图层 31 拷贝 3.png", "sha256": "f2493f5cd98a23f672dc95d1acdf78ac9c5c274cee680068b45f972925ba4f8b"},

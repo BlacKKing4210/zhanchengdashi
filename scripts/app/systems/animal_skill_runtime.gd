@@ -39,8 +39,9 @@ func on_spawn(i: int) -> void:
 	u["next_skill_age"] = 8.0
 	u["charge_wait"] = 4.0
 	var allies = candidates(int(u.team), true, i)
-	for j in allies:
-		buff(j, float(profile(a.units[j]).get("ally_spawn_attack", 0)), 0)
+	if String(u.get("spawn_origin", "")) == "birth_extra":
+		for j in allies:
+			buff(j, float(profile(a.units[j]).get("ally_extra_spawn_attack", 0)), 0)
 	match String(p.get("spawn", "")):
 		"ally_hp":
 			allies.shuffle()
@@ -201,11 +202,13 @@ func attack(i: int, target: Dictionary) -> void:
 	var u = a.units[i]
 	var p = profile(u)
 	var targets = [stable_target(target)]
-	var others = candidates(int(u.team), false, int(target.get("index", -1)))
-	others.sort_custom(func(x, y): return Vector2(a.units[x].pos).distance_squared_to(u.pos) < Vector2(a.units[y].pos).distance_squared_to(u.pos))
-	for j in others:
-		if targets.size() > int(p.get("extra_targets", 0)): break
-		if Vector2(a.units[j].pos).distance_to(u.pos) <= float(u.range): targets.append(unit_target(j))
+	var extra_targets = int(p.get("extra_targets", 0))
+	if extra_targets > 0:
+		var others = candidates(int(u.team), false, int(target.get("index", -1)))
+		others.sort_custom(func(x, y): return Vector2(a.units[x].pos).distance_squared_to(u.pos) < Vector2(a.units[y].pos).distance_squared_to(u.pos))
+		for j in others:
+			if targets.size() > extra_targets: break
+			if Vector2(a.units[j].pos).distance_to(u.pos) <= float(u.range): targets.append(unit_target(j))
 	a._trigger_unit_motion(i, "attack", Vector2(target.pos) - Vector2(u.pos))
 	a._play_world_sfx("ranged_attack" if bool(u.get("is_ranged", false)) else "unit_attack", Vector2(u.pos), int(u.team), -4)
 	for t in targets:

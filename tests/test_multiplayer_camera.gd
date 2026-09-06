@@ -33,8 +33,8 @@ func _test_camera_drag_keeps_world_state_stable() -> void:
 	_expect_float_close(float(app.call("_battle_camera_zoom")), 1.30, "default axial battle camera is 30 percent closer")
 	_expect_vector_close(
 		Vector2(app.call("_world_to_canvas", enemy_base_world)) - Vector2(app.call("_world_to_canvas", player_base_world)),
-		(enemy_base_world - player_base_world) * 1.30,
-		"camera zoom scales world projection without changing world coordinates"
+		app._battle_view_vector(enemy_base_world - player_base_world) * 1.30,
+		"flat-top camera rotates/scales projection without changing world coordinates"
 	)
 	var zoomed_hex_points: PackedVector2Array = app.call("_hex_points", Vector2.ZERO)
 	_expect_float_close(zoomed_hex_points[0].length(), HEX_SIZE * 1.30, "hex geometry uses the 1.30 camera zoom")
