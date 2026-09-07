@@ -558,7 +558,7 @@
     "attack": 1,
     "max_hp": 7,
     "move_speed": 1.0,
-    "attack_range": 0.0,
+    "attack_range": 1.5,
     "summon_interval_sec": 7.0,
     "attack_lv": 0.33,
     "max_hp_lv": 0.75,

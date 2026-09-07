@@ -326,6 +326,8 @@ var team_unlocked_colors = {}
 var tower_purchase_counts = {}
 var combat_building_keys = []
 var game_over = false
+var result_ack_pending = false
+var result_ack_delay = 0.0
 var pause_open = false
 var account_center_open = false
 var player_agreement_open = false
@@ -444,6 +446,7 @@ func _process(delta: float) -> void:
 	_update_account_clipboard_expiry(delta)
 	_update_building_card_preview(delta)
 	_update_gacha_animation(delta)
+	result_ack_delay = maxf(0.0, result_ack_delay - delta)
 	_update_account_fields_layout()
 	_update_online_room_code_field_layout()
 	_update_server_profile_sync(delta)
@@ -805,7 +808,8 @@ func _handle_tap(screen_pos: Vector2) -> void:
 			return
 
 	if game_over:
-		if _result_return_rect().has_point(pos):
+		if _result_return_rect().has_point(pos) and result_ack_delay <= 0.0:
+			result_ack_pending = false
 			GameAudio.play_sfx("ui_confirm")
 			_return_to_lobby()
 		return
@@ -1288,13 +1292,15 @@ func _on_online_server_connection_failed(message: String) -> void:
 
 
 func _on_online_server_disconnected() -> void:
+	var keep_result = screen == SCREEN_BATTLE and result_ack_pending
 	account_pending_profile.clear()
 	online_connection_state = "offline"
 	_clear_all_account_password_memory()
 	_reset_online_room_state()
 	if _is_online_match_active():
 		_clear_online_match_state()
-		screen = SCREEN_ROOM
+		if not keep_result:
+			screen = SCREEN_ROOM
 	_schedule_online_reconnect()
 	_toast("互联网房间服务器已断开")
 
@@ -1491,9 +1497,11 @@ func _on_online_room_snapshot(snapshot: Dictionary) -> void:
 
 
 func _on_online_room_left() -> void:
+	var keep_result = screen == SCREEN_BATTLE and result_ack_pending
 	_reset_online_room_state()
 	_clear_online_match_state()
-	screen = SCREEN_ROOM
+	if not keep_result:
+		screen = SCREEN_ROOM
 	_toast("已离开互联网房间")
 
 
@@ -1677,6 +1685,10 @@ func _online_battle_snapshot() -> Dictionary:
 func _apply_online_battle_snapshot(snapshot: Dictionary) -> void:
 	if String(snapshot.get("match_id", "")) != online_match_id:
 		return
+	# A terminal result belongs to the player until acknowledged. Late live
+	# snapshots must not erase it or trigger a second reward settlement.
+	if result_ack_pending:
+		return
 	var was_game_over = game_over
 	var base_result_audio_played = false
 	if typeof(snapshot.get("tiles", null)) == TYPE_DICTIONARY:
@@ -1751,6 +1763,7 @@ func _play_online_snapshot_base_result_audio(previous_tiles: Dictionary, snapsho
 
 
 func _apply_online_local_result(authority_outcome: String, play_audio: bool = true) -> void:
+	_hold_battle_result()
 	authority_room_result = authority_outcome
 	var local_outcome = _local_outcome_for_authority_result(authority_outcome)
 	room_result = local_outcome
@@ -2659,6 +2672,8 @@ func _reset_battle() -> void:
 	income_timer = INCOME_INTERVAL
 	enemy_timer = ENEMY_FIRST_UNLOCK_DELAY
 	game_over = false
+	result_ack_pending = false
+	result_ack_delay = 0.0
 	local_battle_report_id = Crypto.new().generate_random_bytes(16).hex_encode()
 	local_battle_report_submitted = false
 	pause_open = false
@@ -4118,6 +4133,9 @@ func _spawn_unit(team: int, key: Vector2i, card_id: String, is_extra: bool = fal
 	next_unit_id += 1
 	if skill_triggers_enabled:
 		_apply_unit_spawn_skill(spawned_index)
+	else:
+		# Suppressing a recipient's own skill does not make it immune to allies.
+		animal_skills.refresh_auras()
 	_pulse(base_pos, Color(0.75, 0.95, 1.0))
 	_play_world_sfx("unit_spawn", spawn_pos, team, -7.0 if is_extra else 0.0)
 	if not is_extra and skill_triggers_enabled:
@@ -4385,7 +4403,7 @@ func _keys_in_hex_radius(center: Vector2i, radius: int) -> Array:
 
 
 func _refresh_unit_skill_state(delta: float) -> void:
-	if units.is_empty() or units[0].has("animal_profile"):
+	if units.is_empty() or units.any(func(u): return u.has("animal_profile")):
 		animal_skills.tick(delta)
 		return
 	for i in range(units.size()):
@@ -4424,7 +4442,7 @@ func _refresh_unit_skill_state(delta: float) -> void:
 
 
 func _refresh_unit_aura_bonuses() -> void:
-	if not units.is_empty() and units[0].has("animal_profile"):
+	if units.any(func(u): return u.has("animal_profile")):
 		animal_skills.refresh_auras()
 		return
 	for i in range(units.size()):
@@ -5678,11 +5696,21 @@ func _battle_reward_tickets(text: String) -> int:
 	return int(ConfigDB.get_global("classic_win_reward_tickets", BATTLE_WIN_REWARD_TICKETS)) if text == "胜利" else int(ConfigDB.get_global("classic_loss_reward_tickets", BATTLE_LOSS_REWARD_TICKETS))
 
 
+func _hold_battle_result() -> void:
+	if not result_ack_pending:
+		result_ack_delay = 0.35
+	result_ack_pending = true
+	game_over = true
+	pause_open = false
+	toast_timer = 0.0
+
+
 func _finish_battle(text: String, play_audio: bool = true) -> void:
 	if game_over:
 		return
 	result_text = text
 	game_over = true
+	_hold_battle_result()
 	pause_open = false
 	if play_audio:
 		GameAudio.play_result("victory" if text == "胜利" else "defeat")
@@ -5702,7 +5730,7 @@ func _finish_battle(text: String, play_audio: bool = true) -> void:
 		wallet_gold += last_battle_reward_gold
 		_save_rank_database()
 		account_profile_sync_timer = 0.0
-		_toast("获得%d张抽卡券、%d金币" % [last_battle_reward_tickets, last_battle_reward_gold])
+		toast_timer = 0.0
 
 
 func _play_base_destroy_result_audio(defeated_team: int, attacker: int) -> bool:
@@ -5857,6 +5885,7 @@ func _finish_multiplayer_battle(outcome: String, play_audio: bool = true) -> voi
 	multiplayer_placement = 1 if local_outcome == "win" else (2 if local_outcome == "draw" else 3)
 	result_text = "胜利" if local_outcome == "win" else ("平局" if local_outcome == "draw" else "失败")
 	game_over = true
+	_hold_battle_result()
 	pause_open = false
 	if play_audio:
 		GameAudio.play_result("victory" if local_outcome == "win" else ("draw" if local_outcome == "draw" else "defeat"))
@@ -5875,8 +5904,7 @@ func _finish_multiplayer_battle(outcome: String, play_audio: bool = true) -> voi
 		gacha_tickets += last_battle_reward_tickets
 		_apply_multiplayer_rank_result(local_outcome, last_multiplayer_star_delta)
 		_rebuild_result_player_entries()
-		var star_text = ("+" if last_multiplayer_star_delta > 0 else "") + str(last_multiplayer_star_delta)
-		_toast("%s：%s星，%d张抽卡券" % [result_text, star_text, last_battle_reward_tickets])
+		toast_timer = 0.0
 
 
 func _finish_multiplayer_free_for_all(placement: int, play_audio: bool = true) -> void:
@@ -5887,6 +5915,7 @@ func _finish_multiplayer_free_for_all(placement: int, play_audio: bool = true) -
 	room_result = ""
 	result_text = "第%d名" % multiplayer_placement
 	game_over = true
+	_hold_battle_result()
 	pause_open = false
 	if play_audio:
 		GameAudio.play_result("victory" if multiplayer_placement == 1 else "defeat")
@@ -5905,8 +5934,7 @@ func _finish_multiplayer_free_for_all(placement: int, play_audio: bool = true) -
 		gacha_tickets += last_battle_reward_tickets
 		_apply_multiplayer_rank_result("win" if multiplayer_placement == 1 else "loss", last_multiplayer_star_delta)
 		_rebuild_result_player_entries()
-		var star_text = ("+" if last_multiplayer_star_delta > 0 else "") + str(last_multiplayer_star_delta)
-		_toast("第%d名：%s星，%d张抽卡券" % [multiplayer_placement, star_text, last_battle_reward_tickets])
+		toast_timer = 0.0
 
 
 func _room_result_rewards(outcome: String) -> Dictionary:
@@ -8147,7 +8175,7 @@ func _draw_building(center: Vector2, tile: Dictionary) -> void:
 	elif building == "tower":
 		var tower_texture = _tower_card_texture(tile)
 		if tower_texture != null:
-			_draw_texture_contained(tower_texture, Rect2(center + Vector2(-42, -58), Vector2(84, 84)))
+			_draw_texture_contained(tower_texture, _tower_art_rect(center, _building_visual_rarity(tile)))
 		else:
 			_draw_quality_tower(center + Vector2(0, -7), _building_visual_rarity(tile), true)
 	elif building == "mine":
@@ -8162,6 +8190,12 @@ func _draw_building(center: Vector2, tile: Dictionary) -> void:
 	elif building == "base" or building == "mine":
 		_draw_building_income_progress(center)
 	_draw_building_health_bar(center, tile)
+
+
+func _tower_art_rect(center: Vector2, rarity: String) -> Rect2:
+	# The caller already applies camera zoom to building content.
+	var size = float({"common": 56.0, "rare": 66.0, "epic": 76.0, "legendary": 84.0}.get(rarity, 56.0))
+	return Rect2(center + Vector2(-size * 0.5, 20.0 - size), Vector2.ONE * size)
 
 
 func _draw_building_summon_progress(center: Vector2, tile: Dictionary) -> void:
@@ -8546,8 +8580,15 @@ func _draw_effect(effect: Dictionary) -> void:
 			draw_circle(point, sqrt(3.0) * HEX_SIZE * _battle_camera_zoom() * progress, Color(1, 0.72, 0.22, (1 - progress) * 0.22))
 			draw_arc(point, sqrt(3.0) * HEX_SIZE * _battle_camera_zoom() * progress, 0, TAU, 32, Color(1, 0.88, 0.46, 1 - progress), 3, true)
 		else:
-			draw_line(_world_to_canvas(Vector2(effect.get("from", effect.pos))), point, Color("fff1ad"), 3, true)
-			draw_circle(point, 4, Color("ffe478"))
+			point -= Vector2(0, 18 * _battle_camera_zoom())
+			var start = _world_to_canvas(Vector2(effect.get("from", effect.pos))) - Vector2(0, 18 * _battle_camera_zoom())
+			var direction = start.direction_to(point)
+			if direction == Vector2.ZERO: direction = Vector2.RIGHT
+			var tail = point - direction * clampf(start.distance_to(point), 16.0, 26.0)
+			draw_line(tail, point, HanddrawnSkin.INK, 7, true)
+			draw_line(tail, point, Color("fff5c7"), 4, true)
+			draw_circle(point, 6, HanddrawnSkin.INK)
+			draw_circle(point, 4, Color("fff3a4"))
 		return
 	if _uses_axial_battle_map():
 		if kind == "projectile":
@@ -8894,9 +8935,10 @@ func _draw_result_overlay() -> void:
 	var reward_tickets = last_battle_reward_tickets if last_battle_reward_tickets > 0 else _battle_reward_tickets(result_text)
 	if battle_mode == BATTLE_MODE_MULTIPLAYER:
 		var star_text = ("+" if last_multiplayer_star_delta > 0 else "") + str(last_multiplayer_star_delta)
-		_draw_text_center("奖励：%s星  %d抽卡券" % [star_text, reward_tickets], Rect2(panel.position + Vector2(0, 82), Vector2(panel.size.x, 32)), 21, COLOR_LINE)
+		_resource(Rect2(188, 258, 156, 44), "星", star_text, COLOR_GOLD)
 	else:
-		_draw_text_center("奖励：%d 抽卡券  %d 金币" % [reward_tickets, last_battle_reward_gold], Rect2(panel.position + Vector2(0, 82), Vector2(panel.size.x, 32)), 21, COLOR_LINE)
+		_resource(Rect2(188, 258, 156, 44), "金币", "+%d" % last_battle_reward_gold, COLOR_YELLOW)
+	_resource(Rect2(376, 258, 156, 44), "券", "+%d" % reward_tickets, COLOR_BLUE)
 	_draw_text_center("我的结算", Rect2(92, 302, 536, 28), 20, COLOR_PURPLE)
 	var local_entry = {}
 	for entry in result_player_entries:
@@ -8921,7 +8963,7 @@ func _draw_result_overlay() -> void:
 		var thumb_height = maxf(42.0, track.size.y * other_rect.size.y / (other_rect.size.y + _result_players_max_scroll()))
 		var thumb_y = track.position.y + (track.size.y - thumb_height) * result_players_scroll / _result_players_max_scroll()
 		draw_rect(Rect2(track.position.x, thumb_y, track.size.x, thumb_height), COLOR_PURPLE)
-	_cta(_result_return_rect(), "返回房间" if battle_mode == BATTLE_MODE_MULTIPLAYER and not multiplayer_free_for_all else "返回主界面", true)
+	_cta(_result_return_rect(), "关闭", true, result_ack_delay <= 0.0)
 
 
 func _draw_result_player_row(rect: Rect2, entry: Dictionary, is_local: bool) -> void:
@@ -8937,7 +8979,8 @@ func _draw_result_player_row(rect: Rect2, entry: Dictionary, is_local: bool) -> 
 	var delta_text = ("+" if delta > 0 else "") + str(delta)
 	var delta_color = COLOR_GREEN if delta > 0 else (COLOR_RED if delta < 0 else COLOR_BLUE)
 	_draw_text_fit("%s  →  %s" % [String(entry.get("old_rank_display", "")), String(entry.get("new_rank_display", ""))], Rect2(rect.position + Vector2(66, rect.size.y - 34), Vector2(rect.size.x - 150, 26)), 17, COLOR_PURPLE)
-	_draw_text_right("%s星" % delta_text, Rect2(rect.end.x - 82, rect.position.y + rect.size.y * 0.5 - 13, 68, 26), 19, delta_color)
+	_draw_resource_icon(rect.position + Vector2(rect.size.x - 74, rect.size.y * 0.5), "星", COLOR_GOLD)
+	_draw_text_right(delta_text, Rect2(rect.end.x - 58, rect.position.y + rect.size.y * 0.5 - 13, 44, 26), 19, delta_color)
 
 
 func _draw_card(rect: Rect2, card: Dictionary, selected: bool, show_collection_state: bool = true, show_name: bool = true) -> void:
@@ -9262,11 +9305,27 @@ func _draw_toast() -> void:
 
 func _resource(rect: Rect2, label: String, value: String, color: Color) -> void:
 	_box(rect, HanddrawnSkin.SURFACE, COLOR_LINE, 0)
-	_draw_coin_icon(rect.position + Vector2(23, rect.size.y * 0.5), COLOR_BLUE if label.contains("券") else color)
-	# Until the approved distinctive icon atlas is ready, keep short resource names.
-	_draw_text_fit(label, Rect2(rect.position + Vector2(41, 0), Vector2(64, rect.size.y)), 16, HanddrawnSkin.INK)
-	var value_x = 98.0 if label.length() > 2 else 82.0
-	_draw_text_right(value, Rect2(rect.position + Vector2(value_x, 0), Vector2(rect.size.x - value_x - 14, rect.size.y)), 20, HanddrawnSkin.INK)
+	_draw_resource_icon(rect.position + Vector2(24, rect.size.y * 0.5), label, color)
+	_draw_text_right(value, Rect2(rect.position + Vector2(46, 0), Vector2(rect.size.x - 60, rect.size.y)), 22, HanddrawnSkin.INK)
+
+
+func _draw_resource_icon(center: Vector2, label: String, color: Color) -> void:
+	if label.contains("券"):
+		# A notched blue ticket silhouette stays distinct from the round gold coin.
+		var points = PackedVector2Array()
+		for offset in [Vector2(-14, -10), Vector2(14, -10), Vector2(14, -4), Vector2(10, 0), Vector2(14, 4), Vector2(14, 10), Vector2(-14, 10), Vector2(-14, 4), Vector2(-10, 0), Vector2(-14, -4)]:
+			points.append(center + offset)
+		draw_colored_polygon(points, HanddrawnSkin.BLUE)
+		draw_polyline(_closed_points(points), HanddrawnSkin.INK, 2, true)
+		for y in [-5, 0, 5]: draw_circle(center + Vector2(5, y), 1, HanddrawnSkin.INK)
+	elif label == "星":
+		var points = PackedVector2Array()
+		for i in range(10):
+			points.append(center + Vector2.from_angle(-PI * 0.5 + i * PI / 5) * (12.0 if i % 2 == 0 else 5.5))
+		draw_colored_polygon(points, HanddrawnSkin.PRIMARY)
+		draw_polyline(_closed_points(points), HanddrawnSkin.INK, 1.5, true)
+	else:
+		_draw_coin_icon(center, color)
 
 
 func _cta(rect: Rect2, label: String, primary: bool, enabled: bool = true) -> void:

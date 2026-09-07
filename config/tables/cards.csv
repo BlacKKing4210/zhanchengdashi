@@ -19,7 +19,7 @@ hedgehog,刺猬,rare,3,res://assets/card_art/animals/hedgehog.png,1,12,1,0,7,0.3
 turtle,乌龟,rare,3,res://assets/card_art/animals/turtle.png,1,10,0.5,0,7,0.33,1,,,,,,速度减半；受到伤害-1,tier_2|common|guard|shield|tank|skill,小单位克制,,
 goat,山羊,rare,3,res://assets/card_art/animals/goat.png,1,7,1,0,7,0.33,0.75,,,,,,跳跃；跳跃后对落地单元格内敌人造成1点伤害,tier_2|common|support|aura|hp|skill,AOE,,
 sheep,羊,rare,3,res://assets/card_art/animals/sheep.png,2,4,1,0,7,0.33,0.75,,,,,,出生时，立刻提高随机2个友军各3点生命,tier_2|common|support|hp|group_buff|skill,单体辅助,,
-parrot,鹦鹉,rare,3,res://assets/card_art/animals/parrot.png,1,7,1,0,7,0.33,0.75,,,,,,额外攻击1个敌人,tier_2|common|support|copy|skill|flying,AOE,,
+parrot,鹦鹉,rare,3,res://assets/card_art/animals/parrot.png,1,7,1,1.5,7,0.33,0.75,,,,,,额外攻击1个敌人,tier_2|common|support|copy|skill|flying,AOE,,
 beaver,河狸,rare,3,res://assets/card_art/animals/beaver.png,2,7,1,0,7,0.33,1,,,,,,出生时，我方1个随机建筑生命+5,tier_3|rare|bruiser|repair|building|skill,塔防,,
 fox,狐狸,epic,4,res://assets/card_art/animals/fox.png,2,1,1,1.5,10,0.5,0.63,,,,,,远程；群体光环：所有友军攻击+1/生命+1,tier_2|common|scout|attack|group_buff|skill,群怪核心,,
 monkey,猴子,epic,4,res://assets/card_art/animals/monkey.png,2,5,1,0,10,0.5,0.83,,,,,,暴击光环：暴击率+20%；暴击伤害+100%,tier_3|rare|support|copy|tempo|skill,暴击核心,,

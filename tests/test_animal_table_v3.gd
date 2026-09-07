@@ -319,6 +319,8 @@ func attack_contract() -> void:
 		var attacker = spawn(id, 0, Vector2.ZERO)
 		for n in range(4): dummy(1, Vector2(10 + n * 5, 0))
 		app._unit_attack_target(attacker, target(1), 10)
+		if bool(app.units[attacker].is_ranged):
+			app.animal_skills.update_projectiles(0.1)
 		var hits = 0
 		for j in range(1, 5):
 			if float(app.units[j].hp) < 100: hits += 1

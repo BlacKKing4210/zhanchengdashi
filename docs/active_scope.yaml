@@ -424,6 +424,15 @@ active_modules:
 queued_modules: []
 
 shared_locks:
+  combat_feedback_20260907:
+    task_id: REQ-20260907-COMBAT-FEEDBACK
+    owner: codex-primary
+    status: RELEASED
+    read_only_receipt: docs/receipts/REQ-20260907-COMBAT-FEEDBACK.md
+    write_set: [scripts/app/main.gd, scripts/app/systems/animal_skill_runtime.gd, tests/test_combat_feedback.gd, tests/test_combat_feedback.tscn, tests/test_animal_table_v3.gd, tests/test_dog_rewards_gacha.gd, config/tables/cards.csv, runtime/config/cards.json]
+    evidence_root: temp/qa/combat-feedback-20260907
+    completion_receipt: docs/receipts/REQ-20260907-COMBAT-FEEDBACK.md
+    release_reason: local_regressions_gpu_captures_and_read_only_review_pass_new_client_package_not_exported
   admin_all_animals_20260906:
     task_id: REQ-20260906-ADMIN-ALL-ANIMALS
     owner: codex-primary

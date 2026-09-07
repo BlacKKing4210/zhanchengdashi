@@ -216,6 +216,7 @@ func attack(i: int, target: Dictionary) -> void:
 		shot["direction"] = Vector2(u.pos).direction_to(Vector2(t.pos))
 		shot["critical_chance"] = crit_chance(u, p)
 		if bool(u.get("is_ranged", false)):
+			projectile_visual(shot, Vector2(u.pos))
 			shots.append(shot)
 		else:
 			impact(shot, t)
@@ -290,6 +291,17 @@ func impact(shot: Dictionary, raw: Dictionary) -> void:
 func feedback(pos: Vector2, label: String, critical: bool) -> void:
 	a.effects.append({"kind": "combat_text", "pos": pos, "text": label, "critical": critical, "time": 0.8, "duration": 0.8})
 
+func projectile_visual(shot: Dictionary, start: Vector2) -> void:
+	# One shared visual per projectile; launch and impact are visible even when
+	# the whole trip fits in one simulation tick or between online snapshots.
+	if not shot.has("visual"):
+		shot["visual"] = {"kind": "combat_projectile", "pos": Vector2(shot.pos), "from": start, "time": 0.30, "duration": 0.30}
+		a.effects.append(shot.visual)
+	shot.visual.pos = Vector2(shot.pos)
+	shot.visual.from = start
+	shot.visual.time = 0.30
+
+
 func update_projectiles(delta: float) -> void:
 	var kept = []
 	for shot in shots:
@@ -302,12 +314,14 @@ func update_projectiles(delta: float) -> void:
 			for t in segment_targets(start, finish, int(shot.team)):
 				impact(shot, t)
 			shot.pos = finish
+			projectile_visual(shot, start)
 			shot.traveled = float(shot.traveled) + step
 			if float(shot.traveled) >= float(shot.range): continue
 		else:
 			var target = resolve(shot.target, int(shot.team))
 			if target.is_empty(): continue
 			shot.pos = start.move_toward(Vector2(target.pos), step)
+			projectile_visual(shot, start)
 			if Vector2(shot.pos).distance_to(Vector2(target.pos)) < 0.01:
 				impact(shot, target)
 				if int(shot.remaining) <= 0: continue
@@ -315,14 +329,6 @@ func update_projectiles(delta: float) -> void:
 				if next.is_empty(): continue
 				shot.remaining = int(shot.remaining) - 1
 				shot.target = next
-		# One visual per live projectile, retained across the 0.20s online snapshot
-		# cadence. Do not accumulate a new effect every simulation frame.
-		if not shot.has("visual"):
-			shot["visual"] = {"kind": "combat_projectile", "pos": Vector2(shot.pos), "from": start, "time": 0.26, "duration": 0.26}
-			a.effects.append(shot.visual)
-		shot.visual.pos = Vector2(shot.pos)
-		shot.visual.from = start
-		shot.visual.time = 0.26
 		kept.append(shot)
 	shots = kept
 

@@ -73,6 +73,7 @@ func test_wallet() -> void:
 		app._damage_tile(base, app.PLAYER if outcome == "胜利" else app.ENEMY, 999999)
 		var settled = app.wallet_gold
 		check(settled > 120 and app._display_gold() == settled, "settlement HUD immediately shows credited wallet")
+		app.result_ack_delay = 0.0 # Explicit close after the new anti-mistap window.
 		tap(app._result_return_rect().get_center())
 		check(app.screen == app.SCREEN_LOBBY and app._display_gold() == settled, "return click preserves visible credited wallet")
 		var profile = app._server_profile_snapshot()
