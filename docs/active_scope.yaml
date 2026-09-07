@@ -424,6 +424,15 @@ active_modules:
 queued_modules: []
 
 shared_locks:
+  result_reward_area_20260907:
+    task_id: REQ-20260907-RESULT-REWARD-AREA
+    owner: codex-primary
+    status: RELEASED
+    read_only_receipt: docs/receipts/REQ-20260907-RESULT-REWARD-AREA.md
+    write_set: [scripts/app/main.gd, tests/test_combat_feedback.gd]
+    evidence_root: temp/qa/result-reward-area-20260907
+    completion_receipt: docs/receipts/REQ-20260907-RESULT-REWARD-AREA.md
+    release_reason: scoped_layout_input_gpu_checks_pass_legacy_palette_cap_assertions_not_changed
   combat_feedback_20260907:
     task_id: REQ-20260907-COMBAT-FEEDBACK
     owner: codex-primary

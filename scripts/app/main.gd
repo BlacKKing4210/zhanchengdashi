@@ -6104,7 +6104,11 @@ func _result_other_entries() -> Array:
 
 
 func _result_other_players_rect() -> Rect2:
-	return Rect2(92, 530, 536, 328)
+	return Rect2(92, 468, 536, 276)
+
+
+func _result_reward_rect() -> Rect2:
+	return Rect2(92, 764, 536, 116)
 
 
 func _result_return_rect() -> Rect2:
@@ -8932,22 +8936,15 @@ func _draw_result_overlay() -> void:
 	if battle_mode == BATTLE_MODE_MULTIPLAYER and multiplayer_free_for_all:
 		result_color = COLOR_YELLOW if multiplayer_placement == 1 else (COLOR_BLUE if multiplayer_placement <= 3 else COLOR_RED)
 	_draw_text_center(result_text, Rect2(panel.position + Vector2(0, 24), Vector2(panel.size.x, 56)), 42, result_color)
-	var reward_tickets = last_battle_reward_tickets if last_battle_reward_tickets > 0 else _battle_reward_tickets(result_text)
-	if battle_mode == BATTLE_MODE_MULTIPLAYER:
-		var star_text = ("+" if last_multiplayer_star_delta > 0 else "") + str(last_multiplayer_star_delta)
-		_resource(Rect2(188, 258, 156, 44), "星", star_text, COLOR_GOLD)
-	else:
-		_resource(Rect2(188, 258, 156, 44), "金币", "+%d" % last_battle_reward_gold, COLOR_YELLOW)
-	_resource(Rect2(376, 258, 156, 44), "券", "+%d" % reward_tickets, COLOR_BLUE)
-	_draw_text_center("我的结算", Rect2(92, 302, 536, 28), 20, COLOR_PURPLE)
+	_draw_text_center("我的结算", Rect2(92, 264, 536, 28), 20, COLOR_PURPLE)
 	var local_entry = {}
 	for entry in result_player_entries:
 		if bool(entry.get("is_local", false)):
 			local_entry = entry
 			break
 	if not local_entry.is_empty():
-		_draw_result_player_row(Rect2(92, 336, 536, 112), local_entry, true)
-	_draw_text_fit("其他玩家（上下滑动查看）", Rect2(92, 486, 536, 30), 20, COLOR_LINE)
+		_draw_result_player_row(Rect2(92, 298, 536, 112), local_entry, true)
+	_draw_text_fit("其他玩家（上下滑动查看）", Rect2(92, 426, 536, 30), 20, COLOR_LINE)
 	var other_rect = _result_other_players_rect()
 	draw_rect(other_rect, Color(0.20, 0.17, 0.28, 0.08))
 	var others = _result_other_entries()
@@ -8963,7 +8960,23 @@ func _draw_result_overlay() -> void:
 		var thumb_height = maxf(42.0, track.size.y * other_rect.size.y / (other_rect.size.y + _result_players_max_scroll()))
 		var thumb_y = track.position.y + (track.size.y - thumb_height) * result_players_scroll / _result_players_max_scroll()
 		draw_rect(Rect2(track.position.x, thumb_y, track.size.x, thumb_height), COLOR_PURPLE)
+	_draw_result_rewards()
 	_cta(_result_return_rect(), "关闭", true, result_ack_delay <= 0.0)
+
+
+func _draw_result_rewards() -> void:
+	var area = _result_reward_rect()
+	_box(area, HanddrawnSkin.RAISED, COLOR_LINE, 0)
+	_draw_text_center("本场奖励", Rect2(area.position + Vector2(16, 10), Vector2(area.size.x - 32, 28)), 20, COLOR_LINE)
+	var left = Rect2(area.position + Vector2(84, 52), Vector2(164, 44))
+	var right = Rect2(area.position + Vector2(288, 52), Vector2(164, 44))
+	var reward_tickets = last_battle_reward_tickets if last_battle_reward_tickets > 0 else _battle_reward_tickets(result_text)
+	if battle_mode == BATTLE_MODE_MULTIPLAYER:
+		var star_text = ("+" if last_multiplayer_star_delta > 0 else "") + str(last_multiplayer_star_delta)
+		_resource(left, "星", star_text, COLOR_GOLD)
+	else:
+		_resource(left, "金币", "+%d" % last_battle_reward_gold, COLOR_YELLOW)
+	_resource(right, "券", "+%d" % reward_tickets, COLOR_BLUE)
 
 
 func _draw_result_player_row(rect: Rect2, entry: Dictionary, is_local: bool) -> void:

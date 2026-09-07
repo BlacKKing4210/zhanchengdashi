@@ -1,7 +1,7 @@
 extends Node
 
 const Base = preload("res://tests/test_online_rewards_release.gd")
-const OUT = "res://temp/qa/combat-feedback-20260907/"
+const OUT = "res://temp/qa/result-reward-area-20260907/"
 var app
 var viewport: SubViewport
 var checks = 0
@@ -138,6 +138,13 @@ func result_contract() -> void:
 	app._finish_battle("胜利", false)
 	var wallet = app.wallet_gold
 	check(app.result_ack_pending, "result awaits explicit close")
+	var reward_area = app._result_reward_rect()
+	check(app._result_other_players_rect().end.y + 16 <= reward_area.position.y, "reward area is separate and below player list")
+	check(reward_area.end.y + 16 <= app._result_return_rect().position.y, "reward area is separate and above close")
+	app.result_ack_delay = 0
+	tap(reward_area.get_center())
+	check(app.result_ack_pending and app.wallet_gold == wallet, "reward area tap neither closes nor grants again")
+	app.result_ack_delay = 0.35
 	tap(app._result_return_rect().get_center())
 	check(app.screen == app.SCREEN_BATTLE, "finishing tap cannot accidentally dismiss reward")
 	for n in range(600): app._update_effects(0.1)
@@ -207,3 +214,35 @@ func capture_states() -> void:
 	viewport.size = Vector2i(360, 640)
 	app._layout(viewport.size)
 	await save_capture("victory-360")
+	viewport.size = Vector2i(720, 1280)
+	app._layout(viewport.size)
+	# Six-player state uses the real settlement builder and scroll path.
+	app._start_multiplayer_match("3v3_crossroads", 3)
+	app._finish_multiplayer_battle("loss", false)
+	app.result_ack_delay = 0
+	app.result_players_scroll = 0
+	await save_capture("team-loss-top-720")
+	var reward_before = app._result_reward_rect()
+	var drag = InputEventScreenDrag.new()
+	drag.position = app.canvas_offset + reward_before.get_center() * app.canvas_scale
+	drag.relative = Vector2(0, -100) * app.canvas_scale
+	check(not app._handle_result_scroll_input(drag), "reward drag is outside scroll hitbox")
+	check(app.result_players_scroll == 0 and app.result_ack_pending, "reward drag neither scrolls list nor closes result")
+	drag.position = app.canvas_offset + app._result_other_players_rect().get_center() * app.canvas_scale
+	check(app._handle_result_scroll_input(drag) and app.result_players_scroll > 0, "touch drag still scrolls player list")
+	app._scroll_result_players(99999)
+	check(app.result_players_scroll == app._result_players_max_scroll(), "six-player list scroll reaches final player")
+	var last_bottom = app._result_other_players_rect().position.y + 4 * (app.RESULT_PLAYER_ROW_HEIGHT + app.RESULT_PLAYER_ROW_GAP) - app.result_players_scroll + app.RESULT_PLAYER_ROW_HEIGHT
+	check(is_equal_approx(last_bottom, app._result_other_players_rect().end.y), "last player row is fully in list at bottom")
+	check(app._result_reward_rect() == reward_before, "reward panel stays fixed while player list scrolls")
+	await save_capture("team-loss-bottom-720")
+	app._start_multiplayer_match("3v3_crossroads", 3, true)
+	app._finish_multiplayer_free_for_all(1, false)
+	app.result_ack_delay = 0
+	await save_capture("ffa-720")
+	app._start_match("1v1_crossroads")
+	app._finish_battle("胜利", false)
+	app.result_ack_delay = 0
+	app.last_battle_reward_gold = 99999
+	app.last_battle_reward_tickets = 9999
+	await save_capture("reward-large-values-720")
