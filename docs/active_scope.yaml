@@ -424,6 +424,15 @@ active_modules:
 queued_modules: []
 
 shared_locks:
+  combat_readability_20260915:
+    task_id: REQ-20260915-COMBAT-READABILITY
+    owner: codex-primary
+    test_writer: ranged_audit_sep15
+    test_writer_status: RELEASED
+    status: RELEASED
+    read_only_receipt: docs/receipts/REQ-20260915-COMBAT-READABILITY.md
+    write_set: [scripts/app/main.gd, scripts/app/systems/animal_skill_runtime.gd, tests/test_combat_readability.gd, tests/test_combat_readability.tscn]
+    evidence_root: temp/qa/combat-readability-20260915
   result_reward_area_20260907:
     task_id: REQ-20260907-RESULT-REWARD-AREA
     owner: codex-primary

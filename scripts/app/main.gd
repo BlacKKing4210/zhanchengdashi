@@ -128,7 +128,6 @@ const MIRROR_LIMIT_PER_RANK = 20
 const ENEMY_FIRST_UNLOCK_DELAY = 4.0
 const ENEMY_UNLOCK_INTERVAL = 2.2
 const PROJECTILE_TIME = 0.30
-const RANGED_PROJECTILE_MIN_DISTANCE = HEX_SIZE * 1.35
 const MULTIPLAYER_BATTLE_TIME = 360.0
 const MULTIPLAYER_FREE_FOR_ALL_TIME = MULTIPLAYER_BATTLE_TIME
 const MULTIPLAYER_AI_UNLOCK_INTERVAL = 4.5
@@ -225,6 +224,11 @@ var units = []
 var unit_index_cache = {}
 var tower_target_locks = {}
 var effects = []
+var projectile_visual_serial = 0
+var online_projectile_visual_seen = {}
+var online_projectile_visual_match = ""
+var online_projectile_visual_highest = 0
+var animal_texture_visible_rect_cache = {}
 var cards = []
 var deck = []
 var enemy_deck = []
@@ -1561,7 +1565,11 @@ func _on_online_authority_changed(match_data: Dictionary) -> void:
 		return
 	var was_authority = online_match_authority
 	online_match_authority = bool(match_data.get("is_authority", false))
+	# The server starts a fresh snapshot sequence on authority migration.
+	# Observers must accept it, while projectile IDs continue across the match.
+	online_last_received_sequence = -1
 	if online_match_authority and not was_authority:
+		online_snapshot_sequence = 0
 		online_snapshot_timer = 0.0
 		online_simulation_accumulator = 0.0
 		_toast("房主已离开，你已接管战斗同步")
@@ -1657,6 +1665,7 @@ func _online_battle_snapshot() -> Dictionary:
 		"tiles": tiles.duplicate(true),
 		"units": units.duplicate(true),
 		"effects": effects.duplicate(true),
+		"projectile_visual_serial": projectile_visual_serial,
 		"battle_match_seed": battle_match_seed,
 		"battle_layout_seed": battle_layout_seed,
 		"team_territory_colors": team_territory_colors.duplicate(true),
@@ -1697,8 +1706,11 @@ func _apply_online_battle_snapshot(snapshot: Dictionary) -> void:
 		tiles = snapshot_tiles.duplicate(true)
 	if typeof(snapshot.get("units", null)) == TYPE_ARRAY:
 		units = (snapshot["units"] as Array).duplicate(true)
+	# A new authority continues the same match's sequence even when all old
+	# effects have expired; otherwise receivers would discard its reused IDs.
+	projectile_visual_serial = maxi(projectile_visual_serial, int(snapshot.get("projectile_visual_serial", 0)))
 	if typeof(snapshot.get("effects", null)) == TYPE_ARRAY:
-		effects = (snapshot["effects"] as Array).duplicate(true)
+		_merge_online_snapshot_effects(snapshot["effects"] as Array)
 	battle_match_seed = int(snapshot.get("battle_match_seed", battle_match_seed))
 	battle_layout_seed = int(snapshot.get("battle_layout_seed", battle_layout_seed))
 	if typeof(snapshot.get("team_territory_colors", null)) == TYPE_DICTIONARY:
@@ -2499,9 +2511,11 @@ func _card_stats_with_levels(card: Dictionary, levels: Dictionary) -> Dictionary
 	stats["move_speed"] = float(stats["move_speed"]) * cell_size * UNIT_MOVE_SPEED_MULT
 	stats["attack_range_cells"] = float(stats["attack_range"])
 	if _card_kind(card) != CARD_KIND_DEFENSE:
-		# Zero denotes contact melee (adjacent centers), not a zero-radius hitbox.
-		# This also lets fixed two-cell jumps engage a target on the other parity.
-		stats["attack_range"] = float(stats["attack_range"]) * cell_size if float(stats["attack_range"]) > 0.0 else cell_size * 1.01
+		# Fixed jumps must still reach the adjacent parity; their attack pose closes
+		# the visible gap without changing the approved 2/3-cell landing rule.
+		var jumping = _card_kind(card) == CARD_KIND_ANIMAL and AnimalSkillRules.PROFILES.get(String(card.get("skill_text", "")).strip_edges(), {}).has("jump")
+		var contact_cells = 1.01 if jumping else 0.65
+		stats["attack_range"] = float(stats["attack_range"]) * cell_size if float(stats["attack_range"]) > 0.0 else cell_size * contact_cells
 		return stats
 	var range_tiles = maxf(0.0, float(stats.get("attack_range", 0.0)))
 	stats["attack_range_cells"] = range_tiles
@@ -3533,16 +3547,55 @@ func _has_enemy_unit_on_tile(key: Vector2i, team: int) -> bool:
 func _update_effects(delta: float) -> void:
 	var kept = []
 	for effect in effects:
+		if effect.has("visual_id"):
+			effect["visual_elapsed"] = float(effect.get("visual_elapsed", 0.0)) + delta
 		effect["time"] = float(effect["time"]) - delta
 		if float(effect["time"]) > 0.0:
 			kept.append(effect)
 	effects = kept
 
 
+func _merge_online_snapshot_effects(snapshot_effects: Array) -> void:
+	# Short flights can finish between snapshots. Play each flight/ricochet once
+	# with a local clock, retaining it across snapshots instead of teleporting it.
+	if online_projectile_visual_match != online_match_id:
+		online_projectile_visual_match = online_match_id
+		online_projectile_visual_seen.clear()
+		online_projectile_visual_highest = 0
+		effects = effects.filter(func(e): return not e.has("visual_id"))
+	var merged = effects.filter(func(e): return e.has("visual_id") and float(e.get("time", 0)) > 0)
+	var highest_before = online_projectile_visual_highest
+	var packet_ids = {}
+	for incoming in snapshot_effects:
+		if not incoming.has("visual_id"):
+			merged.append(incoming.duplicate(true))
+			continue
+		var visual_key = "%s:%s" % [online_match_id, str(incoming.visual_id)]
+		var numeric_id = typeof(incoming.visual_id) in [TYPE_INT, TYPE_FLOAT]
+		if packet_ids.has(visual_key) or (numeric_id and int(incoming.visual_id) <= highest_before) or online_projectile_visual_seen.has(visual_key):
+			continue
+		packet_ids[visual_key] = true
+		if numeric_id:
+			# Authority IDs increase monotonically: one watermark, not an ever-
+			# growing history for long high-unit-count battles.
+			online_projectile_visual_highest = maxi(online_projectile_visual_highest, int(incoming.visual_id))
+			projectile_visual_serial = maxi(projectile_visual_serial, int(incoming.visual_id))
+		else:
+			online_projectile_visual_seen[visual_key] = true
+		var visual = incoming.duplicate(true)
+		visual["visual_elapsed"] = 0.0
+		visual["time"] = float(visual.get("flight_duration", PROJECTILE_TIME)) + 0.14
+		merged.append(visual)
+	effects = merged
+
+
 func _trigger_unit_motion(index: int, kind: String, direction: Vector2 = Vector2.ZERO) -> void:
 	if index < 0 or index >= units.size():
 		return
 	var unit = units[index]
+	if kind == UnitMotionFeedback.KIND_ATTACK:
+		var jumping = (unit.get("animal_profile", {}) as Dictionary).has("jump")
+		unit["contact_lunge"] = clampf(direction.length() - sqrt(3.0) * HEX_SIZE * 0.65 - 8.0, 0.0, 28.0) if jumping and not bool(unit.get("is_ranged", false)) else 0.0
 	UnitMotionFeedback.trigger(unit, kind, direction)
 	units[index] = unit
 
@@ -4483,7 +4536,7 @@ func _unit_has_priority_attack_text(unit: Dictionary) -> bool:
 	return _card_has_priority_attack_text(_unit_card(unit))
 
 
-func _unit_attack_target(attacker_index: int, target: Dictionary, distance: float) -> void:
+func _unit_attack_target(attacker_index: int, target: Dictionary, _distance: float) -> void:
 	if attacker_index >= 0 and attacker_index < units.size() and units[attacker_index].has("animal_profile"):
 		animal_skills.attack(attacker_index, target)
 		return
@@ -4494,7 +4547,7 @@ func _unit_attack_target(attacker_index: int, target: Dictionary, distance: floa
 		return
 	var target_pos = Vector2(target.get("pos", Vector2.ZERO))
 	_trigger_unit_motion(attacker_index, UnitMotionFeedback.KIND_ATTACK, target_pos - Vector2(attacker["pos"]))
-	if distance >= RANGED_PROJECTILE_MIN_DISTANCE:
+	if bool(attacker.get("is_ranged", float(attacker.get("base_card_range", _unit_card(attacker).get("base_attack_range", 0.0))) > 0.0)):
 		_play_world_sfx("ranged_attack", Vector2(attacker["pos"]), int(attacker["team"]), -4.0)
 		_projectile(Vector2(attacker["pos"]), target_pos, int(attacker["team"]))
 	else:
@@ -8330,6 +8383,7 @@ func _draw_unit(unit: Dictionary) -> void:
 		bottom_padding_ratio = float(sequence_sample["bottom_padding_ratio"])
 		if String(sequence_sample.get("embedded_motion", "")) != "":
 			pose = {"offset": Vector2.ZERO, "scale": Vector2.ONE, "rotation": 0.0}
+	pose["offset"] = Vector2(pose.get("offset", Vector2.ZERO)) + _jump_contact_visual_offset(unit, camera_zoom)
 	_draw_animal_texture_at_foot(
 		texture,
 		pos + Vector2(0, 14),
@@ -8340,9 +8394,59 @@ func _draw_unit(unit: Dictionary) -> void:
 		source_rect
 	)
 	var pct = clampf(float(unit["hp"]) / float(unit["max_hp"]), 0.0, 1.0)
-	_draw_compact_bar(Rect2(pos + Vector2(-18, 20), Vector2(36, 6)), pct, _team_health_color(team))
+	var visible_rect = _animal_texture_visible_rect(texture, source_rect)
+	var art_bounds = _animal_texture_canvas_bounds(pos + Vector2(0, 14), Vector2(44, 44), pose, art_visual_scale, bottom_padding_ratio, visible_rect)
+	var health_rect = _animal_head_health_rect(art_bounds, camera_zoom)
+	_draw_compact_bar(health_rect, pct, _team_health_color(team))
 	if battle_mode == BATTLE_MODE_MULTIPLAYER:
-		_draw_team_marker(pos + Vector2(23, 23), team)
+		_draw_team_marker(Vector2(health_rect.end.x + 10, health_rect.get_center().y), team)
+
+
+func _jump_contact_visual_offset(unit: Dictionary, zoom: float) -> Vector2:
+	if UnitMotionFeedback.current_kind(unit) != UnitMotionFeedback.KIND_ATTACK:
+		return Vector2.ZERO
+	var progress = clampf(1.0 - float(unit.get("motion_time", 0.0)) / maxf(0.001, float(unit.get("motion_duration", 0.24))), 0.0, 1.0)
+	return _battle_view_vector(Vector2(unit.get("motion_direction", Vector2.RIGHT))).normalized() * float(unit.get("contact_lunge", 0.0)) * zoom * sin(progress * PI)
+
+
+func _animal_texture_visible_rect(texture: Texture2D, source_rect: Rect2 = Rect2()) -> Rect2:
+	var full = Rect2(0, 0, 1, 1)
+	if texture == null: return full
+	var cache_key = "%d:%s" % [texture.get_instance_id(), str(source_rect)]
+	if animal_texture_visible_rect_cache.has(cache_key):
+		return animal_texture_visible_rect_cache[cache_key]
+	var image = texture.get_image()
+	if image == null: return full
+	if image.is_compressed(): image.decompress()
+	var region = Rect2i(source_rect) if source_rect.has_area() else Rect2i(Vector2i.ZERO, image.get_size())
+	region = region.intersection(Rect2i(Vector2i.ZERO, image.get_size()))
+	var visible = full
+	if region.has_area():
+		var used = image.get_region(region).get_used_rect()
+		if used.has_area():
+			visible = Rect2(Vector2(used.position) / Vector2(region.size), Vector2(used.size) / Vector2(region.size))
+	animal_texture_visible_rect_cache[cache_key] = visible
+	return visible
+
+
+func _animal_texture_canvas_bounds(foot: Vector2, size: Vector2, pose: Dictionary, visual_scale: float, bottom_padding_ratio: float, visible_rect: Rect2 = Rect2(0, 0, 1, 1)) -> Rect2:
+	var rect = _animal_texture_foot_rect(size, bottom_padding_ratio)
+	# Transparent sprite padding is not the animal's head. Cache alpha bounds,
+	# then transform that rectangle with exactly the same pose as the artwork.
+	rect = Rect2(rect.position + rect.size * visible_rect.position, rect.size * visible_rect.size)
+	var scale = _animal_texture_draw_scale(pose, visual_scale)
+	var origin = foot + Vector2(pose.get("offset", Vector2.ZERO))
+	var rotation = float(pose.get("rotation", 0.0))
+	var points = [rect.position, Vector2(rect.end.x, rect.position.y), rect.end, Vector2(rect.position.x, rect.end.y)]
+	var bounds = Rect2(origin + (Vector2(points[0]) * scale).rotated(rotation), Vector2.ZERO)
+	for point in points:
+		bounds = bounds.expand(origin + (Vector2(point) * scale).rotated(rotation))
+	return bounds
+
+
+func _animal_head_health_rect(art_bounds: Rect2, zoom: float) -> Rect2:
+	var width = clampf(36.0 * zoom, 36.0, 52.0)
+	return Rect2(Vector2(art_bounds.get_center().x - width * 0.5, art_bounds.position.y - 14), Vector2(width, 6))
 
 
 func _animal_rarity_visual_scale(card: Dictionary) -> float:
@@ -8570,6 +8674,9 @@ func _is_building_card_preview_current() -> bool:
 
 func _draw_effect(effect: Dictionary) -> void:
 	var kind = String(effect.get("kind", "pulse"))
+	if effect.has("visual_id"):
+		_draw_projectile_visual(effect)
+		return
 	if kind in ["combat_text", "skill_splash", "combat_projectile"]:
 		var point = _world_to_canvas(Vector2(effect.get("pos", Vector2.ZERO)))
 		var progress = 1 - float(effect.time) / maxf(0.01, float(effect.get("duration", 1)))
@@ -8685,24 +8792,42 @@ func _draw_effect(effect: Dictionary) -> void:
 		_draw_text_center(value_text, value_rect, 17, color)
 		return
 	if kind == "projectile":
-		var duration = maxf(0.01, float(effect.get("duration", PROJECTILE_TIME)))
-		var progress = clampf(1.0 - float(effect["time"]) / duration, 0.0, 1.0)
-		var start = _world_to_canvas(Vector2(effect["from"]))
-		var end = _world_to_canvas(Vector2(effect["to"]))
-		var head = start.lerp(end, progress)
-		var tail = start.lerp(end, maxf(0.0, progress - 0.28))
-		var projectile_color = effect["color"]
-		projectile_color.a = 0.95
-		var glow = Color(1.0, 0.96, 0.62, 0.38)
-		draw_line(tail, head, glow, 9.0, true)
-		draw_line(tail, head, projectile_color, 5.0, true)
-		draw_circle(head, 6.0, Color(1.0, 1.0, 0.82, 0.96))
-		draw_circle(head, 3.2, projectile_color)
+		_draw_projectile_visual(effect)
 		return
 	var t = clampf(float(effect["time"]) / 0.45, 0.0, 1.0)
 	var pulse_color = effect["color"]
 	pulse_color.a = t * 0.55
 	draw_circle(_world_to_canvas(Vector2(effect["pos"])), 8.0 + 30.0 * (1.0 - t), pulse_color)
+
+
+func _draw_projectile_visual(effect: Dictionary) -> void:
+	var duration = maxf(0.01, float(effect.get("flight_duration", effect.get("duration", PROJECTILE_TIME))))
+	var elapsed = float(effect.get("visual_elapsed", duration - float(effect.get("time", 0.0))))
+	var progress = clampf(elapsed / duration, 0.0, 1.0)
+	var world_start = Vector2(effect.get("from", Vector2.ZERO))
+	var world_end = Vector2(effect.get("to", effect.get("pos", Vector2.ZERO)))
+	if _uses_axial_battle_map() and not _is_world_pos_visible(world_start.lerp(world_end, progress), 48.0):
+		return
+	var lift = Vector2(0, 22 * _battle_camera_zoom())
+	var start = _world_to_canvas(world_start) - lift
+	var end = _world_to_canvas(world_end) - lift
+	var head = start.lerp(end, progress)
+	var direction = start.direction_to(end)
+	if elapsed > duration:
+		var fade = clampf(1.0 - (elapsed - duration) / 0.14, 0.0, 1.0)
+		if fade <= 0.0: return
+		var radius = lerpf(12.0, 5.0, fade)
+		for axis in [Vector2.RIGHT, Vector2.DOWN]:
+			draw_line(head - axis * radius, head + axis * radius, Color(HanddrawnSkin.INK, fade), 4, true)
+			draw_line(head - axis * radius, head + axis * radius, Color(Color("fff5d5"), fade), 2, true)
+		return
+	var tail = head - direction * minf(start.distance_to(head), 23.0)
+	draw_line(tail, head, HanddrawnSkin.INK, 7, true)
+	draw_line(tail, head, Color("fff5d5"), 3.5, true)
+	var tint = Color("ffd26d") if _are_allies(int(effect.get("team", PLAYER)), _local_control_team()) else Color("a9e4ed")
+	draw_circle(head, 6.5, HanddrawnSkin.INK)
+	draw_circle(head, 4.5, tint)
+	draw_circle(head + Vector2(-1, -1), 2, Color("fffbed"))
 
 
 func _unit_value_feedback_text(stat: String, amount: float, suffix: String) -> String:
@@ -9073,7 +9198,7 @@ func _card_upgrade_dot_rect(rect: Rect2) -> Rect2:
 
 
 func _draw_card_upgrade_dot(rect: Rect2, card_id: String, clip_rect: Rect2) -> void:
-	if not _card_can_upgrade(card_id):
+	if not _card_upgrade_dot_visible(card_id):
 		return
 	var dot = _card_upgrade_dot_rect(rect)
 	# Fully clip the notification while a row enters/leaves the collection.
@@ -9081,6 +9206,10 @@ func _draw_card_upgrade_dot(rect: Rect2, card_id: String, clip_rect: Rect2) -> v
 		return
 	draw_circle(dot.get_center(), 9.0, HanddrawnSkin.RAISED, true, -1.0, true)
 	draw_circle(dot.get_center(), 7.0, HanddrawnSkin.UPGRADE_DOT, true, -1.0, true)
+
+
+func _card_upgrade_dot_visible(card_id: String) -> bool:
+	return screen == SCREEN_DECK and _card_can_upgrade(card_id)
 
 
 func _draw_card_level_badge(rect: Rect2, card_id: String) -> void:
@@ -9950,12 +10079,13 @@ func _show_unlock_card_popup(key: Vector2i) -> void:
 
 
 func _projectile(start: Vector2, end: Vector2, team: int) -> void:
-	var color = _team_color(team).lightened(0.18) if battle_mode == BATTLE_MODE_MULTIPLAYER else (COLOR_YELLOW if team == PLAYER else COLOR_ORANGE)
-	effects.append({
-		"kind": "projectile",
-		"from": start,
-		"to": end,
-		"color": color,
-		"time": PROJECTILE_TIME,
-		"duration": PROJECTILE_TIME,
-	})
+	var visual = _new_projectile_visual(start, end, team)
+	visual["kind"] = "projectile"
+
+
+func _new_projectile_visual(start: Vector2, end: Vector2, team: int) -> Dictionary:
+	projectile_visual_serial += 1
+	var flight = maxf(0.16, start.distance_to(end) / (sqrt(3.0) * HEX_SIZE * 8.0))
+	var visual = {"kind": "combat_projectile", "visual_id": projectile_visual_serial, "from": start, "to": end, "pos": start, "team": team, "visual_elapsed": 0.0, "flight_duration": flight, "time": flight + 0.4, "duration": flight + 0.4}
+	effects.append(visual)
+	return visual

@@ -292,14 +292,24 @@ func feedback(pos: Vector2, label: String, critical: bool) -> void:
 	a.effects.append({"kind": "combat_text", "pos": pos, "text": label, "critical": critical, "time": 0.8, "duration": 0.8})
 
 func projectile_visual(shot: Dictionary, start: Vector2) -> void:
-	# One shared visual per projectile; launch and impact are visible even when
-	# the whole trip fits in one simulation tick or between online snapshots.
+	# Presentation has its own clock; physical hits and speed are unchanged.
 	if not shot.has("visual"):
-		shot["visual"] = {"kind": "combat_projectile", "pos": Vector2(shot.pos), "from": start, "time": 0.30, "duration": 0.30}
+		var end = Vector2(shot.target.get("pos", shot.pos))
+		if shot.profile.has("pierce"): end = Vector2(shot.origin) + Vector2(shot.direction) * float(shot.range)
+		shot["visual"] = a._new_projectile_visual(start, end, int(shot.team))
+	elif float(shot.visual.time) <= 0.0:
+		# A long frame can expire an effect while its physical shot is alive.
+		# Reattach only this expired object (never value-deduplicate equal shots).
 		a.effects.append(shot.visual)
+		shot.visual.visual_elapsed = 0.0
+		shot.visual.from = start
 	shot.visual.pos = Vector2(shot.pos)
-	shot.visual.from = start
-	shot.visual.time = 0.30
+	shot.visual.time = maxf(float(shot.visual.time), 0.3)
+	if not shot.profile.has("pierce"):
+		var current_target = resolve(shot.target, int(shot.team))
+		if not current_target.is_empty():
+			shot.visual.to = Vector2(current_target.pos)
+			shot.visual.flight_duration = maxf(0.16, float(shot.visual.visual_elapsed) + Vector2(shot.pos).distance_to(Vector2(current_target.pos)) / (CELL * 8.0))
 
 
 func update_projectiles(delta: float) -> void:
@@ -329,6 +339,8 @@ func update_projectiles(delta: float) -> void:
 				if next.is_empty(): continue
 				shot.remaining = int(shot.remaining) - 1
 				shot.target = next
+				shot.erase("visual")
+				projectile_visual(shot, Vector2(shot.pos))
 		kept.append(shot)
 	shots = kept
 
