@@ -1,0 +1,26 @@
+[
+  {
+    "id": "default",
+    "max_rings": 8,
+    "first_ring_base": 100,
+    "ring_multiplier": 3,
+    "price_min_pct": 0.5,
+    "price_max_pct": 1.5,
+    "catchup_days": 3,
+    "timezone_hours": 8,
+    "castle_gold": 100,
+    "castle_tickets": 1,
+    "unlock_tickets": 1,
+    "linear_limit": 150,
+    "linear_divisor": 10,
+    "log_base_value": 15,
+    "log_growth": 12,
+    "max_daily_value": 100,
+    "coin_min_pct": 0.8,
+    "coin_max_pct": 1.2,
+    "ticket_value": 100,
+    "ticket_value_share": 0.1,
+    "day_cycle_seconds": 240,
+    "positive_mood_chance": 0.85
+  }
+]

@@ -1,0 +1,7 @@
+id,name,item_id,item_name,color,capacity_min,capacity_max,active_period,activity
+ID,名称,道具ID,道具名称,颜色,最小容量,最大容量,活动时段,行为名称
+,,,,,,,,
+residence,温馨小屋,soft_pillow,软绒枕头,82add3,1,5,night,休息
+dining,森林餐厅,meal_basket,美味餐篮,dea570,0,0,day,吃饭
+entertainment,星光剧场,music_box,音乐盒,b8a0d0,0,0,night,娱乐
+sport,活力球场,sports_medal,运动奖章,a9be74,0,0,day,运动

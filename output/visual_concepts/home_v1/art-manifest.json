@@ -1,0 +1,298 @@
+{
+  "feature": "F-ZC-HOME-001",
+  "request": "REQ-20260924-HOMESTEAD",
+  "version": 1,
+  "method": "built-in image_gen",
+  "alpha": "original generated RGBA preserved; no programmatic repaint, mask or background removal",
+  "review": {
+    "sample": "residence",
+    "sample_result": "root inspected with view_image and accepted style",
+    "runtime": "PASS Windows Godot 4.6.2 GPU, 720x1280 and 360x640; Android device not run",
+    "targets": {
+      "building_logical_px": [
+        96,
+        120
+      ],
+      "item_logical_px": [
+        48,
+        64
+      ]
+    },
+    "runtime_evidence": "temp/qa/home-20260924/home-runtime-final.log"
+  },
+  "assets": [
+    {
+      "id": "residence",
+      "kind": "building",
+      "path": "assets/art/home/residence.png",
+      "generator_source": "C:/Users/76398/.codex/generated_images/01a0d417-1bf7-7522-a3c6-43a0b9c8faa1/exec-e95631f0-e902-4f5c-a1b0-498a5afda727.png",
+      "prompt": "Use case: style-transfer. Edit the supplied game building reference into ONE different home building while exactly retaining its established 2D game sticker rendering language: very thick clean near-black outlines, a narrow white outer sticker keyline, warm ivory plaster, honey-brown timber, restrained golden trim, simple chunky cel shading and broad highlights. Subject: a small cozy residence for a friendly animal village, strong bright blue gabled roof, one visible warm wooden front door, two simple warm windows, compact friendly proportions. Remove the castle towers, battlement, flag and banner; this is a little residence not a castle. Mostly frontal, very slight top view like the reference. Fit the entire single building centered inside the canvas with consistent 12% transparent margin on all sides and base at 86% height. Simplify details so recognizable at 72px. Output a genuinely transparent RGBA PNG, no colored background, no checkerboard drawn into the image, no floor tile, no ground plate, no additional objects, no text, no letters, no logos, no watermark.",
+      "references": [
+        "assets/art/buildings/base.png"
+      ],
+      "validation": {
+        "size_px": [
+          1254,
+          1254
+        ],
+        "mode": "RGBA",
+        "alpha_extrema": [
+          0,
+          255
+        ],
+        "transparent_pixels": 926275,
+        "nontransparent_pixels": 646241,
+        "almost_opaque_pixels": 633464,
+        "visible_bbox_alpha_16": [
+          171,
+          183,
+          1084,
+          1081
+        ],
+        "canvas_border_alpha_max": 0,
+        "canvas_border_pixels_alpha_16_or_more": 0,
+        "bytes": 852014,
+        "sha256": "bcc0949803bf4d1acff02dbc7c46ccf1754f0be65b8d50fc0e64437d3040c795",
+        "matches_original": true
+      }
+    },
+    {
+      "id": "dining",
+      "kind": "building",
+      "path": "assets/art/home/dining.png",
+      "generator_source": "C:/Users/76398/.codex/generated_images/01a0d417-1bf7-7522-a3c6-43a0b9c8faa1/exec-363bee12-4808-4eee-8558-007b24fa047f.png",
+      "prompt": "Use case: style-transfer. Edit the supplied game building reference into ONE different building while keeping exactly the same established 2D game sticker style: very thick clean near-black outlines, narrow white outer sticker keyline, warm ivory plaster, honey-brown timber, restrained golden trim, simple chunky cel shading with broad highlights. Mostly frontal with very slight top view, compact friendly proportions. Match the reference's silhouette scale: whole building centered, all extremities safely inside square canvas with 12% transparent margins, base at 86% image height. Make the building recognizable at 96px. Genuinely transparent RGBA PNG. No colored background, no checkerboard drawn into image, no floor tile, no ground plate, no surrounding props, no characters, no text, no letters, no logos, no watermark. Subject: an orange-roofed animal-village dining hall. Use a chunky warm tangerine orange gabled roof, cream wall, open dark arched doorway. Above the door is one large readable golden bowl-and-spoon relief emblem; beside doorway one simple serving hatch. Remove crossed sticks, target and war banners from reference. The silhouette should remain a friendly little building, not a food item. Minimize tiny roof details.",
+      "references": [
+        "assets/art/buildings/barracks.png"
+      ],
+      "validation": {
+        "size_px": [
+          1254,
+          1254
+        ],
+        "mode": "RGBA",
+        "alpha_extrema": [
+          0,
+          255
+        ],
+        "transparent_pixels": 1023973,
+        "nontransparent_pixels": 548543,
+        "almost_opaque_pixels": 529753,
+        "visible_bbox_alpha_16": [
+          187,
+          166,
+          1067,
+          1079
+        ],
+        "canvas_border_alpha_max": 1,
+        "canvas_border_pixels_alpha_16_or_more": 0,
+        "bytes": 764340,
+        "sha256": "ab817a16da882ee2acf54b918f95809fcf6e2b1c5b73a7efb2ac9ae08d41ea13",
+        "matches_original": true
+      }
+    },
+    {
+      "id": "entertainment",
+      "kind": "building",
+      "path": "assets/art/home/entertainment.png",
+      "generator_source": "C:/Users/76398/.codex/generated_images/01a0d417-1bf7-7522-a3c6-43a0b9c8faa1/exec-7bdd2006-c509-4d87-86f5-d07a2fc8d8d6.png",
+      "prompt": "Use case: style-transfer. Edit the supplied game building reference into ONE different building while keeping exactly the same established 2D game sticker style: very thick clean near-black outlines, narrow white outer sticker keyline, warm ivory plaster, honey-brown timber, restrained golden trim, simple chunky cel shading with broad highlights. Mostly frontal with very slight top view, compact friendly proportions. Match the reference's silhouette scale: whole building centered, all extremities safely inside square canvas with 12% transparent margins, base at 86% image height. Make the building recognizable at 96px. Genuinely transparent RGBA PNG. No colored background, no checkerboard drawn into image, no floor tile, no ground plate, no surrounding props, no characters, no text, no letters, no logos, no watermark. Subject: a purple-roofed miniature animal-village theater. Use one broad deep-lilac arched canopy roof with restrained golden trim, two cream columns framing a big center opening with simple gathered rich purple curtains and one small wooden stage step. Put a single large golden five-point star badge on the purple roof front. No masks or faces. Clear playful theater silhouette with broad curtain shapes and no clutter. Remove house windows and chimney.",
+      "references": [
+        "assets/art/buildings/barracks.png"
+      ],
+      "validation": {
+        "size_px": [
+          1254,
+          1254
+        ],
+        "mode": "RGBA",
+        "alpha_extrema": [
+          0,
+          255
+        ],
+        "transparent_pixels": 970109,
+        "nontransparent_pixels": 602407,
+        "almost_opaque_pixels": 587991,
+        "visible_bbox_alpha_16": [
+          147,
+          159,
+          1108,
+          1078
+        ],
+        "canvas_border_alpha_max": 1,
+        "canvas_border_pixels_alpha_16_or_more": 0,
+        "bytes": 843488,
+        "sha256": "87730344539cf0d55b6e3dba3b9be8da94e0904837ab89923843fcf80ff784e7",
+        "matches_original": true
+      }
+    },
+    {
+      "id": "sport",
+      "kind": "building",
+      "path": "assets/art/home/sport.png",
+      "generator_source": "C:/Users/76398/.codex/generated_images/01a0d417-1bf7-7522-a3c6-43a0b9c8faa1/exec-f4d4d32e-839f-42c2-88e8-82563a01f7b6.png",
+      "prompt": "Use case: style-transfer. Edit the supplied game building reference into ONE different building while keeping exactly the same established 2D game sticker style: very thick clean near-black outlines, narrow white outer sticker keyline, warm ivory plaster, honey-brown timber, restrained golden trim, simple chunky cel shading with broad highlights. Mostly frontal with very slight top view, compact friendly proportions. Match the reference's silhouette scale: whole building centered, all extremities safely inside square canvas with 12% transparent margins, base at 86% image height. Make the building recognizable at 96px. Genuinely transparent RGBA PNG. No colored background, no checkerboard drawn into image, no floor tile, no ground plate, no surrounding props, no characters, no text, no letters, no logos, no watermark. Subject: a green-roofed animal-village sports pavilion. Use a chunky fresh grass-green hip roof, four sturdy honey-colored wooden pillars, a front open arch and one broad simple bench visible within. Front roof bears one large golden dumbbell emblem with a short bar and two round weights, clearly readable at small size. No banners, no castle features, no windows, no tiny equipment. Simple friendly sports shelter silhouette.",
+      "references": [
+        "assets/art/buildings/barracks.png"
+      ],
+      "validation": {
+        "size_px": [
+          1254,
+          1254
+        ],
+        "mode": "RGBA",
+        "alpha_extrema": [
+          0,
+          255
+        ],
+        "transparent_pixels": 1061440,
+        "nontransparent_pixels": 511076,
+        "almost_opaque_pixels": 493851,
+        "visible_bbox_alpha_16": [
+          167,
+          190,
+          1085,
+          1056
+        ],
+        "canvas_border_alpha_max": 0,
+        "canvas_border_pixels_alpha_16_or_more": 0,
+        "bytes": 692177,
+        "sha256": "a6665fef2db86f032908336ff01915179c25c111d4477c7a78d5fa0cf654c064",
+        "matches_original": true
+      }
+    },
+    {
+      "id": "pillow",
+      "kind": "item",
+      "path": "assets/art/home/pillow.png",
+      "generator_source": "C:/Users/76398/.codex/generated_images/01a0d417-1bf7-7522-a3c6-43a0b9c8faa1/exec-7757b255-e455-4a05-995b-c067b1e34d74.png",
+      "prompt": "Use case: stylized-concept. Asset type: 2D casual animal-village game inventory reward icon. Primary request: ONE soft, plump ivory pillow with a simple blue fabric border and one broad sky-blue cloth stripe, slightly diagonal three-quarter view, recognizable puffy pillow silhouette and four rounded corners. Match the currently shown game's established illustration style: thick clean near-black outline, narrow bright white sticker keyline, chunky cheerful proportions, smooth cel shading with broad highlights, blue and warm cream with a tiny restrained golden seam accent. Center the entire single pillow within square canvas occupying 76% width and 65% height, with generous transparent margins. Simplify to remain clearly identifiable at 48px; no tiny pattern, no excessive seams. Genuinely transparent RGBA PNG background. No ground, no tile, no extra props, no characters, no letters, no text, no logos, no watermarks. Do not draw a checkerboard background.",
+      "references": [],
+      "validation": {
+        "size_px": [
+          1254,
+          1254
+        ],
+        "mode": "RGBA",
+        "alpha_extrema": [
+          0,
+          255
+        ],
+        "transparent_pixels": 938143,
+        "nontransparent_pixels": 634373,
+        "almost_opaque_pixels": 622409,
+        "visible_bbox_alpha_16": [
+          70,
+          164,
+          1186,
+          1091
+        ],
+        "canvas_border_alpha_max": 0,
+        "canvas_border_pixels_alpha_16_or_more": 0,
+        "bytes": 848796,
+        "sha256": "40da05e154ad71754b772c225946a1eba5102464ad103c187a3522c271fcb7c3",
+        "matches_original": true
+      }
+    },
+    {
+      "id": "meal_basket",
+      "kind": "item",
+      "path": "assets/art/home/meal_basket.png",
+      "generator_source": "C:/Users/76398/.codex/generated_images/01a0d417-1bf7-7522-a3c6-43a0b9c8faa1/exec-1ff9167a-a658-4707-bc5a-838af6448846.png",
+      "prompt": "Use case: stylized-concept. Asset type: 2D casual animal-village game inventory reward icon. Match the currently shown game's established illustration style: very thick clean near-black outline, narrow bright white sticker keyline, chunky cheerful proportions, simple smooth cel shading with broad highlights, warm cream and honey-gold base accents. One centered isolated object fully inside square canvas, occupying about 76% width and 72% height with generous transparent margins. Strong simplified silhouette recognizable at 48px, only a few large shapes, no tiny pattern. Genuinely transparent RGBA PNG background. No ground, no tile, no shadow plate, no additional props, no characters, no letters, no text, no logos, no watermarks. Do not draw a checkerboard background. Primary request: a cozy little packed meal basket, a chunky golden-brown wicker picnic basket with a broad arched handle and orange gingham cloth simplified to two big cream checks. Show one warm loaf of bread and one single red apple peeking out. Front three-quarter view. This is ONE compact integrated food-basket object, not separated floating food pieces. Avoid intricate wicker; use three broad weave strokes.",
+      "references": [],
+      "validation": {
+        "size_px": [
+          1254,
+          1254
+        ],
+        "mode": "RGBA",
+        "alpha_extrema": [
+          0,
+          255
+        ],
+        "transparent_pixels": 854933,
+        "nontransparent_pixels": 717583,
+        "almost_opaque_pixels": 699860,
+        "visible_bbox_alpha_16": [
+          121,
+          113,
+          1135,
+          1119
+        ],
+        "canvas_border_alpha_max": 0,
+        "canvas_border_pixels_alpha_16_or_more": 0,
+        "bytes": 1082560,
+        "sha256": "cb34658883349ffb616eee6f6a76ade67cbdf95839c3c3f3bc6492cd1dbcb662",
+        "matches_original": true
+      }
+    },
+    {
+      "id": "music_box",
+      "kind": "item",
+      "path": "assets/art/home/music_box.png",
+      "generator_source": "C:/Users/76398/.codex/generated_images/01a0d417-1bf7-7522-a3c6-43a0b9c8faa1/exec-c0df70aa-5c1a-4495-988c-8ca249c263c6.png",
+      "prompt": "Use case: stylized-concept. Asset type: 2D casual animal-village game inventory reward icon. Match the currently shown game's established illustration style: very thick clean near-black outline, narrow bright white sticker keyline, chunky cheerful proportions, simple smooth cel shading with broad highlights, warm cream and honey-gold base accents. One centered isolated object fully inside square canvas, occupying about 76% width and 72% height with generous transparent margins. Strong simplified silhouette recognizable at 48px, only a few large shapes, no tiny pattern. Genuinely transparent RGBA PNG background. No ground, no tile, no shadow plate, no additional props, no characters, no letters, no text, no logos, no watermarks. Do not draw a checkerboard background. Primary request: an open miniature wooden music box in purple and honey-gold, three-quarter front view, lid upright behind with one large raised golden musical note ornament, simple gold hand crank on right side. Rich lilac box body and cream inset lid, large clear round winding knob. This is a music-box reward item, no dancing human figure, no tiny gears, no floating notes. Single coherent compact object.",
+      "references": [],
+      "validation": {
+        "size_px": [
+          1254,
+          1254
+        ],
+        "mode": "RGBA",
+        "alpha_extrema": [
+          0,
+          255
+        ],
+        "transparent_pixels": 817094,
+        "nontransparent_pixels": 755422,
+        "almost_opaque_pixels": 740002,
+        "visible_bbox_alpha_16": [
+          148,
+          86,
+          1173,
+          1175
+        ],
+        "canvas_border_alpha_max": 0,
+        "canvas_border_pixels_alpha_16_or_more": 0,
+        "bytes": 1195530,
+        "sha256": "617d6c69ec1ba348e9038ae1ad5dfcf52ef99a7046bc590211d937587240b6ec",
+        "matches_original": true
+      }
+    },
+    {
+      "id": "sports_medal",
+      "kind": "item",
+      "path": "assets/art/home/sports_medal.png",
+      "generator_source": "C:/Users/76398/.codex/generated_images/01a0d417-1bf7-7522-a3c6-43a0b9c8faa1/exec-dee3e3f7-309a-4ce5-af62-9d1d6c418e68.png",
+      "prompt": "Use case: stylized-concept. Asset type: 2D casual animal-village game inventory reward icon. Match the currently shown game's established illustration style: very thick clean near-black outline, narrow bright white sticker keyline, chunky cheerful proportions, simple smooth cel shading with broad highlights, warm cream and honey-gold base accents. One centered isolated object fully inside square canvas, occupying about 76% width and 72% height with generous transparent margins. Strong simplified silhouette recognizable at 48px, only a few large shapes, no tiny pattern. Genuinely transparent RGBA PNG background. No ground, no tile, no shadow plate, no additional props, no characters, no letters, no text, no logos, no watermarks. Do not draw a checkerboard background. Primary request: a single round gold sports medal hanging from a short wide fresh green folded V ribbon. Large simple central raised gold five-point star, thick circular rim, bright broad metallic highlight. Nearly frontal view, entire short ribbon and medal in frame, compact chunky shape. Only one medal, not a trophy, no engraved writing, no numbers.",
+      "references": [],
+      "validation": {
+        "size_px": [
+          1254,
+          1254
+        ],
+        "mode": "RGBA",
+        "alpha_extrema": [
+          0,
+          255
+        ],
+        "transparent_pixels": 932177,
+        "nontransparent_pixels": 640339,
+        "almost_opaque_pixels": 625837,
+        "visible_bbox_alpha_16": [
+          254,
+          67,
+          989,
+          1193
+        ],
+        "canvas_border_alpha_max": 0,
+        "canvas_border_pixels_alpha_16_or_more": 0,
+        "bytes": 945545,
+        "sha256": "fac6b28470dffcabfa8fea9d8662503fb748bc8dbc2546fd1f50d6591ff38e4f",
+        "matches_original": true
+      }
+    }
+  ],
+  "validation_result": "All 8 original generated RGBA files inspected, hashes and alpha statistics recorded; low-alpha edge specks preserved. Runtime rendering verification remains with root."
+}

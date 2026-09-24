@@ -2,6 +2,49 @@
   "version": 1,
   "id_pattern": "^[a-z][a-z0-9_]*$",
   "tables": {
+    "home_economy": {
+      "file": "config/tables/home_economy.csv",
+      "unique": "id",
+      "fields": {
+        "id": { "type": "id", "required": true },
+        "max_rings": { "type": "int", "required": true },
+        "first_ring_base": { "type": "int", "required": true },
+        "ring_multiplier": { "type": "int", "required": true },
+        "price_min_pct": { "type": "float", "required": true },
+        "price_max_pct": { "type": "float", "required": true },
+        "catchup_days": { "type": "int", "required": true },
+        "timezone_hours": { "type": "int", "required": true },
+        "castle_gold": { "type": "int", "required": true },
+        "castle_tickets": { "type": "int", "required": true },
+        "unlock_tickets": { "type": "int", "required": true },
+        "linear_limit": { "type": "int", "required": true },
+        "linear_divisor": { "type": "int", "required": true },
+        "log_base_value": { "type": "int", "required": true },
+        "log_growth": { "type": "int", "required": true },
+        "max_daily_value": { "type": "int", "required": true },
+        "coin_min_pct": { "type": "float", "required": true },
+        "coin_max_pct": { "type": "float", "required": true },
+        "ticket_value": { "type": "int", "required": true },
+        "ticket_value_share": { "type": "float", "required": true },
+        "day_cycle_seconds": { "type": "int", "required": true },
+        "positive_mood_chance": { "type": "float", "required": true }
+      }
+    },
+    "home_buildings": {
+      "file": "config/tables/home_buildings.csv",
+      "unique": "id",
+      "fields": {
+        "id": { "type": "id", "required": true },
+        "name": { "type": "string", "required": true },
+        "item_id": { "type": "id", "required": true },
+        "item_name": { "type": "string", "required": true },
+        "color": { "type": "string", "required": true },
+        "capacity_min": { "type": "int", "required": true },
+        "capacity_max": { "type": "int", "required": true },
+        "active_period": { "type": "enum", "required": true, "values": ["day", "night"] },
+        "activity": { "type": "string", "required": true }
+      }
+    },
     "global": {
       "file": "config/tables/global.csv",
       "unique": "key",

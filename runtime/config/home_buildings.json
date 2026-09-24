@@ -1,0 +1,46 @@
+[
+  {
+    "id": "residence",
+    "name": "温馨小屋",
+    "item_id": "soft_pillow",
+    "item_name": "软绒枕头",
+    "color": "82add3",
+    "capacity_min": 1,
+    "capacity_max": 5,
+    "active_period": "night",
+    "activity": "休息"
+  },
+  {
+    "id": "dining",
+    "name": "森林餐厅",
+    "item_id": "meal_basket",
+    "item_name": "美味餐篮",
+    "color": "dea570",
+    "capacity_min": 0,
+    "capacity_max": 0,
+    "active_period": "day",
+    "activity": "吃饭"
+  },
+  {
+    "id": "entertainment",
+    "name": "星光剧场",
+    "item_id": "music_box",
+    "item_name": "音乐盒",
+    "color": "b8a0d0",
+    "capacity_min": 0,
+    "capacity_max": 0,
+    "active_period": "night",
+    "activity": "娱乐"
+  },
+  {
+    "id": "sport",
+    "name": "活力球场",
+    "item_id": "sports_medal",
+    "item_name": "运动奖章",
+    "color": "a9be74",
+    "capacity_min": 0,
+    "capacity_max": 0,
+    "active_period": "day",
+    "activity": "运动"
+  }
+]

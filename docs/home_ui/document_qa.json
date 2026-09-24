@@ -1,0 +1,53 @@
+{
+  "document": "docs/HOMESTEAD_DESIGN_v1.0.docx",
+  "sha256": "393a93843b0297a338f5a506b5f8f1ff2f7dbec6035e650c9daf08f93c78b1e6",
+  "page_count": 14,
+  "renderer": "Microsoft Word COM; pdftoppm PNG",
+  "toc_updated": true,
+  "real_title_style_count": 1,
+  "heading_count": 26,
+  "visual_inspected_pages": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14
+  ],
+  "latest_revision_affected_pages_reinspected": [
+    1,
+    2,
+    7,
+    8,
+    10,
+    11,
+    12,
+    13,
+    14
+  ],
+  "result": "PASS_DOCX_RENDER_ONLY",
+  "runtime_acceptance": "Passed local only; source evidence temp/qa/home-20260924",
+  "runtime_checks": {
+    "home_gpu": 4626,
+    "economy": 12381,
+    "home_sync": 12,
+    "online_rewards": 50,
+    "combat": 10340,
+    "gacha_native_headless": 45,
+    "gacha_native_gpu": 61,
+    "gacha_presentation": 11736,
+    "failures": 0
+  },
+  "figma_gate": "Pending MCP transport error",
+  "aliyun_deployment": "Not performed",
+  "android_device_acceptance": "Not performed",
+  "temporary_pdf_retained": false
+}

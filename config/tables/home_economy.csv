@@ -1,0 +1,4 @@
+id,max_rings,first_ring_base,ring_multiplier,price_min_pct,price_max_pct,catchup_days,timezone_hours,castle_gold,castle_tickets,unlock_tickets,linear_limit,linear_divisor,log_base_value,log_growth,max_daily_value,coin_min_pct,coin_max_pct,ticket_value,ticket_value_share,day_cycle_seconds,positive_mood_chance
+ID,最大圈数,第一圈基准价,每圈倍率,最低价格比例,最高价格比例,最多补领天数,时区偏移小时,城堡每日金币,城堡每日抽卡券,解锁抽卡券,线性收益价格上限,线性收益除数,对数收益起始值,对数收益增速,单建筑价值上限,金币最小比例,金币最大比例,抽卡券价值,抽卡券价值比例,视觉昼夜周期秒,正面心情概率
+,,,,,,,,,,,,,,,,,,,,,
+default,8,100,3,0.5,1.5,3,8,100,1,1,150,10,15,12,100,0.8,1.2,100,0.1,240,0.85

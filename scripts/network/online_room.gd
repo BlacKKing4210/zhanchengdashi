@@ -36,6 +36,7 @@ const AccountCredentialRules = preload("res://scripts/shared/account_credential_
 const AccountIdentityRules = preload("res://scripts/shared/account_identity_rules.gd")
 const PlayerDisplayName = preload("res://scripts/shared/player_display_name.gd")
 const IdentityRpc = preload("res://scripts/network/account_identity_rpc.gd")
+const HomeRpc = preload("res://scripts/network/home_rpc.gd")
 const BattleAnalyticsContract = preload("res://scripts/shared/battle_analytics_contract.gd")
 const DEVICE_CREDENTIAL_PATH = "user://client/device_account.json"
 const MAX_PLAYER_NAME_LENGTH = 24
@@ -96,11 +97,14 @@ var _auto_credential_request_pending = false
 var _admin_command_timer: Timer
 var _account_store_factory = Callable()
 var server_identity_rpc_supported = false
+var server_home_rpc_supported = false
+var current_home_snapshot: Dictionary = {}
 
 
 func _ready() -> void:
 	_wire_multiplayer_signals()
 	_identity_rpc_node()
+	_home_rpc_node()
 	server_host = default_server_host()
 	server_port = default_server_port()
 	bind_host = default_bind_host()
@@ -518,6 +522,59 @@ func _request_current_auto_account_credentials() -> void:
 		_client_session_token,
 		password
 	)
+
+
+func _home_rpc_node() -> Node:
+	var bridge = get_node_or_null("HomeRpc")
+	if bridge == null:
+		bridge = HomeRpc.new()
+		bridge.name = "HomeRpc"
+		add_child(bridge)
+	return bridge
+
+
+func request_home_state() -> bool:
+	return _request_home_action("state", "", -1)
+
+
+func unlock_home_plot(id: String) -> bool:
+	return _request_home_action("unlock", id, -1)
+
+
+func claim_home_daily(expected_day: int) -> bool:
+	return _request_home_action("claim", "", expected_day)
+
+
+func _request_home_action(action: String, id: String, day: int) -> bool:
+	var operation = "home_" + action
+	if not _require_client_connection(operation):
+		return false
+	if _client_session_token.is_empty() or current_user_id.is_empty():
+		_emit_local_failure(operation, "invalid_session")
+		return false
+	if not server_home_rpc_supported:
+		_emit_local_failure(operation, "home_unavailable")
+		return false
+	_home_rpc_node().rpc_id(SERVER_PEER_ID, "execute", _client_session_token, action, id, current_profile_revision, day)
+	return true
+
+
+func _server_home_action(sender: int, session_token: String, action: String, id: String, revision: int, day: int) -> void:
+	var operation = "home_" + action if action in ["state", "unlock", "claim"] else "home_state"
+	if session_token.is_empty() or session_token != String(_server_peer_sessions.get(sender, "")):
+		_send_operation_result(sender, operation, _failure("invalid_session"))
+		return
+	if action not in ["state", "unlock", "claim"] or id.length() > 24:
+		_send_operation_result(sender, operation, _failure("invalid_home_action"))
+		return
+	var result: Dictionary
+	if action == "state":
+		result = _account_store.call("home_for_session", session_token)
+	elif action == "unlock":
+		result = _account_store.call("unlock_home_plot", session_token, id, revision)
+	else:
+		result = _account_store.call("claim_home_daily", session_token, revision, day)
+	_send_operation_result(sender, operation, result)
 
 
 func request_player_profile() -> bool:
@@ -980,6 +1037,7 @@ func _rpc_submit_authority_snapshot(snapshot: Dictionary) -> void:
 @rpc("authority", "call_remote", "reliable", 0)
 func _rpc_receive_operation_result(operation: String, result: Dictionary) -> void:
 	server_identity_rpc_supported = bool(result.get("identity_rpc_v2", false))
+	server_home_rpc_supported = bool(result.get("home_rpc_v1", false))
 	last_operation_error = String(result.get("error", ""))
 	if bool(result.get("ok", false)):
 		_apply_account_operation(operation, result)
@@ -1415,6 +1473,7 @@ func _snapshot_with_transport_fields(peer_id: int) -> Dictionary:
 func _send_operation_result(peer_id: int, operation: String, result: Dictionary) -> void:
 	var response = result.duplicate(true)
 	response["identity_rpc_v2"] = true
+	response["home_rpc_v1"] = true
 	rpc_id(peer_id, "_rpc_receive_operation_result", operation, response)
 
 
@@ -1568,9 +1627,11 @@ func _poll_admin_commands() -> void:
 
 
 func _apply_account_operation(operation: String, result: Dictionary) -> void:
-	if operation not in ["login_account", "authenticate_installation", "switch_account", "create_new_account", "set_auto_account_credentials", "load_player_profile", "save_player_profile", "update_account_identity", "logout_account", "list_accounts"]:
+	if operation not in ["login_account", "authenticate_installation", "switch_account", "create_new_account", "set_auto_account_credentials", "load_player_profile", "save_player_profile", "update_account_identity", "logout_account", "list_accounts", "home_state", "home_unlock", "home_claim"]:
 		return
 	if operation in ["login_account", "authenticate_installation", "switch_account", "create_new_account", "set_auto_account_credentials"]:
+		if String(result.get("user_id", "")) != current_user_id:
+			current_home_snapshot.clear()
 		_client_session_token = String(result.get("session_token", ""))
 		current_user_id = String(result.get("user_id", ""))
 		current_account_name = String(result.get("account", ""))
@@ -1587,7 +1648,7 @@ func _apply_account_operation(operation: String, result: Dictionary) -> void:
 		if not issued_refresh_token.is_empty():
 			_refresh_token = issued_refresh_token
 			_save_device_credentials()
-	elif operation in ["load_player_profile", "save_player_profile"]:
+	elif operation in ["load_player_profile", "save_player_profile", "home_state", "home_unlock", "home_claim"]:
 		current_user_id = String(result.get("user_id", current_user_id))
 		current_account_name = String(result.get("account", current_account_name))
 		current_username = String(result.get("username", current_username))
@@ -1598,6 +1659,8 @@ func _apply_account_operation(operation: String, result: Dictionary) -> void:
 		current_account_is_generated = bool(result.get("auto_generated", current_account_is_generated))
 		current_profile = (result.get("profile", {}) as Dictionary).duplicate(true)
 		current_profile_revision = maxi(0, int(result.get("profile_revision", current_profile_revision)))
+		if typeof(result.get("home_snapshot")) == TYPE_DICTIONARY:
+			current_home_snapshot = result.home_snapshot.duplicate(true)
 	elif operation == "update_account_identity":
 		current_user_id = String(result.get("user_id", current_user_id))
 		current_account_name = String(result.get("account", current_account_name))
@@ -1629,6 +1692,7 @@ func _apply_account_operation(operation: String, result: Dictionary) -> void:
 		"auto_password_local": current_auto_password_local,
 		"profile": current_profile.duplicate(true),
 		"profile_revision": current_profile_revision,
+		"home_snapshot": current_home_snapshot.duplicate(true),
 		"accounts": current_account_summaries.duplicate(true),
 		"logged_in": not current_user_id.is_empty(),
 	})
@@ -1637,6 +1701,7 @@ func _apply_account_operation(operation: String, result: Dictionary) -> void:
 
 
 func _clear_account_state() -> void:
+	current_home_snapshot.clear()
 	_client_session_token = ""
 	current_user_id = ""
 	current_account_name = ""

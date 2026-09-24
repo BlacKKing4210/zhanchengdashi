@@ -29,6 +29,9 @@ const AccountIdentityRules = preload("res://scripts/shared/account_identity_rule
 const GmResourceRules = preload("res://scripts/app/systems/gm_resource_rules.gd")
 const RuntimeGmPanel = preload("res://scripts/app/ui/runtime_gm_panel.gd")
 const AccountAvatarPicker = preload("res://scripts/app/ui/account_avatar_picker.gd")
+const HomeRules = preload("res://scripts/shared/home_rules.gd")
+const HomeView = preload("res://scripts/app/ui/home_view.gd")
+const GachaNewHeroReveal = preload("res://scripts/app/ui/gacha_new_hero_reveal.gd")
 
 const DESIGN_SIZE = Vector2(720.0, 1280.0)
 const HEX_SIZE = 43.0
@@ -40,6 +43,7 @@ const ENEMY = BoardRules.ENEMY
 const NEUTRAL = BoardRules.NEUTRAL
 
 const SCREEN_LOBBY = "lobby"
+const SCREEN_HOME = "home"
 const SCREEN_DECK = "deck"
 const SCREEN_BATTLE = "battle"
 const SCREEN_GACHA = "gacha"
@@ -212,7 +216,7 @@ const RANK_CASTLE_ART = {
 }
 
 const NAV_ITEMS = [
-	{"id": "shop", "label": "商店", "locked": true},
+	{"id": SCREEN_HOME, "label": "家园", "locked": false},
 	{"id": SCREEN_DECK, "label": "编组", "locked": false},
 	{"id": SCREEN_LOBBY, "label": "战斗", "locked": false},
 	{"id": SCREEN_GACHA, "label": "抽卡", "locked": false},
@@ -243,6 +247,8 @@ var gacha_pending_cards = []
 var gacha_card_flip_timers = []
 var gacha_fx_timer = 0.0
 var gacha_reveal_timer = 0.0
+var gacha_new_card_ids: Dictionary = {}
+var gacha_hero_reveal
 var rank_db = {}
 var active_match_mirror = {}
 var active_match_rank_key = ""
@@ -250,6 +256,12 @@ var active_match_player_stars = RankingRules.INITIAL_STARS
 var last_rank_result = {}
 
 var screen = SCREEN_LOBBY
+var home_view
+var home_preview = OS.is_debug_build() and OS.get_cmdline_user_args().has("--home-preview")
+var home_pending_action: Dictionary = {}
+var home_inflight_baseline: Dictionary = {}
+var home_request_elapsed = 0.0
+var home_preview_save_path = "user://home_preview_v1.json"
 var battle_mode = BATTLE_MODE_CLASSIC
 var selected_tile = Vector2i(-99, -99)
 var selected_unit_id: int = -1
@@ -421,6 +433,11 @@ func _ready() -> void:
 	_setup_online_room()
 	_setup_account_fields()
 	_setup_online_room_code_field()
+	if home_preview:
+		_home_load_preview()
+		screen = SCREEN_HOME
+		page_router.go_to(SCREEN_HOME)
+		home_view.enter()
 	call_deferred("_auto_login_saved_account_on_startup")
 
 
@@ -455,6 +472,9 @@ func _process(delta: float) -> void:
 	_update_online_room_code_field_layout()
 	_update_server_profile_sync(delta)
 	_update_online_auto_connection(delta)
+	if home_view != null:
+		home_view.update(delta)
+		_home_update_request(delta)
 
 	if screen == SCREEN_BATTLE and not pause_open:
 		if _is_online_match_active():
@@ -473,6 +493,8 @@ func _process(delta: float) -> void:
 
 
 func _input(event: InputEvent) -> void:
+	if _new_hero_reveal_active() and event is InputEventKey:
+		return
 	if event is InputEventKey and event.pressed and not event.echo:
 		if event.keycode == KEY_F2 or event.physical_keycode == KEY_F2:
 			if _toggle_gm_panel():
@@ -516,6 +538,10 @@ func _input(event: InputEvent) -> void:
 func _unhandled_input(event: InputEvent) -> void:
 	if _is_gm_panel_open() or _is_account_avatar_picker_open():
 		return
+	if screen == SCREEN_HOME and not account_center_open:
+		_layout(get_viewport_rect().size)
+		if _ensure_home().handle_pointer(event):
+			return
 	if screen == SCREEN_ROOM and _handle_online_room_keyboard(event):
 		return
 	if _handle_result_scroll_input(event):
@@ -777,6 +803,13 @@ func _end_board_pointer(screen_pos: Vector2) -> void:
 func _handle_tap(screen_pos: Vector2) -> void:
 	_layout(get_viewport_rect().size)
 	var pos = _screen_to_canvas(screen_pos)
+	if _new_hero_reveal_active():
+		gacha_hero_reveal.tap()
+		GameAudio.play_sfx("ui_confirm")
+		return
+	if screen == SCREEN_HOME and home_view != null and (not home_view.modal.is_empty() or home_view.busy):
+		home_view.tap(pos)
+		return
 	if account_center_open:
 		_handle_account_center_tap(pos)
 		return
@@ -793,6 +826,9 @@ func _handle_tap(screen_pos: Vector2) -> void:
 			GameAudio.play_sfx("ui_confirm")
 			return
 		if _handle_nav(pos):
+			return
+		if screen == SCREEN_HOME:
+			_ensure_home().tap(pos)
 			return
 		if screen == SCREEN_LOBBY and _multiplayer_start_rect().has_point(pos):
 			GameAudio.play_sfx("ui_confirm")
@@ -863,7 +899,9 @@ func _draw() -> void:
 	_draw_full_bleed_background(view_size)
 	_set_tracked_draw_transform(canvas_offset, 0.0, Vector2(canvas_scale, canvas_scale))
 
-	if screen == SCREEN_DECK:
+	if screen == SCREEN_HOME:
+		_ensure_home().draw()
+	elif screen == SCREEN_DECK:
 		_draw_deck_screen()
 	elif screen == SCREEN_BATTLE:
 		_draw_battle_screen()
@@ -878,6 +916,10 @@ func _draw() -> void:
 		_draw_nav()
 	if account_center_open:
 		_draw_account_center()
+	if screen == SCREEN_HOME and home_view != null and not home_view.modal.is_empty():
+		home_view._draw_modal()
+	if _new_hero_reveal_active():
+		gacha_hero_reveal.draw()
 
 	_draw_toast()
 	_set_tracked_draw_transform(Vector2.ZERO, 0.0, Vector2.ONE)
@@ -1096,6 +1138,9 @@ func _init_enemy_deck() -> void:
 
 
 func _load_rank_database() -> void:
+	if home_preview:
+		_ensure_rank_database_shape()
+		return
 	rank_db = {}
 	if FileAccess.file_exists(RANK_DB_PATH):
 		var file = FileAccess.open(RANK_DB_PATH, FileAccess.READ)
@@ -1123,6 +1168,8 @@ func _ensure_rank_database_shape() -> void:
 
 
 func _save_rank_database() -> void:
+	if home_preview:
+		return
 	_ensure_rank_database_shape()
 	if typeof(rank_db.get("wallets")) != TYPE_DICTIONARY:
 		rank_db["wallets"] = {}
@@ -1191,6 +1238,7 @@ func _setup_online_room() -> void:
 
 
 func _auto_login_saved_account_on_startup() -> void:
+	if home_preview: return
 	# `Main` is instantiated through Bootstrap.  During a graphical startup the
 	# deferred callback can still observe Bootstrap as current_scene, so do not
 	# use scene identity as a runtime gate.  Test scenes intentionally suppress
@@ -1296,6 +1344,7 @@ func _on_online_server_connection_failed(message: String) -> void:
 
 
 func _on_online_server_disconnected() -> void:
+	_home_connection_lost()
 	var keep_result = screen == SCREEN_BATTLE and result_ack_pending
 	account_pending_profile.clear()
 	online_connection_state = "offline"
@@ -1310,6 +1359,9 @@ func _on_online_server_disconnected() -> void:
 
 
 func _on_online_operation_completed(operation: String, result: Dictionary) -> void:
+	if operation.begins_with("home_"):
+		_home_operation_completed(operation, result)
+		return
 	if operation == online_room_pending_action:
 		online_room_pending_confirmed = true
 	match operation:
@@ -1367,6 +1419,9 @@ func _on_online_operation_completed(operation: String, result: Dictionary) -> vo
 
 
 func _on_online_operation_failed(operation: String, error: String) -> void:
+	if operation.begins_with("home_"):
+		_home_operation_failed(error)
+		return
 	if operation == "save_player_profile":
 		account_pending_profile.clear()
 	if operation == online_room_pending_action:
@@ -1405,16 +1460,21 @@ func _on_account_state_changed(state: Dictionary) -> void:
 			remote_profile["wallet_gold"] = local_wallet
 		var operation = String(state.get("operation", ""))
 		var apply_profile = remote_profile
-		if user_id == account_applied_user_id and operation == "save_player_profile" and not account_pending_profile.is_empty():
+		if user_id == account_applied_user_id and operation.begins_with("home_") and not home_inflight_baseline.is_empty():
+			apply_profile = ProfileSyncRules.rebase(remote_profile, _server_profile_snapshot(), home_inflight_baseline)
+			apply_profile["home"] = remote_profile.get("home", {}).duplicate(true)
+		elif user_id == account_applied_user_id and operation == "save_player_profile" and not account_pending_profile.is_empty():
 			var baseline = account_confirmed_profile if bool(state.get("conflict", false)) else account_pending_profile
 			apply_profile = ProfileSyncRules.rebase(remote_profile, _server_profile_snapshot(), baseline)
-		elif user_id == account_applied_user_id and operation not in ["", "load_player_profile", "login_account", "authenticate_installation", "switch_account", "create_new_account"]:
+		elif user_id == account_applied_user_id and operation not in ["", "load_player_profile", "login_account", "authenticate_installation", "switch_account", "create_new_account", "home_state", "home_unlock", "home_claim"]:
 			# Room commands and identity-only ACKs are not a profile reload.
 			apply_profile = _server_profile_snapshot()
 		if not has_remote_wallet:
 			# Older servers omit this field: local fallback is already current,
 			# so never add the pending reward delta to it a second time.
 			apply_profile["wallet_gold"] = local_wallet
+		if account_applied_user_id != user_id:
+			_home_reset_account()
 		account_applied_user_id = user_id
 		account_confirmed_profile = remote_profile.duplicate(true)
 		if operation == "save_player_profile":
@@ -1422,9 +1482,12 @@ func _on_account_state_changed(state: Dictionary) -> void:
 		_apply_server_profile(apply_profile)
 		account_profile_signature = JSON.stringify(remote_profile)
 		_sync_account_identity_editor(false)
+		if operation in ["login_account", "authenticate_installation", "switch_account", "create_new_account"]:
+			call_deferred("_home_request", "state")
 		if not account_manual_login_open:
 			_set_account_fields_visible(account_center_open and not account_switch_open and not player_agreement_open)
 	else:
+		_home_reset_account()
 		account_identity_saving = false
 		_clear_session_account_password()
 		account_profile_signature = ""
@@ -6410,6 +6473,8 @@ func _roll_gacha() -> Dictionary:
 	if card.is_empty():
 		return {}
 	var card_id = String(card["id"])
+	if _card_total_count(card_id) == 0 and _card_kind(card) == CARD_KIND_ANIMAL:
+		gacha_new_card_ids[card_id] = true
 	var inventory = GachaService.apply_reward(card_counts, card_levels, card)
 	card_counts = inventory["counts"]
 	card_levels = inventory["levels"]
@@ -6456,6 +6521,7 @@ func _handle_gacha_tap(pos: Vector2) -> void:
 
 
 func _draw_gacha_rewards(count: int) -> void:
+	if count <= 0 or _is_gacha_animating(): return
 	if gacha_tickets < count:
 		GameAudio.play_sfx("ui_error")
 		_toast("抽卡券不足")
@@ -6465,6 +6531,7 @@ func _draw_gacha_rewards(count: int) -> void:
 	last_gacha_cards.clear()
 	gacha_pending_cards.clear()
 	gacha_card_flip_timers.clear()
+	gacha_new_card_ids.clear()
 	for i in range(count):
 		var card = _roll_gacha()
 		if card.is_empty():
@@ -6479,7 +6546,11 @@ func _draw_gacha_rewards(count: int) -> void:
 
 
 func _is_gacha_animating() -> bool:
-	return gacha_fx_timer > 0.0 or not gacha_pending_cards.is_empty() or _has_active_gacha_flip()
+	return _new_hero_reveal_active() or gacha_fx_timer > 0.0 or not gacha_pending_cards.is_empty() or _has_active_gacha_flip()
+
+
+func _new_hero_reveal_active() -> bool:
+	return gacha_hero_reveal != null and gacha_hero_reveal.active()
 
 
 func _has_active_gacha_flip() -> bool:
@@ -6490,6 +6561,9 @@ func _has_active_gacha_flip() -> bool:
 
 
 func _update_gacha_animation(delta: float) -> void:
+	if _new_hero_reveal_active():
+		gacha_hero_reveal.update(delta)
+		return
 	for i in range(gacha_card_flip_timers.size()):
 		gacha_card_flip_timers[i] = maxf(0.0, float(gacha_card_flip_timers[i]) - delta)
 	if gacha_fx_timer > 0.0:
@@ -6512,6 +6586,10 @@ func _reveal_next_gacha_card() -> void:
 	GameAudio.play_sfx("gacha_reveal")
 	gacha_card_flip_timers.append(GACHA_CARD_FLIP_SECONDS)
 	selected_card_id = card_id
+	if gacha_new_card_ids.has(card_id):
+		gacha_new_card_ids.erase(card_id)
+		if gacha_hero_reveal == null: gacha_hero_reveal = GachaNewHeroReveal.new(self)
+		gacha_hero_reveal.enqueue(_card_by_id(card_id))
 	if gacha_pending_cards.is_empty():
 		_toast("获得%d张卡牌" % last_gacha_cards.size())
 	else:
@@ -6594,6 +6672,9 @@ func _equip_pending_card_to_slot(slot_index: int) -> void:
 
 
 func _handle_nav(pos: Vector2) -> bool:
+	if screen == SCREEN_GACHA and _is_gacha_animating():
+		for index in range(NAV_ITEMS.size()):
+			if _nav_rect(index).has_point(pos): return true
 	for i in range(NAV_ITEMS.size()):
 		if not _nav_rect(i).has_point(pos):
 			continue
@@ -6609,7 +6690,10 @@ func _handle_nav(pos: Vector2) -> bool:
 		if not bool(route.get("ok", false)):
 			GameAudio.play_sfx("ui_error")
 			return true
-		if id == SCREEN_DECK:
+		if id == SCREEN_HOME:
+			screen = SCREEN_HOME
+			_ensure_home().enter()
+		elif id == SCREEN_DECK:
 			screen = SCREEN_DECK
 		elif id == SCREEN_GACHA:
 			screen = SCREEN_GACHA
@@ -7210,6 +7294,7 @@ func _server_profile_snapshot() -> Dictionary:
 		"deck": deck.duplicate(),
 		"gacha_tickets": gacha_tickets,
 		"wallet_gold": wallet_gold,
+		"home": home_view.state.duplicate(true) if home_view != null and home_view.available else (account_confirmed_profile.get("home", {}) as Dictionary).duplicate(true),
 		"rank_stars": int(profile.get("stars", RankingRules.INITIAL_STARS)),
 		"rank_key": String(profile.get("rank_key", RankingRules.INITIAL_RANK_KEY)),
 		"elo": int(profile.get("elo", RankingRules.INITIAL_ELO)),
@@ -7231,6 +7316,9 @@ func _apply_server_profile(value: Variant) -> void:
 	deck = (remote_deck as Array).duplicate() if typeof(remote_deck) == TYPE_ARRAY else []
 	gacha_tickets = maxi(0, int(profile.get("gacha_tickets", STARTING_GACHA_TICKETS)))
 	wallet_gold = maxi(0, int(profile.get("wallet_gold", wallet_gold)))
+	if typeof(profile.get("home")) == TYPE_DICTIONARY and not profile.home.is_empty():
+		_ensure_home().state = HomeRules.normalize_state(profile.home)
+		_ensure_home().refresh()
 	var rank_profile = RankingRules.normalize_profile(_player_profile())
 	rank_profile["player_id"] = OnlineRoom.current_user_id
 	rank_profile["rank_key"] = String(profile.get("rank_key", rank_profile["rank_key"]))
@@ -7250,6 +7338,8 @@ func _apply_server_profile(value: Variant) -> void:
 
 
 func _update_server_profile_sync(delta: float) -> void:
+	if home_preview or not home_inflight_baseline.is_empty():
+		return
 	if OnlineRoom.current_user_id == "" or online_room_service == null:
 		return
 	if not account_pending_profile.is_empty():
@@ -7264,6 +7354,186 @@ func _update_server_profile_sync(delta: float) -> void:
 		account_pending_profile = snapshot.duplicate(true)
 		if not OnlineRoom.save_player_profile(snapshot):
 			account_pending_profile.clear()
+
+
+func _ensure_home():
+	if home_view == null:
+		home_view = HomeView.new(self)
+		home_view.preview = home_preview
+	return home_view
+
+
+func _home_reset_account() -> void:
+	home_pending_action.clear()
+	home_inflight_baseline.clear()
+	if home_view == null: return
+	home_view.state = HomeRules.initial_state(HomeRules.day_key())
+	home_view.snapshot.clear()
+	home_view.available = false
+	home_view.busy = false
+	home_view.modal = ""
+	home_view.status = "正在连接家园"
+	home_view.simulation.signature = ""
+	home_view.simulation.residents.clear()
+	home_view.refresh()
+
+
+func _home_connection_lost() -> void:
+	if home_view == null or home_preview: return
+	home_pending_action.clear()
+	home_inflight_baseline.clear()
+	home_view.busy = false
+	home_view.available = false
+	home_view.status = "连接已断开，重新连接后继续"
+
+
+func _home_request(action: String, id: String = "") -> void:
+	var view = _ensure_home()
+	if view.busy: return
+	if not home_inflight_baseline.is_empty():
+		view.status = "上次操作仍在确认，请稍后重试"
+		return
+	if home_preview:
+		_home_preview_action(action, id)
+		return
+	if OnlineRoom.current_user_id.is_empty():
+		view.available = false
+		view.status = "登录账户后可领取和建设"
+		_ensure_online_room_connection()
+		return
+	if not OnlineRoom.server_home_rpc_supported:
+		view.available = false
+		view.status = "家园服务待更新，稍后重试"
+		return
+	view.busy = true
+	home_pending_action = {"action": action, "id": id, "sent": false}
+	home_request_elapsed = 0.0
+	account_profile_sync_timer = 0.0
+
+
+func _home_update_request(delta: float) -> void:
+	if home_pending_action.is_empty() or home_view == null: return
+	home_request_elapsed += delta
+	if home_request_elapsed > 15.0:
+		_home_operation_failed("request_timeout")
+		return
+	if bool(home_pending_action.get("sent", false)): return
+	if not account_pending_profile.is_empty(): return
+	if JSON.stringify(_server_profile_snapshot()) != account_profile_signature:
+		_update_server_profile_sync(1.0)
+		return
+	home_pending_action.sent = true
+	home_inflight_baseline = _server_profile_snapshot().duplicate(true)
+	var action = String(home_pending_action.action)
+	var sent = _dispatch_home_action(action, String(home_pending_action.id), int(home_view.snapshot.get("day", -1)))
+	if not sent and home_view.busy: _home_operation_failed("request_failed")
+
+
+func _dispatch_home_action(action: String, id: String, day: int) -> bool:
+	if action == "state": return OnlineRoom.request_home_state()
+	if action == "unlock": return OnlineRoom.unlock_home_plot(id)
+	if action == "claim": return OnlineRoom.claim_home_daily(day)
+	return false
+
+
+func _home_operation_completed(operation: String, result: Dictionary) -> void:
+	var view = _ensure_home()
+	view.busy = false
+	home_pending_action.clear()
+	home_inflight_baseline.clear()
+	if typeof(result.get("profile")) == TYPE_DICTIONARY:
+		var profile: Dictionary = result.profile
+		if typeof(profile.get("home")) == TYPE_DICTIONARY:
+			view.state = HomeRules.normalize_state(profile.home)
+	view.accept_snapshot(result.get("home_snapshot", {}), screen == SCREEN_HOME)
+	if bool(result.get("conflict", false)):
+		_toast("账户已更新，请再次操作")
+		return
+	if operation == "home_unlock":
+		GameAudio.play_sfx("ui_confirm")
+		_toast("建筑已解锁，获得 1 张抽卡券")
+	elif operation == "home_claim":
+		view.reward = result.get("reward", {}).duplicate(true)
+		view.modal = "result" if screen == SCREEN_HOME else ""
+		GameAudio.play_sfx("gacha_reveal")
+
+
+func _home_operation_failed(error: String) -> void:
+	var view = _ensure_home()
+	view.busy = false
+	home_pending_action.clear()
+	# A timeout is an uncertain result, not cancellation of the server request.
+	# Keep the exact dispatch baseline until a reply or transport teardown.
+	if error != "request_timeout": home_inflight_baseline.clear()
+	var message = {
+		"home_unavailable": "家园服务待更新，稍后重试",
+		"request_timeout": "连接超时，请重试；收益不会重复发放",
+		"request_failed": "连接未就绪，请稍后重试",
+		"insufficient_gold": "金币不足",
+		"already_claimed": "今天的收益已领取",
+		"already_unlocked": "地块已经解锁",
+		"plot_not_adjacent": "请先解锁相邻地块",
+		"storage_error": "保存失败，请重试",
+		"stale_home_day": "新的一天到了，请重新打开收益面板",
+		"profile_conflict": "账户已更新，请重试",
+	}.get(error, "家园连接失败，请重试")
+	view.status = message
+	if error in ["home_unavailable", "request_timeout", "request_failed"]: view.available = false
+	_toast(message)
+
+
+func _home_load_preview() -> void:
+	var view = _ensure_home()
+	view.preview = true
+	view.state = HomeRules.initial_state(HomeRules.day_key())
+	wallet_gold = 600
+	gacha_tickets = 10
+	if FileAccess.file_exists(home_preview_save_path):
+		var value: Variant = JSON.parse_string(FileAccess.get_file_as_string(home_preview_save_path))
+		if typeof(value) == TYPE_DICTIONARY and value.has("home"):
+			view.state = HomeRules.normalize_state(value.home)
+			wallet_gold = maxi(0, int(value.get("wallet_gold", 600)))
+			gacha_tickets = maxi(0, int(value.get("gacha_tickets", 10)))
+	view.accept_snapshot(HomeRules.daily_snapshot(view.state, HomeRules.day_key()), false)
+
+
+func _home_save_preview(candidate: Dictionary) -> bool:
+	var temp_path = home_preview_save_path + ".tmp"
+	var file = FileAccess.open(temp_path, FileAccess.WRITE)
+	if file == null: return false
+	file.store_string(JSON.stringify(candidate))
+	file.flush()
+	var saved = file.get_error() == OK
+	file.close()
+	if not saved: return false
+	return DirAccess.rename_absolute(temp_path, home_preview_save_path) == OK
+
+
+func _home_preview_action(action: String, id: String) -> void:
+	var view = _ensure_home()
+	var day = HomeRules.day_key()
+	if action == "state":
+		view.accept_snapshot(HomeRules.daily_snapshot(view.state, day), screen == SCREEN_HOME)
+		return
+	var result: Dictionary
+	if action == "unlock":
+		result = HomeRules.unlock(view.state, id, wallet_gold, gacha_tickets, day)
+	else:
+		result = HomeRules.settle_daily(view.state, day, reward_rng)
+		if bool(result.get("ok", false)):
+			result.wallet_gold = wallet_gold + int(result.reward.gold)
+			result.gacha_tickets = gacha_tickets + int(result.reward.tickets)
+	if not bool(result.get("ok", false)):
+		_home_operation_failed(String(result.get("error", "")))
+		return
+	var candidate = {"home": result.home, "wallet_gold": result.wallet_gold, "gacha_tickets": result.gacha_tickets}
+	if not _home_save_preview(candidate):
+		_home_operation_failed("storage_error")
+		return
+	view.state = result.home
+	wallet_gold = int(result.wallet_gold)
+	gacha_tickets = int(result.gacha_tickets)
+	_home_operation_completed("home_" + action, {"home_snapshot": HomeRules.daily_snapshot(view.state, day), "reward": result.reward})
 
 
 func _handle_account_center_tap(pos: Vector2) -> void:
@@ -8007,13 +8277,14 @@ func _draw_nav() -> void:
 			draw_style_box(HanddrawnSkin.panel(Color("a67719"), 3, false), Rect2(rect.get_center().x - 15, rect.end.y - 8, 30, 5))
 		_draw_nav_icon(rect, i, bool(item.get("locked", false)))
 		_draw_text_center(String(item["label"]), Rect2(rect.position + Vector2(0, 84), Vector2(rect.size.x, 34)), 23, Color.WHITE)
+		if id == SCREEN_HOME and home_view != null and home_view.has_dot():
+			draw_circle(rect.position + Vector2(rect.size.x - 8, 8), 9, HanddrawnSkin.UPGRADE_DOT)
 
 
 func _draw_nav_icon(rect: Rect2, index: int, locked: bool) -> void:
 	var c = rect.position + Vector2(rect.size.x * 0.5, 42)
 	if index == 0:
-		draw_style_box(HanddrawnSkin.panel(HanddrawnSkin.PRIMARY, 4, false), Rect2(c + Vector2(-28, -10), Vector2(56, 42)))
-		draw_rect(Rect2(c + Vector2(-32, -28), Vector2(64, 20)), COLOR_RED)
+		_draw_texture_contained(BUILDING_ART["base"], Rect2(c + Vector2(-38, -36), Vector2(76, 76)))
 	elif index == 1:
 		draw_style_box(HanddrawnSkin.panel(HanddrawnSkin.PRIMARY, 4, false), Rect2(c + Vector2(-28, -26), Vector2(46, 58)))
 		draw_style_box(HanddrawnSkin.panel(HanddrawnSkin.LILAC, 4, false), Rect2(c + Vector2(-8, -22), Vector2(46, 58)))
@@ -9439,8 +9710,10 @@ func _rect_contains_rect(outer: Rect2, inner: Rect2) -> bool:
 func _draw_toast() -> void:
 	if toast_timer <= 0.0:
 		return
+	if _new_hero_reveal_active() or (screen == SCREEN_HOME and home_view != null and not home_view.modal.is_empty()): return
 	var alpha = clampf(toast_timer / 1.4, 0.0, 1.0)
 	var rect = Rect2(130, 1018, 460, 58)
+	if screen == SCREEN_HOME: rect = Rect2(90, 274, 540, 58)
 	_box(rect, Color(0.05, 0.06, 0.10, 0.82 * alpha), Color(1, 1, 1, 0.18 * alpha), 2)
 	_draw_text_center(toast_text, rect, 23, Color(1, 1, 1, alpha))
 

@@ -4,6 +4,7 @@ const ProfileAdapter = preload("res://scripts/server/player_account_profile_adap
 const LifecycleLock = preload("res://scripts/server/player_account_lifecycle_lock.gd")
 const AccountCredentialRules = preload("res://scripts/shared/account_credential_rules.gd")
 const AccountIdentityRules = preload("res://scripts/shared/account_identity_rules.gd")
+const HomeRules = preload("res://scripts/shared/home_rules.gd")
 
 const DEFAULT_PATH = "user://server/player_accounts.json"
 const ADMIN_ACCOUNTS_SNAPSHOT_BASENAME = "admin_accounts_snapshot.json"
@@ -455,6 +456,13 @@ func save_profile(session_token: String, profile: Dictionary) -> Dictionary:
 	var profile_source = profile.duplicate(true)
 	profile_source.erase(PROFILE_REVISION_FIELD)
 	profile_source.erase("profile_revision")
+	# Home is exclusively mutated by authenticated server transactions. Old
+	# clients omit this field; new clients must not overwrite it via full saves.
+	var existing_profile: Dictionary = record.get("profile", {})
+	if existing_profile.has("home"):
+		profile_source["home"] = existing_profile.home.duplicate(true)
+	else:
+		profile_source.erase("home")
 	record["profile"] = _normalize_profile(profile_source)
 	record["profile_revision"] = current_revision + 1
 	record["updated_at_unix"] = int(Time.get_unix_time_from_system())
@@ -463,6 +471,91 @@ func save_profile(session_token: String, profile: Dictionary) -> Dictionary:
 		accounts[key] = previous_record
 		return _failure("storage_error")
 	return _profile_result(record, false)
+
+
+func _home_today() -> int:
+	return HomeRules.day_key()
+
+
+func home_for_session(session_token: String) -> Dictionary:
+	return _home_transaction(session_token, "state", "", -1, -1)
+
+
+func unlock_home_plot(session_token: String, id: String, expected_revision: int) -> Dictionary:
+	return _home_transaction(session_token, "unlock", id, expected_revision, -1)
+
+
+func claim_home_daily(session_token: String, expected_revision: int, expected_day: int) -> Dictionary:
+	return _home_transaction(session_token, "claim", "", expected_revision, expected_day)
+
+
+func _home_transaction(session_token: String, action: String, id: String, expected_revision: int, expected_day: int) -> Dictionary:
+	if not authority_storage_ready:
+		return _failure("authority_storage_unavailable")
+	var key = _key_for_user_id(String(sessions.get(session_token, "")))
+	if key.is_empty():
+		return _failure("invalid_session")
+	var previous: Dictionary = (accounts[key] as Dictionary).duplicate(true)
+	var record: Dictionary = previous.duplicate(true)
+	var profile: Dictionary = _normalize_profile(record.get("profile", {}))
+	var day = _home_today()
+	var state = HomeRules.normalize_state(profile.get("home", {}))
+	var initialized = state.is_empty()
+	if initialized:
+		state = HomeRules.initial_state(day)
+	profile["home"] = state
+	record["profile"] = profile
+	if action == "unlock" and (state.owned as Dictionary).has(id):
+		var replay = _home_result(record, day)
+		replay["already_unlocked"] = true
+		return replay
+	if action == "claim" and expected_day <= int(state.last_claim_day):
+		var replay = _home_result(record, day)
+		replay["already_claimed"] = true
+		replay["reward"] = state.last_reward.duplicate(true) if expected_day == int(state.last_claim_day) else {}
+		return replay
+	if action != "state" and expected_revision != maxi(1, int(record.get("profile_revision", 1))):
+		return _home_result(record, day, true)
+	if action == "claim" and expected_day != day:
+		return _home_result(record, day, true)
+	var reward: Dictionary = {}
+	if action == "unlock":
+		var unlocked = HomeRules.unlock(state, id, int(profile.wallet_gold), int(profile.gacha_tickets), day)
+		if not bool(unlocked.get("ok", false)):
+			return _failure(String(unlocked.get("error", "invalid_plot")))
+		profile.home = unlocked.home
+		profile.wallet_gold = unlocked.wallet_gold
+		profile.gacha_tickets = unlocked.gacha_tickets
+		reward = unlocked.reward
+	elif action == "claim":
+		var rng = RandomNumberGenerator.new()
+		rng.randomize()
+		var settled = HomeRules.settle_daily(state, day, rng)
+		if not bool(settled.get("ok", false)):
+			return _failure(String(settled.get("error", "already_claimed")))
+		profile.home = settled.home
+		reward = settled.reward
+		profile.wallet_gold += int(reward.gold)
+		profile.gacha_tickets += int(reward.tickets)
+	elif action != "state":
+		return _failure("invalid_home_action")
+	if initialized or action != "state":
+		record["profile"] = profile
+		record["profile_revision"] = maxi(1, int(previous.get("profile_revision", 1))) + 1
+		record["updated_at_unix"] = int(Time.get_unix_time_from_system())
+		accounts[key] = record
+		if not _save():
+			accounts[key] = previous
+			return _failure("storage_error")
+	var response = _home_result(record, day)
+	response["reward"] = reward
+	return response
+
+
+func _home_result(record: Dictionary, day: int, conflict: bool = false) -> Dictionary:
+	var result = _profile_result(record, conflict)
+	result["home_snapshot"] = HomeRules.daily_snapshot(record.profile.get("home", {}), day)
+	return result
 
 
 func _profile_result(record: Dictionary, conflict: bool) -> Dictionary:

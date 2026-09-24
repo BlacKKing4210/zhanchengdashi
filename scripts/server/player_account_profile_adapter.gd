@@ -2,6 +2,7 @@
 extends "res://scripts/foundation/account/profile_adapter.gd"
 
 const RankMirrorRules = preload("res://scripts/app/systems/rank_mirror_rules.gd")
+const HomeRules = preload("res://scripts/shared/home_rules.gd")
 
 const RANK_NAMES = {
 	"bronze": "青铜", "silver": "白银", "gold": "黄金", "platinum": "铂金",
@@ -19,6 +20,7 @@ func normalize_profile(source: Dictionary) -> Dictionary:
 		"deck": _string_array(source.get("deck", []), 8),
 		"gacha_tickets": maxi(0, int(source.get("gacha_tickets", 10))),
 		"wallet_gold": maxi(0, int(source.get("wallet_gold", 60))),
+		"home": HomeRules.normalize_state(source.get("home", {})),
 		"rank_stars": maxi(0, int(source.get("rank_stars", 1))),
 		"rank_key": String(source.get("rank_key", "bronze")).strip_edges(),
 		"elo": maxi(0, int(source.get("elo", 1000))),

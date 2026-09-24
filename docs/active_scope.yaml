@@ -1,6 +1,6 @@
 schema_version: 1
 scope_id: SCOPE-001
-updated_on: "2026-08-27"
+updated_on: "2026-09-25"
 purpose: authoritative active priorities task ownership and shared write locks
 
 authority:
@@ -44,6 +44,20 @@ feature_progress:
   source_collection: [functional_documents, numeric_or_config_tables, version_plan, filed_producer_directives, latest_accountable_receipts]
 
 active_modules:
+  - task_id: REQ-20260924-HOMESTEAD
+    feature_id: F-ZC-HOME-001
+    version: v1.0.0
+    phase: closure
+    owner: codex-primary
+    status: COMPLETE
+    started_on: "2026-09-24"
+    completed_on: "2026-09-25"
+    included_features: [F-ZC-HOME-001, F-ZC-GACHA-NEW-001]
+    release_status: LOCAL_RUNTIME_VALIDATED
+    remaining_gates: [aliyun_home_deployment_not_authorized, android_export_device_not_run, formal_figma_diagrams_unavailable]
+    completion_receipt: docs/receipts/REQ-20260924-HOMESTEAD.md
+    read_only_receipt: docs/receipts/REQ-20260924-HOMESTEAD.md
+    formal_source: docs/HOMESTEAD_IMPLEMENTATION.md
   - task_id: REQ-20260906-ADMIN-ALL-ANIMALS
     feature_id: F-ZC-ADMIN-001
     version: v1.4.0-aliyun-staging-rc2
@@ -424,6 +438,14 @@ active_modules:
 queued_modules: []
 
 shared_locks:
+  home_20260924:
+    task_id: REQ-20260924-HOMESTEAD
+    owner: codex-primary
+    status: RELEASED
+    read_only_receipt: docs/receipts/REQ-20260924-HOMESTEAD.md
+    write_set: [scripts/app/main.gd, scripts/app/ui/home_view.gd, scripts/app/ui/gacha_new_hero_reveal.gd, scripts/app/systems/home_simulation.gd, scripts/shared/home_rules.gd, scripts/server/player_account_store.gd, scripts/server/player_account_profile_adapter.gd, scripts/network/online_room.gd, scripts/network/home_rpc.gd, config/tables/home_economy.csv, config/tables/home_buildings.csv, config/schema/config_schema.json, runtime/config/home_economy.json, runtime/config/home_buildings.json, tests/test_home_economy.gd, tests/test_home_runtime.gd, tests/test_home_sync.gd, tests/test_gacha_new_hero_reveal.gd, tests/test_gacha_reveal_integration.gd, assets/art/home/]
+    evidence_root: temp/qa/home-20260924
+    completion_receipt: docs/receipts/REQ-20260924-HOMESTEAD.md
   combat_readability_20260915:
     task_id: REQ-20260915-COMBAT-READABILITY
     owner: codex-primary

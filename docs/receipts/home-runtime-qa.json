@@ -1,0 +1,318 @@
+{
+  "request": "REQ-20260924-HOMESTEAD",
+  "features": [
+    "F-ZC-HOME-001",
+    "F-ZC-GACHA-NEW-001"
+  ],
+  "status": "LOCAL_RUNTIME_VALIDATED",
+  "verified_at": "2026-09-24T16:38:17.697869+00:00",
+  "engine": {
+    "version": "4.6.2.stable.official.71f334935",
+    "sha256": "2a12df24d1545ff3924a1f40e8ed9f4ec7ce9b140814c1b566dcd2bdf7b79492"
+  },
+  "checks": {
+    "home_economy": 12381,
+    "home_runtime_gpu": 4626,
+    "home_sync": 12,
+    "gacha_presentation": 11736,
+    "gacha_input_headless": 45,
+    "gacha_input_gpu": 61,
+    "online_rewards": 50,
+    "combat_readability": 10340
+  },
+  "failures": 0,
+  "limitations": [
+    "Aliyun home service not deployed",
+    "Android export/device not run",
+    "Figma editable diagrams pending HTTP tool failure",
+    "Forced debug entry quit retains audio shutdown warning; controlled suites clean",
+    "Existing client wallet profile-save architecture not redesigned"
+  ],
+  "files": [
+    {
+      "path": "scripts/app/main.gd",
+      "sha256": "39c5e5282217f8d97068ffb7fbb4a8fc11a63938a0aa4b388645f69526de5289",
+      "bytes": 406275
+    },
+    {
+      "path": "scripts/app/ui/home_view.gd",
+      "sha256": "2f203ad26d57b286aac7cfdad125054f490f20367c073b4daa75f2a1ef12e8b5",
+      "bytes": 17378
+    },
+    {
+      "path": "scripts/app/ui/gacha_new_hero_reveal.gd",
+      "sha256": "2bf21f0b790302b6ec0d5286979c57c8c1ee7dfc404cfedd256a40de22e7d924",
+      "bytes": 8048
+    },
+    {
+      "path": "scripts/app/systems/home_simulation.gd",
+      "sha256": "03e8fb2961dff708ca85f73f4e866d22bae48554984803313514caa9e3dc51be",
+      "bytes": 6631
+    },
+    {
+      "path": "scripts/shared/home_rules.gd",
+      "sha256": "29c0617bed4a7dc2da969a9ec0089cd646e4c11f5da84c107b93ac6673e57139",
+      "bytes": 9467
+    },
+    {
+      "path": "scripts/network/online_room.gd",
+      "sha256": "85c436aef5a8a7b2fa15f1a87d691cd1468e1b0aef464d5eeb7852d8a55c9208",
+      "bytes": 73488
+    },
+    {
+      "path": "scripts/network/home_rpc.gd",
+      "sha256": "d4a12ab4f5ff42fda500756226357d6f633c031525c16c366b2cfbbfc8574484",
+      "bytes": 427
+    },
+    {
+      "path": "scripts/server/player_account_store.gd",
+      "sha256": "54ec6f4f637f66a3c4f4c59a96bbd85fc3b0c6f877c5811bf667c0404884d0da",
+      "bytes": 81828
+    },
+    {
+      "path": "scripts/server/player_account_profile_adapter.gd",
+      "sha256": "d73455861d2deb549492e779c6426d4437a99fcfe94baebde4942de9697b76c6",
+      "bytes": 4733
+    },
+    {
+      "path": "tests/test_home_runtime.gd",
+      "sha256": "d264f962b71652dcb0b0d9ff15c1e28699ac3296863ff4b9281207348067c097",
+      "bytes": 11089
+    },
+    {
+      "path": "tests/test_home_sync.gd",
+      "sha256": "85d29e018fa972888686a784f201701633a023649796ade4c929492fa886c21c",
+      "bytes": 3467
+    },
+    {
+      "path": "tests/test_home_economy.gd",
+      "sha256": "e2b920ee946ced6f9eb24bac4ad22cd5bc6d33388179b6d557f5ae9f39314eeb",
+      "bytes": 14861
+    },
+    {
+      "path": "tests/test_gacha_new_hero_reveal.gd",
+      "sha256": "187384c79187837511e6b85ab275c85d0e878f9870df4f59b351c76e8266b6ff",
+      "bytes": 8226
+    },
+    {
+      "path": "tests/test_gacha_reveal_integration.gd",
+      "sha256": "d950a394ea9c16c6cf3339478ef82379141a58009b3344eaa92a2a1cd00539ce",
+      "bytes": 8914
+    },
+    {
+      "path": "config/tables/home_economy.csv",
+      "sha256": "089d3b151efc7a26a7bfb093f65f4b5c55d5903bba6fb73a2d56afac73d573ce",
+      "bytes": 815
+    },
+    {
+      "path": "config/tables/home_buildings.csv",
+      "sha256": "63781046d70ec6fbf58d656c761069ecdc1ad784ee8723d40bc84788b53926c1",
+      "bytes": 458
+    },
+    {
+      "path": "config/schema/config_schema.json",
+      "sha256": "f2e23a6c9c003e2e7ee7741d73ccc0b1d7876411b8aecd372ee4f039661930b0",
+      "bytes": 18409
+    },
+    {
+      "path": "runtime/config/home_economy.json",
+      "sha256": "977ce837daa3b20456ef99a229c5426d3440eb1b95517763ad624ed86df5c1c2",
+      "bytes": 577
+    },
+    {
+      "path": "runtime/config/home_buildings.json",
+      "sha256": "6b9733755b7832f21cf948ab20b6de26e824cd24f642e95283e913d9d54bc0fc",
+      "bytes": 980
+    },
+    {
+      "path": "docs/HOMESTEAD_DESIGN_v1.0.docx",
+      "sha256": "393a93843b0297a338f5a506b5f8f1ff2f7dbec6035e650c9daf08f93c78b1e6",
+      "bytes": 406693
+    },
+    {
+      "path": "temp/qa/home-20260924/gacha-common-hero-360.png",
+      "sha256": "66fef6fe51923d14691574f412be55b83dba455610de3a8d14c251b21be742ed",
+      "bytes": 54396
+    },
+    {
+      "path": "temp/qa/home-20260924/gacha-common-hero-720.png",
+      "sha256": "1d32d56a04f432f3cc80139f7adcba51e31f7d66f13e90b6d7b9cd121a751318",
+      "bytes": 139521
+    },
+    {
+      "path": "temp/qa/home-20260924/gacha-common-rarity-360.png",
+      "sha256": "9044ea4d61c19ffeadd034dd3d5dda79bf3cd6313569533d4887669116cac23f",
+      "bytes": 30440
+    },
+    {
+      "path": "temp/qa/home-20260924/gacha-common-rarity-720.png",
+      "sha256": "757f9f11743967b63ff200bcc1bf7d12c25b576fc9580b90255e95e7884b1316",
+      "bytes": 64922
+    },
+    {
+      "path": "temp/qa/home-20260924/gacha-epic-hero-360.png",
+      "sha256": "f004f19f047cfa7de41fa4f80a79b8478f2e4b4f6ed76283049f5aed9ee2fd6c",
+      "bytes": 54933
+    },
+    {
+      "path": "temp/qa/home-20260924/gacha-epic-hero-720.png",
+      "sha256": "755f4077609201cb2ea0b32e9d6b4fc70e188b9616c1ca4383501491cff2a1ed",
+      "bytes": 134567
+    },
+    {
+      "path": "temp/qa/home-20260924/gacha-epic-rarity-360.png",
+      "sha256": "4e4e57ea77d0dacad63c72bf7801ab545ac78fafa6978c02fbe1ca2c9ade30c2",
+      "bytes": 30349
+    },
+    {
+      "path": "temp/qa/home-20260924/gacha-epic-rarity-720.png",
+      "sha256": "595b4d9f0fcc229fe6d5961221e608df94d0143a9b34e3a478707a5ff9fb36c4",
+      "bytes": 64802
+    },
+    {
+      "path": "temp/qa/home-20260924/gacha-legendary-hero-360.png",
+      "sha256": "9188241263f70c6133641e26748a08137ebd4ebe729fb0f550a1ba3cc8b590ce",
+      "bytes": 77700
+    },
+    {
+      "path": "temp/qa/home-20260924/gacha-legendary-hero-720.png",
+      "sha256": "291d2afce3a0767f6c7b601f4d5fdf95c3a0e35f6c478bd915991519667e2db4",
+      "bytes": 218020
+    },
+    {
+      "path": "temp/qa/home-20260924/gacha-legendary-rarity-360.png",
+      "sha256": "4c8d953d01083da9677fc8bef83d828ffe27b2d00f2a2d43aa5f72fe91b3e9fa",
+      "bytes": 30384
+    },
+    {
+      "path": "temp/qa/home-20260924/gacha-legendary-rarity-720.png",
+      "sha256": "8ece7f03a2ef470acaf6cab97270a926505fd9631e52d0899e79d7bf22e8e701",
+      "bytes": 65069
+    },
+    {
+      "path": "temp/qa/home-20260924/gacha-rare-hero-360.png",
+      "sha256": "005568c276fb867114f221fba27d8463b2f5299a68f113b190d911acea373c07",
+      "bytes": 56444
+    },
+    {
+      "path": "temp/qa/home-20260924/gacha-rare-hero-720.png",
+      "sha256": "be5c489e719bc5581caedcce4cfe41fbdea2ec23c37af75186a9bd9df63cd15a",
+      "bytes": 136563
+    },
+    {
+      "path": "temp/qa/home-20260924/gacha-rare-rarity-360.png",
+      "sha256": "0d199ec88839f480e19daccb0403e08ad34c246c7bcd9f4bccefda27dccac03b",
+      "bytes": 30297
+    },
+    {
+      "path": "temp/qa/home-20260924/gacha-rare-rarity-720.png",
+      "sha256": "b1b07918e9bc989140dd93962b101be3266e5b349d860675035081a7a69609ca",
+      "bytes": 64528
+    },
+    {
+      "path": "temp/qa/home-20260924/home-developed-day.png",
+      "sha256": "deb6608c6b60ccd817317c8513c3dde555e92bd574510c0be4b1c48d8d349569",
+      "bytes": 336663
+    },
+    {
+      "path": "temp/qa/home-20260924/home-developed-night.png",
+      "sha256": "c05d4ffc46bf272e7b77ca936ee00572f2e922c71be7a12f5b5f45373e4757a8",
+      "bytes": 318381
+    },
+    {
+      "path": "temp/qa/home-20260924/home-first-reward.png",
+      "sha256": "da19945254979014c4adc6346d41c4bbed1fe2ed70f00cb8a9c1728a4f600996",
+      "bytes": 113801
+    },
+    {
+      "path": "temp/qa/home-20260924/home-initial-map.png",
+      "sha256": "0084e2af1863de857b3a217444c30f04cc7745dfcb94d69f18ea05ce1bb748e7",
+      "bytes": 187644
+    },
+    {
+      "path": "temp/qa/home-20260924/home-insufficient.png",
+      "sha256": "934544c2142921a50b095e34ce52662647425edd240edc129d2ed3ba40dd74b5",
+      "bytes": 255845
+    },
+    {
+      "path": "temp/qa/home-20260924/home-map-360.png",
+      "sha256": "5c26f6df333f23aa4807c2fc1decde55da2c4c36325030d85ec2afb29dc61fbc",
+      "bytes": 117137
+    },
+    {
+      "path": "temp/qa/home-20260924/home-reward-result.png",
+      "sha256": "d89cd763403d9ad73d43c16cd66b6c4d8cceadff9fd3c37e2ac377d720b415cc",
+      "bytes": 84143
+    },
+    {
+      "path": "temp/qa/home-20260924/home-three-day-reward-360.png",
+      "sha256": "193cba47c1f9fdcafc8b235453901dd95513410ed2ed78b72318beea712f73e5",
+      "bytes": 67073
+    },
+    {
+      "path": "temp/qa/home-20260924/home-three-day-reward.png",
+      "sha256": "dcf7bc08320e2b67c8c373648fe9929d23b7a279f92ff3685a60d7da40f82d13",
+      "bytes": 155975
+    },
+    {
+      "path": "temp/qa/home-20260924/home-unlock-detail.png",
+      "sha256": "81ce643a000762e305828881424ce5779168cf33badcd602930f88b31c41fc32",
+      "bytes": 187216
+    },
+    {
+      "path": "temp/qa/home-20260924/home-runtime-final.log",
+      "sha256": "03913275d2ed5cb73327d71369d73582f8e90d23038ef80cbbb2c5c1d55dcd0e",
+      "bytes": 202
+    },
+    {
+      "path": "temp/qa/home-20260924/home-sync-before.log",
+      "sha256": "c4f898d9a73e6c06c0359b2af4869607bfa0b10b2e045e05044dd5ada2690fe8",
+      "bytes": 1057
+    },
+    {
+      "path": "temp/qa/home-20260924/home-sync-final.log",
+      "sha256": "464babc83d31971d0985f4520d0fcc6dd0bb7134760e0dc5de2c8642a8fc295f",
+      "bytes": 107
+    },
+    {
+      "path": "temp/qa/home-20260924/home-multitouch-before.log",
+      "sha256": "3c71eae68cf0bb59026a701b6156cf7f68c9d2f31740286e4265a48afba6e5e8",
+      "bytes": 693
+    },
+    {
+      "path": "temp/qa/home-20260924/home-midnight-before.log",
+      "sha256": "d9f55702ef98e8828678216ae6edfea78fcbe51c1ab65d7c61c3753169d3dfd3",
+      "bytes": 389
+    },
+    {
+      "path": "temp/qa/home-20260924/economy-qa.json",
+      "sha256": "282ddf4109905a6ff3b494ce7def24f36836a9c1b9e4fae11458c0c1ac2b5783",
+      "bytes": 4873
+    },
+    {
+      "path": "temp/qa/home-20260924/gacha-qa.json",
+      "sha256": "2ba0ec50266623652a2b3dbe62db434770768cd1559f9cff18c933ca56084df3",
+      "bytes": 6306
+    },
+    {
+      "path": "temp/qa/home-20260924/combat-regression.log",
+      "sha256": "dd66b3217079f52cfd3787a1390b20ee2e218c8f016b2978285c318076d219d5",
+      "bytes": 119
+    },
+    {
+      "path": "temp/qa/home-20260924/reward-regression.log",
+      "sha256": "d233792170ad3880d53f767284d3e9c8977d56e23d53b372b28716320b1abe98",
+      "bytes": 191
+    },
+    {
+      "path": "temp/qa/home-20260924/final-import.log",
+      "sha256": "f65a02b819338e2bb2eb75b1fa2e1378517065bd23412b53f3a6c4f48bb87123",
+      "bytes": 1846
+    },
+    {
+      "path": "temp/qa/home-20260924/home-entry-smoke.log",
+      "sha256": "f39680672633d2daa8f7dd7936fb368ae073ca9ec93061b6432ff7525734e49a",
+      "bytes": 199
+    }
+  ]
+}
