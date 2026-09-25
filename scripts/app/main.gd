@@ -8,6 +8,7 @@ const BoardRules = preload("res://scripts/app/systems/board_rules.gd")
 const DefenseTowerRules = preload("res://scripts/app/systems/defense_tower_rules.gd")
 const AnimalSkillRules = preload("res://scripts/app/systems/animal_skill_rules.gd")
 const AnimalSkillRuntime = preload("res://scripts/app/systems/animal_skill_runtime.gd")
+const ProjectileVisualRules = preload("res://scripts/app/systems/projectile_visual_rules.gd")
 var animal_skills = AnimalSkillRuntime.new(self)
 const MultiplayerRules = preload("res://scripts/app/systems/multiplayer_rules.gd")
 const ClassicMapRules = preload("res://scripts/app/systems/classic_map_rules.gd")
@@ -3261,7 +3262,8 @@ func _update_buildings(delta: float) -> void:
 				if not ready_camps_by_team.has(team):
 					ready_camps_by_team[team] = []
 				(ready_camps_by_team[team] as Array).append(key)
-		tiles[key] = tile
+		# Dictionary timer edits are already in-place. Attack callbacks may replace
+		# tiles[key] with destroyed/captured state; never restore this stale tile.
 	_spawn_ready_camps(ready_camps_by_team)
 
 
@@ -3756,7 +3758,7 @@ func _tower_attack(key: Vector2i, team: int) -> void:
 		if target_index < 0 or target_index >= units.size():
 			return
 		_play_world_sfx("tower_attack", center, team, -3.0)
-		_projectile(center, Vector2(target.get("pos", units[target_index].get("pos", center))), team)
+		_projectile(center, Vector2(target.get("pos", units[target_index].get("pos", center))), team, String(tile.get("site_card", "")))
 		attacked = true
 		_damage_unit(target_index, damage, -1, team, true, key, true, kill_report, false, true)
 	elif String(target.get("kind", "")) == "building":
@@ -3764,7 +3766,7 @@ func _tower_attack(key: Vector2i, team: int) -> void:
 		if target_key == MultiplayerRules.INVALID_KEY:
 			return
 		_play_world_sfx("tower_attack", center, team, -3.0)
-		_projectile(center, _hex_center(target_key), team)
+		_projectile(center, _hex_center(target_key), team, String(tile.get("site_card", "")))
 		attacked = true
 		_damage_tile(target_key, team, damage)
 	if not attacked or building != "tower" or tower_card.is_empty():
@@ -3973,7 +3975,7 @@ func _tower_attack_extra_units(
 			return
 		var target_id = int(units[best_index].get("id", -1))
 		excluded_ids[target_id] = true
-		_projectile(center, Vector2(units[best_index].get("pos", center)), team)
+		_projectile(center, Vector2(units[best_index].get("pos", center)), team, String(tower_card.get("id", "")))
 		_damage_unit(best_index, damage, -1, team, true, key, true, kill_report, false, true)
 		remaining -= 1
 
@@ -4611,7 +4613,7 @@ func _unit_attack_target(attacker_index: int, target: Dictionary, _distance: flo
 	_trigger_unit_motion(attacker_index, UnitMotionFeedback.KIND_ATTACK, target_pos - Vector2(attacker["pos"]))
 	if bool(attacker.get("is_ranged", float(attacker.get("base_card_range", _unit_card(attacker).get("base_attack_range", 0.0))) > 0.0)):
 		_play_world_sfx("ranged_attack", Vector2(attacker["pos"]), int(attacker["team"]), -4.0)
-		_projectile(Vector2(attacker["pos"]), target_pos, int(attacker["team"]))
+		_projectile(Vector2(attacker["pos"]), target_pos, int(attacker["team"]), String(attacker.get("card", "")))
 	else:
 		_play_world_sfx("unit_attack", Vector2(attacker["pos"]), int(attacker["team"]), -3.0)
 	var killed = false
@@ -5505,7 +5507,7 @@ func _attack_extra_targets(index: int, count: int, primary_target: Dictionary) -
 		if best_index < 0:
 			return
 		picked.append(best_index)
-		_projectile(Vector2(unit["pos"]), Vector2(units[best_index]["pos"]), int(unit["team"]))
+		_projectile(Vector2(unit["pos"]), Vector2(units[best_index]["pos"]), int(unit["team"]), String(unit.get("card", "")))
 		_damage_unit(best_index, maxf(1.0, float(unit["attack"]) * 0.75), index, int(unit["team"]))
 
 
@@ -8569,7 +8571,7 @@ func _draw_building_health_bar(center: Vector2, tile: Dictionary) -> void:
 		return
 	var hp = float(tile.get("hp", 0.0))
 	var pct = clampf(hp / max_hp, 0.0, 1.0)
-	_draw_compact_bar(Rect2(center + Vector2(-23, 27), Vector2(46, 5)), pct, _team_health_color(team))
+	_draw_compact_bar(Rect2(center + Vector2(-23, 27), Vector2(46, 5)), pct, _team_health_color(team), 3.0)
 
 
 func _should_draw_building_health_bar(tile: Dictionary) -> bool:
@@ -8577,11 +8579,13 @@ func _should_draw_building_health_bar(tile: Dictionary) -> bool:
 	return max_hp > 0.0 and float(tile.get("hp", 0.0)) < max_hp - 0.001
 
 
-func _draw_compact_bar(rect: Rect2, pct: float, fill: Color) -> void:
+func _draw_compact_bar(rect: Rect2, pct: float, fill: Color, min_fill_width: float = 0.0) -> void:
 	var clamped_pct = clampf(pct, 0.0, 1.0)
 	draw_rect(rect, Color(0.04, 0.05, 0.08, 0.78))
 	if clamped_pct > 0.0:
-		draw_rect(Rect2(rect.position + Vector2(1, 1), Vector2((rect.size.x - 2.0) * clamped_pct, rect.size.y - 2.0)), fill)
+		var inner_width = maxf(0.0, rect.size.x - 2.0)
+		var fill_width = minf(inner_width, maxf(inner_width * clamped_pct, min_fill_width))
+		draw_rect(Rect2(rect.position + Vector2(1, 1), Vector2(fill_width, rect.size.y - 2.0)), fill)
 	draw_rect(rect, COLOR_LINE, false, 1.0)
 
 
@@ -8969,12 +8973,7 @@ func _draw_effect(effect: Dictionary) -> void:
 			point -= Vector2(0, 18 * _battle_camera_zoom())
 			var start = _world_to_canvas(Vector2(effect.get("from", effect.pos))) - Vector2(0, 18 * _battle_camera_zoom())
 			var direction = start.direction_to(point)
-			if direction == Vector2.ZERO: direction = Vector2.RIGHT
-			var tail = point - direction * clampf(start.distance_to(point), 16.0, 26.0)
-			draw_line(tail, point, HanddrawnSkin.INK, 7, true)
-			draw_line(tail, point, Color("fff5c7"), 4, true)
-			draw_circle(point, 6, HanddrawnSkin.INK)
-			draw_circle(point, 4, Color("fff3a4"))
+			ProjectileVisualRules.draw_body(self, point, direction, ProjectileVisualRules.profile_for(String(effect.get("source_card", ""))), _battle_camera_zoom(), 1.0 - progress)
 		return
 	if _uses_axial_battle_map():
 		if kind == "projectile":
@@ -9088,21 +9087,13 @@ func _draw_projectile_visual(effect: Dictionary) -> void:
 	var end = _world_to_canvas(world_end) - lift
 	var head = start.lerp(end, progress)
 	var direction = start.direction_to(end)
+	var profile = ProjectileVisualRules.profile_for(String(effect.get("source_card", "")))
 	if elapsed > duration:
-		var fade = clampf(1.0 - (elapsed - duration) / 0.14, 0.0, 1.0)
+		var fade = clampf(1.0 - (elapsed - duration) / 0.08, 0.0, 1.0)
 		if fade <= 0.0: return
-		var radius = lerpf(12.0, 5.0, fade)
-		for axis in [Vector2.RIGHT, Vector2.DOWN]:
-			draw_line(head - axis * radius, head + axis * radius, Color(HanddrawnSkin.INK, fade), 4, true)
-			draw_line(head - axis * radius, head + axis * radius, Color(Color("fff5d5"), fade), 2, true)
+		ProjectileVisualRules.draw_body(self, head, direction, profile, _battle_camera_zoom() * lerpf(0.5, 1.0, fade), fade)
 		return
-	var tail = head - direction * minf(start.distance_to(head), 23.0)
-	draw_line(tail, head, HanddrawnSkin.INK, 7, true)
-	draw_line(tail, head, Color("fff5d5"), 3.5, true)
-	var tint = Color("ffd26d") if _are_allies(int(effect.get("team", PLAYER)), _local_control_team()) else Color("a9e4ed")
-	draw_circle(head, 6.5, HanddrawnSkin.INK)
-	draw_circle(head, 4.5, tint)
-	draw_circle(head + Vector2(-1, -1), 2, Color("fffbed"))
+	ProjectileVisualRules.draw_body(self, head, direction, profile, _battle_camera_zoom())
 
 
 func _unit_value_feedback_text(stat: String, amount: float, suffix: String) -> String:
@@ -10355,14 +10346,15 @@ func _show_unlock_card_popup(key: Vector2i) -> void:
 	})
 
 
-func _projectile(start: Vector2, end: Vector2, team: int) -> void:
-	var visual = _new_projectile_visual(start, end, team)
+func _projectile(start: Vector2, end: Vector2, team: int, source_card: String = "") -> void:
+	var visual = _new_projectile_visual(start, end, team, source_card)
 	visual["kind"] = "projectile"
 
 
-func _new_projectile_visual(start: Vector2, end: Vector2, team: int) -> Dictionary:
+func _new_projectile_visual(start: Vector2, end: Vector2, team: int, source_card: String = "") -> Dictionary:
 	projectile_visual_serial += 1
 	var flight = maxf(0.16, start.distance_to(end) / (sqrt(3.0) * HEX_SIZE * 8.0))
 	var visual = {"kind": "combat_projectile", "visual_id": projectile_visual_serial, "from": start, "to": end, "pos": start, "team": team, "visual_elapsed": 0.0, "flight_duration": flight, "time": flight + 0.4, "duration": flight + 0.4}
+	visual["source_card"] = source_card
 	effects.append(visual)
 	return visual

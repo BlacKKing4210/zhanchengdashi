@@ -216,7 +216,7 @@ func _test_global_pulse_preserves_damage_and_kill_context() -> void:
 	app.set("gold", 60)
 	app.set("enemy_gold", 0)
 	app.call("_tower_attack", tower_key, BoardRules.PLAYER)
-	_expect_close(float((app.get("tiles") as Dictionary)[tower_key].hp), hp_before - 1, "global pulse thorns preserve source building")
+	_expect_close(float((app.get("tiles") as Dictionary)[tower_key].hp), hp_before, "global pulse does not reflect hedgehog thorns into buildings")
 	_expect_true(int(app.get("gold")) in [61, 62], "friendly-fire chicken death pays its owner")
 	_expect_true(int(app.get("enemy_gold")) in [1, 2], "enemy chicken death pays enemy owner, not killer")
 

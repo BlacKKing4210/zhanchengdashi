@@ -191,11 +191,11 @@ func incoming(i: int, damage: float, source: int, source_key: Vector2i) -> float
 	if p.has("higher_hp_guard") and float(u.hp) > source_hp and source_hp > 0: damage *= 0.5
 	return maxf(0, damage - float(p.get("reduction", 0)))
 
-func on_damage(i: int, source: int, source_key: Vector2i) -> void:
+func on_damage(i: int, source: int, _source_key: Vector2i) -> void:
 	var u = a.units[i]
 	if not profile(u).has("thorns"): return
+	# Thorns reacts to animal damage sources only; normal building attacks stay valid.
 	if alive(source): skill_damage(source, 1, i, int(u.team), false)
-	elif a.tiles.has(source_key): a._damage_tile(source_key, int(u.team), 1)
 
 func attack(i: int, target: Dictionary) -> void:
 	if not alive(i): return
@@ -213,6 +213,7 @@ func attack(i: int, target: Dictionary) -> void:
 	a._play_world_sfx("ranged_attack" if bool(u.get("is_ranged", false)) else "unit_attack", Vector2(u.pos), int(u.team), -4)
 	for t in targets:
 		var shot = {"source_id": int(u.id), "team": int(u.team), "damage": float(u.attack), "profile": p.duplicate(), "critical_aura": bool(u.get("aura_critical", false)), "pos": Vector2(u.pos), "origin": Vector2(u.pos), "target": t, "remaining": int(p.get("bounce", 0)), "hit": [], "traveled": 0.0, "range": float(u.range), "life": 10.0}
+		shot["source_card"] = String(u.get("card", ""))
 		shot["direction"] = Vector2(u.pos).direction_to(Vector2(t.pos))
 		shot["critical_chance"] = crit_chance(u, p)
 		if bool(u.get("is_ranged", false)):
@@ -296,7 +297,7 @@ func projectile_visual(shot: Dictionary, start: Vector2) -> void:
 	if not shot.has("visual"):
 		var end = Vector2(shot.target.get("pos", shot.pos))
 		if shot.profile.has("pierce"): end = Vector2(shot.origin) + Vector2(shot.direction) * float(shot.range)
-		shot["visual"] = a._new_projectile_visual(start, end, int(shot.team))
+		shot["visual"] = a._new_projectile_visual(start, end, int(shot.team), String(shot.get("source_card", "")))
 	elif float(shot.visual.time) <= 0.0:
 		# A long frame can expire an effect while its physical shot is alive.
 		# Reattach only this expired object (never value-deduplicate equal shots).
@@ -392,7 +393,6 @@ func tick_motion(i: int, delta: float) -> bool:
 				var target = resolve(t, int(u.team))
 				if String(target.get("kind", "")) == "unit": skill_damage(int(target.index), float(u.attack), i, int(u.team))
 				elif not target.is_empty(): a._damage_tile(target.key, int(u.team), float(u.attack))
-			a.effects.append({"kind": "combat_projectile", "pos": previous, "from": Vector2(u.pos), "time": 0.12, "duration": 0.12})
 		if progress >= 1:
 			u.erase("motion_trip")
 			u["jump_height"] = 0.0

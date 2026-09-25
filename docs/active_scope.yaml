@@ -44,6 +44,15 @@ feature_progress:
   source_collection: [functional_documents, numeric_or_config_tables, version_plan, filed_producer_directives, latest_accountable_receipts]
 
 active_modules:
+  - task_id: REQ-20260925-COMBAT-NATURAL-PROJECTILES
+    feature_id: F-ZC-001
+    owner: codex-primary
+    phase: closure
+    status: COMPLETE_SCOPED
+    formal_source: docs/CURRENT_GAME_DESIGN.docx
+    completion_receipt: docs/receipts/REQ-20260925-COMBAT-NATURAL-PROJECTILES.md
+    release_status: LOCAL_NATIVE_VERIFIED
+    remaining_gates: [android_package_and_device_not_requested, live_room_not_tested]
   - task_id: REQ-20260925-HOME-GACHA-READABILITY
     feature_id: F-ZC-HOME-001
     included_features: [F-ZC-HOME-001, F-ZC-GACHA-NEW-001]
@@ -460,6 +469,13 @@ active_modules:
 queued_modules: []
 
 shared_locks:
+  combat_natural_20260925:
+    task_id: REQ-20260925-COMBAT-NATURAL-PROJECTILES
+    owner: codex-primary
+    status: RELEASED
+    write_set: [scripts/app/main.gd, scripts/app/systems/animal_skill_runtime.gd, scripts/app/systems/animal_skill_rules.gd, scripts/app/systems/projectile_visual_rules.gd, config/tables/cards.csv, runtime/config/cards.json, combat_natural_tests, current_combat_design_sources]
+    evidence_root: temp/qa/combat-natural-20260925
+    completion_receipt: docs/receipts/REQ-20260925-COMBAT-NATURAL-PROJECTILES.md
   home_readability_20260925:
     task_id: REQ-20260925-HOME-GACHA-READABILITY
     owner: codex-primary

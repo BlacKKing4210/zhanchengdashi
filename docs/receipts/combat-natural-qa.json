@@ -1,0 +1,351 @@
+{
+  "request_id": "REQ-20260925-COMBAT-NATURAL-PROJECTILES",
+  "status": "COMPLETE_SCOPED_LOCAL_NATIVE_VERIFIED",
+  "baseline_commit": "fd9b8ecc7306b566d904752b7c6f5f4e3bc5a3c3",
+  "main_write_window_commit": "0c129fb1b38b7e525f5327b825ad10cadbdebb81",
+  "main_write_window_sha256": "9B3912F25271A55228894F01C1C58521E4A4D8DA5CB6A4416E997471CB31DF18",
+  "runtime_proof": {
+    "candidate": {
+      "gpu_checks": 107,
+      "headless_checks": 86,
+      "gpu_exit": 0,
+      "headless_exit": 0,
+      "headless_log": "evaluator-attempt1-headless.log",
+      "headless_failures": 0,
+      "gpu_log": "evaluator-candidate-gpu.log",
+      "gpu_failures": 0
+    },
+    "verdict": "PASS_SCOPED_NATIVE_COMBAT",
+    "protected": [
+      {
+        "unchanged": true,
+        "sha256": "8837AC827376D00C3ADDD18AFEDA35D046A1631A7B0DF4BFF128C0675BEE1185",
+        "path": "D:\\AI\\zhanchengdashi\\tests\\test_combat_natural_projectiles.gd"
+      },
+      {
+        "unchanged": true,
+        "sha256": "4DB811EDAE7FBF4A97AAECC419ACA1EA7F320DF55248DD6EBE6201F2C00111E1",
+        "path": "D:\\AI\\zhanchengdashi\\tests\\test_combat_natural_projectiles.tscn"
+      },
+      {
+        "unchanged": true,
+        "sha256": "975BF1D254B989EE12B64DF4D07DA692A31175F72424BAA180F1078BFC0D71B0",
+        "path": "D:\\Work\\godot\\Godot_v4.6.2-stable_win64.exe\\Godot_v4.6.2-stable_win64.exe"
+      },
+      {
+        "unchanged": true,
+        "sha256": "2A12DF24D1545FF3924A1F40E8ED9F4EC7CE9B140814C1B566DCD2BDF7B79492",
+        "path": "D:\\Work\\godot\\Godot_v4.6.2-stable_win64.exe\\Godot_v4.6.2-stable_win64_console.exe"
+      }
+    ],
+    "boundaries": [
+      "Native Windows and GPU SubViewport verification only; no Android package or device verification.",
+      "Map palette is randomized by application startup; isolated white-background pixel checks are palette independent.",
+      "Two recorded dictionary observations may reflect later fixture mutations; assertions and immediate engine log remain authoritative."
+    ],
+    "baseline": {
+      "headless_failures": 29,
+      "gpu_checks": 107,
+      "gpu_failures": 38,
+      "headless_checks": 86
+    },
+    "capture_720": "evaluator-battle-720.png",
+    "intermediate_failure": {
+      "reason": "watch bolt raster 23 px exceeded frozen 22 px compact body budget",
+      "gpu_failures": 1,
+      "retained_log": "evaluator-attempt1-gpu.log",
+      "fix": "Implementation bolt body shortened; protected probe unchanged"
+    },
+    "renderer": "Godot 4.6.2 OpenGL Compatibility, NVIDIA GeForce RTX 4060 Laptop GPU",
+    "capture_360": "evaluator-battle-360.png"
+  },
+  "regressions": {
+    "combat_headless": {
+      "checks": 10340,
+      "failures": 0
+    },
+    "combat_vulkan": {
+      "checks": 10348,
+      "failures": 0
+    },
+    "animal_table_v3": {
+      "checks": 3788,
+      "failures": 0,
+      "cpu_p95_us": 6859,
+      "unchanged_budget_us": 8000
+    },
+    "defense_tower_skills": "PASS_UPDATED_REQUESTED_BUILDING_THORNS_EXPECTATION",
+    "income_and_retaliation": {
+      "checks": 64,
+      "failures": 0
+    },
+    "indentation": "PASS",
+    "godot_editor_scene_parse": "PASS"
+  },
+  "source_hashes": [
+    {
+      "path": "config/tables/cards.csv",
+      "sha256": "fca4eb60ea4f7d71926f4d77607ac69389e83aef05589703c3c062ef97e17349"
+    },
+    {
+      "path": "runtime/config/cards.json",
+      "sha256": "9415fe6d7b2fb15ba350c5b263d66afaefab43f6f47e51fc60b66bbb60108c60"
+    },
+    {
+      "path": "scripts/app/main.gd",
+      "sha256": "2612cac1ae18240aa6e58e39973014b83e6c0db18feea428a36cd8693484d539"
+    },
+    {
+      "path": "scripts/app/systems/animal_skill_runtime.gd",
+      "sha256": "234aa2152fb4417030b2c1896d7f92b08482e9a15ed7b383a12fb14cc696d77c"
+    },
+    {
+      "path": "scripts/app/systems/animal_skill_rules.gd",
+      "sha256": "07e9a2c62830db7e8e2e4915f367b78b0c9ebefbd5e7dc1b9d2111f16ee8e2c5"
+    },
+    {
+      "path": "scripts/app/systems/projectile_visual_rules.gd",
+      "sha256": "3703e23434c81d3be433a12fca28f9729dd52013d7103fb83b02d331c835f078"
+    },
+    {
+      "path": "scripts/app/systems/projectile_visual_rules.gd.uid",
+      "sha256": "cabde2c27b4fa91c386d5e57697aa9c66bd5bcc3dbb66360efa10d86944a7c42"
+    },
+    {
+      "path": "tests/test_combat_natural_projectiles.gd",
+      "sha256": "8837ac827376d00c3addd18afeda35d046a1631a7b0df4bff128c0675bee1185"
+    },
+    {
+      "path": "tests/test_combat_natural_projectiles.tscn",
+      "sha256": "4db811edae7fbf4a97aaecc419aca1ea7f320df55248dd6ebe6201f2c00111e1"
+    },
+    {
+      "path": "tests/test_defense_tower_skills.gd",
+      "sha256": "51eca8e6f0b3e10829dbdde6fc10a3bc2f2ce43f0e8dc17d9382beb9750a3c69"
+    },
+    {
+      "path": "docs/CURRENT_GAME_DESIGN.md",
+      "sha256": "30e9a6c04e996511054a9f0c52dc6c8311f89e52c0a9ccbe623e24c123d85e88"
+    },
+    {
+      "path": "docs/CURRENT_GAME_DESIGN.docx",
+      "sha256": "2ff035057bb93f61699325f5e164eb0c3b65111bce8aa0d6555f70513aec06e0"
+    },
+    {
+      "path": "docs/ANIMAL_SKILL_IMPLEMENTATION_AUDIT.md",
+      "sha256": "b28a0c425e5f3ed31991bc2622a431675253de00834a719ac3e1e4b57c3141f0"
+    },
+    {
+      "path": "tools/update_combat_natural_docx.py",
+      "sha256": "325e23c9f4f650906b24dd353ef0d9c8f4eff05e7e8a1d1a8c9b6e39879afb6c"
+    },
+    {
+      "path": "knowledge/knowledge_manifest.csv",
+      "sha256": "8575ba5f517faf129a51671ca46a2d9a004bbde76fd3a64c7d746b208e09c7bf"
+    },
+    {
+      "path": "docs/active_scope.yaml",
+      "sha256": "7ba3ea46dacb71259409210bca904c21146fce9fc8496026230c85707aa97709"
+    }
+  ],
+  "user_workbook_preserved": true,
+  "rag": {
+    "status": "READY",
+    "recall": 1.0,
+    "pass_rate": 1.0,
+    "citation_count": 8
+  },
+  "independent_review": "PASS_NO_UNRESOLVED_FINDINGS",
+  "cleanup": {
+    "aliases": [
+      {
+        "alias": "evaluator-baseline-isolated-defense_cannon_tower.png",
+        "retained": "evaluator-baseline-isolated-sparrow.png",
+        "sha256": "018395414FE32ADD394AE88B758D9E5C5CC9824547CD92905416D8D673EC5603",
+        "bytes": 6593
+      },
+      {
+        "alias": "evaluator-baseline-isolated-defense_plunder_tower.png",
+        "retained": "evaluator-baseline-isolated-sparrow.png",
+        "sha256": "018395414FE32ADD394AE88B758D9E5C5CC9824547CD92905416D8D673EC5603",
+        "bytes": 6593
+      },
+      {
+        "alias": "evaluator-baseline-isolated-defense_watch_tower.png",
+        "retained": "evaluator-baseline-isolated-sparrow.png",
+        "sha256": "018395414FE32ADD394AE88B758D9E5C5CC9824547CD92905416D8D673EC5603",
+        "bytes": 6593
+      },
+      {
+        "alias": "evaluator-baseline-isolated-fox.png",
+        "retained": "evaluator-baseline-isolated-sparrow.png",
+        "sha256": "018395414FE32ADD394AE88B758D9E5C5CC9824547CD92905416D8D673EC5603",
+        "bytes": 6593
+      },
+      {
+        "alias": "evaluator-baseline-isolated-frog.png",
+        "retained": "evaluator-baseline-isolated-sparrow.png",
+        "sha256": "018395414FE32ADD394AE88B758D9E5C5CC9824547CD92905416D8D673EC5603",
+        "bytes": 6593
+      },
+      {
+        "alias": "evaluator-baseline-isolated-parrot.png",
+        "retained": "evaluator-baseline-isolated-sparrow.png",
+        "sha256": "018395414FE32ADD394AE88B758D9E5C5CC9824547CD92905416D8D673EC5603",
+        "bytes": 6593
+      }
+    ],
+    "logical_deleted_bytes": 39558.0,
+    "observed_free_space_delta_bytes": 49152,
+    "note": "Observed volume delta includes concurrent system writes; baseline visual aliases resolve to retained identical PNG"
+  },
+  "blocked_cleanup": {
+    "path": "C:/Users/76398/AppData/Local/Temp/zhanchengdashi-combat-docx-qa/transient-layout.pdf",
+    "result": "Automatic approval review rejected deletion: blocked by policy; outside repository/delivery; no bypass."
+  },
+  "remaining_limits": [
+    "No Android export/device test requested or run",
+    "No live-room or server deployment acceptance",
+    "Historical regression fixtures may report cleanup diagnostics; frozen candidate and final Vulkan run are clean",
+    "Standalone script-mode check lacks scene autoloads; editor and actual scene probes pass"
+  ],
+  "reusable_method_candidate": "none",
+  "evidence_files": [
+    {
+      "path": "temp/qa/combat-natural-20260925/dedup-receipt.json",
+      "sha256": "2749894450f6d4ac7d2e86ef35fd51e655eff225d110ea1574f45b4bde7d49ca"
+    },
+    {
+      "path": "temp/qa/combat-natural-20260925/editor-parse.log",
+      "sha256": "ec3f94bbfd6e3e7ee0e718febfed96db3b50d4403a6c869a8bae7289af00e022"
+    },
+    {
+      "path": "temp/qa/combat-natural-20260925/evaluator-attempt1-gpu.log",
+      "sha256": "2685b9dcaef8260a4db75e2cead89ce95838e5792026d7dbd5c602305450bd80"
+    },
+    {
+      "path": "temp/qa/combat-natural-20260925/evaluator-attempt1-headless.log",
+      "sha256": "70bdefa0869e33664f3788f862d0eef82bba359ae1bb9984f7be7e42fcd15d70"
+    },
+    {
+      "path": "temp/qa/combat-natural-20260925/evaluator-attempt1-isolated-defense_watch_tower.png",
+      "sha256": "5f2a759bbcc7557368192e92d6ba88284b9427d27043ff1b5dd95732a6ef44da"
+    },
+    {
+      "path": "temp/qa/combat-natural-20260925/evaluator-baseline-battle-360.png",
+      "sha256": "4101d6d33978bfcb8e12c2e445e0c8c388cdc0be6ef45f65b42cd32d638e471b"
+    },
+    {
+      "path": "temp/qa/combat-natural-20260925/evaluator-baseline-battle-720.png",
+      "sha256": "03df48d6c22582f7a02f88861b4d9f0d338bc8331e6e556c6e2e854076f9710f"
+    },
+    {
+      "path": "temp/qa/combat-natural-20260925/evaluator-baseline-gpu.log",
+      "sha256": "a66d948675886680cf5af764c15b0f86be10fa4c3c55fe5107a16ae2df53a68e"
+    },
+    {
+      "path": "temp/qa/combat-natural-20260925/evaluator-baseline-hashes.json",
+      "sha256": "417e70337cb0354e11c80b30cd4cf0e3bca2d2bf428bb4c6dcd934572790ae9f"
+    },
+    {
+      "path": "temp/qa/combat-natural-20260925/evaluator-baseline-headless.log",
+      "sha256": "922a7ea0f43ab69c21d660a0d66770b83054e8095409a5f2695018f05b11486d"
+    },
+    {
+      "path": "temp/qa/combat-natural-20260925/evaluator-baseline-isolated-sparrow.png",
+      "sha256": "018395414fe32add394ae88b758d9e5c5cc9824547cd92905416d8d673ec5603"
+    },
+    {
+      "path": "temp/qa/combat-natural-20260925/evaluator-baseline-near-zero-building-health-720.png",
+      "sha256": "8e6892d4b4ec18a4363c7264efde5287d6ff232b53c9d778eecd65845fe719f6"
+    },
+    {
+      "path": "temp/qa/combat-natural-20260925/evaluator-battle-360.png",
+      "sha256": "71b033447b8af2dc2099bae59cf5fe2ead1c8bbc232cba370cafe9378c84f77f"
+    },
+    {
+      "path": "temp/qa/combat-natural-20260925/evaluator-battle-720.png",
+      "sha256": "8525e73e2f3fb4a23e4df75f16f5b70efbc11334a26ff167f965a3a15dc9d313"
+    },
+    {
+      "path": "temp/qa/combat-natural-20260925/evaluator-candidate-gpu.log",
+      "sha256": "50d35a19e90977fe917978cb993e6cd5a9643cc4cb67f084fe220784c05f0b0b"
+    },
+    {
+      "path": "temp/qa/combat-natural-20260925/evaluator-candidate-hashes.json",
+      "sha256": "6ed57ad07f9c6aeee1768311bb8e23a19997b5d4da657ae3d07f15c2168feca6"
+    },
+    {
+      "path": "temp/qa/combat-natural-20260925/evaluator-isolated-defense_cannon_tower.png",
+      "sha256": "72ef2043c3baf657d7f4ad9ffc78b06babd8698ac4562ad4a38499031c1db7e1"
+    },
+    {
+      "path": "temp/qa/combat-natural-20260925/evaluator-isolated-defense_plunder_tower.png",
+      "sha256": "6561e94d4c9af1b2dd9659c72e9e13ff3415392fb42334e98edb2013720db28f"
+    },
+    {
+      "path": "temp/qa/combat-natural-20260925/evaluator-isolated-defense_watch_tower.png",
+      "sha256": "d3167754d853ece705d7fcd72924caf9d2e70cc67f3f8268ede1eb2a7abe89a9"
+    },
+    {
+      "path": "temp/qa/combat-natural-20260925/evaluator-isolated-fox.png",
+      "sha256": "a6fbbf650e4c46a806ea988364db0b071cefd57e2db4d066169b2cf2d34e6ebf"
+    },
+    {
+      "path": "temp/qa/combat-natural-20260925/evaluator-isolated-frog.png",
+      "sha256": "e04070a448fb6f0020ea670a130576a05598e9aa00f82dab22fb554b4a3fc9d9"
+    },
+    {
+      "path": "temp/qa/combat-natural-20260925/evaluator-isolated-parrot.png",
+      "sha256": "642f14e4fbbbb7236637a1d224e9a8d1a9f2fa462ab4f919e08aec69f4f677ac"
+    },
+    {
+      "path": "temp/qa/combat-natural-20260925/evaluator-isolated-sparrow.png",
+      "sha256": "99ef486a60926c27cc2b5db3ef243baac547286a5ad2102e57e0e96c45a792e5"
+    },
+    {
+      "path": "temp/qa/combat-natural-20260925/evaluator-near-zero-building-health-720.png",
+      "sha256": "3c4883d1c14c099e61092610f27c78422850257ed944a62f1c930f091393941d"
+    },
+    {
+      "path": "temp/qa/combat-natural-20260925/evaluator-verdict.json",
+      "sha256": "f6307fb6f61be5845cb96527c58509a5a041fc79c97395dca52ecc337218f1d1"
+    },
+    {
+      "path": "temp/qa/combat-natural-20260925/regression-after-animal.log",
+      "sha256": "6256873bce687004de173d36a8fa2a8e0fe64839b842b00b4ecfb80db656a3fa"
+    },
+    {
+      "path": "temp/qa/combat-natural-20260925/regression-after-combat.log",
+      "sha256": "a024c07f0c16d2d42dfafc71b0b8c31cc18a8783ef524d53239179e3ecc1f058"
+    },
+    {
+      "path": "temp/qa/combat-natural-20260925/regression-before-animal-serial.log",
+      "sha256": "3eab2c73a832a95b3b0557b890b81a7096668cfdcfef2269e5304619b7d1f261"
+    },
+    {
+      "path": "temp/qa/combat-natural-20260925/regression-before-animal.log",
+      "sha256": "dcef01bee7ff1da5451c27b040410e0d32b663784e79107ef563035f3c751357"
+    },
+    {
+      "path": "temp/qa/combat-natural-20260925/regression-before-combat.log",
+      "sha256": "a024c07f0c16d2d42dfafc71b0b8c31cc18a8783ef524d53239179e3ecc1f058"
+    },
+    {
+      "path": "temp/qa/combat-natural-20260925/regression-combat-gpu.log",
+      "sha256": "a5cf6e8e7757cf79f2a095638cf3f6c88780b9e67f2a85ea852f9769d2b48d28"
+    },
+    {
+      "path": "temp/qa/combat-natural-20260925/regression-defense-final.log",
+      "sha256": "6591fe999dde3437d9bec58884554f7fdf8a494f8b4ef7db8562135f7b206f87"
+    },
+    {
+      "path": "temp/qa/combat-natural-20260925/regression-defense.log",
+      "sha256": "2fd1663023b71d2e37eb4885a285a259226e55031596edd121bdd19e0a106341"
+    },
+    {
+      "path": "temp/qa/combat-natural-20260925/regression-retaliation.log",
+      "sha256": "e893634d1c68954683068ee54d444f7369b2939b452771a278aaa181f3ffa503"
+    }
+  ]
+}
