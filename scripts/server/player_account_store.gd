@@ -459,6 +459,9 @@ func save_profile(session_token: String, profile: Dictionary) -> Dictionary:
 	# Home is exclusively mutated by authenticated server transactions. Old
 	# clients omit this field; new clients must not overwrite it via full saves.
 	var existing_profile: Dictionary = record.get("profile", {})
+	# Deployed older clients do not know this field. Missing is not a reset.
+	if not profile_source.has("wallet_gold"):
+		profile_source["wallet_gold"] = existing_profile.get("wallet_gold", 60)
 	if existing_profile.has("home"):
 		profile_source["home"] = existing_profile.home.duplicate(true)
 	else:

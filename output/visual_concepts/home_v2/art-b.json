@@ -1,0 +1,812 @@
+{
+  "request": "REQ-20260925-HOME-GACHA-POLISH",
+  "owner": "art-b",
+  "status": "asset-production-complete; engine-batch-acceptance-pending",
+  "format": "original imagegen PNG; no pixel processing",
+  "fixed_ring_appearances": true,
+  "assets": [
+    {
+      "id": "entertainment_01",
+      "prompt": "Use case: style-transfer. Use the attached cottage ONLY as the style reference, redraw completely different original architecture for a cozy animal village game. Same bold near-black chunky outlines and narrow white sticker keyline, simple bright flat 2D shapes with at most one simple shadow tone per material, no glossy 3D. Mostly frontal with a very slight view from above, compact substantial building silhouette. Very simple first-ring entertainment stage: a modest thick rectangular warm-wood platform, two plain stout wood posts, one plain slightly sloped PURPLE rectangular canopy, and a single lilac back panel. The stage opening is tall and visible; just these five broad structural shapes. No drapes, no stars, no roof tiles, no side wings, no rails. A humble outdoor theatre booth, neither a house nor an elaborate stage. Isolated ONE building centered on a square canvas, whole sprite visible with about 10% clear margin, baseline near 86% height. GENUINELY TRANSPARENT RGBA PNG with alpha=0 outside the building. No background, no floor shadow, no hexagon or ground slab, no people/animals, no floating icons, no text or numbers, no gold trim, no ornaments, no tiny repeated details. Do not make a contact sheet. Match the reference drawing's scale and line weight, but do not copy its architecture.",
+      "source": "C:\\Users\\76398\\.codex\\generated_images\\01a0d417-809e-79b1-a760-5d49aa87fe72\\exec-1d4362ae-2486-401f-ab50-978ff985cb56.png",
+      "reference": "assets/art/home/v2/residence_01.png",
+      "status": "visual-review-passed; pending engine batch acceptance",
+      "path": "assets/art/home/v2/entertainment_01.png",
+      "bytes": 596108,
+      "sha256": "3afadb71a57551f1f373a17090e3474afc5dbd246b0436112cb7ddfd7c6caca7",
+      "mode": "RGBA",
+      "size": [
+        1254,
+        1254
+      ],
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "raw_alpha_bbox": [
+        57,
+        148,
+        1128,
+        1200
+      ],
+      "alpha_ge16_bbox": [
+        129,
+        246,
+        1125,
+        1015
+      ],
+      "visible_occupancy": [
+        0.794258,
+        0.613238
+      ],
+      "transparent_pixels": 856961,
+      "nearly_opaque_pixels": 701708,
+      "copy_byte_identical": true,
+      "pixel_processing": false,
+      "visible_margins_px": [
+        129,
+        246,
+        129,
+        239
+      ],
+      "faint_alpha_pixels_1_to_15": 6725,
+      "ring": 1,
+      "type": "entertainment",
+      "silhouette_review": "Plain canopy stage, the smallest and simplest."
+    },
+    {
+      "id": "entertainment_02",
+      "prompt": "Use case: style-transfer. Use the attached cottage ONLY as the style reference, redraw completely different original architecture for a cozy animal village game. Same bold near-black chunky outlines and narrow white sticker keyline, simple bright flat 2D shapes with at most one simple shadow tone per material, no glossy 3D. Mostly frontal with a very slight view from above, compact substantial building silhouette. Second-ring entertainment building: a compact small roofed wooden performance stage with a single broad PURPLE triangular gable roof, two brown square supports, a lilac wall at back, and two very simple purple curtains tied straight at the sides of the tall open front. One broad wooden step integrated under stage. Tall chunky silhouette, stage unmistakable. A little more substantial than a basic flat canopy but still extremely simple; plain roof planes, no tiles, no star, no gold, no pillars with ornamental capitals. Isolated ONE building centered on a square canvas, whole sprite visible with about 10% clear margin, baseline near 86% height. GENUINELY TRANSPARENT RGBA PNG with alpha=0 outside the building. No background, no floor shadow, no hexagon or ground slab, no people/animals, no floating icons, no text or numbers, no gold trim, no ornaments, no tiny repeated details. Do not make a contact sheet. Match the reference drawing's scale and line weight, but do not copy its architecture.",
+      "source": "C:\\Users\\76398\\.codex\\generated_images\\01a0d417-809e-79b1-a760-5d49aa87fe72\\exec-08ec0c73-766a-4186-b433-53098c52f94c.png",
+      "reference": "assets/art/home/v2/residence_01.png",
+      "status": "visual-review-passed; pending engine batch acceptance",
+      "path": "assets/art/home/v2/entertainment_02.png",
+      "bytes": 780469,
+      "sha256": "f3ecb2d223e76dfa099f709fe9d8933f06f3d64067ac9357a47d9afdfd2e9308",
+      "mode": "RGBA",
+      "size": [
+        1254,
+        1254
+      ],
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "raw_alpha_bbox": [
+        0,
+        52,
+        1194,
+        1246
+      ],
+      "alpha_ge16_bbox": [
+        122,
+        130,
+        1131,
+        1107
+      ],
+      "visible_occupancy": [
+        0.804625,
+        0.779107
+      ],
+      "transparent_pixels": 829500,
+      "nearly_opaque_pixels": 727178,
+      "copy_byte_identical": true,
+      "pixel_processing": false,
+      "visible_margins_px": [
+        122,
+        130,
+        123,
+        147
+      ],
+      "faint_alpha_pixels_1_to_15": 8737,
+      "ring": 2,
+      "type": "entertainment",
+      "silhouette_review": "Single gabled roof stage with simple side curtains."
+    },
+    {
+      "id": "entertainment_03",
+      "prompt": "Use case: style-transfer. Use the attached cottage ONLY as the style reference, redraw completely different original architecture for a cozy animal village game. Same bold near-black chunky outlines and narrow white sticker keyline, simple bright flat 2D shapes with at most one simple shadow tone per material, no glossy 3D. Mostly frontal with a very slight view from above, compact substantial building silhouette. Third-ring entertainment building: a small compact open-air BAND SHELL theatre. Its distinctive roof is ONE tall semicircular PURPLE shell arch, as wide as it is tall, with just three broad lilac interior shell panels, not a pointed roof. The front has a large open performance opening and a thick warm-wood stage across the base with two broad front steps. Two plain cream side supports integrated into the arch. Substantial compact vertical silhouette, simpler than a fancy theatre. No drapes, no star, no musical notes, no seating field, no ornaments. Isolated ONE building centered on a square canvas, whole sprite visible with about 10% clear margin, baseline near 86% height. GENUINELY TRANSPARENT RGBA PNG with alpha=0 outside the building. No background, no floor shadow, no hexagon or ground slab, no people/animals, no floating icons, no text or numbers, no gold trim, no ornaments, no tiny repeated details. Do not make a contact sheet. Match the reference drawing's scale and line weight, but do not copy its architecture.",
+      "source": "C:\\Users\\76398\\.codex\\generated_images\\01a0d417-809e-79b1-a760-5d49aa87fe72\\exec-00272679-8670-4529-b64c-3881eb913137.png",
+      "reference": "assets/art/home/v2/residence_01.png",
+      "status": "visual-review-passed; pending engine batch acceptance",
+      "path": "assets/art/home/v2/entertainment_03.png",
+      "bytes": 780294,
+      "sha256": "18ab9ca8a675c051cf87f8a6d37b2cbddf4fb5853a9d7df96d33ad53921b4616",
+      "mode": "RGBA",
+      "size": [
+        1254,
+        1254
+      ],
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "raw_alpha_bbox": [
+        80,
+        0,
+        1174,
+        1184
+      ],
+      "alpha_ge16_bbox": [
+        84,
+        167,
+        1169,
+        1020
+      ],
+      "visible_occupancy": [
+        0.865231,
+        0.680223
+      ],
+      "transparent_pixels": 827148,
+      "nearly_opaque_pixels": 730369,
+      "copy_byte_identical": true,
+      "pixel_processing": false,
+      "visible_margins_px": [
+        84,
+        167,
+        85,
+        234
+      ],
+      "faint_alpha_pixels_1_to_15": 7962,
+      "ring": 3,
+      "type": "entertainment",
+      "silhouette_review": "Semicircular band shell; three broad interior panels."
+    },
+    {
+      "id": "entertainment_04",
+      "prompt": "Use case: style-transfer. Use the attached cottage ONLY as the style reference, redraw completely different original architecture for a cozy animal village game. Same bold near-black chunky outlines and narrow white sticker keyline, simple bright flat 2D shapes with at most one simple shadow tone per material, no glossy 3D. Mostly frontal with a very slight view from above, compact substantial building silhouette. Fourth-ring entertainment building: an ASYMMETRICAL village playhouse, central compact theatre hall with a tall broad PURPLE shallow curved barrel roof and a large dark-purple arched stage opening framed by plain lilac walls. A simple wooden stage at the front. One smaller attached rectangular side room on the RIGHT with flat purple roof and one square window. The two masses form a distinct stepped silhouette, the main hall is tall and dominant. No shell interior panels, no gabled cottage roof, no arches in a row, no columns, no signs, no ornaments. Isolated ONE building centered on a square canvas, whole sprite visible with about 10% clear margin, baseline near 86% height. GENUINELY TRANSPARENT RGBA PNG with alpha=0 outside the building. No background, no floor shadow, no hexagon or ground slab, no people/animals, no floating icons, no text or numbers, no gold trim, no ornaments, no tiny repeated details. Do not make a contact sheet. Match the reference drawing's scale and line weight, but do not copy its architecture.",
+      "source": "C:\\Users\\76398\\.codex\\generated_images\\01a0d417-809e-79b1-a760-5d49aa87fe72\\exec-3ea6fd35-9b5b-4664-a7ba-00b27c9ca88d.png",
+      "reference": "assets/art/home/v2/residence_01.png",
+      "status": "visual-review-passed; pending engine batch acceptance",
+      "path": "assets/art/home/v2/entertainment_04.png",
+      "bytes": 741193,
+      "sha256": "28213d52588d7664912f8308200e2d9ac49a0222c960dc7d1296ea20c7a14daa",
+      "mode": "RGBA",
+      "size": [
+        1254,
+        1254
+      ],
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "raw_alpha_bbox": [
+        49,
+        23,
+        1192,
+        1198
+      ],
+      "alpha_ge16_bbox": [
+        113,
+        222,
+        1166,
+        1027
+      ],
+      "visible_occupancy": [
+        0.839713,
+        0.641946
+      ],
+      "transparent_pixels": 890712,
+      "nearly_opaque_pixels": 668539,
+      "copy_byte_identical": true,
+      "pixel_processing": false,
+      "visible_margins_px": [
+        113,
+        222,
+        88,
+        227
+      ],
+      "faint_alpha_pixels_1_to_15": 7344,
+      "ring": 4,
+      "type": "entertainment",
+      "silhouette_review": "Curved main playhouse roof and one right side room."
+    },
+    {
+      "id": "entertainment_05",
+      "prompt": "Use case: style-transfer. Use the attached cottage ONLY as the style reference, redraw completely different original architecture for a cozy animal village game. Same bold near-black chunky outlines and narrow white sticker keyline, simple bright flat 2D shapes with at most one simple shadow tone per material, no glossy 3D. Mostly frontal with a very slight view from above, compact substantial building silhouette. Fifth-ring entertainment building: a compact TWIN-PEAK theatre pavilion. Two connected purple canvas-like peaked roofs, main tall broad peak on LEFT over the large open wooden stage, smaller lower peak on RIGHT over a plain lilac side room. Two thick plain cream supports, a single broad purple curtain at each end of the main stage, brown stage base with one broad step. The two smooth roof peaks must create a very clear distinctive silhouette, no striped canvas, no finials, no flags, no star. Larger structure than the basic stage but few broad flat shapes, not a circus scene. Isolated ONE building centered on a square canvas, whole sprite visible with about 10% clear margin, baseline near 86% height. GENUINELY TRANSPARENT RGBA PNG with alpha=0 outside the building. No background, no floor shadow, no hexagon or ground slab, no people/animals, no floating icons, no text or numbers, no gold trim, no ornaments, no tiny repeated details. Do not make a contact sheet. Match the reference drawing's scale and line weight, but do not copy its architecture.",
+      "source": "C:\\Users\\76398\\.codex\\generated_images\\01a0d417-809e-79b1-a760-5d49aa87fe72\\exec-4455c17b-bc06-48e9-b5e5-5fabcf186fa9.png",
+      "reference": "assets/art/home/v2/residence_01.png",
+      "status": "visual-review-passed; pending engine batch acceptance",
+      "path": "assets/art/home/v2/entertainment_05.png",
+      "bytes": 673064,
+      "sha256": "84913f76853dae15586ebb4d53d2254bc76ff3386b2dac8a9853932634b2968d",
+      "mode": "RGBA",
+      "size": [
+        1254,
+        1254
+      ],
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "raw_alpha_bbox": [
+        0,
+        51,
+        1240,
+        1230
+      ],
+      "alpha_ge16_bbox": [
+        94,
+        222,
+        1161,
+        1013
+      ],
+      "visible_occupancy": [
+        0.850877,
+        0.630781
+      ],
+      "transparent_pixels": 988850,
+      "nearly_opaque_pixels": 571024,
+      "copy_byte_identical": true,
+      "pixel_processing": false,
+      "visible_margins_px": [
+        94,
+        222,
+        93,
+        241
+      ],
+      "faint_alpha_pixels_1_to_15": 6887,
+      "ring": 5,
+      "type": "entertainment",
+      "silhouette_review": "Two unequal pointed canopy masses."
+    },
+    {
+      "id": "entertainment_06",
+      "prompt": "Use case: style-transfer. Use the attached cottage ONLY as the style reference, redraw completely different original architecture for a cozy animal village game. Same bold near-black chunky outlines and narrow white sticker keyline, simple bright flat 2D shapes with at most one simple shadow tone per material, no glossy 3D. Mostly frontal with a very slight view from above, compact substantial building silhouette. Sixth-ring entertainment building: a compact FAN-ROOF performance hall. The tall central stage roof is a broad purple fan made of ONLY THREE broad angular folded panels, central panel higher and two side panels spreading like a simple folded paper fan. Below is a large lilac-framed open stage and plain wooden platform. Two attached short cream cubic wings on either side have simple flat purple roofs and one big window each. Keep the whole silhouette nearly square, the central stage tall and wide, wings short, not a long flat strip. Strong distinctive three-panel roof outline, very few large shapes, no repeated ribs, no gold, no ornaments. Isolated ONE building centered on a square canvas, whole sprite visible with about 10% clear margin, baseline near 86% height. GENUINELY TRANSPARENT RGBA PNG with alpha=0 outside the building. No background, no floor shadow, no hexagon or ground slab, no people/animals, no floating icons, no text or numbers, no gold trim, no ornaments, no tiny repeated details. Do not make a contact sheet. Match the reference drawing's scale and line weight, but do not copy its architecture.",
+      "source": "C:\\Users\\76398\\.codex\\generated_images\\01a0d417-809e-79b1-a760-5d49aa87fe72\\exec-54b06a5a-4459-4381-89d8-d4c209300cef.png",
+      "reference": "assets/art/home/v2/residence_01.png",
+      "status": "visual-review-passed; pending engine batch acceptance",
+      "path": "assets/art/home/v2/entertainment_06.png",
+      "bytes": 781429,
+      "sha256": "b7c7e2080804a608c4070d373273ee2f71b6ac9474555df93e0ef20631f20d52",
+      "mode": "RGBA",
+      "size": [
+        1254,
+        1254
+      ],
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "raw_alpha_bbox": [
+        0,
+        177,
+        1176,
+        1254
+      ],
+      "alpha_ge16_bbox": [
+        80,
+        180,
+        1174,
+        1065
+      ],
+      "visible_occupancy": [
+        0.872408,
+        0.705742
+      ],
+      "transparent_pixels": 839323,
+      "nearly_opaque_pixels": 716172,
+      "copy_byte_identical": true,
+      "pixel_processing": false,
+      "visible_margins_px": [
+        80,
+        180,
+        80,
+        189
+      ],
+      "faint_alpha_pixels_1_to_15": 9371,
+      "ring": 6,
+      "type": "entertainment",
+      "silhouette_review": "Three-panel fan roof and two short side halls."
+    },
+    {
+      "id": "entertainment_07",
+      "prompt": "Use case: style-transfer. Use the attached cottage ONLY as the style reference, redraw completely different original architecture for a cozy animal village game. Same bold near-black chunky outlines and narrow white sticker keyline, simple bright flat 2D shapes with at most one simple shadow tone per material, no glossy 3D. Mostly frontal with a very slight view from above, compact substantial building silhouette. Seventh-ring entertainment building: a compact OVAL AMPHITHEATRE in a chunky vertical building silhouette. Tall lilac rear stage house with a smooth broad PURPLE semi-oval canopy, large open purple-curtained stage at center. At its bottom front, only TWO broad curved cream seating tiers wrap close around a tiny wooden performance apron, giving a clear oval theatre bowl. Two simple short lilac end walls on either side. The stage house must be tall and occupy two-thirds of height; the close compact seating tiers occupy only bottom third. No individual chairs, no railings, no dense arches, no pillars, no flags, no crowd, no small details. Isolated ONE building centered on a square canvas, whole sprite visible with about 10% clear margin, baseline near 86% height. GENUINELY TRANSPARENT RGBA PNG with alpha=0 outside the building. No background, no floor shadow, no hexagon or ground slab, no people/animals, no floating icons, no text or numbers, no gold trim, no ornaments, no tiny repeated details. Do not make a contact sheet. Match the reference drawing's scale and line weight, but do not copy its architecture.",
+      "source": "C:\\Users\\76398\\.codex\\generated_images\\01a0d417-809e-79b1-a760-5d49aa87fe72\\exec-130edb23-c8c3-43d7-b33b-b3804c7545df.png",
+      "reference": "assets/art/home/v2/residence_01.png",
+      "status": "visual-review-passed; pending engine batch acceptance",
+      "path": "assets/art/home/v2/entertainment_07.png",
+      "bytes": 810754,
+      "sha256": "86dec94df28d6de523d86b96a9560e2fc09e1de0c2c8dd89c7828e85e6ad9431",
+      "mode": "RGBA",
+      "size": [
+        1254,
+        1254
+      ],
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "raw_alpha_bbox": [
+        0,
+        79,
+        1208,
+        1198
+      ],
+      "alpha_ge16_bbox": [
+        145,
+        114,
+        1109,
+        1044
+      ],
+      "visible_occupancy": [
+        0.76874,
+        0.741627
+      ],
+      "transparent_pixels": 852795,
+      "nearly_opaque_pixels": 706982,
+      "copy_byte_identical": true,
+      "pixel_processing": false,
+      "visible_margins_px": [
+        145,
+        114,
+        145,
+        210
+      ],
+      "faint_alpha_pixels_1_to_15": 6608,
+      "ring": 7,
+      "type": "entertainment",
+      "silhouette_review": "Tall curved stagehouse and two broad curved seating tiers."
+    },
+    {
+      "id": "entertainment_08",
+      "prompt": "Use case: style-transfer. Use the attached cottage ONLY as the style reference, redraw completely different original architecture for a cozy animal village game. Same bold near-black chunky outlines and narrow white sticker keyline, simple bright flat 2D shapes with at most one simple shadow tone per material, no glossy 3D. Mostly frontal with a very slight view from above, compact substantial building silhouette. Eighth outer-ring entertainment building: the largest but still SIMPLE village theatre complex, a tall central octagonal lilac theatre body topped with ONE broad smooth shallow PURPLE dome, flanked by two attached square side halls with simple pitched purple roofs. Central body wide and prominent, huge open stage with plain purple side drapes and broad warm wooden stage at its base. The two square side halls are visibly substantial but lower, each with one broad arched window. Three large joined building masses, a compact almost-square silhouette; the smooth dome and angular side roofs contrast clearly. No finial, no flag, no spires, no star, no golden trim, no balcony, no tiny windows, no dense ornaments. Not a castle. Isolated ONE building centered on a square canvas, whole sprite visible with about 10% clear margin, baseline near 86% height. GENUINELY TRANSPARENT RGBA PNG with alpha=0 outside the building. No background, no floor shadow, no hexagon or ground slab, no people/animals, no floating icons, no text or numbers, no gold trim, no ornaments, no tiny repeated details. Do not make a contact sheet. Match the reference drawing's scale and line weight, but do not copy its architecture.",
+      "source": "C:\\Users\\76398\\.codex\\generated_images\\01a0d417-809e-79b1-a760-5d49aa87fe72\\exec-beb8c435-4167-4db7-a8a1-06f54b2c443a.png",
+      "reference": "assets/art/home/v2/residence_01.png",
+      "status": "visual-review-passed; pending engine batch acceptance",
+      "path": "assets/art/home/v2/entertainment_08.png",
+      "bytes": 829339,
+      "sha256": "2e3d0fde63fd6ac6f30d83e75edf5ae34727b3cd8039a5948195b0735e2b1199",
+      "mode": "RGBA",
+      "size": [
+        1254,
+        1254
+      ],
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "raw_alpha_bbox": [
+        41,
+        180,
+        1208,
+        1232
+      ],
+      "alpha_ge16_bbox": [
+        50,
+        195,
+        1205,
+        1059
+      ],
+      "visible_occupancy": [
+        0.921053,
+        0.688995
+      ],
+      "transparent_pixels": 834185,
+      "nearly_opaque_pixels": 723768,
+      "copy_byte_identical": true,
+      "pixel_processing": false,
+      "visible_margins_px": [
+        50,
+        195,
+        49,
+        195
+      ],
+      "faint_alpha_pixels_1_to_15": 7582,
+      "ring": 8,
+      "type": "entertainment",
+      "silhouette_review": "Broad dome stagehouse with two pitched-roof side halls."
+    },
+    {
+      "id": "sport_01",
+      "prompt": "Use case: style-transfer. Use the attached cottage ONLY as the style reference, redraw completely different original architecture for a cozy animal village game. Same bold near-black chunky outlines and narrow white sticker keyline, simple bright flat 2D shapes with at most one simple shadow tone per material, no glossy 3D. Mostly frontal with a very slight view from above, compact substantial building silhouette. Very simple first-ring sports building: a modest open exercise shelter with a plain bright GREEN shallow single-slope roof, two thick cream support posts, a small cream back wall and one broad brown training bench integrated inside. One chunky dark barbell rests on the bench, easy to recognize with only four round weight ends. Tall compact gym booth silhouette; basic and humble. No sports field, no fences, no roof tiles, no ornaments. Isolated ONE building centered on a square canvas, whole sprite visible with about 10% clear margin, baseline near 86% height. GENUINELY TRANSPARENT RGBA PNG with alpha=0 outside the building. No background, no floor shadow, no hexagon or ground slab, no people/animals, no floating icons, no text or numbers, no gold trim, no ornaments, no tiny repeated details. Do not make a contact sheet. Match the reference drawing's scale and line weight, but do not copy its architecture.",
+      "source": "C:\\Users\\76398\\.codex\\generated_images\\01a0d417-809e-79b1-a760-5d49aa87fe72\\exec-8b0ee7b1-c3a6-4622-8e3a-05f5bc4dd08f.png",
+      "reference": "assets/art/home/v2/residence_01.png",
+      "status": "visual-review-passed; pending engine batch acceptance",
+      "path": "assets/art/home/v2/sport_01.png",
+      "bytes": 666092,
+      "sha256": "f5ebb36dae0efddba98dcd1e0f1510d8adb06d0b5e0e1284e6339aa60639be08",
+      "mode": "RGBA",
+      "size": [
+        1254,
+        1254
+      ],
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "raw_alpha_bbox": [
+        73,
+        200,
+        1142,
+        1254
+      ],
+      "alpha_ge16_bbox": [
+        119,
+        202,
+        1138,
+        1061
+      ],
+      "visible_occupancy": [
+        0.8126,
+        0.685008
+      ],
+      "transparent_pixels": 908078,
+      "nearly_opaque_pixels": 647113,
+      "copy_byte_identical": true,
+      "pixel_processing": false,
+      "visible_margins_px": [
+        119,
+        202,
+        116,
+        193
+      ],
+      "faint_alpha_pixels_1_to_15": 9870,
+      "ring": 1,
+      "type": "sport",
+      "silhouette_review": "Simple lean-to training shelter with integrated bench/barbell."
+    },
+    {
+      "id": "sport_02",
+      "prompt": "Use case: style-transfer. Use the attached cottage ONLY as the style reference, redraw completely different original architecture for a cozy animal village game. Same bold near-black chunky outlines and narrow white sticker keyline, simple bright flat 2D shapes with at most one simple shadow tone per material, no glossy 3D. Mostly frontal with a very slight view from above, compact substantial building silhouette. Second-ring sports building: a tiny compact half-court basketball pavilion, with a high bright GREEN back wall like a small rectangular building, a shallow green lean-to roof over its rear half, and one large plain cream basketball backboard with a simple orange hoop integrated on the front of the rear wall. At bottom a very small integral green playing court with a single thick white semicircle and two short solid side walls. Keep the rear building mass tall and dominant; not a large flat floor. No net mesh, no ball, no people, no text. Recognizable as a modest covered basketball court. Isolated ONE building centered on a square canvas, whole sprite visible with about 10% clear margin, baseline near 86% height. GENUINELY TRANSPARENT RGBA PNG with alpha=0 outside the building. No background, no floor shadow, no hexagon or ground slab, no people/animals, no floating icons, no text or numbers, no gold trim, no ornaments, no tiny repeated details. Do not make a contact sheet. Match the reference drawing's scale and line weight, but do not copy its architecture.",
+      "source": "C:\\Users\\76398\\.codex\\generated_images\\01a0d417-809e-79b1-a760-5d49aa87fe72\\exec-224677a9-28d9-476e-a0fe-a976cde204ed.png",
+      "reference": "assets/art/home/v2/residence_01.png",
+      "status": "visual-review-passed; pending engine batch acceptance",
+      "path": "assets/art/home/v2/sport_02.png",
+      "bytes": 665225,
+      "sha256": "977531af10b8eb0478fcb57529eb5c30a2d50b2e3886803e7f3f255239afa71c",
+      "mode": "RGBA",
+      "size": [
+        1254,
+        1254
+      ],
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "raw_alpha_bbox": [
+        49,
+        212,
+        1224,
+        1206
+      ],
+      "alpha_ge16_bbox": [
+        175,
+        217,
+        1078,
+        1062
+      ],
+      "visible_occupancy": [
+        0.720096,
+        0.673844
+      ],
+      "transparent_pixels": 894625,
+      "nearly_opaque_pixels": 665442,
+      "copy_byte_identical": true,
+      "pixel_processing": false,
+      "visible_margins_px": [
+        175,
+        217,
+        176,
+        192
+      ],
+      "faint_alpha_pixels_1_to_15": 6385,
+      "ring": 2,
+      "type": "sport",
+      "silhouette_review": "Compact basketball pavilion with high back wall and small court."
+    },
+    {
+      "id": "sport_03",
+      "prompt": "Use case: style-transfer. Use the attached cottage ONLY as the style reference, redraw completely different original architecture for a cozy animal village game. Same bold near-black chunky outlines and narrow white sticker keyline, simple bright flat 2D shapes with at most one simple shadow tone per material, no glossy 3D. Mostly frontal with a very slight view from above, compact substantial building silhouette. Third-ring sports building: a small enclosed community GYM HALL with a broad low bright GREEN gable roof of two plain unbroken planes, cream walls, an oversized dark-green double entrance, and ONE big cream round window with an orange basketball pattern of only two intersecting thick curved lines centered on the upper front. Two short plain green buttresses at lower sides. Distinct broad compact closed-building silhouette. No wooden cottage door, no chimney, no court in front, no roof tiles, no sign/text, no ornaments. Isolated ONE building centered on a square canvas, whole sprite visible with about 10% clear margin, baseline near 86% height. GENUINELY TRANSPARENT RGBA PNG with alpha=0 outside the building. No background, no floor shadow, no hexagon or ground slab, no people/animals, no floating icons, no text or numbers, no gold trim, no ornaments, no tiny repeated details. Do not make a contact sheet. Match the reference drawing's scale and line weight, but do not copy its architecture.",
+      "source": "C:\\Users\\76398\\.codex\\generated_images\\01a0d417-809e-79b1-a760-5d49aa87fe72\\exec-be1ed65a-d4ca-4dc0-8ea6-be72c4042f67.png",
+      "reference": "assets/art/home/v2/residence_01.png",
+      "status": "visual-review-passed; pending engine batch acceptance",
+      "path": "assets/art/home/v2/sport_03.png",
+      "bytes": 739535,
+      "sha256": "42d9d1d80a6277c12555da91d2da566745433a0ace5656494917030571e7b6a9",
+      "mode": "RGBA",
+      "size": [
+        1254,
+        1254
+      ],
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "raw_alpha_bbox": [
+        0,
+        24,
+        1232,
+        1166
+      ],
+      "alpha_ge16_bbox": [
+        121,
+        179,
+        1128,
+        1079
+      ],
+      "visible_occupancy": [
+        0.80303,
+        0.717703
+      ],
+      "transparent_pixels": 880615,
+      "nearly_opaque_pixels": 677892,
+      "copy_byte_identical": true,
+      "pixel_processing": false,
+      "visible_margins_px": [
+        121,
+        179,
+        126,
+        175
+      ],
+      "faint_alpha_pixels_1_to_15": 7234,
+      "ring": 3,
+      "type": "sport",
+      "silhouette_review": "Enclosed gabled gym hall with broad entry."
+    },
+    {
+      "id": "sport_04",
+      "prompt": "Use case: style-transfer. Use the attached cottage ONLY as the style reference, redraw completely different original architecture for a cozy animal village game. Same bold near-black chunky outlines and narrow white sticker keyline, simple bright flat 2D shapes with at most one simple shadow tone per material, no glossy 3D. Mostly frontal with a very slight view from above, compact substantial building silhouette. Fourth-ring sports building: a compact L-SHAPED community sports centre. A tall rectangular cream main gym on the LEFT with a bright GREEN single slope roof and broad dark-green double entrance; attached at right is a lower green-roofed short wing framing a tiny integral exercise courtyard, with ONE thick orange basketball hoop fixed to the wing wall. Large clear L-shaped stepped silhouette, tall hall occupies most of the image, compact court occupies only lower right. Two broad blue-green windows total. No repeated roof tiles, no tiny fence, no lettering, no stadium seats, no ornaments. Isolated ONE building centered on a square canvas, whole sprite visible with about 10% clear margin, baseline near 86% height. GENUINELY TRANSPARENT RGBA PNG with alpha=0 outside the building. No background, no floor shadow, no hexagon or ground slab, no people/animals, no floating icons, no text or numbers, no gold trim, no ornaments, no tiny repeated details. Do not make a contact sheet. Match the reference drawing's scale and line weight, but do not copy its architecture.",
+      "source": "C:\\Users\\76398\\.codex\\generated_images\\01a0d417-809e-79b1-a760-5d49aa87fe72\\exec-bf6574d1-8b5f-46f2-bbc4-8da991ca17a2.png",
+      "reference": "assets/art/home/v2/residence_01.png",
+      "status": "visual-review-passed; pending engine batch acceptance",
+      "path": "assets/art/home/v2/sport_04.png",
+      "bytes": 827522,
+      "sha256": "0d5268f4f5c2bbc8733c0d662b17216ee06d43100dab2dc457b6b6a7be1d4560",
+      "mode": "RGBA",
+      "size": [
+        1254,
+        1254
+      ],
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "raw_alpha_bbox": [
+        84,
+        53,
+        1175,
+        1188
+      ],
+      "alpha_ge16_bbox": [
+        91,
+        107,
+        1171,
+        1111
+      ],
+      "visible_occupancy": [
+        0.861244,
+        0.800638
+      ],
+      "transparent_pixels": 782726,
+      "nearly_opaque_pixels": 775433,
+      "copy_byte_identical": true,
+      "pixel_processing": false,
+      "visible_margins_px": [
+        91,
+        107,
+        83,
+        143
+      ],
+      "faint_alpha_pixels_1_to_15": 6683,
+      "ring": 4,
+      "type": "sport",
+      "silhouette_review": "Asymmetric L-shaped high hall and attached court wing."
+    },
+    {
+      "id": "sport_05",
+      "prompt": "Use case: style-transfer. Use the attached cottage ONLY as the style reference, redraw completely different original architecture for a cozy animal village game. Same bold near-black chunky outlines and narrow white sticker keyline, simple bright flat 2D shapes with at most one simple shadow tone per material, no glossy 3D. Mostly frontal with a very slight view from above, compact substantial building silhouette. Fifth-ring sports building: a compact wide BARREL-VAULT gymnasium with a tall rounded GREEN arched roof on its cream central hall, and two LOW rectangular attached wings at left and right with flat green roofs. Main hall has a broad dark-green double door; each short side wing has one large square blue-green window. One large simple orange basketball medallion above doorway, three plain lines total on it. Three masses with curved central dome and flat shoulders, very recognizable expanded gym. No roof ribs, no roof tiles, no tiny window grid, no columns, no ornaments. Isolated ONE building centered on a square canvas, whole sprite visible with about 10% clear margin, baseline near 86% height. GENUINELY TRANSPARENT RGBA PNG with alpha=0 outside the building. No background, no floor shadow, no hexagon or ground slab, no people/animals, no floating icons, no text or numbers, no gold trim, no ornaments, no tiny repeated details. Do not make a contact sheet. Match the reference drawing's scale and line weight, but do not copy its architecture.",
+      "source": "C:\\Users\\76398\\.codex\\generated_images\\01a0d417-809e-79b1-a760-5d49aa87fe72\\exec-11fa0b1c-7263-42ab-a659-aa9794dc8e50.png",
+      "reference": "assets/art/home/v2/residence_01.png",
+      "status": "visual-review-passed; pending engine batch acceptance",
+      "path": "assets/art/home/v2/sport_05.png",
+      "bytes": 595488,
+      "sha256": "c31a2078fce3de8f9572e4a4b2ff03c3c8098fe4d987a24621f2d2d12b8122ab",
+      "mode": "RGBA",
+      "size": [
+        1254,
+        1254
+      ],
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "raw_alpha_bbox": [
+        40,
+        53,
+        1211,
+        1230
+      ],
+      "alpha_ge16_bbox": [
+        46,
+        318,
+        1207,
+        998
+      ],
+      "visible_occupancy": [
+        0.925837,
+        0.542265
+      ],
+      "transparent_pixels": 989537,
+      "nearly_opaque_pixels": 570020,
+      "copy_byte_identical": true,
+      "pixel_processing": false,
+      "visible_margins_px": [
+        46,
+        318,
+        47,
+        256
+      ],
+      "faint_alpha_pixels_1_to_15": 7509,
+      "ring": 5,
+      "type": "sport",
+      "silhouette_review": "Barrel vault central gym with two low flat-roof side wings."
+    },
+    {
+      "id": "sport_06",
+      "prompt": "Use case: style-transfer. Use the attached cottage ONLY as the style reference, redraw completely different original architecture for a cozy animal village game. Same bold near-black chunky outlines and narrow white sticker keyline, simple bright flat 2D shapes with at most one simple shadow tone per material, no glossy 3D. Mostly frontal with a very slight view from above, compact substantial building silhouette. Sixth-ring sports building: a compact U-SHAPED exercise courtyard building. A tall cream gym hall at the back with bright GREEN broad hipped roof (simple four planes), two shorter attached rectangular green-roofed wings reaching forward on both sides, leaving one small central green court with a thick white circular line. One large blue-green window per wing, a broad dark green arch entrance in back hall with a single orange basketball medallion above it. Tall dominant rear building with clear U-shaped opening at bottom, almost square silhouette; compact, not a flat playing field. No roof tiles, no rows of windows, no fences, no people, no signs. Isolated ONE building centered on a square canvas, whole sprite visible with about 10% clear margin, baseline near 86% height. GENUINELY TRANSPARENT RGBA PNG with alpha=0 outside the building. No background, no floor shadow, no hexagon or ground slab, no people/animals, no floating icons, no text or numbers, no gold trim, no ornaments, no tiny repeated details. Do not make a contact sheet. Match the reference drawing's scale and line weight, but do not copy its architecture.",
+      "source": "C:\\Users\\76398\\.codex\\generated_images\\01a0d417-809e-79b1-a760-5d49aa87fe72\\exec-bd3c79dc-e381-46b7-a1f8-491e7b9144b9.png",
+      "reference": "assets/art/home/v2/residence_01.png",
+      "status": "visual-review-passed; pending engine batch acceptance",
+      "path": "assets/art/home/v2/sport_06.png",
+      "bytes": 895948,
+      "sha256": "aa47c569102a8db248a56c69d17ffe4b7bc1e7282461dc10150120aa212c7708",
+      "mode": "RGBA",
+      "size": [
+        1254,
+        1254
+      ],
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "raw_alpha_bbox": [
+        91,
+        23,
+        1234,
+        1198
+      ],
+      "alpha_ge16_bbox": [
+        94,
+        117,
+        1159,
+        1108
+      ],
+      "visible_occupancy": [
+        0.849282,
+        0.790271
+      ],
+      "transparent_pixels": 759705,
+      "nearly_opaque_pixels": 799261,
+      "copy_byte_identical": true,
+      "pixel_processing": false,
+      "visible_margins_px": [
+        94,
+        117,
+        95,
+        146
+      ],
+      "faint_alpha_pixels_1_to_15": 6894,
+      "ring": 6,
+      "type": "sport",
+      "silhouette_review": "Hipped central hall and U-shaped courtyard wings."
+    },
+    {
+      "id": "sport_07",
+      "prompt": "Use case: style-transfer. Use the attached cottage ONLY as the style reference, redraw completely different original architecture for a cozy animal village game. Same bold near-black chunky outlines and narrow white sticker keyline, simple bright flat 2D shapes with at most one simple shadow tone per material, no glossy 3D. Mostly frontal with a very slight view from above, compact substantial building silhouette. Seventh-ring sports building: a compact partly-covered OVAL ARENA. A tall curved rear cream arena wall with one broad smooth bright GREEN crescent canopy covering the rear section, one big dark-green central entrance and a simple orange basketball medallion above. Two short chunky front entry pavilions with flat green roofs stand at left and right, framing a tiny integral green playing area with one broad white arc. A high thick arena body, nearly square silhouette, not a sprawling flat stadium. Only large clean architectural masses; no individual seats, no fence mesh, no rows of windows or arches, no flags, no signs, no crowd. Isolated ONE building centered on a square canvas, whole sprite visible with about 10% clear margin, baseline near 86% height. GENUINELY TRANSPARENT RGBA PNG with alpha=0 outside the building. No background, no floor shadow, no hexagon or ground slab, no people/animals, no floating icons, no text or numbers, no gold trim, no ornaments, no tiny repeated details. Do not make a contact sheet. Match the reference drawing's scale and line weight, but do not copy its architecture.",
+      "source": "C:\\Users\\76398\\.codex\\generated_images\\01a0d417-809e-79b1-a760-5d49aa87fe72\\exec-cee73777-10d0-4c9a-a9ba-a7121fd17168.png",
+      "reference": "assets/art/home/v2/residence_01.png",
+      "status": "visual-review-passed; pending engine batch acceptance",
+      "path": "assets/art/home/v2/sport_07.png",
+      "bytes": 892733,
+      "sha256": "5bbd4860e7ca40c001b803a9b7c3060f643357b19a02731c1b72f68d0247de2e",
+      "mode": "RGBA",
+      "size": [
+        1254,
+        1254
+      ],
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "raw_alpha_bbox": [
+        58,
+        29,
+        1193,
+        1190
+      ],
+      "alpha_ge16_bbox": [
+        62,
+        187,
+        1191,
+        1017
+      ],
+      "visible_occupancy": [
+        0.900319,
+        0.661882
+      ],
+      "transparent_pixels": 761811,
+      "nearly_opaque_pixels": 795848,
+      "copy_byte_identical": true,
+      "pixel_processing": false,
+      "visible_margins_px": [
+        62,
+        187,
+        63,
+        237
+      ],
+      "faint_alpha_pixels_1_to_15": 7935,
+      "ring": 7,
+      "type": "sport",
+      "silhouette_review": "Crescent roof arena wall with two entry pavilions."
+    },
+    {
+      "id": "sport_08",
+      "prompt": "Use case: style-transfer. Use the attached cottage ONLY as the style reference, redraw completely different original architecture for a cozy animal village game. Same bold near-black chunky outlines and narrow white sticker keyline, simple bright flat 2D shapes with at most one simple shadow tone per material, no glossy 3D. Mostly frontal with a very slight view from above, compact substantial building silhouette. Eighth outer-ring sports building: the largest yet SIMPLE community sports hall. A tall central cream hall has a distinctive bright GREEN stepped folded roof: two large angular roof planes at DIFFERENT heights, like a simple broad zigzag, not a conventional gable. Two wide lower rectangular wings with plain green shed roofs flank central hall. A very large dark-green central double entrance and ONE clear orange basketball medallion above it; only one large blue-green window per wing. Strong expanded geometric building silhouette with tall center and wide shoulders, nearly square overall, very few broad shapes. No rooftop objects, no exposed truss lattice, no tiny windows, no tiled roof, no court field, no flags, no columns, no signs. Isolated ONE building centered on a square canvas, whole sprite visible with about 10% clear margin, baseline near 86% height. GENUINELY TRANSPARENT RGBA PNG with alpha=0 outside the building. No background, no floor shadow, no hexagon or ground slab, no people/animals, no floating icons, no text or numbers, no gold trim, no ornaments, no tiny repeated details. Do not make a contact sheet. Match the reference drawing's scale and line weight, but do not copy its architecture.",
+      "source": "C:\\Users\\76398\\.codex\\generated_images\\01a0d417-809e-79b1-a760-5d49aa87fe72\\exec-97880a39-909a-42d0-8ddd-205bd6692936.png",
+      "reference": "assets/art/home/v2/residence_01.png",
+      "status": "visual-review-passed; pending engine batch acceptance",
+      "path": "assets/art/home/v2/sport_08.png",
+      "bytes": 782043,
+      "sha256": "77f6ca7a0b63ed4b321634a680911a84776c6b503be5a99adf3d17a2ca9b137a",
+      "mode": "RGBA",
+      "size": [
+        1254,
+        1254
+      ],
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "raw_alpha_bbox": [
+        0,
+        48,
+        1230,
+        1166
+      ],
+      "alpha_ge16_bbox": [
+        27,
+        132,
+        1227,
+        1121
+      ],
+      "visible_occupancy": [
+        0.956938,
+        0.788676
+      ],
+      "transparent_pixels": 774181,
+      "nearly_opaque_pixels": 778751,
+      "copy_byte_identical": true,
+      "pixel_processing": false,
+      "visible_margins_px": [
+        27,
+        132,
+        27,
+        133
+      ],
+      "faint_alpha_pixels_1_to_15": 11787,
+      "ring": 8,
+      "type": "sport",
+      "silhouette_review": "High-low folded roof hall with broad side wings."
+    }
+  ],
+  "qa": {
+    "date": "2026-09-25",
+    "file_checks": 83,
+    "failures": 0,
+    "assets": 16,
+    "unique_sha256": 16,
+    "total_bytes": 12057236,
+    "all_original_bytes": true,
+    "all_native_rgba": true,
+    "all_inspected_individually": true,
+    "pixel_processing": false,
+    "transparent_background": "native original alpha; no background deletion or recoloring",
+    "fit_guidance": "Use alpha>=16 visible bounds when fitting; raw bounds include low-alpha generator specks. All visible bounds are inside canvas.",
+    "engine_attention": [
+      "sport_05 has a wide silhouette; verify its displayed height in the actual hex plot."
+    ],
+    "qa_note": "Native generator interiors are mainly alpha 250..254. Presence check uses alpha>=250 rather than exact alpha=255; no normalization performed.",
+    "engine_acceptance": "Pending root 720x1280 and 360x640 integration review; file/visual checks do not imply engine acceptance."
+  }
+}

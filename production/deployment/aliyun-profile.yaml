@@ -9,6 +9,24 @@ ownership:
 environments:
   staging:
     readiness: deployed_v1_4_0_staging_public_functional_with_declared_temporary_player_name_and_executor_observability_limits
+    latest_game_release:
+      version: home-v1.0.0-staging
+      deployed_at: "2026-09-25T12:38:40+08:00"
+      scope: baseline_game_plus_home_transactions_and_wallet_persistence_only
+      receipt: docs/receipts/REQ-20260925-HOME-GACHA-POLISH.md
+      game_elf_sha256: c54b4c8f1bd395e55a91f2c7f25e35f515d5dc6238d39fc2c24e4d88800c5fd3
+      compatibility_rollback_sha256: 686f7920244f0974f001155533cde3771e8db0a85c5e13f689c2c5abdbd8ccce
+      service: junglelaw-server.service
+      main_pid_at_acceptance: 193660
+      state: active_running_NRestarts_0_ExecMainStatus_0
+      preserved_authority_sha256: 3fa78978a76e18b2321638be352631ab9f48856a3908da87387397d8aad287b5
+      backup: /var/backups/junglelaw/home-20260925
+      isolated_linux_economy_checks: 12382
+      isolated_linux_rollback_checks: 21
+      external_enet: CONNECTED_106_15_61_103_24567
+      authenticated_external_home_acceptance: blocked_by_automatic_approval_no_retry
+      real_player_mutations_performed_by_task: false
+      other_service_fingerprints: admin_dashboard_fisher_nginx_unchanged
     latest_release:
       version: v1.4.0-aliyun-staging-rc2
       verified_at: "2026-09-06T22:56:00+08:00"
@@ -156,6 +174,15 @@ authorization:
   staging_remote_writes: true
   production_remote_writes: false
   staging_scope: OpenClaw-ejrr_junglelaw_only
-  explicit_user_confirmation: "producer_2026-09-06_update_admin_add_single_account_all_animals_and_continue; prior OpenClaw-ejrr staging authorization retained; minimal executor grant-limit and HTTPS renewal repair only"
+  explicit_user_confirmation: "producer_2026-09-25_affordable_home_construction_fails_update_server_to_implement; existing OpenClaw-ejrr staging game service only, home RPC and authoritative home transactions plus wallet persistence; synthetic QA account allowed; preserve other hosted services and real player holdings"
+  home_release_scope:
+    owner: codex_primary_REQ_20260925_HOME_GACHA_POLISH
+    baseline_elf_sha256: 69c33449882ac2409c444af4b9d1e19edfd8e491fa578f2de46a5766e47f7d58
+    ssh_fallback: "verified root@106.15.61.103 with existing junglelaw_aliyun_20260722_ed25519 key reference; configured alias absent locally"
+    service: junglelaw-server.service
+    binary: /opt/junglelaw/JungleLawServer.x86_64
+    backup: /var/backups/junglelaw/home-20260925
+    rollback: "graceful stop; activate verified compatibility rollback ELF retaining home/wallet fields; start and verify; never overwrite reopened player authority; original pre-home ELF is forensic backup only"
+    excluded: [identity_migration, battle_changes, admin_changes, fisher, nginx, tls, production, real_player_grants]
   state_directory_quarantine_restore: true
   destructive_state_deletion: false

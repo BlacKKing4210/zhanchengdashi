@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1760" height="2500" viewBox="0 0 1760 2500">
 <rect width="100%" height="100%" fill="#f8fafb"/>
-<text x="56" y="70" font-family="Microsoft YaHei" font-size="42" fill="#253449">家园 UE 总流程  v1.0</text>
+<text x="56" y="70" font-family="Microsoft YaHei" font-size="42" fill="#253449">家园 UE 总流程  v1.1</text>
 <text x="56" y="114" font-family="Microsoft YaHei" font-size="26" fill="#76613f">低保真评审草稿  本地 SVG 可编辑  Figma 保存与回读待完成</text>
 <g id="H00"><rect x="56" y="164" width="798" height="516" rx="22" fill="white" stroke="#b6c5d1" stroke-width="3"/>
 <rect x="70" y="178" width="770" height="64" rx="12" fill="#dfeaf0"/>
@@ -18,18 +18,18 @@
 <text x="938" y="297" font-family="Microsoft YaHei" font-size="27" fill="#253449">顶部  金币拥有量    抽卡券拥有量</text>
 <text x="956" y="375" font-family="Microsoft YaHei" font-size="29" fill="#253449">彩色六边形建筑与边线道路</text>
 <text x="956" y="414" font-family="Microsoft YaHei" font-size="29" fill="#253449">中心主城堡  居民随机活动</text>
-<text x="938" y="524" font-family="Microsoft YaHei" font-size="28" fill="#315c84">拖动 / 缩放 / 回中   [今日收益]</text>
-<text x="938" y="593" font-family="Microsoft YaHei" font-size="25" fill="#5f6b78">有收益自动进入 H04；点地块 → H02 或 H03</text>
+<text x="938" y="524" font-family="Microsoft YaHei" font-size="28" fill="#315c84">拖动地图；有收益时 [领取收益]</text>
+<text x="938" y="593" font-family="Microsoft YaHei" font-size="25" fill="#5f6b78">有收益自动进入 H04；锁格见 H02；已有格查看 H03</text>
 </g>
 <g id="H02"><rect x="56" y="744" width="798" height="516" rx="22" fill="white" stroke="#b6c5d1" stroke-width="3"/>
 <rect x="70" y="758" width="770" height="64" rx="12" fill="#dfeaf0"/>
 <rect x="86" y="908" width="738" height="144" rx="12" fill="#edf1e3" stroke="#cbd5b9" stroke-width="2"/>
-<text x="88" y="801" font-family="Microsoft YaHei" font-size="32" fill="#253449">H02 未解锁详情</text>
-<text x="88" y="877" font-family="Microsoft YaHei" font-size="27" fill="#253449">地块类型  居住型     首圈示例</text>
-<text x="106" y="955" font-family="Microsoft YaHei" font-size="29" fill="#253449">温馨小屋   可住 1～5 只</text>
-<text x="106" y="994" font-family="Microsoft YaHei" font-size="29" fill="#253449">日产 软绒枕头  次日生效</text>
-<text x="88" y="1104" font-family="Microsoft YaHei" font-size="28" fill="#315c84">[金币图标 100  解锁]   [取消]</text>
-<text x="88" y="1173" font-family="Microsoft YaHei" font-size="25" fill="#5f6b78">足额且邻接 → H01 并赠 1 券；否则原因可读</text>
+<text x="88" y="801" font-family="Microsoft YaHei" font-size="32" fill="#253449">H02 锁格点击反馈</text>
+<text x="88" y="877" font-family="Microsoft YaHei" font-size="27" fill="#253449">无色地块  类型剪影  金币价格</text>
+<text x="106" y="955" font-family="Microsoft YaHei" font-size="29" fill="#253449">价格可读：点击校验邻接和余额</text>
+<text x="106" y="994" font-family="Microsoft YaHei" font-size="29" fill="#253449">价格不可读：首击居中，不扣款</text>
+<text x="88" y="1104" font-family="Microsoft YaHei" font-size="28" fill="#315c84">居中后再点建造；不足只短提示</text>
+<text x="88" y="1173" font-family="Microsoft YaHei" font-size="25" fill="#5f6b78">不打开锁格详情；成功赠 1 券；无升级玩法</text>
 </g>
 <g id="H03"><rect x="906" y="744" width="798" height="516" rx="22" fill="white" stroke="#b6c5d1" stroke-width="3"/>
 <rect x="920" y="758" width="770" height="64" rx="12" fill="#dfeaf0"/>
@@ -64,12 +64,12 @@
 <g id="H06"><rect x="56" y="1904" width="798" height="516" rx="22" fill="white" stroke="#b6c5d1" stroke-width="3"/>
 <rect x="70" y="1918" width="770" height="64" rx="12" fill="#dfeaf0"/>
 <rect x="86" y="2068" width="738" height="144" rx="12" fill="#edf1e3" stroke="#cbd5b9" stroke-width="2"/>
-<text x="88" y="1961" font-family="Microsoft YaHei" font-size="32" fill="#253449">H06 等待与失败</text>
-<text x="88" y="2037" font-family="Microsoft YaHei" font-size="27" fill="#253449">正在读取家园 / 正在结算</text>
-<text x="106" y="2115" font-family="Microsoft YaHei" font-size="29" fill="#253449">等待期间按钮不可重复提交</text>
-<text x="106" y="2154" font-family="Microsoft YaHei" font-size="29" fill="#253449">失败原因：连接中断 / 余额不足</text>
-<text x="88" y="2264" font-family="Microsoft YaHei" font-size="28" fill="#315c84">[重试]  [返回家园]</text>
-<text x="88" y="2333" font-family="Microsoft YaHei" font-size="25" fill="#5f6b78">以权威状态重查；失败不扣不发，重试不重抽</text>
+<text x="88" y="1961" font-family="Microsoft YaHei" font-size="32" fill="#253449">H06 请求反馈</text>
+<text x="88" y="2037" font-family="Microsoft YaHei" font-size="27" fill="#253449">保留原家园或收益面板</text>
+<text x="106" y="2115" font-family="Microsoft YaHei" font-size="29" fill="#253449">防重复提交；操作失败短提示</text>
+<text x="106" y="2154" font-family="Microsoft YaHei" font-size="29" fill="#253449">不显示常驻连接条或重试连接按钮</text>
+<text x="88" y="2264" font-family="Microsoft YaHei" font-size="28" fill="#315c84">操作完成或短提示消失</text>
+<text x="88" y="2333" font-family="Microsoft YaHei" font-size="25" fill="#5f6b78">失败不扣不发，重新操作不重复奖励</text>
 </g>
 <g id="H07"><rect x="906" y="1904" width="798" height="516" rx="22" fill="white" stroke="#b6c5d1" stroke-width="3"/>
 <rect x="920" y="1918" width="770" height="64" rx="12" fill="#dfeaf0"/>

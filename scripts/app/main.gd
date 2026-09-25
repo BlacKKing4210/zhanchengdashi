@@ -805,7 +805,6 @@ func _handle_tap(screen_pos: Vector2) -> void:
 	var pos = _screen_to_canvas(screen_pos)
 	if _new_hero_reveal_active():
 		gacha_hero_reveal.tap()
-		GameAudio.play_sfx("ui_confirm")
 		return
 	if screen == SCREEN_HOME and home_view != null and (not home_view.modal.is_empty() or home_view.busy):
 		home_view.tap(pos)
@@ -6495,29 +6494,7 @@ func _handle_gacha_tap(pos: Vector2) -> void:
 	if _gacha_draw_rect().has_point(pos):
 		_draw_gacha_rewards(1)
 		return
-	if not gacha_detail_card_id.is_empty():
-		if _upgrade_button_rect().has_point(pos):
-			selected_card_id = gacha_detail_card_id
-			_try_upgrade_selected_card()
-			return
-		if _equip_button_rect().has_point(pos) and _can_show_equip_button(gacha_detail_card_id):
-			selected_card_id = gacha_detail_card_id
-			page_router.go_to(SCREEN_DECK)
-			screen = SCREEN_DECK
-			gacha_detail_card_id = ""
-			_start_equip_selected_card()
-			return
-	for i in range(last_gacha_cards.size()):
-		if _gacha_reward_card_rect(i, last_gacha_cards.size()).has_point(pos):
-			var card_id = String(last_gacha_cards[i])
-			if gacha_detail_card_id == card_id:
-				gacha_detail_card_id = ""
-			else:
-				gacha_detail_card_id = card_id
-				_show_card_detail(card_id)
-			return
-	if not _gacha_detail_rect().has_point(pos):
-		gacha_detail_card_id = ""
+	# Results are a reward showcase. Collection management stays on the deck page.
 
 
 func _draw_gacha_rewards(count: int) -> void:
@@ -6588,12 +6565,19 @@ func _reveal_next_gacha_card() -> void:
 	selected_card_id = card_id
 	if gacha_new_card_ids.has(card_id):
 		gacha_new_card_ids.erase(card_id)
-		if gacha_hero_reveal == null: gacha_hero_reveal = GachaNewHeroReveal.new(self)
+		if gacha_hero_reveal == null:
+			gacha_hero_reveal = GachaNewHeroReveal.new(self)
+			gacha_hero_reveal.hero_revealed.connect(_on_gacha_new_hero_revealed)
 		gacha_hero_reveal.enqueue(_card_by_id(card_id))
 	if gacha_pending_cards.is_empty():
 		_toast("获得%d张卡牌" % last_gacha_cards.size())
 	else:
 		gacha_reveal_timer = GACHA_CARD_REVEAL_INTERVAL
+
+
+func _on_gacha_new_hero_revealed(_card: Dictionary) -> void:
+	# Both the two-second reveal and a player tap emit this single transition.
+	GameAudio.play_sfx("gacha_new_hero")
 
 
 func _handle_deck_tap(pos: Vector2) -> void:
@@ -8002,8 +7986,6 @@ func _draw_gacha_screen() -> void:
 	var can_draw = not _is_gacha_animating()
 	_cta(_gacha_draw_rect(), "抽1次", true, can_draw and gacha_tickets > 0)
 	_cta(_gacha_ten_draw_rect(), "抽10次", true, can_draw and gacha_tickets >= 10)
-	if not gacha_detail_card_id.is_empty() and last_gacha_cards.has(gacha_detail_card_id):
-		_draw_card_detail(_gacha_detail_rect(), gacha_detail_card_id)
 
 
 func _draw_gacha_reward_card(index: int, card: Dictionary, count: int) -> void:
@@ -8019,19 +8001,34 @@ func _draw_gacha_reward_card(index: int, card: Dictionary, count: int) -> void:
 		if progress < 0.5:
 			_draw_gacha_card_back(flipped_rect, index)
 		else:
-			_draw_card(flipped_rect, card, true)
+			_draw_gacha_showcase_card(flipped_rect, card)
 			_draw_gacha_card_glow(rect, progress)
 		return
-	_draw_card(rect, card, String(card.get("id", "")) == gacha_detail_card_id)
+	_draw_gacha_showcase_card(rect, card)
+
+
+func _draw_gacha_showcase_card(rect: Rect2, card: Dictionary) -> void:
+	var rarity = String(card.get("rarity", "common"))
+	_box(rect, _rarity_color(rarity), COLOR_LINE, 3)
+	var large = rect.size.y > 200
+	var footer_height = 76.0 if large else 57.0
+	var art_rect = Rect2(rect.position + Vector2(8, 6), Vector2(maxf(1, rect.size.x - 16), rect.size.y - footer_height - 12))
+	_draw_animal_art_in_rect(card, art_rect, Color.WHITE)
+	# Do not squeeze readable text into the thin middle of the flip.
+	if rect.size.x < 100: return
+	var footer = Rect2(rect.position.x + 4, rect.end.y - footer_height - 3, rect.size.x - 8, footer_height)
+	draw_rect(footer, HanddrawnSkin.PAPER)
+	_draw_text_center(String(card.get("name", "")), Rect2(footer.position, Vector2(footer.size.x, 40 if large else 30)), 32 if large else 24, COLOR_LINE)
+	_draw_text_center(CardRules.rarity_label(rarity) + " · " + String(GachaNewHeroReveal.QUALITY_NAMES.get(rarity, "普通")), Rect2(footer.position + Vector2(0, 40 if large else 30), Vector2(footer.size.x, 33 if large else 27)), 26 if large else 23, COLOR_LINE)
 
 
 func _gacha_reward_card_rect(index: int, count: int) -> Rect2:
 	count = max(1, count)
 	if count == 1:
-		return Rect2(292, 410, 136, 166)
-	var columns = 5 if count > 4 else count
-	var card_size = Vector2(106, 134)
-	var gap = Vector2(16, 18)
+		return Rect2(246, 350, 228, 280)
+	var columns = mini(4, count)
+	var card_size = Vector2(138, 146)
+	var gap = Vector2(16, 8)
 	var row = floori(float(index) / float(columns))
 	var col = index % columns
 	var rows = ceili(float(count) / float(columns))

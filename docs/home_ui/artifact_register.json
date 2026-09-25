@@ -1,6 +1,6 @@
 {
   "feature_id": "F-ZC-HOME-001",
-  "source_version": "1.0",
+  "source_version": "1.1",
   "owner": "codex-primary",
   "formal_tool": "Figma/FigJam per project AGENTS.md",
   "review_state": "Pending",
@@ -12,11 +12,11 @@
   "coverage": [
     "H00 大厅入口",
     "H01 家园主页",
-    "H02 未解锁详情",
+    "H02 锁格点击反馈",
     "H03 已拥有详情",
     "H04 收益清单",
     "H05 兑换结果",
-    "H06 等待与失败",
+    "H06 请求反馈",
     "H07 休息与重进"
   ],
   "local_source_backup": "docs/home_ui/home_ue_flow_draft.svg",

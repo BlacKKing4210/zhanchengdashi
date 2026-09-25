@@ -51,6 +51,7 @@ assets/ui/formal_arcade/**/*.import
 assets/ui/handdrawn/*.import
 assets/art/terrain/handdrawn/*.import
 assets/art/buildings/defense_towers/*.import
+assets/art/home/**/*.import
 output/diagrams/*.import
 output/formal_page_options/*.import
 output/**/*.import

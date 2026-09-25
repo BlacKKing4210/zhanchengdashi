@@ -1,5 +1,6 @@
 extends RefCounted
 ## Presentation only. The caller decides first ownership and grants the card.
+signal hero_revealed(card: Dictionary)
 const CardRules = preload("res://scripts/app/systems/card_rules.gd")
 const UISkin = preload("res://scripts/app/ui/handdrawn_ui_skin.gd")
 const REVEAL_SECONDS = 2.0
@@ -67,9 +68,12 @@ func _begin_next() -> void:
 
 
 func _show_hero() -> void:
+	if not active() or stage != "rarity":
+		return
 	stage = "hero"
 	elapsed = 0.0
 	skill_page = 0
+	hero_revealed.emit(current.duplicate(true))
 
 
 func skill_lines() -> Array[String]:

@@ -13,6 +13,7 @@ const SFX_PATHS = {
 	"card_upgrade": "res://assets/audio/sfx/card_upgrade.wav",
 	"gacha_open": "res://assets/audio/sfx/gacha_open.wav",
 	"gacha_reveal": "res://assets/audio/sfx/gacha_reveal.wav",
+	"gacha_new_hero": "res://assets/audio/sfx/gacha_new_hero.wav",
 	"room_join": "res://assets/audio/sfx/room_join.wav",
 	"pause": "res://assets/audio/sfx/pause.wav",
 	"battle_start": "res://assets/audio/sfx/battle_start.wav",
@@ -41,6 +42,7 @@ const UI_EVENTS = {
 	"card_upgrade": true,
 	"gacha_open": true,
 	"gacha_reveal": true,
+	"gacha_new_hero": true,
 	"room_join": true,
 	"pause": true,
 }
@@ -61,6 +63,7 @@ const EVENT_COOLDOWNS = {
 	"card_upgrade": 0.20,
 	"gacha_open": 0.25,
 	"gacha_reveal": 0.08,
+	"gacha_new_hero": 0.12,
 	"room_join": 0.12,
 	"pause": 0.10,
 	"battle_start": 0.30,

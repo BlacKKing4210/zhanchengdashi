@@ -1,0 +1,4 @@
+[gd_scene load_steps=2 format=3]
+[ext_resource type="Script" path="res://tests/capture_home_visual_catalog.gd" id="1"]
+[node name="HomeVisualCatalogCapture" type="Node"]
+script = ExtResource("1")

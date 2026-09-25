@@ -2,7 +2,7 @@ extends Node
 const Base = preload("res://tests/test_online_rewards_release.gd")
 const Rules = preload("res://scripts/shared/home_rules.gd")
 const Sim = preload("res://scripts/app/systems/home_simulation.gd")
-const OUT = "res://temp/qa/home-20260924/"
+const OUT = "res://temp/qa/home-polish-20260925/regression/"
 class TestApp extends Base.TestApp:
 	var saved_preview: Dictionary = {}
 	var reject_save = false
@@ -62,14 +62,14 @@ func _ready() -> void:
 	var first = ""
 	for p in app.home_view.visible:
 		if p.id != "0,0": first = p.id; break
-	await tap(app.home_view.plot_point(first))
-	check(app.home_view.selected == first, "pointer release selects land")
 	var cost = int(Rules.plot(first).cost)
 	var gold_before = app.wallet_gold
 	var tickets_before = app.gacha_tickets
-	await capture("home-unlock-detail")
-	await tap(app.home_view.unlock_button().get_center())
-	check(app.home_view.state.owned.has(first), "real unlock CTA owns plot")
+	await tap(app.home_view.plot_point(first))
+	check(app.home_view.state.owned.has(first), "single pointer release unlocks affordable land")
+	await tap(app.home_view.plot_point(first))
+	check(app.home_view.selected == first, "owned land tap opens its details")
+	await capture("home-owned-detail")
 	check(app.wallet_gold == gold_before - cost and app.gacha_tickets == tickets_before + 1, "unlock charges and awards exactly one ticket")
 	app._home_request("unlock", first)
 	check(app.wallet_gold == gold_before - cost and app.gacha_tickets == tickets_before + 1, "repeated unlock no double charge or ticket")
@@ -77,11 +77,11 @@ func _ready() -> void:
 	var candidate = ""
 	for p in app.home_view.visible:
 		if bool(Rules.can_unlock(app.home_view.state, p.id, 10000).ok): candidate = p.id; break
-	app.home_view.selected = candidate
 	app.wallet_gold = 0
-	await capture("home-insufficient")
-	await tap(app.home_view.unlock_button().get_center())
+	await tap(app.home_view.plot_point(candidate))
 	check(not app.home_view.state.owned.has(candidate), "insufficient gold has no unlock")
+	check(app.home_view.selected == first, "insufficient land tap retains owned details")
+	await capture("home-insufficient")
 	app.wallet_gold = 10000
 	app.reject_save = true
 	var count = app.home_view.state.owned.size()

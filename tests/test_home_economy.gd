@@ -174,9 +174,11 @@ func _test_store() -> void:
 	check(saved.profile.home == unlocked.profile.home, "generic save cannot reset claims or forge ownership")
 	var legacy: Dictionary = saved.profile.duplicate(true)
 	legacy.erase("home")
+	legacy.erase("wallet_gold")
 	legacy["_profile_revision"] = saved.profile_revision
 	saved = store.save_profile(token, legacy)
 	check(saved.profile.home == unlocked.profile.home, "old client omission preserves authoritative home")
+	check(saved.profile.wallet_gold == unlocked.profile.wallet_gold, "old client missing wallet field preserves actual post-unlock balance")
 	store.today = 22010
 	var pending = store.home_for_session(token)
 	check(pending.home_snapshot.days == [22008, 22009, 22010], "server returns exact three-day preview")

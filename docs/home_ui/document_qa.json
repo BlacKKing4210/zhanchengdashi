@@ -1,9 +1,12 @@
 {
-  "document": "docs/HOMESTEAD_DESIGN_v1.0.docx",
-  "sha256": "393a93843b0297a338f5a506b5f8f1ff2f7dbec6035e650c9daf08f93c78b1e6",
+  "document": "docs/HOMESTEAD_DESIGN_v1.1.docx",
+  "version": "1.1",
+  "sha256": "63e1019283a8d90846dc040160a8f9c1913ef330c293d7db8f60e0042bf38dd6",
   "page_count": 14,
-  "renderer": "Microsoft Word COM; pdftoppm PNG",
+  "renderer": "Microsoft Word COM native save/reopen; bundled Poppler pdftoppm PNG at 1500px height",
   "toc_updated": true,
+  "toc_count_after_native_reopen": 1,
+  "page_count_after_native_reopen": 14,
   "real_title_style_count": 1,
   "heading_count": 26,
   "visual_inspected_pages": [
@@ -22,20 +25,12 @@
     13,
     14
   ],
-  "latest_revision_affected_pages_reinspected": [
-    1,
-    2,
-    7,
-    8,
-    10,
-    11,
-    12,
-    13,
-    14
-  ],
   "result": "PASS_DOCX_RENDER_ONLY",
-  "runtime_acceptance": "Passed local only; source evidence temp/qa/home-20260924",
-  "runtime_checks": {
+  "content_edit_scope": "Added price-visibility guard to click rules, UE draft, special states and acceptance: unreadable price first tap centers/reveals without spending, next tap builds; visible price remains one tap. Updated TOC, pagination and PNGs.",
+  "runtime_acceptance": "Latest v1.1 results follow docs/receipts/REQ-20260925-HOME-GACHA-POLISH.md; evidence root temp/qa/home-polish-20260925. This record validates document rendering only.",
+  "runtime_evidence_root": "temp/qa/home-polish-20260925",
+  "historical_runtime_evidence_root": "temp/qa/home-20260924",
+  "historical_v1_0_runtime_checks": {
     "home_gpu": 4626,
     "economy": 12381,
     "home_sync": 12,
@@ -46,8 +41,218 @@
     "gacha_presentation": 11736,
     "failures": 0
   },
-  "figma_gate": "Pending MCP transport error",
-  "aliyun_deployment": "Not performed",
+  "figma_gate": "Pending MCP HTTP transport error; no online source claimed",
+  "aliyun_deployment": "Existing staging server home-v1.0.0-staging deployed; deployment receipt and native Linux QA verified. Independent client end-to-end network acceptance remains blocked by automatic approval review; no Android-device acceptance.",
   "android_device_acceptance": "Not performed",
-  "temporary_pdf_retained": false
+  "preserved_v1_0": {
+    "document": "docs/HOMESTEAD_DESIGN_v1.0.docx",
+    "sha256": "393a93843b0297a338f5a506b5f8f1ff2f7dbec6035e650c9daf08f93c78b1e6"
+  },
+  "pages": [
+    {
+      "page": 1,
+      "path": "docs/home_ui/word_pages/page-01.png",
+      "sha256": "a058997ebdbec79e53e9ba4c27c455fdc37df4f90e9b391e86d5c2074fea15e3",
+      "size": [
+        1062,
+        1500
+      ],
+      "visual_result": "PASS: no clipping, overlap, missing glyphs, broken tables, or misplaced header/footer",
+      "review_basis": "Previous full-page inspection retained; newly rendered PNG SHA256 is identical."
+    },
+    {
+      "page": 2,
+      "path": "docs/home_ui/word_pages/page-02.png",
+      "sha256": "89eb367d4269bb14a8d4908aff25d1d064fdddf2cbbbc04118cb22fd779be76a",
+      "size": [
+        1062,
+        1500
+      ],
+      "visual_result": "PASS: no clipping, overlap, missing glyphs, broken tables, or misplaced header/footer",
+      "review_basis": "Previous full-page inspection retained; newly rendered PNG SHA256 is identical."
+    },
+    {
+      "page": 3,
+      "path": "docs/home_ui/word_pages/page-03.png",
+      "sha256": "095adf986328ea3cc52d51ce02ebe298746193b77ed58962f27000a59750db1a",
+      "size": [
+        1062,
+        1500
+      ],
+      "visual_result": "PASS: no clipping, overlap, missing glyphs, broken tables, or misplaced header/footer",
+      "review_basis": "Reinspected at original rendered resolution after price-visibility guard revision."
+    },
+    {
+      "page": 4,
+      "path": "docs/home_ui/word_pages/page-04.png",
+      "sha256": "93c5ccf885e8b05cc8e0602fedc291d5cdca7cc74fd24b3c25587138105c9e25",
+      "size": [
+        1062,
+        1500
+      ],
+      "visual_result": "PASS: no clipping, overlap, missing glyphs, broken tables, or misplaced header/footer",
+      "review_basis": "Reinspected at original rendered resolution after price-visibility guard revision."
+    },
+    {
+      "page": 5,
+      "path": "docs/home_ui/word_pages/page-05.png",
+      "sha256": "2dcaa03e7bbaaa3521e92ae593c23fbb1a3ae0ccb7d4f1ba2e67e5341ce5a62b",
+      "size": [
+        1062,
+        1500
+      ],
+      "visual_result": "PASS: no clipping, overlap, missing glyphs, broken tables, or misplaced header/footer",
+      "review_basis": "Previous full-page inspection retained; newly rendered PNG SHA256 is identical."
+    },
+    {
+      "page": 6,
+      "path": "docs/home_ui/word_pages/page-06.png",
+      "sha256": "d2a46b59cedbb2680c16836d9e6d8292f0ad7955ef7feef6397d52c788d5f5aa",
+      "size": [
+        1062,
+        1500
+      ],
+      "visual_result": "PASS: no clipping, overlap, missing glyphs, broken tables, or misplaced header/footer",
+      "review_basis": "Previous full-page inspection retained; newly rendered PNG SHA256 is identical."
+    },
+    {
+      "page": 7,
+      "path": "docs/home_ui/word_pages/page-07.png",
+      "sha256": "2a685c7da4bc84af904fea62f62949c7f045be0d005290f3935226b065d1bb86",
+      "size": [
+        1062,
+        1500
+      ],
+      "visual_result": "PASS: no clipping, overlap, missing glyphs, broken tables, or misplaced header/footer",
+      "review_basis": "Previous full-page inspection retained; newly rendered PNG SHA256 is identical."
+    },
+    {
+      "page": 8,
+      "path": "docs/home_ui/word_pages/page-08.png",
+      "sha256": "77310557501325732812b408066b5b5fe16c8d5c17c2680f77e5f43805245979",
+      "size": [
+        1062,
+        1500
+      ],
+      "visual_result": "PASS: no clipping, overlap, missing glyphs, broken tables, or misplaced header/footer",
+      "review_basis": "Previous full-page inspection retained; newly rendered PNG SHA256 is identical."
+    },
+    {
+      "page": 9,
+      "path": "docs/home_ui/word_pages/page-09.png",
+      "sha256": "e49932e246f075941e9366556d9e0cca0ae2f4390673ec516de606527aad8efc",
+      "size": [
+        1062,
+        1500
+      ],
+      "visual_result": "PASS: no clipping, overlap, missing glyphs, broken tables, or misplaced header/footer",
+      "review_basis": "Previous full-page inspection retained; newly rendered PNG SHA256 is identical."
+    },
+    {
+      "page": 10,
+      "path": "docs/home_ui/word_pages/page-10.png",
+      "sha256": "2d541b4345a2fd4905cc72e024257f90a2d6b435da1758b1bc5c41406de3f2a6",
+      "size": [
+        1062,
+        1500
+      ],
+      "visual_result": "PASS: no clipping, overlap, missing glyphs, broken tables, or misplaced header/footer",
+      "review_basis": "Reinspected at original rendered resolution after price-visibility guard revision."
+    },
+    {
+      "page": 11,
+      "path": "docs/home_ui/word_pages/page-11.png",
+      "sha256": "6b9405189519057dcf6ee481703d045b0a34958740c80d64332d7d50142628c6",
+      "size": [
+        1062,
+        1500
+      ],
+      "visual_result": "PASS: no clipping, overlap, missing glyphs, broken tables, or misplaced header/footer",
+      "review_basis": "Previous full-page inspection retained; newly rendered PNG SHA256 is identical."
+    },
+    {
+      "page": 12,
+      "path": "docs/home_ui/word_pages/page-12.png",
+      "sha256": "f666bde0f16b8ea045bc768f53deda2614fbda69ed9f96df0d5dab27b4368c60",
+      "size": [
+        1062,
+        1500
+      ],
+      "visual_result": "PASS: no clipping, overlap, missing glyphs, broken tables, or misplaced header/footer",
+      "review_basis": "Reinspected at original rendered resolution after price-visibility guard revision."
+    },
+    {
+      "page": 13,
+      "path": "docs/home_ui/word_pages/page-13.png",
+      "sha256": "5ef0b287406ebde0b80ddb14e9c1f03801fe9b9089599ed79ed013def47b6829",
+      "size": [
+        1062,
+        1500
+      ],
+      "visual_result": "PASS: no clipping, overlap, missing glyphs, broken tables, or misplaced header/footer",
+      "review_basis": "Previous full-page inspection retained; newly rendered PNG SHA256 is identical."
+    },
+    {
+      "page": 14,
+      "path": "docs/home_ui/word_pages/page-14.png",
+      "sha256": "c74dc2e3d496a6e3a580ca310cd53b1bb718e1eedf9a9c68870afde61152aae7",
+      "size": [
+        1062,
+        1500
+      ],
+      "visual_result": "PASS: no clipping, overlap, missing glyphs, broken tables, or misplaced header/footer",
+      "review_basis": "Previous full-page inspection retained; newly rendered PNG SHA256 is identical."
+    }
+  ],
+  "temporary_pdf_retained": true,
+  "temporary_pdf_path": "C:/Users/76398/AppData/Local/Temp/zc-home-v11-render-ce655fa85fa84d1ca29673820e20f977/render.pdf",
+  "temporary_pdf_cleanup": "Pending: exact task-owned temporary cleanup command rejected by automatic approval review with blocked by policy; no reason supplied. No cleanup bypass attempted.",
+  "temporary_pdf_is_deliverable": false,
+  "source_builder_sha256": "d37b0f45fa8ba212399e1b71152be25874a1a3cdedb290a1d8dad836627cb6e2",
+  "previous_full_review_document_sha256": "b9b82abc678ff3c8c245bccc36cdfdc112f61a417d7a5d7ef2aae0090214c265",
+  "latest_revision_affected_pages_reinspected": [
+    3,
+    4,
+    10,
+    12
+  ],
+  "latest_revision_unchanged_pages_hash_verified": [
+    1,
+    2,
+    5,
+    6,
+    7,
+    8,
+    9,
+    11,
+    13,
+    14
+  ],
+  "price_guard_frozen_probe": {
+    "before": {
+      "checks": 10,
+      "failures": 3
+    },
+    "after": {
+      "checks": 10,
+      "failures": 0
+    },
+    "evidence": [
+      "temp/qa/home-polish-20260925/price-safety-before.log",
+      "temp/qa/home-polish-20260925/price-safety-after.log"
+    ]
+  },
+  "aliyun_evidence": {
+    "version": "home-v1.0.0-staging",
+    "server_sha256": "c54b4c8f1bd395e55a91f2c7f25e35f515d5dc6238d39fc2c24e4d88800c5fd3",
+    "deployment_receipt": "temp/qa/home-polish-20260925/staging-deploy.log",
+    "linux_qa_receipt": "temp/qa/home-polish-20260925/linux-qa-final.log",
+    "economy_checks": 12382,
+    "compatibility_rollback_checks": 21,
+    "failures": 0,
+    "external_client_end_to_end": "Blocked by automatic approval review; not a passed test."
+  },
+  "latest_render_temporary_pdf_retained": false,
+  "latest_render_temporary_pdf_cleanup": "Deleted only this revision task-owned PDF after visual inspection; previous rejected cleanup target was not retried.",
+  "latest_render_temporary_pdf_path": "C:/Users/76398/AppData/Local/Temp/zc-home-priceguard-render-c982be4b14e64b5eaeb5de5281ae7bb1/render.pdf"
 }

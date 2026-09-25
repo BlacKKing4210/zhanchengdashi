@@ -2,6 +2,60 @@
   "version": 1,
   "id_pattern": "^[a-z][a-z0-9_]*$",
   "tables": {
+      "home_visuals": {
+        "file": "config/tables/home_visuals.csv",
+        "unique": "id",
+        "fields": {
+          "id": {
+            "type": "id",
+            "required": true
+          },
+          "building_type": {
+            "type": "enum",
+            "required": true,
+            "values": [
+              "castle",
+              "residence",
+              "dining",
+              "entertainment",
+              "sport"
+            ]
+          },
+          "ring": {
+            "type": "int",
+            "required": true
+          },
+          "art_path": {
+            "type": "string",
+            "required": true
+          },
+          "width": {
+            "type": "float",
+            "required": true
+          },
+          "height": {
+            "type": "float",
+            "required": true
+          },
+          "crop_left": {
+            "type": "float",
+            "required": true
+          },
+          "crop_top": {
+            "type": "float",
+            "required": true
+          },
+          "crop_width": {
+            "type": "float",
+            "required": true
+          },
+          "crop_height": {
+            "type": "float",
+            "required": true
+          }
+        }
+      },
+
     "home_economy": {
       "file": "config/tables/home_economy.csv",
       "unique": "id",

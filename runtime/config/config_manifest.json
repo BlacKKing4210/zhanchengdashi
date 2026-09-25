@@ -2,6 +2,7 @@
   "schema_version": 1,
   "generated_by": "tools/export_config.py",
   "tables": [
+    "runtime/config/home_visuals.json",
     "runtime/config/home_economy.json",
     "runtime/config/home_buildings.json",
     "runtime/config/global.json",

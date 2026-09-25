@@ -1,0 +1,909 @@
+{
+  "request": "REQ-20260925-HOME-GACHA-POLISH",
+  "owner": "art-a",
+  "method": "built-in image_gen",
+  "status": "asset_delivery_complete_runtime_review_pending",
+  "source": "docs/HOME_GACHA_POLISH_IMPLEMENTATION.md",
+  "scope": [
+    "residence_01..08",
+    "dining_01..08",
+    "castle"
+  ],
+  "policy": "Each sprite is independently generated. Ring is fixed appearance tier; no upgrade gameplay. Original RGBA preserved without programmatic repaint or background removal.",
+  "assets": [
+    {
+      "id": "residence_01",
+      "type": "residence",
+      "ring": 1,
+      "path": "assets/art/home/v2/residence_01.png",
+      "generator_source": "C:/Users/76398/.codex/generated_images/01a0d417-1bf7-7522-a3c6-43a0b9c8faa1/exec-0423a1f8-fbb8-409e-99c3-6f66457b078f.png",
+      "references": [
+        "assets/art/home/residence.png"
+      ],
+      "prompt": "Use case: style-transfer. Make a drastically SIMPLIFIED first-ring residence sprite for the same original animal-village game, using the supplied residence only as a style reference. ONE humble, compact, one-room cottage. Keep the game's bold near-black chunky outline and a narrow white sticker keyline, but simplify to flat 2D shapes with only one simple shadow tone per material, no glossy rendering. Plain bright blue gable roof in TWO broad uninterrupted blue planes, short plain wooden eaves, warm cream plaster walls, ONE simple rectangular wooden front door, ONE square window with a single cross bar, and a tiny plain brown chimney. Mostly front view with a very slight view from above, compact squat friendly proportions. NO gold trim, NO gold roof tips, NO stone arch, NO decorative pillars, NO separate roof tiles, NO ornaments, NO fence, NO plants, NO scene props. Roof and walls must look modest and basic, clearly the simplest building in a progression; the few large structural shapes carry the whole design. Isolated single building centered on a square canvas, fully visible with roughly 8% clear margin on all sides, ground baseline near 90% height. GENUINELY TRANSPARENT RGBA PNG: outside the sprite is alpha=0, not a black/white/checkerboard background. No ground slab, no hexagon, no floor shadow, no backdrop. No text, level numerals, labels, logos, watermarks or extra objects. Create only this ONE building, not a contact sheet.",
+      "generation_note": "First attempt connection failure; same built-in call retried successfully.",
+      "validation": {
+        "size_px": [
+          1254,
+          1254
+        ],
+        "mode": "RGBA",
+        "alpha_extrema": [
+          0,
+          255
+        ],
+        "alpha_bbox_raw": [
+          43,
+          16,
+          1234,
+          1176
+        ],
+        "alpha_bbox_16": [
+          145,
+          181,
+          1109,
+          1081
+        ],
+        "fit_rect_alpha_16_pad_2": [
+          143,
+          179,
+          968,
+          904
+        ],
+        "transparent_pixels": 902399,
+        "almost_opaque_pixels": 656211,
+        "sha256": "2ed85fd69fc2207ade441925bcbb0a233928e872bd5a15a1ad17ce9561dd3b69",
+        "bytes": 713231,
+        "matches_original": true
+      }
+    },
+    {
+      "id": "castle",
+      "type": "castle",
+      "ring": 0,
+      "path": "assets/art/home/v2/castle.png",
+      "generator_source": "C:/Users/76398/.codex/generated_images/01a0d417-1bf7-7522-a3c6-43a0b9c8faa1/exec-b98b64e4-72ad-4d7e-8b58-3b5bda8fbc77.png",
+      "references": [
+        "assets/art/home/v2/residence_01.png",
+        "assets/art/buildings/base.png"
+      ],
+      "prompt": "Use case: style-transfer. Create exactly ONE isolated original 2D animal-village game building sprite. Follow the supplied SIMPLE blue cottage reference's drawing style closely: very bold clean near-black outline, narrow white sticker keyline, broad flat colors, one restrained shadow tone per material, warm cream walls and plain honey-brown timber, almost frontal with a slight top view. Keep simple large structural shapes, no glossy 3D rendering, no texture noise, no tiny ornamental detail, no extra ground/trees/fences/props. Entire building centered with 8% transparent margin and flat ground baseline near 89% height. GENUINELY TRANSPARENT RGBA PNG, actual alpha=0 outside the silhouette, no baked background or checkerboard. No hex tile, floor slab or cast shadow. No text, numerals, lettering, labels, logos or watermark. One building, not a contact sheet. Subject: the village's single welcoming main castle. Preserve identity from the SECOND castle reference: one central broad blue gable above a large simple wooden arched entry, two short cream battlement side towers, and one small plain blue flag. Use the FIRST cottage reference for the simplified flat finish. Reduce the castle design to three big connected masses. Plain gray low foundation, blue roof in two uninterrupted planes, minimal wood trim. Remove gold ornaments, banners, layered roof tiles, stone arch blocks and shiny decorations. Distinct strong castle silhouette, friendly and sturdy, modest not luxurious. No level progression sign.",
+      "validation": {
+        "size_px": [
+          1254,
+          1254
+        ],
+        "mode": "RGBA",
+        "alpha_extrema": [
+          0,
+          255
+        ],
+        "alpha_bbox_raw": [
+          0,
+          111,
+          1194,
+          1254
+        ],
+        "alpha_bbox_16": [
+          94,
+          145,
+          1160,
+          1073
+        ],
+        "fit_rect_alpha_16_pad_2": [
+          92,
+          143,
+          1070,
+          932
+        ],
+        "transparent_pixels": 879968,
+        "almost_opaque_pixels": 673802,
+        "sha256": "3196b9ba534ba3e9f09ae7e6accbc2b7542aa51a436b7dfe5dea9ca244f4d0be",
+        "bytes": 734933,
+        "matches_original": true
+      }
+    },
+    {
+      "id": "dining_01",
+      "type": "dining",
+      "ring": 1,
+      "path": "assets/art/home/v2/dining_01.png",
+      "generator_source": "C:/Users/76398/.codex/generated_images/01a0d417-1bf7-7522-a3c6-43a0b9c8faa1/exec-bae1e30f-e086-4fe6-8bd2-619ee8b811bc.png",
+      "references": [
+        "assets/art/home/v2/residence_01.png"
+      ],
+      "prompt": "Use case: style-transfer. Create exactly ONE isolated original 2D animal-village game building sprite. Follow the supplied SIMPLE blue cottage reference's drawing style closely: very bold clean near-black outline, narrow white sticker keyline, broad flat colors, one restrained shadow tone per material, warm cream walls and plain honey-brown timber, almost frontal with a slight top view. Keep simple large structural shapes, no glossy 3D rendering, no texture noise, no tiny ornamental detail, no extra ground/trees/fences/props. Entire building centered with 8% transparent margin and flat ground baseline near 89% height. GENUINELY TRANSPARENT RGBA PNG, actual alpha=0 outside the silhouette, no baked background or checkerboard. No hex tile, floor slab or cast shadow. No text, numerals, lettering, labels, logos or watermark. One building, not a contact sheet. Subject: the humblest FIRST-RING food shop, one small single-storey simple cream-and-wood food hut. Very plain orange gable roof in two broad planes, one broad open serving hatch with a simple wooden counter, and a short plain orange fabric awning. A single large cream bowl-and-spoon silhouette relief above the hatch conveys dining. One short brown chimney. Compact squat silhouette with few shapes. No side wings, no gold trim, no stone arch, no roof tiles, no seating props, no flowers, no piles of food, no luxury decoration. Clearly a basic tiny dining hut.",
+      "validation": {
+        "size_px": [
+          1254,
+          1254
+        ],
+        "mode": "RGBA",
+        "alpha_extrema": [
+          0,
+          255
+        ],
+        "alpha_bbox_raw": [
+          97,
+          31,
+          1126,
+          1182
+        ],
+        "alpha_bbox_16": [
+          131,
+          167,
+          1120,
+          1087
+        ],
+        "fit_rect_alpha_16_pad_2": [
+          129,
+          165,
+          993,
+          924
+        ],
+        "transparent_pixels": 868222,
+        "almost_opaque_pixels": 685937,
+        "sha256": "9943d8e2fb1d4bb8e61008523fc7921f9fd9cb8f5a8b7b56ab3386f1f28477c4",
+        "bytes": 784560,
+        "matches_original": true
+      }
+    },
+    {
+      "id": "residence_02",
+      "type": "residence",
+      "ring": 2,
+      "path": "assets/art/home/v2/residence_02.png",
+      "generator_source": "C:/Users/76398/.codex/generated_images/01a0d417-1bf7-7522-a3c6-43a0b9c8faa1/exec-33583b3e-60ec-4a47-9ece-0f6c854482bf.png",
+      "references": [
+        "assets/art/home/v2/residence_01.png"
+      ],
+      "prompt": "Use case: style-transfer. Create exactly ONE isolated original 2D animal-village game building sprite. Follow the supplied SIMPLE blue cottage reference's drawing style closely: very bold clean near-black outline, narrow white sticker keyline, broad flat colors, one restrained shadow tone per material, warm cream walls and plain honey-brown timber, almost frontal with a slight top view. Keep simple large structural shapes, no glossy 3D rendering, no texture noise, no tiny ornamental detail, no extra ground/trees/fences/props. Entire building centered with 8% transparent margin and flat ground baseline near 89% height. GENUINELY TRANSPARENT RGBA PNG, actual alpha=0 outside the silhouette, no baked background or checkerboard. No hex tile, floor slab or cast shadow. No text, numerals, lettering, labels, logos or watermark. One building, not a contact sheet. Subject: SECOND-RING blue-roof home: a squat one-storey main cottage with a clearly attached LOW OPEN PORCH on the LEFT, its own simple sloping blue lean-to roof supported by two wooden posts. One plain front door in the main block, one square crossbar window, a low plain wooden porch platform integrated into the building. Main gable and side porch make an asymmetrical stepped silhouette. This is a modest expanded house, not a second detached hut. No gold or roof tiles. Keep all roof planes bright clear blue. Architectural expansion only, few large shapes; no decorative richness or upgrade symbols.",
+      "validation": {
+        "size_px": [
+          1254,
+          1254
+        ],
+        "mode": "RGBA",
+        "alpha_extrema": [
+          0,
+          255
+        ],
+        "alpha_bbox_raw": [
+          0,
+          132,
+          1192,
+          1214
+        ],
+        "alpha_bbox_16": [
+          70,
+          228,
+          1185,
+          1061
+        ],
+        "fit_rect_alpha_16_pad_2": [
+          68,
+          226,
+          1119,
+          837
+        ],
+        "transparent_pixels": 912077,
+        "almost_opaque_pixels": 643912,
+        "sha256": "0d9e92592726fdec7fd3c00b23e4daf7280e551407c9031ad3a9443c1b77b652",
+        "bytes": 718924,
+        "matches_original": true
+      }
+    },
+    {
+      "id": "residence_03",
+      "type": "residence",
+      "ring": 3,
+      "path": "assets/art/home/v2/residence_03.png",
+      "generator_source": "C:/Users/76398/.codex/generated_images/01a0d417-1bf7-7522-a3c6-43a0b9c8faa1/exec-280bda9f-6c55-4ca7-91f0-ac2421b4b3ed.png",
+      "references": [
+        "assets/art/home/v2/residence_01.png"
+      ],
+      "prompt": "Use case: style-transfer. Create exactly ONE isolated original 2D animal-village game building sprite. Follow the supplied SIMPLE blue cottage reference's drawing style closely: very bold clean near-black outline, narrow white sticker keyline, broad flat colors, one restrained shadow tone per material, warm cream walls and plain honey-brown timber, almost frontal with a slight top view. Keep simple large structural shapes, no glossy 3D rendering, no texture noise, no tiny ornamental detail, no extra ground/trees/fences/props. Entire building centered with 8% transparent margin and flat ground baseline near 89% height. GENUINELY TRANSPARENT RGBA PNG, actual alpha=0 outside the silhouette, no baked background or checkerboard. No hex tile, floor slab or cast shadow. No text, numerals, lettering, labels, logos or watermark. One building, not a contact sheet. Subject: THIRD-RING blue-roof home: a clearly TWO-STOREY narrow rectangular village townhouse. One tall simple cream front wall, a broad plain blue gable roof, two large square crossbar windows on the upper storey, one wooden front door and one small window below. One visible plain timber beam separates the two floors. No porch and no side wing. The tall compact two-floor silhouette must be unmistakably different from a single-storey cottage. No gold or roof tiles. Keep all roof planes bright clear blue. Architectural expansion only, few large shapes; no decorative richness or upgrade symbols.",
+      "validation": {
+        "size_px": [
+          1254,
+          1254
+        ],
+        "mode": "RGBA",
+        "alpha_extrema": [
+          0,
+          255
+        ],
+        "alpha_bbox_raw": [
+          81,
+          39,
+          1188,
+          1200
+        ],
+        "alpha_bbox_16": [
+          204,
+          79,
+          1049,
+          1172
+        ],
+        "fit_rect_alpha_16_pad_2": [
+          202,
+          77,
+          849,
+          1097
+        ],
+        "transparent_pixels": 827353,
+        "almost_opaque_pixels": 732071,
+        "sha256": "fa01ce5a0361bc40b97b0eeef2aa634cd6ef84bae41f15207b384ed99da4e897",
+        "bytes": 757154,
+        "matches_original": true
+      }
+    },
+    {
+      "id": "residence_04",
+      "type": "residence",
+      "ring": 4,
+      "path": "assets/art/home/v2/residence_04.png",
+      "generator_source": "C:/Users/76398/.codex/generated_images/01a0d417-1bf7-7522-a3c6-43a0b9c8faa1/exec-46fff7d3-d10b-4780-a3a7-16fc88f2ac9b.png",
+      "references": [
+        "assets/art/home/v2/residence_01.png"
+      ],
+      "prompt": "Use case: style-transfer. Create exactly ONE isolated original 2D animal-village game building sprite. Follow the supplied SIMPLE blue cottage reference's drawing style closely: very bold clean near-black outline, narrow white sticker keyline, broad flat colors, one restrained shadow tone per material, warm cream walls and plain honey-brown timber, almost frontal with a slight top view. Keep simple large structural shapes, no glossy 3D rendering, no texture noise, no tiny ornamental detail, no extra ground/trees/fences/props. Entire building centered with 8% transparent margin and flat ground baseline near 89% height. GENUINELY TRANSPARENT RGBA PNG, actual alpha=0 outside the silhouette, no baked background or checkerboard. No hex tile, floor slab or cast shadow. No text, numerals, lettering, labels, logos or watermark. One building, not a contact sheet. Subject: FOURTH-RING blue-roof home: an L-SHAPED connected family home with TWO perpendicular gabled masses: a medium two-storey main block on the RIGHT and a broad one-storey side wing projecting forward on the LEFT, with clear overlapping blue cross-gable roof planes. One shared entrance at the inner corner, only three or four simple square windows total. Strong asymmetric L-shaped structural silhouette, not merely a bigger copy of a cottage. No freestanding props, no gold or roof tile patterns. Keep all roof planes bright clear blue. Architectural expansion only, few large shapes; no decorative richness or upgrade symbols.",
+      "validation": {
+        "size_px": [
+          1254,
+          1254
+        ],
+        "mode": "RGBA",
+        "alpha_extrema": [
+          0,
+          255
+        ],
+        "alpha_bbox_raw": [
+          33,
+          134,
+          1224,
+          1198
+        ],
+        "alpha_bbox_16": [
+          69,
+          156,
+          1222,
+          1062
+        ],
+        "fit_rect_alpha_16_pad_2": [
+          67,
+          154,
+          1157,
+          910
+        ],
+        "transparent_pixels": 814357,
+        "almost_opaque_pixels": 741595,
+        "sha256": "400637b53d2f75109df3c68b72193cd50bacae565621b4f132f72f87efe4a6ec",
+        "bytes": 805326,
+        "matches_original": true
+      }
+    },
+    {
+      "id": "residence_05",
+      "type": "residence",
+      "ring": 5,
+      "path": "assets/art/home/v2/residence_05.png",
+      "generator_source": "C:/Users/76398/.codex/generated_images/01a0d417-1bf7-7522-a3c6-43a0b9c8faa1/exec-e8e79e97-e2ae-4315-954f-96a29a036765.png",
+      "references": [
+        "assets/art/home/v2/residence_01.png"
+      ],
+      "prompt": "Use case: style-transfer. Create exactly ONE isolated original 2D animal-village game building sprite. Follow the supplied SIMPLE blue cottage reference's drawing style closely: very bold clean near-black outline, narrow white sticker keyline, broad flat colors, one restrained shadow tone per material, warm cream walls and plain honey-brown timber, almost frontal with a slight top view. Keep simple large structural shapes, no glossy 3D rendering, no texture noise, no tiny ornamental detail, no extra ground/trees/fences/props. Entire building centered with 8% transparent margin and flat ground baseline near 89% height. GENUINELY TRANSPARENT RGBA PNG, actual alpha=0 outside the silhouette, no baked background or checkerboard. No hex tile, floor slab or cast shadow. No text, numerals, lettering, labels, logos or watermark. One building, not a contact sheet. Subject: FIFTH-RING blue-roof residence: a broad TWIN-GABLE family dwelling made of TWO equal two-storey cream-and-timber blocks, one left and one right, physically joined by a LOW CENTRAL BLUE-ROOFED ENTRY HALL with a single shared wooden front door. Paired gable silhouettes and the low center create a readable W-shaped roofline. Four simple square crossbar windows total. Clearly one connected residence, no detached houses and no courtyard props. Structural expansion, no gold, no tiles or luxury decorations. Keep roof color the same bright clear blue as the reference. Keep masses chunky and simple, with sparse details.",
+      "validation": {
+        "size_px": [
+          1254,
+          1254
+        ],
+        "mode": "RGBA",
+        "alpha_extrema": [
+          0,
+          255
+        ],
+        "alpha_bbox_raw": [
+          0,
+          182,
+          1226,
+          1198
+        ],
+        "alpha_bbox_16": [
+          30,
+          236,
+          1224,
+          1031
+        ],
+        "fit_rect_alpha_16_pad_2": [
+          28,
+          234,
+          1198,
+          799
+        ],
+        "transparent_pixels": 827788,
+        "almost_opaque_pixels": 731074,
+        "sha256": "4c92711297921a7e0c2ae08322d3ab5358c1017a88a3765d2d79a018b3ed7af8",
+        "bytes": 805283,
+        "matches_original": true
+      }
+    },
+    {
+      "id": "residence_06",
+      "type": "residence",
+      "ring": 6,
+      "path": "assets/art/home/v2/residence_06.png",
+      "generator_source": "C:/Users/76398/.codex/generated_images/01a0d417-1bf7-7522-a3c6-43a0b9c8faa1/exec-c448d880-fddc-47cf-9c90-306753d02368.png",
+      "references": [
+        "assets/art/home/v2/residence_01.png"
+      ],
+      "prompt": "Use case: style-transfer. Create exactly ONE isolated original 2D animal-village game building sprite. Follow the supplied SIMPLE blue cottage reference's drawing style closely: very bold clean near-black outline, narrow white sticker keyline, broad flat colors, one restrained shadow tone per material, warm cream walls and plain honey-brown timber, almost frontal with a slight top view. Keep simple large structural shapes, no glossy 3D rendering, no texture noise, no tiny ornamental detail, no extra ground/trees/fences/props. Entire building centered with 8% transparent margin and flat ground baseline near 89% height. GENUINELY TRANSPARENT RGBA PNG, actual alpha=0 outside the silhouette, no baked background or checkerboard. No hex tile, floor slab or cast shadow. No text, numerals, lettering, labels, logos or watermark. One building, not a contact sheet. Subject: SIXTH-RING blue-roof residence: a compact stepped lodge with ONE TALL THREE-STOREY CENTRAL BLOCK under a large blue hipped roof, and TWO LOWER ONE-STOREY ATTACHED WINGS, left and right, with simple blue lean-to roofs. Central front door, one broad second-floor wooden balcony integrated into the central wall, no external stairs, six plain windows at most. Strong tall central mass with low shoulders makes a distinctive stepped silhouette, not twin equal gables. No gold, no tiles or decorative ornaments. Keep roof color the same bright clear blue as the reference. Keep masses chunky and simple, with sparse details.",
+      "validation": {
+        "size_px": [
+          1254,
+          1254
+        ],
+        "mode": "RGBA",
+        "alpha_extrema": [
+          0,
+          255
+        ],
+        "alpha_bbox_raw": [
+          0,
+          130,
+          1174,
+          1254
+        ],
+        "alpha_bbox_16": [
+          85,
+          175,
+          1169,
+          1104
+        ],
+        "fit_rect_alpha_16_pad_2": [
+          83,
+          173,
+          1088,
+          933
+        ],
+        "transparent_pixels": 933607,
+        "almost_opaque_pixels": 623866,
+        "sha256": "03c27df6058eb5ea29859d987a7bf197ca001b77b5c8ea1a9cc02bbb4855321d",
+        "bytes": 674790,
+        "matches_original": true
+      }
+    },
+    {
+      "id": "residence_07",
+      "type": "residence",
+      "ring": 7,
+      "path": "assets/art/home/v2/residence_07.png",
+      "generator_source": "C:/Users/76398/.codex/generated_images/01a0d417-1bf7-7522-a3c6-43a0b9c8faa1/exec-9feca462-fcc5-42a9-9f70-94f3e5f57442.png",
+      "references": [
+        "assets/art/home/v2/residence_01.png"
+      ],
+      "prompt": "Use case: style-transfer. Create exactly ONE isolated original 2D animal-village game building sprite. Follow the supplied SIMPLE blue cottage reference's drawing style closely: very bold clean near-black outline, narrow white sticker keyline, broad flat colors, one restrained shadow tone per material, warm cream walls and plain honey-brown timber, almost frontal with a slight top view. Keep simple large structural shapes, no glossy 3D rendering, no texture noise, no tiny ornamental detail, no extra ground/trees/fences/props. Entire building centered with 8% transparent margin and flat ground baseline near 89% height. GENUINELY TRANSPARENT RGBA PNG, actual alpha=0 outside the silhouette, no baked background or checkerboard. No hex tile, floor slab or cast shadow. No text, numerals, lettering, labels, logos or watermark. One building, not a contact sheet. Subject: SEVENTH-RING blue-roof residence: one connected broad U-SHAPED COURTYARD HOME, a two-storey rear residential hall with a single long blue roof, joined to TWO stout one-storey wings projecting toward the viewer on both sides, creating a shallow open front recess. Show the connected structure from mostly frontal slight top view, with clearly visible simple blue roof planes on the side wings. A shared central wooden entry in the rear wall, only six broad square windows in total. Wide low integrated communal residence, no separate ground slab, no objects in the recess, no fences, no gold or fine ornament. Keep roof color the same bright clear blue as the reference. Keep masses chunky and simple, with sparse details.",
+      "validation": {
+        "size_px": [
+          1254,
+          1254
+        ],
+        "mode": "RGBA",
+        "alpha_extrema": [
+          0,
+          255
+        ],
+        "alpha_bbox_raw": [
+          37,
+          142,
+          1219,
+          1101
+        ],
+        "alpha_bbox_16": [
+          39,
+          250,
+          1215,
+          984
+        ],
+        "fit_rect_alpha_16_pad_2": [
+          37,
+          248,
+          1180,
+          738
+        ],
+        "transparent_pixels": 943471,
+        "almost_opaque_pixels": 616579,
+        "sha256": "01361a277bbcf1d06e237f31dc53db2ef6085b57c82d6457456a2a44b9f3ad4c",
+        "bytes": 721498,
+        "matches_original": true
+      }
+    },
+    {
+      "id": "dining_02",
+      "type": "dining",
+      "ring": 2,
+      "path": "assets/art/home/v2/dining_02.png",
+      "generator_source": "C:/Users/76398/.codex/generated_images/01a0d417-1bf7-7522-a3c6-43a0b9c8faa1/exec-2caadfc5-1be7-4bde-a88a-645ac86cebf0.png",
+      "references": [
+        "assets/art/home/v2/residence_01.png",
+        "assets/art/home/v2/dining_01.png"
+      ],
+      "prompt": "Use case: style-transfer. Create exactly ONE isolated original 2D animal-village game building sprite. Follow the supplied SIMPLE blue cottage reference's drawing style closely: very bold clean near-black outline, narrow white sticker keyline, broad flat colors, one restrained shadow tone per material, warm cream walls and plain honey-brown timber, almost frontal with a slight top view. Keep simple large structural shapes, no glossy 3D rendering, no texture noise, no tiny ornamental detail, no extra ground/trees/fences/props. Entire building centered with 8% transparent margin and flat ground baseline near 89% height. GENUINELY TRANSPARENT RGBA PNG, actual alpha=0 outside the silhouette, no baked background or checkerboard. No hex tile, floor slab or cast shadow. No text, numerals, lettering, labels, logos or watermark. One building, not a contact sheet. Subject: SECOND-RING orange-roof dining building, one modest connected food shop expanded with a LOW ENCLOSED SIDE KITCHEN on the RIGHT. Main cream block has one broad open serving hatch and short plain orange awning with a large simple cream bowl-and-spoon emblem above it. The lower side kitchen has a separate lean-to orange roof, one small square window and a SHORT STOUT CHIMNEY that creates a recognizable offset silhouette. Simple wood counter, no food props. Primary colors orange roof, cream walls and brown timber. No gold trim, no roof tiles, no stone decoration. Use the first reference for rendering and second only for food-shop identity.",
+      "validation": {
+        "size_px": [
+          1254,
+          1254
+        ],
+        "mode": "RGBA",
+        "alpha_extrema": [
+          0,
+          255
+        ],
+        "alpha_bbox_raw": [
+          49,
+          25,
+          1206,
+          1101
+        ],
+        "alpha_bbox_16": [
+          97,
+          221,
+          1172,
+          1036
+        ],
+        "fit_rect_alpha_16_pad_2": [
+          95,
+          219,
+          1079,
+          819
+        ],
+        "transparent_pixels": 940363,
+        "almost_opaque_pixels": 619762,
+        "sha256": "48f10d2c0675d184f77a59599f0c25e5e75f4d541b7b6af8c0109f2a5b24f2f9",
+        "bytes": 741062,
+        "matches_original": true
+      }
+    },
+    {
+      "id": "dining_03",
+      "type": "dining",
+      "ring": 3,
+      "path": "assets/art/home/v2/dining_03.png",
+      "generator_source": "C:/Users/76398/.codex/generated_images/01a0d417-1bf7-7522-a3c6-43a0b9c8faa1/exec-ebf8e5a6-b09a-4720-bb53-00dfbaeeb9a6.png",
+      "references": [
+        "assets/art/home/v2/residence_01.png",
+        "assets/art/home/v2/dining_01.png"
+      ],
+      "prompt": "Use case: style-transfer. Create exactly ONE isolated original 2D animal-village game building sprite. Follow the supplied SIMPLE blue cottage reference's drawing style closely: very bold clean near-black outline, narrow white sticker keyline, broad flat colors, one restrained shadow tone per material, warm cream walls and plain honey-brown timber, almost frontal with a slight top view. Keep simple large structural shapes, no glossy 3D rendering, no texture noise, no tiny ornamental detail, no extra ground/trees/fences/props. Entire building centered with 8% transparent margin and flat ground baseline near 89% height. GENUINELY TRANSPARENT RGBA PNG, actual alpha=0 outside the silhouette, no baked background or checkerboard. No hex tile, floor slab or cast shadow. No text, numerals, lettering, labels, logos or watermark. One building, not a contact sheet. Subject: THIRD-RING orange-roof dining building, one TWO-STOREY town dining house with a broad simple orange hipped roof. Lower level is a WIDE OPEN DINING AND SERVING FRONT under a plain long orange fabric awning, with a chunky wooden counter; upper level has TWO large plain square windows and one cream bowl-and-spoon badge centered between them. One side chimney. Tall rectangular two-floor silhouette, no side wing or porch. The wide serving front must make dining immediately legible. Orange, cream and brown only, no gold trim, no roof tile pattern, no food piles or extra scene props.",
+      "validation": {
+        "size_px": [
+          1254,
+          1254
+        ],
+        "mode": "RGBA",
+        "alpha_extrema": [
+          0,
+          255
+        ],
+        "alpha_bbox_raw": [
+          31,
+          17,
+          1223,
+          1228
+        ],
+        "alpha_bbox_16": [
+          153,
+          162,
+          1101,
+          1112
+        ],
+        "fit_rect_alpha_16_pad_2": [
+          151,
+          160,
+          952,
+          954
+        ],
+        "transparent_pixels": 852194,
+        "almost_opaque_pixels": 707795,
+        "sha256": "2dc2c6ab3b5c4cc2a41344ee3a0f04d5f7aa32aa49419bb47082d4e9629d245f",
+        "bytes": 758188,
+        "matches_original": true
+      }
+    },
+    {
+      "id": "residence_08",
+      "type": "residence",
+      "ring": 8,
+      "path": "assets/art/home/v2/residence_08.png",
+      "generator_source": "C:/Users/76398/.codex/generated_images/01a0d417-1bf7-7522-a3c6-43a0b9c8faa1/exec-146198e3-dc4e-4e4b-8f58-64953b52d6c2.png",
+      "references": [
+        "assets/art/home/v2/residence_01.png"
+      ],
+      "prompt": "Use case: style-transfer. Create exactly ONE isolated original 2D animal-village game building sprite. Follow the supplied SIMPLE blue cottage reference's drawing style closely: very bold clean near-black outline, narrow white sticker keyline, broad flat colors, one restrained shadow tone per material, warm cream walls and plain honey-brown timber, almost frontal with a slight top view. Keep simple large structural shapes, no glossy 3D rendering, no texture noise, no tiny ornamental detail, no extra ground/trees/fences/props. Entire building centered with 8% transparent margin and flat ground baseline near 89% height. GENUINELY TRANSPARENT RGBA PNG, actual alpha=0 outside the silhouette, no baked background or checkerboard. No hex tile, floor slab or cast shadow. No text, numerals, lettering, labels, logos or watermark. One building, not a contact sheet. Subject: EIGHTH-RING blue-roof residence, a grand-sized but PLAIN COMMUNITY LODGE built from FIVE joined chunky masses: a broad THREE-STOREY CENTRAL MAIN HALL, two medium TWO-STOREY side wings, and two low ONE-STOREY outer end bays. Five simple bright-blue roof masses descend in steps from the center toward both ends. One shared central wooden doorway and only eight large square crossbar windows total. Compact integrated broad silhouette, clearly more structurally expanded than a three-mass house. Warm cream and plain timber exactly like the reference. No courtyard, no external staircase, no flags, no gold trim, no roof tiles, no tiny repeated windows or ornaments. Largest fixed ring appearance through architecture alone, not a palace.",
+      "generation_note": "Connection failure on first attempt; retried same independent native request successfully.",
+      "validation": {
+        "size_px": [
+          1536,
+          1024
+        ],
+        "mode": "RGBA",
+        "alpha_extrema": [
+          0,
+          254
+        ],
+        "alpha_bbox_raw": [
+          0,
+          35,
+          1456,
+          1006
+        ],
+        "alpha_bbox_16": [
+          85,
+          107,
+          1451,
+          926
+        ],
+        "fit_rect_alpha_16_pad_2": [
+          83,
+          105,
+          1370,
+          823
+        ],
+        "transparent_pixels": 840692,
+        "almost_opaque_pixels": 718137,
+        "sha256": "0995b1f15aca3b3af28f6b63feb73ad266a15400da35aae5d37ae21f476b8f98",
+        "bytes": 1321747,
+        "matches_original": true
+      }
+    },
+    {
+      "id": "dining_04",
+      "type": "dining",
+      "ring": 4,
+      "path": "assets/art/home/v2/dining_04.png",
+      "generator_source": "C:/Users/76398/.codex/generated_images/01a0d417-1bf7-7522-a3c6-43a0b9c8faa1/exec-2ec9e253-f780-4065-9310-b3bc59044845.png",
+      "references": [
+        "assets/art/home/v2/residence_01.png",
+        "assets/art/home/v2/dining_01.png"
+      ],
+      "prompt": "Use case: style-transfer. Create exactly ONE isolated original 2D animal-village game building sprite. Follow the supplied SIMPLE blue cottage reference's drawing style closely: very bold clean near-black outline, narrow white sticker keyline, broad flat colors, one restrained shadow tone per material, warm cream walls and plain honey-brown timber, almost frontal with a slight top view. Keep simple large structural shapes, no glossy 3D rendering, no texture noise, no tiny ornamental detail, no extra ground/trees/fences/props. Entire building centered with 8% transparent margin and flat ground baseline near 89% height. GENUINELY TRANSPARENT RGBA PNG, actual alpha=0 outside the silhouette, no baked background or checkerboard. No hex tile, floor slab or cast shadow. No text, numerals, lettering, labels, logos or watermark. One building, not a contact sheet. Subject: FOURTH-RING orange-roof village canteen: one integrated L-SHAPED building formed by a taller single-gable enclosed KITCHEN ON THE RIGHT and a LOWER LONG COVERED DINING TERRACE attached on the LEFT. Right front has a large open serving hatch below a plain orange awning and a clear cream bowl-and-spoon emblem above it. Left terrace has two thick wood posts and one broad simple dining counter, no chairs, no small food props. Two chunky ORANGE roof masses intersect at right angles, different heights, asymmetrical silhouette. Warm cream walls, plain honey-brown timber. A single stout brown kitchen chimney. Larger than a single shop through structure; no gold, no roof tiles, no clutter. Orange roofs and serving counter communicate food.",
+      "validation": {
+        "size_px": [
+          1536,
+          1024
+        ],
+        "mode": "RGBA",
+        "alpha_extrema": [
+          0,
+          254
+        ],
+        "alpha_bbox_raw": [
+          112,
+          100,
+          1520,
+          1006
+        ],
+        "alpha_bbox_16": [
+          114,
+          103,
+          1437,
+          897
+        ],
+        "fit_rect_alpha_16_pad_2": [
+          112,
+          101,
+          1327,
+          798
+        ],
+        "transparent_pixels": 799309,
+        "almost_opaque_pixels": 760145,
+        "sha256": "0620f97f99e0504fff083d0cd52b6c149e3d3b404e91fdafbea7447ba26b12a1",
+        "bytes": 1256939,
+        "matches_original": true
+      }
+    },
+    {
+      "id": "dining_05",
+      "type": "dining",
+      "ring": 5,
+      "path": "assets/art/home/v2/dining_05.png",
+      "generator_source": "C:/Users/76398/.codex/generated_images/01a0d417-1bf7-7522-a3c6-43a0b9c8faa1/exec-6a3f04ee-8575-4bb3-b582-376035652b0e.png",
+      "references": [
+        "assets/art/home/v2/residence_01.png",
+        "assets/art/home/v2/dining_01.png"
+      ],
+      "prompt": "Use case: style-transfer. Create exactly ONE isolated original 2D animal-village game building sprite. Follow the supplied SIMPLE blue cottage reference's drawing style closely: very bold clean near-black outline, narrow white sticker keyline, broad flat colors, one restrained shadow tone per material, warm cream walls and plain honey-brown timber, almost frontal with a slight top view. Keep simple large structural shapes, no glossy 3D rendering, no texture noise, no tiny ornamental detail, no extra ground/trees/fences/props. Entire building centered with 8% transparent margin and flat ground baseline near 89% height. GENUINELY TRANSPARENT RGBA PNG, actual alpha=0 outside the silhouette, no baked background or checkerboard. No hex tile, floor slab or cast shadow. No text, numerals, lettering, labels, logos or watermark. One building, not a contact sheet. Subject: FIFTH-RING orange-roof dining building: a broad OCTAGONAL FOOD PAVILION with one large low ORANGE EIGHT-SIDED HIPPED ROOF, broad central front serving opening under an orange awning, and TWO SHORT ATTACHED SERVING ALCOVES emerging left and right under smaller orange lean-to roofs. One integrated rounded polygonal silhouette, central mass wider than both alcoves. Large cream bowl-and-spoon emblem centered above front counter. Cream wall panels separated by a few thick brown wood posts, dark serving windows, chunky wooden counter ledges, no tiny food props. One short brown chimney toward rear. Large simple shapes, no roof tiles, no gold and no ornamental details. Distinct round pavilion architecture, not another peaked rectangular cottage.",
+      "validation": {
+        "size_px": [
+          1254,
+          1254
+        ],
+        "mode": "RGBA",
+        "alpha_extrema": [
+          0,
+          255
+        ],
+        "alpha_bbox_raw": [
+          31,
+          27,
+          1209,
+          1184
+        ],
+        "alpha_bbox_16": [
+          47,
+          175,
+          1207,
+          1055
+        ],
+        "fit_rect_alpha_16_pad_2": [
+          45,
+          173,
+          1164,
+          884
+        ],
+        "transparent_pixels": 830288,
+        "almost_opaque_pixels": 730063,
+        "sha256": "e2044185b31b96bc68b06ea4a1ed24e1b38ed219c9b1e7745ba85ac9dde8d2f4",
+        "bytes": 871817,
+        "matches_original": true
+      }
+    },
+    {
+      "id": "dining_06",
+      "type": "dining",
+      "ring": 6,
+      "path": "assets/art/home/v2/dining_06.png",
+      "generator_source": "C:/Users/76398/.codex/generated_images/01a0d417-1bf7-7522-a3c6-43a0b9c8faa1/exec-d7ad9ed4-75df-4845-a27e-413869dc0ea8.png",
+      "references": [
+        "assets/art/home/v2/residence_01.png",
+        "assets/art/home/v2/dining_01.png"
+      ],
+      "prompt": "Use case: style-transfer. Create exactly ONE isolated original 2D animal-village game building sprite. Follow the supplied SIMPLE blue cottage reference's drawing style closely: very bold clean near-black outline, narrow white sticker keyline, broad flat colors, one restrained shadow tone per material, warm cream walls and plain honey-brown timber, almost frontal with a slight top view. Keep simple large structural shapes, no glossy 3D rendering, no texture noise, no tiny ornamental detail, no extra ground/trees/fences/props. Entire building centered with 8% transparent margin and flat ground baseline near 89% height. GENUINELY TRANSPARENT RGBA PNG, actual alpha=0 outside the silhouette, no baked background or checkerboard. No hex tile, floor slab or cast shadow. No text, numerals, lettering, labels, logos or watermark. One building, not a contact sheet. Subject: a COMPACT TWO-STOREY village CANTEEN, sixth-ring fixed appearance. IMPORTANT proportion requirement: the ENTIRE VISIBLE BUILDING silhouette has a WIDTH TO HEIGHT RATIO of approximately 1.10, almost SQUARE. A single substantial rectangular two-storey block, NO lateral wings or extra side buildings. Low ORANGE HIPPED ROOF. Upper storey is a broad cream clerestory front with TWO large square blue windows separated by a large cream bowl-and-spoon badge. Ground floor has TWO large dark serving windows beneath ONE shared orange awning, with chunky wood counters. A stout central wood pillar between serving windows. Tall wall proportions ensure building height roughly equals width. Broad simple roof planes, warm cream walls and honey brown beams. Do not make a shallow long hall: both floors have substantial height, and the roof width is barely wider than the block. Cute flat 2D sticker, simple sturdy silhouette. True transparent RGBA background with no glow.",
+      "superseded": [
+        {
+          "id": "dining_06",
+          "type": "dining",
+          "ring": 6,
+          "path": "assets/art/home/v2/dining_06.png",
+          "generator_source": "C:/Users/76398/.codex/generated_images/01a0d417-1bf7-7522-a3c6-43a0b9c8faa1/exec-04630f5b-2982-4a5d-9b0d-4e2d35217c63.png",
+          "references": [
+            "assets/art/home/v2/residence_01.png",
+            "assets/art/home/v2/dining_01.png"
+          ],
+          "prompt": "Use case: style-transfer. Create exactly ONE isolated original 2D animal-village game building sprite. Follow the supplied SIMPLE blue cottage reference's drawing style closely: very bold clean near-black outline, narrow white sticker keyline, broad flat colors, one restrained shadow tone per material, warm cream walls and plain honey-brown timber, almost frontal with a slight top view. Keep simple large structural shapes, no glossy 3D rendering, no texture noise, no tiny ornamental detail, no extra ground/trees/fences/props. Entire building centered with 8% transparent margin and flat ground baseline near 89% height. GENUINELY TRANSPARENT RGBA PNG, actual alpha=0 outside the silhouette, no baked background or checkerboard. No hex tile, floor slab or cast shadow. No text, numerals, lettering, labels, logos or watermark. One building, not a contact sheet. Subject: SIXTH-RING orange-roof communal canteen: a LONG RECTANGULAR DINING HALL with an elevated narrow CENTRAL CLERESTORY ROOF above a wider LOW ROOF spanning the whole building. Add TWO LOWER ENCLOSED KITCHEN WINGS attached at both short ends, making one solid broad structure. Three broad serving openings across the front, separated by thick wood posts; one shared horizontal orange awning across them. Large cream bowl-and-spoon emblem centered on the raised clerestory front. Only two simple square upper ventilation windows. Roofs bright orange, wall panels cream, plain timber warm brown. Readable long-hall silhouette with layered clerestory ridge, not peaked twin cottages. No gold, no tiny ornament, no food props. True transparent background, no glow.",
+          "validation": {
+            "size_px": [
+              1536,
+              1024
+            ],
+            "mode": "RGBA",
+            "alpha_extrema": [
+              0,
+              254
+            ],
+            "alpha_bbox_raw": [
+              24,
+              47,
+              1508,
+              998
+            ],
+            "alpha_bbox_16": [
+              30,
+              213,
+              1506,
+              801
+            ],
+            "fit_rect_alpha_16_pad_2": [
+              28,
+              211,
+              1480,
+              592
+            ],
+            "transparent_pixels": 883577,
+            "almost_opaque_pixels": 674935,
+            "sha256": "343fa07065b792b5ca83655aa66705ca08af8f00dcb9cf6c5b522b2b37328626",
+            "bytes": 1131111,
+            "matches_original": true
+          },
+          "superseded_reason": "Overwide silhouette shrank visible map occupancy; replaced with compact two-storey canteen."
+        }
+      ],
+      "revision_note": "Compact visible silhouette, target width/height 1.0 to 1.3.",
+      "validation": {
+        "size_px": [
+          1254,
+          1254
+        ],
+        "mode": "RGBA",
+        "alpha_extrema": [
+          0,
+          255
+        ],
+        "alpha_bbox_raw": [
+          91,
+          9,
+          1206,
+          1198
+        ],
+        "alpha_bbox_16": [
+          150,
+          152,
+          1104,
+          1094
+        ],
+        "fit_rect_alpha_16_pad_2": [
+          148,
+          150,
+          958,
+          946
+        ],
+        "transparent_pixels": 844123,
+        "almost_opaque_pixels": 717163,
+        "sha256": "21c06b0d6e97f2425c10f648c1e33d57e4bdf127cc8e2e5a7a5bffceab1dd784",
+        "bytes": 725120,
+        "matches_original": true
+      }
+    },
+    {
+      "id": "dining_07",
+      "type": "dining",
+      "ring": 7,
+      "path": "assets/art/home/v2/dining_07.png",
+      "generator_source": "C:/Users/76398/.codex/generated_images/01a0d417-1bf7-7522-a3c6-43a0b9c8faa1/exec-5b02a221-8c82-4c9d-b0c7-25ebbc68f735.png",
+      "references": [
+        "assets/art/home/v2/residence_01.png",
+        "assets/art/home/v2/dining_01.png"
+      ],
+      "prompt": "Use case: style-transfer. Create exactly ONE isolated original 2D animal-village game building sprite. Follow the supplied SIMPLE blue cottage reference's drawing style closely: very bold clean near-black outline, narrow white sticker keyline, broad flat colors, one restrained shadow tone per material, warm cream walls and plain honey-brown timber, almost frontal with a slight top view. Keep simple large structural shapes, no glossy 3D rendering, no texture noise, no tiny ornamental detail, no extra ground/trees/fences/props. Entire building centered with 8% transparent margin and flat ground baseline near 89% height. GENUINELY TRANSPARENT RGBA PNG, actual alpha=0 outside the silhouette, no baked background or checkerboard. No hex tile, floor slab or cast shadow. No text, numerals, lettering, labels, logos or watermark. One building, not a contact sheet. Subject: SEVENTH-RING orange-roof dining complex, ONE CONNECTED U-SHAPED CANTEEN. A tall broad two-storey REAR HALL with a simple ORANGE GABLE ROOF, joined to two lower projecting SIDE WINGS at left and right, leaving a shallow open front recess. Each low side wing has one LARGE OPEN SERVING HATCH and orange canopy facing the viewer; central hall has a wide double wooden entrance plus a very clear cream bowl-and-spoon emblem on its upper front. Four thick timber posts, just two broad upper windows. Chunky three-mass U-shaped architecture readable at icon size, connected throughout. Recess has no ground slab or props. Plain cream walls, honey brown wood, orange roof. No gold, no tiles, no greenery, no ornamental clutter. Actual transparency outside the building; no glow.",
+      "generation_note": "Connection failure on first attempt; retried same independent native request successfully.",
+      "validation": {
+        "size_px": [
+          1385,
+          1136
+        ],
+        "mode": "RGBA",
+        "alpha_extrema": [
+          0,
+          255
+        ],
+        "alpha_bbox_raw": [
+          84,
+          53,
+          1300,
+          996
+        ],
+        "alpha_bbox_16": [
+          86,
+          117,
+          1295,
+          988
+        ],
+        "fit_rect_alpha_16_pad_2": [
+          84,
+          115,
+          1213,
+          875
+        ],
+        "transparent_pixels": 874809,
+        "almost_opaque_pixels": 686529,
+        "sha256": "9857b2b1056563f40cc500a764ef52b4922351e665a0b537af49302053c4492b",
+        "bytes": 844798,
+        "matches_original": true
+      }
+    },
+    {
+      "id": "dining_08",
+      "type": "dining",
+      "ring": 8,
+      "path": "assets/art/home/v2/dining_08.png",
+      "generator_source": "C:/Users/76398/.codex/generated_images/01a0d417-1bf7-7522-a3c6-43a0b9c8faa1/exec-d8ac1564-ba9c-487e-82cd-3a3fc2c5fa6c.png",
+      "references": [
+        "C:/Users/76398/.codex/generated_images/01a0d417-1bf7-7522-a3c6-43a0b9c8faa1/exec-2f5b6680-d678-4b6d-9958-05269c34b44a.png"
+      ],
+      "prompt": "Use case: image editing, preserve identity. Edit ONLY the supplied 3-storey orange-roof canteen illustration into a wider, squat near-SQUARE silhouette. Keep the exact three stacked architectural levels, cream walls, honey-brown timber, orange roofs, upper 2-window pavilion, middle bowl emblem and balcony, ground central entry plus two serving windows, bold black outline and narrow white sticker keyline. The current supplied silhouette is too tall/narrow (width/height 0.83). The FINISHED VISIBLE SILHOUETTE MUST have width/height between 1.05 and 1.20: roughly 1100 pixels WIDE by 960 pixels TALL in a square 1254 canvas. Widen the entire central building body about 25 percent; reduce the height of each storey and roof slightly, using intentional broad chunky 2D drawing proportions. Do not stretch a raster; redraw cleanly with same line thickness. Keep every floor as one integrated broad main block, absolutely no extra side wings or separate buildings. Strong flat simple colors and tidy large architectural shapes, no additional decoration. Centered isolated single building with at least 5 percent empty margin on every side. TRUE TRANSPARENT RGBA PNG: all space outside the white sticker border must have alpha=0, no background, no glow, no shadow, no ground, no labels, no numbers, no lettering, no watermark. Maintain all three storeys clearly while the whole icon looks slightly wider than tall.",
+      "revision_note": "Compact three-storey canteen redrawn by native imagegen; visible width/height required 1.0 to 1.3.",
+      "generation_note": "Native edit first request connection-failed; identical retry succeeded.",
+      "intermediate_rejected": [
+        {
+          "id": "dining_08",
+          "type": "dining",
+          "ring": 8,
+          "path": "assets/art/home/v2/dining_08.png",
+          "generator_source": "C:/Users/76398/.codex/generated_images/01a0d417-1bf7-7522-a3c6-43a0b9c8faa1/exec-2f5b6680-d678-4b6d-9958-05269c34b44a.png",
+          "references": [
+            "assets/art/home/v2/residence_01.png",
+            "assets/art/home/v2/dining_01.png"
+          ],
+          "prompt": "Use case: style-transfer. Create exactly ONE isolated original 2D animal-village game building sprite. Follow the supplied SIMPLE blue cottage reference's drawing style closely: very bold clean near-black outline, narrow white sticker keyline, broad flat colors, one restrained shadow tone per material, warm cream walls and plain honey-brown timber, almost frontal with a slight top view. Keep simple large structural shapes, no glossy 3D rendering, no texture noise, no tiny ornamental detail, no extra ground/trees/fences/props. Entire building centered with 8% transparent margin and flat ground baseline near 89% height. GENUINELY TRANSPARENT RGBA PNG, actual alpha=0 outside the silhouette, no baked background or checkerboard. No hex tile, floor slab or cast shadow. No text, numerals, lettering, labels, logos or watermark. One building, not a contact sheet. Subject: a COMPACT THREE-STOREY community FOOD HALL, eighth-ring fixed appearance. IMPORTANT proportion requirement: the ENTIRE VISIBLE BUILDING silhouette has a WIDTH TO HEIGHT RATIO of approximately 1.08, nearly SQUARE. Make one chunky stepped vertical structure: a TWO-STOREY nearly square main block and a narrower THIRD-STOREY upper pavilion centered on its roof. Orange HIPPED ROOF on the upper pavilion; simple ORANGE stepped roof ledges over the broader two-storey main body. NO external side wings, NO detached bays, NO horizontal extension. Third-storey pavilion has TWO large square blue windows. Middle floor features a large cream BOWL-AND-SPOON emblem above a short central wood balcony. Ground floor has a broad center wooden entrance with ONE serving window on each side, all tightly integrated into the same compact main facade, beneath a shared orange awning. Thick simple honey-brown timber supports, warm cream wall panels. Distinct stacked architecture, not a taller copy of the two-storey canteen; upper pavilion and central balcony clearly define this tier. No gold, no tiny ornaments, no roof tiles, no extra props. True transparent RGBA background with no glow.",
+          "reason": "Visible width/height 0.8318 below required 1.0; never copied to runtime."
+        }
+      ],
+      "superseded": [
+        {
+          "id": "dining_08",
+          "type": "dining",
+          "ring": 8,
+          "path": "assets/art/home/v2/dining_08.png",
+          "generator_source": "C:/Users/76398/.codex/generated_images/01a0d417-1bf7-7522-a3c6-43a0b9c8faa1/exec-43914df3-9fad-4322-b8dd-4d28bc71a865.png",
+          "references": [
+            "assets/art/home/v2/residence_01.png",
+            "assets/art/home/v2/dining_01.png"
+          ],
+          "prompt": "Use case: style-transfer. Create exactly ONE isolated original 2D animal-village game building sprite. Follow the supplied SIMPLE blue cottage reference's drawing style closely: very bold clean near-black outline, narrow white sticker keyline, broad flat colors, one restrained shadow tone per material, warm cream walls and plain honey-brown timber, almost frontal with a slight top view. Keep simple large structural shapes, no glossy 3D rendering, no texture noise, no tiny ornamental detail, no extra ground/trees/fences/props. Entire building centered with 8% transparent margin and flat ground baseline near 89% height. GENUINELY TRANSPARENT RGBA PNG, actual alpha=0 outside the silhouette, no baked background or checkerboard. No hex tile, floor slab or cast shadow. No text, numerals, lettering, labels, logos or watermark. One building, not a contact sheet. Subject: EIGHTH-RING orange-roof community food hall, the largest fixed appearance tier but PLAIN and functional. A broad THREE-STOREY CENTRAL HALL, TWO MEDIUM TWO-STOREY KITCHEN BLOCKS attached beside it, and TWO LOW OUTER SERVING BAYS attached at the far ends. FIVE joined structural masses form a stepped skyline. Five simple ORANGE hipped roof masses descend from center toward ends, no spires. Central facade has one LARGE cream bowl-and-spoon emblem, only two big square windows above, and a wide communal entrance beneath an orange awning. Each of the four side masses has one broad dark serving window with chunky timber counter and small orange canopy. Clearly one integrated building, five masses, largest by physical architecture. Plain cream plaster and honey-brown timber, no gold, no little ornaments, no roof tiles, no tiny repetitive windows, no props. No glow; all empty space transparent.",
+          "generation_note": "Connection failure on first attempt; retried same independent native request successfully.",
+          "validation": {
+            "size_px": [
+              1536,
+              1024
+            ],
+            "mode": "RGBA",
+            "alpha_extrema": [
+              0,
+              254
+            ],
+            "alpha_bbox_raw": [
+              28,
+              126,
+              1507,
+              1000
+            ],
+            "alpha_bbox_16": [
+              32,
+              131,
+              1504,
+              856
+            ],
+            "fit_rect_alpha_16_pad_2": [
+              30,
+              129,
+              1476,
+              729
+            ],
+            "transparent_pixels": 861074,
+            "almost_opaque_pixels": 681362,
+            "sha256": "6b6957609c56c7701b24ed91abc80aaf84f37a2aad6d31be62a6a65b2478b6ce",
+            "bytes": 1212980,
+            "matches_original": true
+          },
+          "superseded_reason": "Overwide five-block silhouette reduced map occupancy; replaced by compact stacked three-storey canteen."
+        }
+      ],
+      "validation": {
+        "size_px": [
+          1342,
+          1172
+        ],
+        "mode": "RGBA",
+        "alpha_extrema": [
+          0,
+          255
+        ],
+        "alpha_bbox_raw": [
+          69,
+          53,
+          1273,
+          1133
+        ],
+        "alpha_bbox_16": [
+          71,
+          80,
+          1270,
+          1064
+        ],
+        "fit_rect_alpha_16_pad_2": [
+          69,
+          78,
+          1203,
+          988
+        ],
+        "transparent_pixels": 700829,
+        "almost_opaque_pixels": 857521,
+        "sha256": "be7e321bb01c3eff1cafa84e1c0c6c59360534e614bf795fa8529ffd476cd656",
+        "bytes": 907731,
+        "matches_original": true
+      }
+    }
+  ],
+  "representative_review": "residence_01 approved by root after 720/360 Godot GPU slice 6/0; alpha>=16 bbox +2px padding fitted to 138x136.",
+  "delivery_note": "All 17 individually generated original sprites copied unchanged; source alpha, visible bounds and SHA256 validated. Root owns final engine review."
+}

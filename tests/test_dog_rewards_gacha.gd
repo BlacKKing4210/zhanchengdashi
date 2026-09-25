@@ -17,6 +17,7 @@ func tap(point: Vector2) -> void:
 	app._handle_tap(app.canvas_offset + point * app.canvas_scale)
 
 func _ready() -> void:
+	GameAudio.set_music_enabled(false)
 	GameAudio.sfx_enabled = false
 	viewport = SubViewport.new()
 	viewport.size = Vector2i(720, 1280)
@@ -96,20 +97,20 @@ func test_gacha() -> void:
 	tap(app._nav_rect(3).get_center())
 	check(app.screen == app.SCREEN_GACHA and app.gacha_detail_card_id.is_empty(), "entry hides detail even after prior selection")
 	tap(app._gacha_reward_card_rect(0, 10).get_center())
-	check(app.gacha_detail_card_id == "dog", "real tap selects recent dog")
-	check(app._gacha_detail_rect().end.y < app._nav_rect(3).position.y, "detail clears bottom navigation")
-	check(app._gacha_detail_rect().encloses(app._upgrade_button_rect()), "upgrade click target belongs to detail")
+	check(app.gacha_detail_card_id.is_empty(), "result tap keeps the reward-only showcase")
 	var level = app._card_level("dog")
 	tap(app._upgrade_button_rect().get_center())
-	check(app._card_level("dog") == level + 1, "detail upgrades selected card through existing action")
+	check(app._card_level("dog") == level, "retired upgrade hit target cannot change a card")
 	tap(app._gacha_reward_card_rect(1, 10).get_center())
-	check(app.gacha_detail_card_id == "rabbit", "another card replaces detail")
+	check(app.gacha_detail_card_id.is_empty(), "another reward does not open collection detail")
 	tap(app._gacha_reward_card_rect(1, 10).get_center())
 	check(app.gacha_detail_card_id.is_empty(), "same card closes detail")
 	tap(app._gacha_reward_card_rect(0, 10).get_center())
 	tap(Vector2(360, 750))
 	check(app.gacha_detail_card_id.is_empty(), "empty background closes detail")
 	app.gacha_tickets = 20
+	for card in app.cards:
+		app.card_counts[card.id] = maxi(1, app._card_total_count(card.id))
 	tap(app._gacha_reward_card_rect(0, 10).get_center())
 	tap(app._gacha_draw_rect().get_center())
 	check(app.gacha_detail_card_id.is_empty() and app._is_gacha_animating(), "starting a draw clears old detail")
@@ -120,4 +121,9 @@ func test_gacha() -> void:
 	app.deck = ["gold_mine", "defense_watch_tower", "cat", "dog", "rabbit", "mouse", "hamster", "sheep"]
 	tap(app._gacha_reward_card_rect(0, 1).get_center())
 	tap(app._equip_button_rect().get_center())
-	check(app.screen == app.SCREEN_DECK and app.pending_equip_card_id == "fox", "equip opens existing deck-slot selection")
+	check(app.screen == app.SCREEN_GACHA and app.pending_equip_card_id.is_empty(), "retired equip hit target cannot leave reward page")
+	tap(app._nav_rect(1).get_center())
+	app.selected_card_id = "dog"
+	level = app._card_level("dog")
+	tap(app._upgrade_button_rect().get_center())
+	check(app._card_level("dog") == level + 1, "deck keeps its original upgrade action")

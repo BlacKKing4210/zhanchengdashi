@@ -1,0 +1,767 @@
+{
+  "request": "REQ-20260925-HOME-GACHA-POLISH",
+  "status": "IMPLEMENTED_LOCAL_AND_DEPLOYED_STAGING",
+  "engine": "Godot4.6.2.stable.official.71f334935",
+  "engine_sha256": "2a12df24d1545ff3924a1f40e8ed9f4ec7ce9b140814c1b566dcd2bdf7b79492",
+  "home_runtime_gpu": {
+    "checks": 4627,
+    "failures": 0
+  },
+  "home_polish_gpu": {
+    "checks": 10,
+    "failures": 0
+  },
+  "home_sync": {
+    "checks": 12,
+    "failures": 0
+  },
+  "linux_economy": {
+    "checks": 12382,
+    "failures": 0
+  },
+  "linux_compatible_rollback": {
+    "checks": 21,
+    "failures": 0
+  },
+  "external_enet": "REMOTE_ENET_CONNECTED host=106.15.61.103 port=24567",
+  "gacha": {
+    "task": "REQ-20260925-HOME-GACHA-POLISH/gacha",
+    "baseline": "ed887b86ccee0a663810d5169a397d8de6978b70",
+    "status": "LOCAL_GACHA_IMPLEMENTED_AND_VERIFIED",
+    "engine": {
+      "path": "D:\\Work\\godot\\Godot_v4.6.2-stable_win64.exe\\Godot_v4.6.2-stable_win64_console.exe",
+      "bytes": 198152,
+      "sha256": "2a12df24d1545ff3924a1f40e8ed9f4ec7ce9b140814c1b566dcd2bdf7b79492"
+    },
+    "source_hashes": [
+      {
+        "path": "D:\\AI\\zhanchengdashi\\scripts\\app\\main.gd",
+        "bytes": 406641,
+        "sha256": "f4f4aa4421d0587a290815a3fe8d0c8ab65287698dac21d437d1e83026cd51d4"
+      },
+      {
+        "path": "D:\\AI\\zhanchengdashi\\scripts\\app\\ui\\gacha_new_hero_reveal.gd",
+        "bytes": 8180,
+        "sha256": "4d0507dcb01b8c77bd901c29e55ade7126169161589870cad1cb8741f0ce1ebb"
+      },
+      {
+        "path": "D:\\AI\\zhanchengdashi\\scripts\\app\\systems\\game_audio.gd",
+        "bytes": 16889,
+        "sha256": "d3db0f097fec2dac118cc125376e495b06eb9a7a2fdaf8d024eb89fe1f294ecf"
+      },
+      {
+        "path": "D:\\AI\\zhanchengdashi\\tools\\build_game_audio.py",
+        "bytes": 21998,
+        "sha256": "4d5e3ba408e7f70aba33b9059f99d04318706e97b129b4e7b99a11b57c83d320"
+      },
+      {
+        "path": "D:\\AI\\zhanchengdashi\\assets\\audio\\README.md",
+        "bytes": 1121,
+        "sha256": "b2845e62e22dbaab0b5e1f088baedf3703de2569967750c3b4228a06ce6873cb"
+      },
+      {
+        "path": "D:\\AI\\zhanchengdashi\\assets\\audio\\sfx\\gacha_open.wav",
+        "bytes": 39724,
+        "sha256": "8606bc16d7530ae61888afaaebcac7d09edb75c9e952ce3bafe3625dbfcd64c4"
+      },
+      {
+        "path": "D:\\AI\\zhanchengdashi\\assets\\audio\\sfx\\gacha_reveal.wav",
+        "bytes": 9004,
+        "sha256": "e2d135e7365204cb397b15541bc967f43b4d5530c39b2a910000893d7f0e2aeb"
+      },
+      {
+        "path": "D:\\AI\\zhanchengdashi\\assets\\audio\\sfx\\gacha_new_hero.wav",
+        "bytes": 67244,
+        "sha256": "75f4051f09aecf570311619786268b437e413fd295f59eed293cfba572eb754a"
+      },
+      {
+        "path": "D:\\AI\\zhanchengdashi\\assets\\audio\\sfx\\gacha_new_hero.wav.import",
+        "bytes": 517,
+        "sha256": "a25a6d463340de90a023e96e0f600205e6ceab2a5bc05ae32ffd63031a569b60"
+      },
+      {
+        "path": "D:\\AI\\zhanchengdashi\\tests\\test_gacha_polish.gd",
+        "bytes": 10372,
+        "sha256": "1a5d9814132d6482a15a8ec6708734a261e72e763076dd025df94d6ed3add1b8"
+      },
+      {
+        "path": "D:\\AI\\zhanchengdashi\\tests\\test_gacha_polish.tscn",
+        "bytes": 179,
+        "sha256": "ae6237c9dce0641fa7e3e7649509c33ba5af48245f05df52f976bdd178012412"
+      },
+      {
+        "path": "D:\\AI\\zhanchengdashi\\tests\\test_gacha_audio.py",
+        "bytes": 2844,
+        "sha256": "1d7474e2046f6bf9807120427beb14a1f9d707831ddf8d34f5585b8509f2e210"
+      },
+      {
+        "path": "D:\\AI\\zhanchengdashi\\tests\\test_gacha_card_readability.gd",
+        "bytes": 2018,
+        "sha256": "599de666037df8012550cc8487f8fec4c67c6690898ba65e0dcd77cc355b0d5a"
+      },
+      {
+        "path": "D:\\AI\\zhanchengdashi\\tests\\test_gacha_card_readability.tscn",
+        "bytes": 198,
+        "sha256": "0101cce3df13c8dc6094c4689112b1079bd01c401b791feb488cf2c88dfda689"
+      },
+      {
+        "path": "D:\\AI\\zhanchengdashi\\tests\\test_dog_rewards_gacha.gd",
+        "bytes": 6313,
+        "sha256": "4e2dbc2d11e1f99254f35e88aec5df8eaec9c06ba1e5305c75c180b861345e6b"
+      }
+    ],
+    "screenshots": [
+      {
+        "path": "D:\\AI\\zhanchengdashi\\temp\\qa\\home-polish-20260925\\gacha-common-hero-360.png",
+        "bytes": 54315,
+        "sha256": "01854ab32ca642276bd2bed2bd932288c5901dfcab487af9be4fa02c27c29d0b"
+      },
+      {
+        "path": "D:\\AI\\zhanchengdashi\\temp\\qa\\home-polish-20260925\\gacha-common-hero-720.png",
+        "bytes": 139754,
+        "sha256": "d1413a1ad7c42428478866b1f9c610710b1cd4ef91497873dbe44018466066a7"
+      },
+      {
+        "path": "D:\\AI\\zhanchengdashi\\temp\\qa\\home-polish-20260925\\gacha-common-rarity-360.png",
+        "bytes": 30440,
+        "sha256": "9044ea4d61c19ffeadd034dd3d5dda79bf3cd6313569533d4887669116cac23f"
+      },
+      {
+        "path": "D:\\AI\\zhanchengdashi\\temp\\qa\\home-polish-20260925\\gacha-common-rarity-720.png",
+        "bytes": 64922,
+        "sha256": "757f9f11743967b63ff200bcc1bf7d12c25b576fc9580b90255e95e7884b1316"
+      },
+      {
+        "path": "D:\\AI\\zhanchengdashi\\temp\\qa\\home-polish-20260925\\gacha-common-single-result-360.png",
+        "bytes": 29669,
+        "sha256": "4380fae4fe1633611c0f61004c5ad8979d94fe9b1abeac518c20ba6e2d1871a3"
+      },
+      {
+        "path": "D:\\AI\\zhanchengdashi\\temp\\qa\\home-polish-20260925\\gacha-common-single-result-720.png",
+        "bytes": 75445,
+        "sha256": "bb4773faacf0a473ad20337e42eced52307092733550b692fb7c26b4254a2649"
+      },
+      {
+        "path": "D:\\AI\\zhanchengdashi\\temp\\qa\\home-polish-20260925\\gacha-epic-hero-360.png",
+        "bytes": 53170,
+        "sha256": "ca9e08f17e1e74ebadc4507187f89a1f1ff841016e064bb3cfd5ae9e8b76d73d"
+      },
+      {
+        "path": "D:\\AI\\zhanchengdashi\\temp\\qa\\home-polish-20260925\\gacha-epic-hero-720.png",
+        "bytes": 129279,
+        "sha256": "8b43a3007887779996d20eebdd41e07e5ee2afda79b98ca53aa0466709d831c2"
+      },
+      {
+        "path": "D:\\AI\\zhanchengdashi\\temp\\qa\\home-polish-20260925\\gacha-epic-rarity-360.png",
+        "bytes": 30349,
+        "sha256": "4e4e57ea77d0dacad63c72bf7801ab545ac78fafa6978c02fbe1ca2c9ade30c2"
+      },
+      {
+        "path": "D:\\AI\\zhanchengdashi\\temp\\qa\\home-polish-20260925\\gacha-epic-rarity-720.png",
+        "bytes": 64802,
+        "sha256": "595b4d9f0fcc229fe6d5961221e608df94d0143a9b34e3a478707a5ff9fb36c4"
+      },
+      {
+        "path": "D:\\AI\\zhanchengdashi\\temp\\qa\\home-polish-20260925\\gacha-epic-single-result-360.png",
+        "bytes": 30545,
+        "sha256": "c3e26ecafff8a9455ccf6177551e334968d2f8a6c19d6a18c93a4f79dcee56ae"
+      },
+      {
+        "path": "D:\\AI\\zhanchengdashi\\temp\\qa\\home-polish-20260925\\gacha-epic-single-result-720.png",
+        "bytes": 77114,
+        "sha256": "0edddff818f6f87cdbb9a23804c08574c0d4433cb3bb2ab0ea847f6497608e1c"
+      },
+      {
+        "path": "D:\\AI\\zhanchengdashi\\temp\\qa\\home-polish-20260925\\gacha-legendary-hero-360.png",
+        "bytes": 70902,
+        "sha256": "16eec187eee1bd2dddc6b76198ae56f0364d316fd3cb729c1e7c24d19bdb4140"
+      },
+      {
+        "path": "D:\\AI\\zhanchengdashi\\temp\\qa\\home-polish-20260925\\gacha-legendary-hero-720.png",
+        "bytes": 198406,
+        "sha256": "a2172634defaf4c15413207841b3a0ea94d6544ec63bb88180481ec3bb2aa4d4"
+      },
+      {
+        "path": "D:\\AI\\zhanchengdashi\\temp\\qa\\home-polish-20260925\\gacha-legendary-rarity-360.png",
+        "bytes": 30384,
+        "sha256": "4c8d953d01083da9677fc8bef83d828ffe27b2d00f2a2d43aa5f72fe91b3e9fa"
+      },
+      {
+        "path": "D:\\AI\\zhanchengdashi\\temp\\qa\\home-polish-20260925\\gacha-legendary-rarity-720.png",
+        "bytes": 65069,
+        "sha256": "8ece7f03a2ef470acaf6cab97270a926505fd9631e52d0899e79d7bf22e8e701"
+      },
+      {
+        "path": "D:\\AI\\zhanchengdashi\\temp\\qa\\home-polish-20260925\\gacha-legendary-single-result-360.png",
+        "bytes": 33321,
+        "sha256": "398f54fdd07410e462c963b12282a5f18b2103ab4a144981f637558aa888d0e1"
+      },
+      {
+        "path": "D:\\AI\\zhanchengdashi\\temp\\qa\\home-polish-20260925\\gacha-legendary-single-result-720.png",
+        "bytes": 85775,
+        "sha256": "03ac2cf85f2e2b8a5db394d6d592e1347696e30169d9ccc5837f9c01270bb00d"
+      },
+      {
+        "path": "D:\\AI\\zhanchengdashi\\temp\\qa\\home-polish-20260925\\gacha-rare-hero-360.png",
+        "bytes": 53078,
+        "sha256": "6b1214f5007e36a5590eaa6cfd6a611621f42d85756bf91c8d93ca4031dcedb1"
+      },
+      {
+        "path": "D:\\AI\\zhanchengdashi\\temp\\qa\\home-polish-20260925\\gacha-rare-hero-720.png",
+        "bytes": 128413,
+        "sha256": "ebd7cd92fd0612b808256f150064c86ebbe6a511245b16b4924540120045e2c7"
+      },
+      {
+        "path": "D:\\AI\\zhanchengdashi\\temp\\qa\\home-polish-20260925\\gacha-rare-rarity-360.png",
+        "bytes": 30297,
+        "sha256": "0d199ec88839f480e19daccb0403e08ad34c246c7bcd9f4bccefda27dccac03b"
+      },
+      {
+        "path": "D:\\AI\\zhanchengdashi\\temp\\qa\\home-polish-20260925\\gacha-rare-rarity-720.png",
+        "bytes": 64528,
+        "sha256": "b1b07918e9bc989140dd93962b101be3266e5b349d860675035081a7a69609ca"
+      },
+      {
+        "path": "D:\\AI\\zhanchengdashi\\temp\\qa\\home-polish-20260925\\gacha-rare-single-result-360.png",
+        "bytes": 33696,
+        "sha256": "771a02b9957f21787fd9da6888eb4f37250cc1c9366e1d13ddb33e1e11491aae"
+      },
+      {
+        "path": "D:\\AI\\zhanchengdashi\\temp\\qa\\home-polish-20260925\\gacha-rare-single-result-720.png",
+        "bytes": 83777,
+        "sha256": "a4e82f84b9a56925f5cf5c15f21d98bb235de64c767e7dbc9c24e20fb37582bb"
+      },
+      {
+        "path": "D:\\AI\\zhanchengdashi\\temp\\qa\\home-polish-20260925\\gacha-ten-result-360.png",
+        "bytes": 41852,
+        "sha256": "d4298ea86b2558d6fc7621743e52cc3b7610d3096ccdb10c32e3535011243345"
+      },
+      {
+        "path": "D:\\AI\\zhanchengdashi\\temp\\qa\\home-polish-20260925\\gacha-ten-result-720.png",
+        "bytes": 105224,
+        "sha256": "eb6084ff13b055fd52943a5bef65a603650505bebcd56eb7d465b59505c4b72d"
+      }
+    ],
+    "tests": {
+      "frozen_probe_before": {
+        "checks": 77,
+        "failures": 23,
+        "path": "gacha-polish-before.json"
+      },
+      "frozen_probe_final_headless": {
+        "checks": 77,
+        "failures": 0,
+        "path": "gacha-polish-headless.json"
+      },
+      "frozen_probe_final_gpu": {
+        "checks": 103,
+        "failures": 0,
+        "path": "gacha-polish-gpu.json"
+      },
+      "all_60_hero_presenter": {
+        "checks": 11736,
+        "failures": 0,
+        "path": "gacha-presenter.log"
+      },
+      "all_71_card_readability": {
+        "checks": 505,
+        "failures": 0,
+        "path": "gacha-readability.log"
+      },
+      "dog_reward_gacha_regression": {
+        "checks": 41,
+        "failures": 0,
+        "path": "gacha-regression.log"
+      },
+      "audio_metrics": "gacha-audio-after.json",
+      "non_gacha_sfx_bit_identical": 23,
+      "audio_scope": "gacha-audio-scope.json"
+    },
+    "frozen_probe_sha256": "1a5d9814132d6482a15a8ec6708734a261e72e763076dd025df94d6ed3add1b8",
+    "diagnosis": {
+      "first_ownership_failure": "NOT_REPRODUCED in normal input at baseline or after; all four rarities correctly enter rarity then hero",
+      "ownership_evidence": "main._roll_gacha checks pre-grant count==0 for animals. HomeView.refresh adds one resident for each animal with count>0. Screenshot 60 residents is consistent with all 60 owned, for which repeats correctly do not open a new hero ceremony. Initial collection already owns eight common animals. No live account database was inspected or changed.",
+      "reproduced_defects": [
+        "Rarity-to-hero had no dedicated sound, automatic transition silent and tap used generic bright confirm.",
+        "Result cards called generic collection renderer; selected result opened upgrade/equip details.",
+        "Old open/reveal peak -1.01dBFS; open 33.67% of spectral energy above3kHz; .44s reveal exceeded .18s card cadence."
+      ]
+    },
+    "changes": [
+      "One guarded hero_revealed presentation signal routes tap and timer to dedicated sound once; no reward/rarity/ownership changes.",
+      "Rounded warm cues with smooth35ms attack; peaks -14.89/-17.08/-13.15dBFS before existing UI bus -6dB; reveal .14s.",
+      "Dedicated reward-only cards: art, full name, explicit quality. Single card enlarged and ten results four columns for readable labels at360px.",
+      "Retired gacha upgrade/equip hit targets; deck collection display and upgrade preserved."
+    ],
+    "boundaries": [
+      "Producer subjective audio listening pending.",
+      "No live account reset, login, save, remote deployment, APK or device build.",
+      "Godot GPU evidence is desktop OpenGL compatibility at720x1280/360x640.",
+      "Unrelated pre-existing workbook/user changes preserved."
+    ],
+    "cleanup": "No duplicated WAV audition copies; canonical three audio files are the playable review assets. Bounded captures and before/after machine receipts retained.",
+    "write_set_released": true
+  },
+  "art": {
+    "count": 33,
+    "unique_hashes": 33,
+    "per_type_area_strictly_increasing": true,
+    "assets": [
+      {
+        "id": "castle",
+        "sha256": "3196b9ba534ba3e9f09ae7e6accbc2b7542aa51a436b7dfe5dea9ca244f4d0be",
+        "visible_pixel_area_at_default_zoom": 15974.8,
+        "draw_bounds": [
+          164.0,
+          142.8
+        ]
+      },
+      {
+        "id": "residence_01",
+        "sha256": "2ed85fd69fc2207ade441925bcbb0a233928e872bd5a15a1ad17ce9561dd3b69",
+        "visible_pixel_area_at_default_zoom": 9953.9,
+        "draw_bounds": [
+          118.9,
+          111.0
+        ]
+      },
+      {
+        "id": "residence_02",
+        "sha256": "0d9e92592726fdec7fd3c00b23e4daf7280e551407c9031ad3a9443c1b77b652",
+        "visible_pixel_area_at_default_zoom": 10424.1,
+        "draw_bounds": [
+          141.7,
+          106.0
+        ]
+      },
+      {
+        "id": "residence_03",
+        "sha256": "fa01ce5a0361bc40b97b0eeef2aa634cd6ef84bae41f15207b384ed99da4e897",
+        "visible_pixel_area_at_default_zoom": 10991.4,
+        "draw_bounds": [
+          103.7,
+          134.0
+        ]
+      },
+      {
+        "id": "residence_04",
+        "sha256": "400637b53d2f75109df3c68b72193cd50bacae565621b4f132f72f87efe4a6ec",
+        "visible_pixel_area_at_default_zoom": 11510.6,
+        "draw_bounds": [
+          143.7,
+          113.0
+        ]
+      },
+      {
+        "id": "residence_05",
+        "sha256": "4c92711297921a7e0c2ae08322d3ab5358c1017a88a3765d2d79a018b3ed7af8",
+        "visible_pixel_area_at_default_zoom": 12009.6,
+        "draw_bounds": [
+          152.9,
+          102.0
+        ]
+      },
+      {
+        "id": "residence_06",
+        "sha256": "03c27df6058eb5ea29859d987a7bf197ca001b77b5c8ea1a9cc02bbb4855321d",
+        "visible_pixel_area_at_default_zoom": 12413.3,
+        "draw_bounds": [
+          152.8,
+          131.0
+        ]
+      },
+      {
+        "id": "residence_07",
+        "sha256": "01361a277bbcf1d06e237f31dc53db2ef6085b57c82d6457456a2a44b9f3ad4c",
+        "visible_pixel_area_at_default_zoom": 13058.2,
+        "draw_bounds": [
+          171.0,
+          106.9
+        ]
+      },
+      {
+        "id": "residence_08",
+        "sha256": "0995b1f15aca3b3af28f6b63feb73ad266a15400da35aae5d37ae21f476b8f98",
+        "visible_pixel_area_at_default_zoom": 13165.9,
+        "draw_bounds": [
+          184.8,
+          111.0
+        ]
+      },
+      {
+        "id": "dining_01",
+        "sha256": "9943d8e2fb1d4bb8e61008523fc7921f9fd9cb8f5a8b7b56ab3386f1f28477c4",
+        "visible_pixel_area_at_default_zoom": 9929.4,
+        "draw_bounds": [
+          119.0,
+          110.7
+        ]
+      },
+      {
+        "id": "dining_02",
+        "sha256": "48f10d2c0675d184f77a59599f0c25e5e75f4d541b7b6af8c0109f2a5b24f2f9",
+        "visible_pixel_area_at_default_zoom": 10470.4,
+        "draw_bounds": [
+          139.7,
+          106.0
+        ]
+      },
+      {
+        "id": "dining_03",
+        "sha256": "2dc2c6ab3b5c4cc2a41344ee3a0f04d5f7aa32aa49419bb47082d4e9629d245f",
+        "visible_pixel_area_at_default_zoom": 10951.1,
+        "draw_bounds": [
+          118.0,
+          118.2
+        ]
+      },
+      {
+        "id": "dining_04",
+        "sha256": "0620f97f99e0504fff083d0cd52b6c149e3d3b404e91fdafbea7447ba26b12a1",
+        "visible_pixel_area_at_default_zoom": 11540.3,
+        "draw_bounds": [
+          163.0,
+          98.0
+        ]
+      },
+      {
+        "id": "dining_05",
+        "sha256": "e2044185b31b96bc68b06ea4a1ed24e1b38ed219c9b1e7745ba85ac9dde8d2f4",
+        "visible_pixel_area_at_default_zoom": 12011.5,
+        "draw_bounds": [
+          148.8,
+          113.0
+        ]
+      },
+      {
+        "id": "dining_06",
+        "sha256": "21c06b0d6e97f2425c10f648c1e33d57e4bdf127cc8e2e5a7a5bffceab1dd784",
+        "visible_pixel_area_at_default_zoom": 12401.3,
+        "draw_bounds": [
+          125.6,
+          124.0
+        ]
+      },
+      {
+        "id": "dining_07",
+        "sha256": "9857b2b1056563f40cc500a764ef52b4922351e665a0b537af49302053c4492b",
+        "visible_pixel_area_at_default_zoom": 12955.0,
+        "draw_bounds": [
+          166.0,
+          119.7
+        ]
+      },
+      {
+        "id": "dining_08",
+        "sha256": "be7e321bb01c3eff1cafa84e1c0c6c59360534e614bf795fa8529ffd476cd656",
+        "visible_pixel_area_at_default_zoom": 13431.4,
+        "draw_bounds": [
+          150.0,
+          123.2
+        ]
+      },
+      {
+        "id": "entertainment_01",
+        "sha256": "3afadb71a57551f1f373a17090e3474afc5dbd246b0436112cb7ddfd7c6caca7",
+        "visible_pixel_area_at_default_zoom": 10037.7,
+        "draw_bounds": [
+          119.0,
+          92.0
+        ]
+      },
+      {
+        "id": "entertainment_02",
+        "sha256": "f3ecb2d223e76dfa099f709fe9d8933f06f3d64067ac9357a47d9afdfd2e9308",
+        "visible_pixel_area_at_default_zoom": 10444.7,
+        "draw_bounds": [
+          120.8,
+          117.0
+        ]
+      },
+      {
+        "id": "entertainment_03",
+        "sha256": "18ab9ca8a675c051cf87f8a6d37b2cbddf4fb5853a9d7df96d33ad53921b4616",
+        "visible_pixel_area_at_default_zoom": 10999.0,
+        "draw_bounds": [
+          133.0,
+          104.7
+        ]
+      },
+      {
+        "id": "entertainment_04",
+        "sha256": "28213d52588d7664912f8308200e2d9ac49a0222c960dc7d1296ea20c7a14daa",
+        "visible_pixel_area_at_default_zoom": 11496.5,
+        "draw_bounds": [
+          138.0,
+          105.6
+        ]
+      },
+      {
+        "id": "entertainment_05",
+        "sha256": "84913f76853dae15586ebb4d53d2254bc76ff3386b2dac8a9853932634b2968d",
+        "visible_pixel_area_at_default_zoom": 11925.4,
+        "draw_bounds": [
+          154.0,
+          114.3
+        ]
+      },
+      {
+        "id": "entertainment_06",
+        "sha256": "b7c7e2080804a608c4070d373273ee2f71b6ac9474555df93e0ef20631f20d52",
+        "visible_pixel_area_at_default_zoom": 12449.5,
+        "draw_bounds": [
+          144.0,
+          116.6
+        ]
+      },
+      {
+        "id": "entertainment_07",
+        "sha256": "86dec94df28d6de523d86b96a9560e2fc09e1de0c2c8dd89c7828e85e6ad9431",
+        "visible_pixel_area_at_default_zoom": 12977.9,
+        "draw_bounds": [
+          130.6,
+          126.0
+        ]
+      },
+      {
+        "id": "entertainment_08",
+        "sha256": "2e3d0fde63fd6ac6f30d83e75edf5ae34727b3cd8039a5948195b0735e2b1199",
+        "visible_pixel_area_at_default_zoom": 13504.9,
+        "draw_bounds": [
+          157.6,
+          118.0
+        ]
+      },
+      {
+        "id": "sport_01",
+        "sha256": "f5ebb36dae0efddba98dcd1e0f1510d8adb06d0b5e0e1284e6339aa60639be08",
+        "visible_pixel_area_at_default_zoom": 9929.9,
+        "draw_bounds": [
+          126.0,
+          106.3
+        ]
+      },
+      {
+        "id": "sport_02",
+        "sha256": "977531af10b8eb0478fcb57529eb5c30a2d50b2e3886803e7f3f255239afa71c",
+        "visible_pixel_area_at_default_zoom": 10423.0,
+        "draw_bounds": [
+          113.0,
+          105.8
+        ]
+      },
+      {
+        "id": "sport_03",
+        "sha256": "42d9d1d80a6277c12555da91d2da566745433a0ace5656494917030571e7b6a9",
+        "visible_pixel_area_at_default_zoom": 10974.8,
+        "draw_bounds": [
+          128.0,
+          114.5
+        ]
+      },
+      {
+        "id": "sport_04",
+        "sha256": "0d5268f4f5c2bbc8733c0d662b17216ee06d43100dab2dc457b6b6a7be1d4560",
+        "visible_pixel_area_at_default_zoom": 11436.8,
+        "draw_bounds": [
+          131.0,
+          121.8
+        ]
+      },
+      {
+        "id": "sport_05",
+        "sha256": "c31a2078fce3de8f9572e4a4b2ff03c3c8098fe4d987a24621f2d2d12b8122ab",
+        "visible_pixel_area_at_default_zoom": 11967.1,
+        "draw_bounds": [
+          168.0,
+          98.6
+        ]
+      },
+      {
+        "id": "sport_06",
+        "sha256": "aa47c569102a8db248a56c69d17ffe4b7bc1e7282461dc10150120aa212c7708",
+        "visible_pixel_area_at_default_zoom": 12474.9,
+        "draw_bounds": [
+          133.0,
+          123.8
+        ]
+      },
+      {
+        "id": "sport_07",
+        "sha256": "5bbd4860e7ca40c001b803a9b7c3060f643357b19a02731c1b72f68d0247de2e",
+        "visible_pixel_area_at_default_zoom": 12967.5,
+        "draw_bounds": [
+          144.0,
+          106.0
+        ]
+      },
+      {
+        "id": "sport_08",
+        "sha256": "77f6ca7a0b63ed4b321634a680911a84776c6b503be5a99adf3d17a2ca9b137a",
+        "visible_pixel_area_at_default_zoom": 13480.7,
+        "draw_bounds": [
+          157.6,
+          130.0
+        ]
+      }
+    ]
+  },
+  "logs": [
+    {
+      "path": "temp/qa/home-polish-20260925/home-polish-final.log",
+      "sha256": "d9545393e54770c1b9f04cfd239a15f96d5bedb06017f2efad42c803a6ffad39"
+    },
+    {
+      "path": "temp/qa/home-polish-20260925/home-runtime-gpu-final.log",
+      "sha256": "da18160a52780fe9e42d1a699a10cb49fe361d34a01b6514d732e21b3fec9ad4"
+    },
+    {
+      "path": "temp/qa/home-polish-20260925/home-sync-final.log",
+      "sha256": "bb168edf028fc709384961da79ec72490f6377e4351f8c03cfd3dbec941a9b88"
+    },
+    {
+      "path": "temp/qa/home-polish-20260925/price-safety-before.log",
+      "sha256": "6a3d6dd6990518561fb07d2d67b4a479bd37511926601c6c73837b24c3df5b51"
+    },
+    {
+      "path": "temp/qa/home-polish-20260925/price-safety-after.log",
+      "sha256": "41b57e1ea6f81f5edcf39efac61f770db81c794bceaba88ec6b20f193b5ae18c"
+    },
+    {
+      "path": "temp/qa/home-polish-20260925/home-wallet-legacy-before.log",
+      "sha256": "cbabf225fe91547121b7db538181e78322799646be7a1e71a961b8af45ea1892"
+    },
+    {
+      "path": "temp/qa/home-polish-20260925/home-wallet-legacy-after.log",
+      "sha256": "8cb70425975794944acd2b2f8af588fe4ea41505ba4fc8ec02a115256c4f2770"
+    },
+    {
+      "path": "temp/qa/home-polish-20260925/catalog-final.log",
+      "sha256": "9ab5addfa2ed61dbab6b9b64bafa401439c2fab946c61856ce5858e5568e6656"
+    },
+    {
+      "path": "temp/qa/home-polish-20260925/linux-qa-final.log",
+      "sha256": "ff682df9687805084c12a2f363577a16f4781f31c53e6829721a0aa78d9f58c2"
+    },
+    {
+      "path": "temp/qa/home-polish-20260925/staging-deploy.log",
+      "sha256": "d5d38ff749fa27babaaf0431745ed70ba706362a0ea17af10139e4b122ac4880"
+    },
+    {
+      "path": "temp/qa/home-polish-20260925/staging-postflight.log",
+      "sha256": "d16c3c2c5c6c9456b296bf4230adb0b7a40ca4b94bce0255d872aa79cedc9d1f"
+    }
+  ],
+  "source_hashes": [
+    {
+      "path": "scripts/app/ui/home_view.gd",
+      "sha256": "54002bc95fdf63ba2f811d0788056c82fbd10e3920b2582fff53635d48f449f5"
+    },
+    {
+      "path": "scripts/app/ui/home_visual_catalog.gd",
+      "sha256": "29d5e1cefa3357b2ac505eb617e6a955d739c7aa7c28fc23c383af18b502607a"
+    },
+    {
+      "path": "scripts/app/main.gd",
+      "sha256": "f4f4aa4421d0587a290815a3fe8d0c8ab65287698dac21d437d1e83026cd51d4"
+    },
+    {
+      "path": "scripts/server/player_account_store.gd",
+      "sha256": "1156fe2a5178e0ebc2ad44821bca27aa5305e3684b9ca648d0a660c2268ee4d7"
+    },
+    {
+      "path": "tools/build_home_server_candidate.py",
+      "sha256": "7d4e0cd91c79489d3cc7b22ad3f2cc66bffde9f8781c0d62ba61eb2a151e3773"
+    },
+    {
+      "path": "deploy/linux/deploy_home_staging_20260925.sh",
+      "sha256": "7dccac1de0b203b1f601775d52a0bad66e7d4fe0bbe5cb8e1da65c72fbb295e7"
+    },
+    {
+      "path": "config/tables/home_visuals.csv",
+      "sha256": "f45a5fffef3a1b7af4c558a362ca59b927eea494bccc9ddf6eadba7c9cd87d86"
+    },
+    {
+      "path": "runtime/config/home_visuals.json",
+      "sha256": "25f78a7811bafcd2d2f8108f72f4a17aae763e8a7665e0a372c4ff1e52224cfe"
+    },
+    {
+      "path": "tools/update_home_visual_crops.py",
+      "sha256": "abcbd694de84d3fc561f322cf8fbd3d408c970667b13320c90b26708215f7596"
+    },
+    {
+      "path": "tests/test_home_polish.gd",
+      "sha256": "59af5a43a0a1edf8d42f0e5f16328573c1c4be351432c802662af27d55371400"
+    },
+    {
+      "path": "tests/capture_home_visual_catalog.gd",
+      "sha256": "755c994717e2c14696ee1a9841318e75d60ffe43de36ef3d83d45350ece82beb"
+    },
+    {
+      "path": "docs/HOMESTEAD_DESIGN_v1.1.docx",
+      "sha256": "63e1019283a8d90846dc040160a8f9c1913ef330c293d7db8f60e0042bf38dd6"
+    },
+    {
+      "path": "docs/home_ui/document_qa.json",
+      "sha256": "ed9b65a55bcafa247c2f36c83d1fa89898bf6c64c4d07070117df73100d12297"
+    },
+    {
+      "path": "tools/build_home_design_docx.py",
+      "sha256": "d37b0f45fa8ba212399e1b71152be25874a1a3cdedb290a1d8dad836627cb6e2"
+    }
+  ],
+  "boundaries": [
+    "External authenticated home test was blocked before execution by automatic approval; no retry or bypass, no real account mutations.",
+    "Godot desktop GPU 720x1280 and360x640; no Android package or device claim.",
+    "Temporary Word-render PDF cleanup was automatically denied; retained outside project, never a deliverable.",
+    "No formal Figma source created; Word and project UE draft sources retained."
+  ],
+  "captures": [
+    {
+      "path": "temp/qa/home-polish-20260925/home-32-building-catalog.png",
+      "sha256": "6c0b6f041676b5dd0f8ad6cb533bcd081739f3f26deeacde05e88a6957a1c492"
+    },
+    {
+      "path": "temp/qa/home-polish-20260925/home-developed-360.png",
+      "sha256": "c727c6a0ba2ee557a5709c6b0537f53079242ef9d85a1db5b73c1dd636bbfc4a"
+    },
+    {
+      "path": "temp/qa/home-polish-20260925/home-developed.png",
+      "sha256": "e50c114a2ad40ebe5a8f55dea76ea428c83326ed2d2e81a31917b9864e17ee06"
+    },
+    {
+      "path": "temp/qa/home-polish-20260925/home-locked.png",
+      "sha256": "f8c161f642e301a8e0939eed68a5ef71796e4d8e831694dc88983342d16420f1"
+    },
+    {
+      "path": "temp/qa/home-polish-20260925/home-poor.png",
+      "sha256": "1a11219970021dc34813701d53e9ea65f64dff114fdceda864b14f05e65f9713"
+    },
+    {
+      "path": "temp/qa/home-polish-20260925/home-unavailable.png",
+      "sha256": "2fd333198f4fd3a1b15edcda29ff562012940baaf747a0c2cc94ed5a201ad62b"
+    }
+  ],
+  "deployment_cleanup": {
+    "deleted_verified_temporary_upload_duplicates": [
+      {
+        "file": "JungleLawServer-home-v1.0.0-staging.x86_64",
+        "bytes": 71407056,
+        "retained": "/opt/junglelaw/JungleLawServer.x86_64"
+      },
+      {
+        "file": "JungleLawServer-home-compatible-rollback.x86_64",
+        "bytes": 71402432,
+        "retained": "/var/backups/junglelaw/home-20260925/compatible-rollback-ELF"
+      }
+    ],
+    "logical_bytes": 142809488,
+    "live_binary_and_backup_preserved": true,
+    "physical_free_space_delta": "not_measured"
+  },
+  "rag": {
+    "prepare_status": "READY",
+    "pack_status": "READY",
+    "citation_count": 8
+  }
+}

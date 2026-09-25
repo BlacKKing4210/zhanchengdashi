@@ -21,6 +21,14 @@ HEADER_ROW_COUNT = 3
 DATA_START_LINE = 4
 
 FIELD_LABEL_OVERRIDES = {
+    "building_type": "建筑类型",
+    "ring": "固定圈数",
+    "width": "可见宽度",
+    "height": "可见高度",
+    "crop_left": "有效图像左边",
+    "crop_top": "有效图像顶部",
+    "crop_width": "有效图像宽度",
+    "crop_height": "有效图像高度",
     "max_rings": "最大圈数",
     "first_ring_base": "第一圈基准价",
     "ring_multiplier": "每圈倍率",

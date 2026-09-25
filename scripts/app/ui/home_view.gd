@@ -3,6 +3,7 @@ extends RefCounted
 const Rules = preload("res://scripts/shared/home_rules.gd")
 const Simulation = preload("res://scripts/app/systems/home_simulation.gd")
 const Palette = preload("res://scripts/app/ui/handdrawn_ui_skin.gd")
+const Visuals = preload("res://scripts/app/ui/home_visual_catalog.gd")
 const MAP_RECT = Rect2(0, 194, 720, 756)
 const TYPE_COLORS = {"castle": 7, "residence": 1, "dining": 5, "entertainment": 2, "sport": 4}
 const TYPE_LABELS = {"castle": "主城堡", "residence": "居住", "dining": "吃饭", "entertainment": "娱乐", "sport": "运动"}
@@ -106,9 +107,57 @@ func _texture(id: String) -> Texture2D:
 	return texture
 
 func _art(id: String, rect: Rect2, tint: Color = Color.WHITE) -> void:
-	var texture = app.BUILDING_ART["base"] if id == "castle" else _texture(id)
+	if id == "castle":
+		_draw_building(Rules.plot("0,0"), rect)
+		return
+	var texture = _texture(id)
 	if texture != null:
 		app.draw_texture_rect(texture, rect, false, tint)
+
+func _building_texture(p: Dictionary) -> Texture2D:
+	var path = String(Visuals.definition(p).get("art_path", ""))
+	if textures.has(path): return textures[path]
+	if path.is_empty() or not ResourceLoader.exists(path): return null
+	var texture: Texture2D = load(path)
+	textures[path] = texture
+	return texture
+
+func _draw_building(p: Dictionary, rect: Rect2) -> void:
+	var texture = _building_texture(p)
+	if texture == null: return
+	var visual = Visuals.definition(p)
+	var source = Rect2(float(visual.get("crop_left", 0)), float(visual.get("crop_top", 0)), float(visual.get("crop_width", 1)), float(visual.get("crop_height", 1)))
+	source = Rect2(source.position * texture.get_size(), source.size * texture.get_size())
+	if not source.has_area(): return
+	var scale = minf(rect.size.x / source.size.x, rect.size.y / source.size.y)
+	var size = source.size * scale
+	app.draw_texture_rect_region(texture, Rect2(rect.get_center() - size * 0.5, size), source)
+
+func _type_icon(kind: String, center: Vector2, size: float, background: Color = Color("dedad3")) -> void:
+	var ink = Palette.DISABLED_INK
+	var s = size / 64.0
+	match kind:
+		"residence":
+			app.draw_colored_polygon(PackedVector2Array([center + Vector2(-29, -3) * s, center + Vector2(0, -27) * s, center + Vector2(29, -3) * s]), ink)
+			app.draw_rect(Rect2(center + Vector2(-21, -4) * s, Vector2(42, 29) * s), ink)
+			app.draw_rect(Rect2(center + Vector2(-6, 7) * s, Vector2(12, 18) * s), background)
+		"dining":
+			app.draw_colored_polygon(PackedVector2Array([center + Vector2(-29, -4) * s, center + Vector2(28, -4) * s, center + Vector2(18, 23) * s, center + Vector2(-18, 23) * s]), ink)
+			app.draw_line(center + Vector2(-30, -7) * s, center + Vector2(29, -7) * s, ink, 5 * s, true)
+			app.draw_line(center + Vector2(6, -10) * s, center + Vector2(18, -31) * s, ink, 6 * s, true)
+			app.draw_circle(center + Vector2(20, -33) * s, 7 * s, ink)
+		"entertainment":
+			app.draw_circle(center + Vector2(-17, 20) * s, 10 * s, ink)
+			app.draw_circle(center + Vector2(18, 11) * s, 10 * s, ink)
+			app.draw_line(center + Vector2(-10, 20) * s, center + Vector2(-10, -22) * s, ink, 7 * s, true)
+			app.draw_line(center + Vector2(25, 11) * s, center + Vector2(25, -30) * s, ink, 7 * s, true)
+			app.draw_line(center + Vector2(-10, -22) * s, center + Vector2(25, -30) * s, ink, 10 * s, true)
+		"sport":
+			app.draw_circle(center, 28 * s, ink)
+			app.draw_line(center + Vector2(-25, -12) * s, center + Vector2(25, 12) * s, background, 3 * s, true)
+			app.draw_line(center + Vector2(-12, 25) * s, center + Vector2(12, -25) * s, background, 3 * s, true)
+			app.draw_arc(center + Vector2(-26, -12) * s, 29 * s, -1.1, 1.55, 18, background, 3 * s, true)
+			app.draw_arc(center + Vector2(26, 12) * s, 29 * s, 2.0, 4.7, 18, background, 3 * s, true)
 
 func draw() -> void:
 	app.draw_rect(Rect2(0, 0, 720, 1280), Color("e7e6d7") if not simulation.is_night() else Color("bec6ce"))
@@ -126,20 +175,10 @@ func draw() -> void:
 	for i in range(4):
 		var type: String = ["residence", "dining", "entertainment", "sport"][i]
 		var c = Vector2(419 + i * 72, 153)
-		app.draw_circle(c, 6, Palette.TERRAIN_COLORS[TYPE_COLORS[type]])
+		_type_icon(type, c, 18, Palette.PAPER)
 		_text(TYPE_LABELS[type], Rect2(c + Vector2(10, -17), Vector2(52, 34)), 21)
-	if preview:
-		_panel(Rect2(26, 209, 180, 35), Palette.RAISED)
-		_text("独立玩法预览", Rect2(26, 209, 180, 35), 22)
-	elif not status.is_empty():
-		_panel(Rect2(30, 205, 660, 65), Palette.RAISED)
-		_text(status, Rect2(40, 211, 640, 50), 24)
-	for i in range(3):
-		app._cta(camera_button(i), ["−", "+", "归位"][i], false)
-	var claim_label = "领取收益" if bool(snapshot.get("can_claim", false)) else "今日已领取"
-	if not available: claim_label = "重试连接"
-	app._cta(claim_button(), claim_label, bool(snapshot.get("can_claim", false)), not busy)
-	if bool(snapshot.get("can_claim", false)):
+	if available and bool(snapshot.get("can_claim", false)):
+		app._cta(claim_button(), "领取收益", true, not busy)
 		app.draw_circle(claim_button().position + Vector2(claim_button().size.x - 4, 3), 8, Palette.UPGRADE_DOT)
 	_draw_details()
 
@@ -153,22 +192,24 @@ func _draw_plot(p: Dictionary) -> void:
 	var uv = PackedVector2Array()
 	for point in points: uv.append((point - c) / (Vector2(radius * 2, radius * sqrt(3.0)) * 1.01) + Vector2(0.5, 0.5))
 	app.draw_polyline(_closed(Simulation.corners(c, radius)), Color("b7aa91"), 5.0 * zoom, true)
-	app.draw_polygon(points, PackedColorArray([Color.WHITE if owned else Color(0.9, 0.9, 0.87, 0.62)]), uv, Palette.TERRAIN[terrain])
-	if p.id == selected:
+	if owned: app.draw_polygon(points, PackedColorArray([Color.WHITE]), uv, Palette.TERRAIN[terrain])
+	else: app.draw_colored_polygon(points, Color("dedad3"))
+	if owned and p.id == selected:
 		app.draw_polyline(_closed(Simulation.corners(c, radius * 0.95)), Color("795c2c"), 4.0, true)
-	elif not owned and available and bool(Rules.can_unlock(state, p.id, app.wallet_gold).get("ok", false)):
-		app.draw_polyline(_closed(Simulation.corners(c, radius * 0.95)), Color("ac8745"), 2.0, true)
-	var art_size = 110.0 * zoom if owned else 68.0 * zoom
 	if MAP_RECT.grow(-30).has_point(c):
-		_art(p.type, Rect2(c + Vector2(-art_size * 0.5, -art_size * 0.62), Vector2.ONE * art_size), Color.WHITE if owned else Color(0.55, 0.51, 0.44, 0.86))
-		var label_bounds = Rect2(c + Vector2(-75, -70), Vector2(150, 150))
-		if zoom >= 0.85 and Rect2(8, 194, 704, 664).encloses(label_bounds):
-			var label_y = 42.0 * zoom if owned else 13.0 * zoom
-			_panel(Rect2(c + Vector2(-55, label_y), Vector2(110, 28)), Color("f5efe2"), 7)
-			_text(TYPE_LABELS.get(p.type, "建筑"), Rect2(c + Vector2(-55, label_y), Vector2(110, 28)), 23)
-			if not owned:
-				app._draw_resource_icon(c + Vector2(-48, 61), "金币", Palette.GOLD)
-				_text(str(p.cost), Rect2(c + Vector2(-29, 44), Vector2(106, 32)), 25)
+		if owned:
+			var visual = Visuals.definition(p)
+			var size = Vector2(float(visual.get("width", 138)), float(visual.get("height", 136))) * zoom
+			_draw_building(p, Rect2(c - size * 0.5, size))
+		else:
+			_type_icon(p.type, c + Vector2(0, -18) * zoom, 58 * zoom)
+			if _plot_price_visible(p.id):
+				app._draw_resource_icon(c + Vector2(-44, 43), "金币", Palette.GOLD)
+				_text(str(p.cost), Rect2(c + Vector2(-27, 26), Vector2(105, 36)), 25)
+
+func _plot_price_visible(id: String) -> bool:
+	var c = plot_point(id)
+	return zoom >= 0.85 and MAP_RECT.grow(-30).has_point(c) and Rect2(8, 194, 704, 756).encloses(Rect2(c + Vector2(-75, -62), Vector2(150, 132)))
 
 func _draw_residents() -> void:
 	var actors = simulation.residents.duplicate()
@@ -198,14 +239,13 @@ func _draw_mood(c: Vector2, mood: String) -> void:
 
 func _draw_details() -> void:
 	var p = Rules.plot(selected)
-	if p.is_empty(): return
-	var owned = state.get("owned", {}).has(p.id)
+	if p.is_empty() or not state.get("owned", {}).has(p.id): return
 	_panel(Rect2(24, 967, 672, 155), Palette.SURFACE)
-	_art(p.type, Rect2(34, 976, 84, 84))
+	_draw_building(p, Rect2(34, 976, 84, 84))
 	_text(p.name, Rect2(121, 979, 312, 38), 29)
 	var sub = "每日固定产出" if p.type == "castle" else ("容纳 %d 位居民" % p.capacity if p.type == "residence" else ("夜晚娱乐" if p.type == "entertainment" else "白天" + TYPE_LABELS[p.type]))
 	_text(sub, Rect2(119, 1020, 312, 34), 23)
-	if owned:
+	if state.get("owned", {}).has(p.id):
 		if p.type == "castle":
 			app._draw_resource_icon(Vector2(484, 1003), "金币", Palette.GOLD)
 			_text("100", Rect2(498, 984,  70, 38), 27)
@@ -217,20 +257,9 @@ func _draw_details() -> void:
 			_text("×1 / 日", Rect2(554, 996, 116, 35), 24)
 			var next_day = int(state.owned[p.id]) >= int(snapshot.get("day", Rules.day_key()))
 			_text(p.item_name + (" · 明日开始产出" if next_day else " · 每日收益可兑换"), Rect2(54, 1070, 610, 35), 24)
-	else:
-		var eligibility = Rules.can_unlock(state, p.id, app.wallet_gold)
-		var label = "解锁" if bool(eligibility.ok) else ("金币不足" if eligibility.error == "insufficient_gold" else "先解锁相邻地块")
-		app._cta(unlock_button(), label, true, available and bool(eligibility.ok) and not busy)
-		app._draw_resource_icon(Vector2(150, 1086), "金币", Palette.GOLD)
-		_text(str(p.cost), Rect2(172, 1068, 118, 36), 26)
-		_text("解锁立即得", Rect2(310, 1068, 196, 36), 24)
-		app._draw_resource_icon(Vector2(531, 1086), "券", Palette.BLUE)
-		_text("×1", Rect2(546, 1068, 68, 36), 25)
 
 
 func claim_button() -> Rect2: return Rect2(466, 876, 224, 56)
-func unlock_button() -> Rect2: return Rect2(447, 987, 226,  60)
-func camera_button(index: int) -> Rect2: return Rect2(26 + index * 68, 876,  60, 56)
 func exchange_button() -> Rect2: return Rect2(116, 950, 488,  60)
 func close_button() -> Rect2: return Rect2(612, 247, 50, 50)
 
@@ -295,24 +324,29 @@ func tap(pos: Vector2) -> void:
 		elif Rect2(90, 865, 132, 52).has_point(pos): reward_page = maxi(0, reward_page - 1)
 		elif Rect2(498, 865, 132, 52).has_point(pos): reward_page = mini(maxi(0, ceili(_reward_groups().size() / 4.0) - 1), reward_page + 1)
 		return
-	if claim_button().has_point(pos):
-		if not available: app._home_request("state")
-		elif bool(snapshot.get("can_claim", false)): modal = "claim"
-		else: app._toast("今天的收益已领取，明天再来")
+	if busy: return
+	if available and bool(snapshot.get("can_claim", false)) and claim_button().has_point(pos):
+		modal = "claim"
 		return
-	if unlock_button().has_point(pos) and not state.owned.has(selected):
-		app._home_request("unlock", selected)
-		return
-	for i in range(3):
-		if camera_button(i).has_point(pos):
-			if i == 2: pan = Vector2.ZERO; zoom = 1.0
-			else: zoom = clampf(zoom + (-0.12 if i == 0 else 0.12), 0.70, 1.35)
-			return
 	if MAP_RECT.has_point(pos):
 		for p in visible:
 			if Geometry2D.is_point_in_polygon(pos, Simulation.corners(plot_point(p.id), Simulation.RADIUS * zoom)):
-				selected = p.id
-				GameAudio.play_sfx("ui_click")
+				if state.owned.has(p.id):
+					selected = p.id
+					GameAudio.play_sfx("ui_click")
+				else:
+					if not _plot_price_visible(p.id):
+						zoom = maxf(1.0, zoom)
+						pan += Vector2(360, 564) - plot_point(p.id)
+						app._toast("再次点击地块即可建造")
+						return
+					var eligibility = Rules.can_unlock(state, p.id, app.wallet_gold)
+					if not bool(eligibility.ok):
+						app._toast("金币不足" if eligibility.error == "insufficient_gold" else "请先解锁相邻地块")
+					elif not available:
+						app._toast("暂时无法建设，请稍后再试")
+						app._home_request("state")
+					else: app._home_request("unlock", p.id)
 				return
 
 func handle_pointer(event: InputEvent) -> bool:
@@ -345,9 +379,8 @@ func handle_pointer(event: InputEvent) -> bool:
 			pan = pan.clamp(Vector2(-bound, -bound), Vector2(bound, bound))
 		last_pointer = position
 		return true
-	if pressed and MAP_RECT.has_point(position) and modal.is_empty() and not claim_button().has_point(position):
-		for i in range(3):
-			if camera_button(i).has_point(position): return false
+	var on_claim = available and bool(snapshot.get("can_claim", false)) and claim_button().has_point(position)
+	if pressed and MAP_RECT.has_point(position) and modal.is_empty() and not on_claim:
 		dragging = true
 		dragged = false
 		pointer_start = position

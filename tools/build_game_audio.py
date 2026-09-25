@@ -289,6 +289,44 @@ def whoosh(duration: float, rising: bool, rng: np.random.Generator) -> np.ndarra
     return high * sweep * envelope * 0.26
 
 
+def warm_note(note: float, duration: float, attack: float = 0.035) -> np.ndarray:
+    """Rounded struck-wood tone: no noise, bright bell partials, or hard onset."""
+    length = int(round(duration * SAMPLE_RATE))
+    time = np.arange(length) / SAMPLE_RATE
+    phase = 2 * np.pi * midi_frequency(note) * time
+    signal = np.sin(phase) + 0.16 * np.sin(2 * phase) + 0.035 * np.sin(3 * phase)
+    onset = np.sin(np.clip(time / attack, 0, 1) * np.pi / 2) ** 2
+    release = np.sin(np.clip((duration - time) / (duration * 0.42), 0, 1) * np.pi / 2) ** 2
+    return signal * onset * release * np.exp(-time * 2.0)
+
+
+def warm_cue(duration: float, peak: float, events: list[tuple[float, float, float, float]]) -> np.ndarray:
+    buffer = np.zeros(int(round(duration * SAMPLE_RATE)), dtype=np.float64)
+    for start, note, length, gain in events:
+        offset = int(round(start * SAMPLE_RATE))
+        signal = warm_note(note, length) * gain
+        end = min(buffer.size, offset + signal.size)
+        buffer[offset:end] += signal[:end - offset]
+    maximum = float(np.max(np.abs(buffer)))
+    if maximum: buffer *= peak / maximum
+    return buffer
+
+
+def compose_gacha_sfx() -> dict[str, np.ndarray]:
+    return {
+        "gacha_open": warm_cue(0.62, 0.18, [
+            (0.0, 60, 0.42, 0.65), (0.14, 64, 0.40, 0.55), (0.29, 67, 0.33, 0.45),
+        ]),
+        # Shorter than the 0.18s card cadence, so ten-pulls do not stack transients.
+        "gacha_reveal": warm_cue(0.14, 0.14, [(0.0, 67, 0.14, 0.7)]),
+        "gacha_new_hero": warm_cue(1.05, 0.22, [
+            (0.0, 60, 0.64, 0.45), (0.14, 64, 0.65, 0.46),
+            (0.29, 67, 0.68, 0.45), (0.44, 72, 0.61, 0.37),
+            (0.44, 60, 0.61, 0.18),
+        ]),
+    }
+
+
 def compose_sfx() -> dict[str, np.ndarray]:
     rng = np.random.default_rng(42102026)
     sounds: dict[str, np.ndarray] = {}
@@ -311,15 +349,9 @@ def compose_sfx() -> dict[str, np.ndarray]:
         (0.21, mono_note(81, 0.42, "bell", 0.60, rng)),
         (0.34, mono_note(86, 0.34, "bell", 0.44, rng)),
     ])
-    sounds["gacha_open"] = mix_mono(0.86, [
-        (0.0, whoosh(0.58, True, rng)),
-        (0.34, mono_note(74, 0.44, "bell", 0.48, rng)),
-        (0.46, mono_note(81, 0.36, "bell", 0.55, rng)),
-    ])
-    sounds["gacha_reveal"] = mix_mono(0.44, [
-        (0.0, mono_note(81, 0.32, "bell", 0.64, rng)),
-        (0.07, mono_note(86, 0.31, "bell", 0.43, rng)),
-    ])
+    # Consume the retired gacha noise's RNG span to preserve all other cues.
+    rng.normal(0.0, 1.0, int(0.58 * SAMPLE_RATE))
+    sounds.update(compose_gacha_sfx())
     sounds["room_join"] = mix_mono(0.38, [
         (0.0, mono_note(69, 0.22, "pluck", 0.50, rng)),
         (0.105, mono_note(74, 0.24, "bell", 0.58, rng)),
@@ -454,8 +486,16 @@ def build(output: Path) -> None:
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--output", type=Path, default=DEFAULT_OUTPUT)
+    parser.add_argument("--gacha-only", action="store_true", help="Rebuild only the three gacha cues")
     args = parser.parse_args()
-    build(args.output.resolve())
+    if args.gacha_only:
+        for name, samples in compose_gacha_sfx().items():
+            path = args.output.resolve() / "sfx" / f"{name}.wav"
+            write_wav(path, samples)
+            verify_wav(path, 1)
+            print(f"sfx {name}: {len(samples) / SAMPLE_RATE:.3f}s")
+    else:
+        build(args.output.resolve())
 
 
 if __name__ == "__main__":

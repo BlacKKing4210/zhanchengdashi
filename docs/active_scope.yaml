@@ -44,6 +44,17 @@ feature_progress:
   source_collection: [functional_documents, numeric_or_config_tables, version_plan, filed_producer_directives, latest_accountable_receipts]
 
 active_modules:
+  - task_id: REQ-20260925-HOME-GACHA-POLISH
+    feature_id: F-ZC-HOME-001
+    included_features: [F-ZC-HOME-001, F-ZC-GACHA-NEW-001]
+    owner: codex-primary
+    phase: closure
+    status: COMPLETE_SCOPED
+    formal_source: docs/HOME_GACHA_POLISH_IMPLEMENTATION.md
+    read_only_receipt: docs/receipts/REQ-20260925-HOME-GACHA-POLISH.md
+    completion_receipt: docs/receipts/REQ-20260925-HOME-GACHA-POLISH.md
+    deployment: home-v1.0.0-staging
+    remaining_gates: [authenticated_external_qa_policy_blocked, android_not_requested, figma_unavailable]
   - task_id: REQ-20260924-HOMESTEAD
     feature_id: F-ZC-HOME-001
     version: v1.0.0
@@ -438,6 +449,14 @@ active_modules:
 queued_modules: []
 
 shared_locks:
+  home_polish_20260925:
+    task_id: REQ-20260925-HOME-GACHA-POLISH
+    owner: codex-primary
+    status: RELEASED
+    write_set: [scripts/app/main.gd, scripts/app/ui/home_view.gd, scripts/app/ui/gacha_new_hero_reveal.gd, scripts/shared/home_rules.gd, assets/art/home/v2, home_visual_config, gacha_audio, home_gacha_tests, home_design_sources, scripts/server/player_account_store.gd, home_server_release, production/deployment/aliyun-profile.yaml]
+    read_only_receipt: docs/receipts/REQ-20260925-HOME-GACHA-POLISH.md
+    evidence_root: temp/qa/home-polish-20260925
+    completion_receipt: docs/receipts/REQ-20260925-HOME-GACHA-POLISH.md
   home_20260924:
     task_id: REQ-20260924-HOMESTEAD
     owner: codex-primary
