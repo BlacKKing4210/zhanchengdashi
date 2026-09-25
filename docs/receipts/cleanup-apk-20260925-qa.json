@@ -1,6 +1,6 @@
 {
   "request_id": "REQ-20260925-CLEANUP-APK",
-  "status": "APK_VERIFIED_UPLOAD_PENDING_WITH_FIXTURE_CLEANUP_EXCEPTION",
+  "status": "GITHUB_APK_VERIFIED_WITH_FIXTURE_CLEANUP_EXCEPTION",
   "gameplay_source_commit": "c99075ef21fd8a425ad404b04b146902f5510f5f",
   "original_cleanup": {
     "target": "D:\\AI\\zhanchengdashi\\temp\\qa\\home-emoji-20260925\\normal-user",
@@ -341,7 +341,33 @@
     "runtime/config/cards.json": "90F354F63B38715F8FCB013275E83733E625E3F0DF909AD69DE455F76856E293"
   },
   "evidence_root": "temp/qa/cleanup-apk-20260925",
-  "github": null,
+  "github": {
+    "release_url": "https://github.com/BlacKKing4210/zhanchengdashi/releases/tag/v1.0.20260925.1",
+    "tag": "v1.0.20260925.1",
+    "source_commit": "2bc427085210092f142f63acaab105ecf6ece9db",
+    "sha256": "484f39d03ab4b2429232e6fe71780f9817656a64b3213761cfe2622767ea3ac5",
+    "assets": [
+      {
+        "name": "JungleLaw-android-2026-09-25-home-combat-r1.apk",
+        "size": 80139004,
+        "digest": "sha256:484f39d03ab4b2429232e6fe71780f9817656a64b3213761cfe2622767ea3ac5",
+        "browser_download_url": "https://github.com/BlacKKing4210/zhanchengdashi/releases/download/v1.0.20260925.1/JungleLaw-android-2026-09-25-home-combat-r1.apk",
+        "state": "uploaded"
+      },
+      {
+        "name": "JungleLaw-android-2026-09-25-home-combat-r1.apk.sha256",
+        "size": 114,
+        "digest": "sha256:3143317a8466e4426b91052a216f009e604a567a2f34c1040d4e162cabf4076d",
+        "browser_download_url": "https://github.com/BlacKKing4210/zhanchengdashi/releases/download/v1.0.20260925.1/JungleLaw-android-2026-09-25-home-combat-r1.apk.sha256",
+        "state": "uploaded"
+      }
+    ],
+    "api_readback_verified": true,
+    "anonymous_download": {
+      "status": 200,
+      "content_length": "80139004"
+    }
+  },
   "cleanup_test_lifecycle": {
     "status": "PASS",
     "guard_exit": 2,
