@@ -63,11 +63,8 @@ func accept_snapshot(data: Dictionary, auto_popup: bool = true) -> void:
 	refresh()
 
 func has_dot() -> bool:
-	if not available: return false
-	if bool(snapshot.get("can_claim", false)): return true
-	for p in visible:
-		if bool(Rules.can_unlock(state, p.id, app.wallet_gold).get("ok", false)): return true
-	return false
+	# A connection failure does not consume rewards; only a new snapshot clears them.
+	return bool(snapshot.get("can_claim", false))
 
 func update(delta: float) -> void:
 	if app.screen == "home": simulation.update(minf(delta, 0.25))
@@ -185,7 +182,7 @@ func draw() -> void:
 func _draw_plot(p: Dictionary) -> void:
 	var c = plot_point(p.id)
 	var radius = Simulation.RADIUS * zoom
-	if not MAP_RECT.grow(radius).has_point(c): return
+	if not MAP_RECT.grow(radius + 96.0).has_point(c): return
 	var owned = state.get("owned", {}).has(p.id)
 	var terrain: int = TYPE_COLORS.get(p.type, 7)
 	var points = Simulation.corners(c, radius * 0.93)
@@ -196,16 +193,16 @@ func _draw_plot(p: Dictionary) -> void:
 	else: app.draw_colored_polygon(points, Color("dedad3"))
 	if owned and p.id == selected:
 		app.draw_polyline(_closed(Simulation.corners(c, radius * 0.95)), Color("795c2c"), 4.0, true)
-	if MAP_RECT.grow(-30).has_point(c):
-		if owned:
-			var visual = Visuals.definition(p)
-			var size = Vector2(float(visual.get("width", 138)), float(visual.get("height", 136))) * zoom
-			_draw_building(p, Rect2(c - size * 0.5, size))
-		else:
-			_type_icon(p.type, c + Vector2(0, -18) * zoom, 58 * zoom)
-			if _plot_price_visible(p.id):
-				app._draw_resource_icon(c + Vector2(-44, 43), "金币", Palette.GOLD)
-				_text(str(p.cost), Rect2(c + Vector2(-27, 26), Vector2(105, 36)), 25)
+	# Draw the whole world continuously; the opaque page chrome clips it naturally.
+	# Full-price visibility below is a purchase guard, never a drawing switch.
+	if owned:
+		var visual = Visuals.definition(p)
+		var size = Vector2(float(visual.get("width", 138)), float(visual.get("height", 136))) * zoom
+		_draw_building(p, Rect2(c - size * 0.5, size))
+	elif bool(Rules.can_unlock(state, p.id, int(p.cost)).get("ok", false)):
+		_type_icon(p.type, c + Vector2(0, -18) * zoom, 58 * zoom)
+		app._draw_resource_icon(c + Vector2(-44, 43), "金币", Palette.GOLD)
+		_text(str(p.cost), Rect2(c + Vector2(-27, 26), Vector2(105, 36)), 25)
 
 func _plot_price_visible(id: String) -> bool:
 	var c = plot_point(id)
@@ -241,22 +238,36 @@ func _draw_details() -> void:
 	var p = Rules.plot(selected)
 	if p.is_empty() or not state.get("owned", {}).has(p.id): return
 	_panel(Rect2(24, 967, 672, 155), Palette.SURFACE)
-	_draw_building(p, Rect2(34, 976, 84, 84))
-	_text(p.name, Rect2(121, 979, 312, 38), 29)
-	var sub = "每日固定产出" if p.type == "castle" else ("容纳 %d 位居民" % p.capacity if p.type == "residence" else ("夜晚娱乐" if p.type == "entertainment" else "白天" + TYPE_LABELS[p.type]))
-	_text(sub, Rect2(119, 1020, 312, 34), 23)
-	if state.get("owned", {}).has(p.id):
-		if p.type == "castle":
-			app._draw_resource_icon(Vector2(484, 1003), "金币", Palette.GOLD)
-			_text("100", Rect2(498, 984,  70, 38), 27)
-			app._draw_resource_icon(Vector2(592, 1003), "券", Palette.BLUE)
-			_text("1", Rect2(610, 984,  50, 38), 27)
-			_text("住房不足时，动物住在城堡里", Rect2(54, 1070, 610, 35), 24)
-		else:
-			_art(p.item_id, Rect2(492, 982, 60, 60))
-			_text("×1 / 日", Rect2(554, 996, 116, 35), 24)
-			var next_day = int(state.owned[p.id]) >= int(snapshot.get("day", Rules.day_key()))
-			_text(p.item_name + (" · 明日开始产出" if next_day else " · 每日收益可兑换"), Rect2(54, 1070, 610, 35), 24)
+	_draw_building(p, Rect2(40, 989, 104, 104))
+	_text(p.name, Rect2(156, 990, 266, 40), 29)
+	_text("每日产出", Rect2(440, 978, 220, 34), 25)
+	if p.type == "castle":
+		var economy = Rules.economy()
+		_draw_output_cell("金币", int(economy.castle_gold), Rect2(450, 1020, 92, 88))
+		_draw_output_cell("券", int(economy.castle_tickets), Rect2(554, 1020, 92, 88))
+	else:
+		_draw_output_cell(p.item_id, 1, Rect2(506, 1020, 88, 88), _item_quality(int(p.value)))
+		if int(state.owned[p.id]) >= int(snapshot.get("day", Rules.day_key())):
+			_text("明日开始产出", Rect2(156, 1044, 266, 36), 23)
+
+
+func _item_quality(value: int) -> String:
+	# Presentation bands only. Exchange values and grants remain server-owned.
+	if value >= 70: return "legendary"
+	if value >= 40: return "epic"
+	if value >= 15: return "rare"
+	return "common"
+
+
+func _draw_output_cell(id: String, quantity: int, rect: Rect2, quality: String = "") -> void:
+	_panel(rect, Palette.RAISED if quality.is_empty() else Palette.rarity(quality), 12)
+	var art_size = minf(rect.size.x - 12, rect.size.y - 36)
+	var art_rect = Rect2(rect.position + Vector2((rect.size.x - art_size) * 0.5, 3), Vector2.ONE * art_size)
+	if id in ["金币", "券"]:
+		app._draw_resource_icon(art_rect.get_center(), id, Palette.GOLD if id == "金币" else Palette.BLUE)
+	else:
+		_art(id, art_rect)
+	_text("×%d" % quantity, Rect2(rect.position + Vector2(4, rect.size.y - 32), Vector2(rect.size.x - 8, 28)), 23)
 
 
 func claim_button() -> Rect2: return Rect2(466, 876, 224, 56)
@@ -267,8 +278,11 @@ func _reward_groups() -> Array:
 	var groups: Dictionary = {}
 	for item in snapshot.get("items", []):
 		var id = String(item.get("item_id", ""))
-		if not groups.has(id): groups[id] = {"id": id, "name": item.get("item_name", id), "count": 0}
-		groups[id].count += int(item.get("quantity", 1))
+		var source_plot = Rules.plot(String(item.get("plot_id", "")))
+		var quality = _item_quality(int(source_plot.get("value", 1)))
+		var key = id + ":" + quality
+		if not groups.has(key): groups[key] = {"id": id, "name": item.get("item_name", id), "quality": quality, "count": 0}
+		groups[key].count += int(item.get("quantity", 1))
 	return groups.values()
 
 func _draw_modal() -> void:
@@ -293,11 +307,8 @@ func _draw_modal() -> void:
 		else:
 			for index in range(mini(4, groups.size() - reward_page * 4)):
 				var item: Dictionary = groups[reward_page * 4 + index]
-				var y = 522 + index * 82
-				_panel(Rect2(84, y, 552, 72), Palette.RAISED)
-				_art(item.id, Rect2(101, y + 4, 64, 64))
-				_text(item.name, Rect2(178, y + 15, 260,  40), 27)
-				_text("×%d" % item.count, Rect2(463, y + 15, 136,  40), 29)
+				var cell = Rect2(152 + (index % 2) * 272, 522 + (index / 2) * 160, 144, 144)
+				_draw_output_cell(item.id, int(item.count), cell, item.quality)
 		if groups.size() > 4:
 			app._cta(Rect2( 90, 865, 132, 52), "上一页", false)
 			app._cta(Rect2(498, 865, 132, 52), "下一页", false)
@@ -335,12 +346,15 @@ func tap(pos: Vector2) -> void:
 					selected = p.id
 					GameAudio.play_sfx("ui_click")
 				else:
+					var eligibility = Rules.can_unlock(state, p.id, app.wallet_gold)
+					if eligibility.get("error", "") == "plot_not_adjacent":
+						app._toast("请先解锁相邻地块")
+						return
 					if not _plot_price_visible(p.id):
 						zoom = maxf(1.0, zoom)
 						pan += Vector2(360, 564) - plot_point(p.id)
 						app._toast("再次点击地块即可建造")
 						return
-					var eligibility = Rules.can_unlock(state, p.id, app.wallet_gold)
 					if not bool(eligibility.ok):
 						app._toast("金币不足" if eligibility.error == "insufficient_gold" else "请先解锁相邻地块")
 					elif not available:

@@ -44,6 +44,17 @@ feature_progress:
   source_collection: [functional_documents, numeric_or_config_tables, version_plan, filed_producer_directives, latest_accountable_receipts]
 
 active_modules:
+  - task_id: REQ-20260925-HOME-GACHA-READABILITY
+    feature_id: F-ZC-HOME-001
+    included_features: [F-ZC-HOME-001, F-ZC-GACHA-NEW-001]
+    owner: codex-primary
+    phase: closure
+    status: COMPLETE_SCOPED
+    release_status: LOCAL_NATIVE_RUNTIME_VALIDATED
+    completion_receipt: docs/receipts/REQ-20260925-HOME-GACHA-READABILITY.md
+    remaining_gates: [android_export_device_not_requested, server_deployment_not_required]
+    formal_source: docs/HOME_GACHA_POLISH_IMPLEMENTATION.md
+    read_only_receipt: docs/receipts/REQ-20260925-HOME-GACHA-READABILITY.md
   - task_id: REQ-20260925-HOME-GACHA-POLISH
     feature_id: F-ZC-HOME-001
     included_features: [F-ZC-HOME-001, F-ZC-GACHA-NEW-001]
@@ -449,6 +460,15 @@ active_modules:
 queued_modules: []
 
 shared_locks:
+  home_readability_20260925:
+    task_id: REQ-20260925-HOME-GACHA-READABILITY
+    owner: codex-primary
+    status: RELEASED
+    write_set: [scripts/app/ui/home_view.gd, home_readability_tests, home_design_sources]
+    released_write_set: [scripts/app/main.gd, scripts/app/ui/gacha_new_hero_reveal.gd, gacha_readability_tests]
+    gacha_commit: 0c129fb
+    read_only_receipt: docs/receipts/REQ-20260925-HOME-GACHA-READABILITY.md
+    evidence_root: temp/qa/home-readability-20260925
   home_polish_20260925:
     task_id: REQ-20260925-HOME-GACHA-POLISH
     owner: codex-primary

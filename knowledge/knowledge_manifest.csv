@@ -128,3 +128,5 @@ ZC_HOME_DESIGN_V11,docs/HOMESTEAD_DESIGN_v1.1.docx,design,canonical,active,v1.1.
 ZC_HOME_POLISH_V11,docs/HOME_GACHA_POLISH_IMPLEMENTATION.md,design,canonical,active,v1.1.0,engineering_owner,F-ZC-HOME-001;F-ZC-GACHA-NEW-001,中性锁地;点击建造;无升级;价格可见;金币;服务器,2026-09-25,,project,,
 ZC_HOME_POLISH_CLOSE_V11,docs/receipts/REQ-20260925-HOME-GACHA-POLISH.md,qa,canonical,active,v1.1.0,engineering_owner,F-ZC-HOME-001;F-ZC-GACHA-NEW-001,家园;主堡;建造;阿里云;staging;验收;抽卡;音效,2026-09-25,,project,,
 ZC_HOME_VISUALS_V11,config/tables/home_visuals.csv,config,canonical,active,v1.1.0,engineering_owner,F-ZC-HOME-001;F-ZC-GACHA-NEW-001,家园;33建筑;圈数;可见面积;原图;尺寸,2026-09-25,,project,,
+ZC_HOME_READABILITY_CLOSE,docs/receipts/REQ-20260925-HOME-GACHA-READABILITY.md,qa,canonical,active,v1.1.1,engineering_owner,F-ZC-HOME-001;F-ZC-GACHA-NEW-001,拖动;接壤;每日产出;道具品质;领奖红点;卡牌比例;翻牌;readability,2026-09-25,,project,,
+ZC_HOME_VIEW,scripts/app/ui/home_view.gd,code,canonical,active,v1.1.1,engineering_owner,F-ZC-HOME-001,pan;adjacency;daily-output;quality;claim-dot;价格可见,2026-09-25,,project,,

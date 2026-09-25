@@ -57,7 +57,7 @@ func _ready() -> void:
 	await tap(app._nav_rect(2).get_center())
 	await tap(app._nav_rect(0).get_center())
 	check(app.home_view.modal == "", "same day re-entry no second claim")
-	check(app.home_view.has_dot(), "affordable adjacent land dots tab")
+	check(not app.home_view.has_dot(), "claimed rewards clear home dot even with affordable adjacent land")
 	await capture("home-initial-map")
 	var first = ""
 	for p in app.home_view.visible:
