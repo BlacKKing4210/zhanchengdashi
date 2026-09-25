@@ -1,0 +1,319 @@
+{
+  "request": "REQ-20260925-GACHA-2332",
+  "included_requests": [
+    "REQ-20260925-HOME-EMOJI",
+    "REQ-20260925-ANIMAL-SLOGANS"
+  ],
+  "status": "COMPLETE_SCOPED",
+  "scope": "Windows native Godot 4.6.2; no APK/device or live server validation",
+  "baseline_head": "821e3bb895133e1e7881cb0a512e40de68493304",
+  "baseline_sha256": {
+    "scripts/app/main.gd": "2612CAC1AE18240AA6E58E39973014B83E6C0DB18FEEA428A36CD8693484D539",
+    "config/schema/config_schema.json": "42D956AC3663577843091D12DF60307C0DA32D05C5F32D281D722C639890212F",
+    "scripts/app/ui/gacha_new_hero_reveal.gd": "1198DE98E5E5258C13D61408D66C84936AE01178D676FC0FFB2EFAE7A4256CD9",
+    "scripts/app/ui/home_view.gd": "CCD0C74A9547BDA0FE34CA1458D784B7CBB681D85C336F7EED8F3B473B45A213",
+    "config/tables/cards.csv": "FCA4EB60EA4F7D71926F4D77607AC69389E83AEF05589703C3C062EF97E17349",
+    "design/战斗数值.xlsx": "0C6B63A3885B4A7A6EF42AD364D957F68B1C92B49C2C30A5FF12C2391C5A8F7D",
+    "docs/HOMESTEAD_DESIGN_v1.1.docx": "1EB5B5663DA878C5A2847647ADE6D517D6E77BF51E8E9BBF56BD9AD40AC22B76",
+    "runtime/config/cards.json": "9415FE6D7B2FB15BA350C5B263D66AFAEFAB43F6F47E51FC60B66BBB60108C60"
+  },
+  "source_files": [
+    {
+      "path": "config/schema/config_schema.json",
+      "sha256": "2d4084b948a0889b074a702a65c2578543e03a34e9d5408f520096beab9061a8",
+      "bytes": 20197
+    },
+    {
+      "path": "config/tables/cards.csv",
+      "sha256": "b8f7781b311423a57f2205d4a66c93d81e4f8eb0c15a03658fe20b52723d7fbc",
+      "bytes": 17342
+    },
+    {
+      "path": "runtime/config/cards.json",
+      "sha256": "90f354f63b38715f8fcb013275e83733e625e3f0df909ad69de455f76856e293",
+      "bytes": 54348
+    },
+    {
+      "path": "docs/HOMESTEAD_DESIGN_v1.1.docx",
+      "sha256": "165aa15452350cdeaaf090de539c104c4b6c14988bc73802af07b3af8eab63f8",
+      "bytes": 425148
+    },
+    {
+      "path": "docs/HOME_GACHA_POLISH_IMPLEMENTATION.md",
+      "sha256": "b74b570b0e9147ec472b156b18fee9ddf071f041cf6754adaaa890d39df01b09",
+      "bytes": 9050
+    },
+    {
+      "path": "docs/active_scope.yaml",
+      "sha256": "94c79de214f95868b19dbf65a26bdc334affd096983268444a94fecd4ae7a62a",
+      "bytes": 66803
+    },
+    {
+      "path": "docs/receipts/REQ-20260925-GACHA-2332.md",
+      "sha256": "5b292950653283254cdd777b936a3bfd97fbaa11ef81465b96a4a005d3c0bb02",
+      "bytes": 10407
+    },
+    {
+      "path": "knowledge/knowledge_manifest.csv",
+      "sha256": "ebdb8b9e3d10e1fe96e2518d278916153f145a2ddf4c4c2c3a10df2e841afe26",
+      "bytes": 28712
+    },
+    {
+      "path": "export_presets.cfg",
+      "sha256": "694ed03bfef1ab9836e37e2e59ec68310dfe9674e7e472e6dc5679435ca1076a",
+      "bytes": 6604
+    },
+    {
+      "path": "scripts/app/main.gd",
+      "sha256": "8c9e374f65a221af7bb92a32470503166188a879562d5a1ae220a817d56359ca",
+      "bytes": 407664
+    },
+    {
+      "path": "scripts/app/systems/card_rules.gd",
+      "sha256": "d5403d6daade7fb0341f1e639bc51dd87b12282800a3dacf4cd6c70bc24e904c",
+      "bytes": 7934
+    },
+    {
+      "path": "scripts/app/ui/gacha_new_hero_reveal.gd",
+      "sha256": "1bd20ef0bbfc32ac2982ae1de2d842f9ac78f9407ad91b0c3c953bfa5586beb9",
+      "bytes": 6520
+    },
+    {
+      "path": "scripts/app/ui/home_view.gd",
+      "sha256": "03f6097bca1520b2bcb20757fadc18efc5825de5d535c3f5983d00c861e58362",
+      "bytes": 20211
+    },
+    {
+      "path": "tests/test_gacha_card_readability.gd",
+      "sha256": "3a863f79b3e6c5dc5edd88116fd0a218497c1e87f709472e68c4b59e85b005b2",
+      "bytes": 2066
+    },
+    {
+      "path": "tests/test_gacha_readability_correction.gd",
+      "sha256": "715122d230fe336fe6e969f8d5c2e6eb725ae8ba9144ffc499af003f82852132",
+      "bytes": 12473
+    },
+    {
+      "path": "tests/test_animal_slogans.py",
+      "sha256": "0c779cabb3a41cf8f44e3c45eafb9fd6210f0dd9eaf3cc2090551020a7274d1d",
+      "bytes": 4036
+    },
+    {
+      "path": "tests/test_gacha_spaced_layout.gd",
+      "sha256": "27e83d1c8272052a00fb50e26a2755009d4aee9db8a5a9198f08b072421e8cd3",
+      "bytes": 11263
+    },
+    {
+      "path": "tests/test_gacha_spaced_layout.tscn",
+      "sha256": "bef5cfb66b2921ce4c23b4e4b52e068e23081d97f202ec943b613697930001d5",
+      "bytes": 192
+    },
+    {
+      "path": "tests/test_gacha_slogan_reveal.gd",
+      "sha256": "aee0e950b04df02445b52afd2a5a1347bcc15e5ff976b84cf2916085e026742f",
+      "bytes": 8422
+    },
+    {
+      "path": "tests/test_gacha_slogan_reveal.tscn",
+      "sha256": "d516a7d5ab97e69b679a500a983625f516dbc06f4c89818ac22125339e62f106",
+      "bytes": 192
+    },
+    {
+      "path": "tests/test_home_emoji_bubble.gd",
+      "sha256": "4aa50788053945065a784e249579c5f5103b2bc2cb8cb51cb8930f980e6e7800",
+      "bytes": 8968
+    },
+    {
+      "path": "tests/test_home_emoji_bubble.tscn",
+      "sha256": "b85a534770da7dd1dff51778f30ce5161f4b1c9f7bfcfa57734c460366461fb4",
+      "bytes": 188
+    },
+    {
+      "path": "tools/build_home_design_docx.py",
+      "sha256": "9ca24ff58c2c90ac8d1b09a57f938c7a53bb3f740ee352435a016c9deb8c881f",
+      "bytes": 42957
+    },
+    {
+      "path": "tools/config_csv.py",
+      "sha256": "52b5a327406038cc36602296d6a0eac73991df99d22c8db5126318ba3f19e936",
+      "bytes": 24403
+    },
+    {
+      "path": "tools/validate_config.py",
+      "sha256": "57e5e04606126b04b43d48e304cb67ca932aabb7c888a81a94ba8c6ae5faf24b",
+      "bytes": 11690
+    },
+    {
+      "path": "assets/ui/home_emoji/.gitignore",
+      "sha256": "20ee8c60ef18214cedd13da83d3f2f527f2bc18cb01e4f4436aae0ad91f3a4ea",
+      "bytes": 9
+    },
+    {
+      "path": "assets/ui/home_emoji/1f60a.svg",
+      "sha256": "bda4e6d76f6b82b87f43755d551b36dd7cfb0d0117fb798435270e7c1127a87e",
+      "bytes": 1055
+    },
+    {
+      "path": "assets/ui/home_emoji/1f60d.svg",
+      "sha256": "e17d4d0339ce34ba1ee3274fdc98a1bd5ca4a8f309861b63b746970a609d7d63",
+      "bytes": 941
+    },
+    {
+      "path": "assets/ui/home_emoji/1f634.svg",
+      "sha256": "f3f17ba0097e1445616e4540132d3f7ef3c203936cb250de9228aec8234630a3",
+      "bytes": 2636
+    },
+    {
+      "path": "assets/ui/home_emoji/1f929.svg",
+      "sha256": "2ab3b3a3394fa7f9e81996884447f0c4bcfecb002514328cbbc85e913ac8eb72",
+      "bytes": 1270
+    },
+    {
+      "path": "assets/ui/home_emoji/LICENSE-GRAPHICS",
+      "sha256": "8ae9438818c26e4873b91d8c6ad620526c011e27e125677f13031eda903f007c",
+      "bytes": 18524
+    },
+    {
+      "path": "assets/ui/home_emoji/NOTICE.md",
+      "sha256": "cc9d02d1a7cdb9096554ebd636f0a50b001b4afe3f8024ac6f7932fdaa52b907",
+      "bytes": 1162
+    }
+  ],
+  "evidence": [
+    {
+      "path": "temp/qa/gacha-spaced-20260925/candidate-mixture-720.png",
+      "sha256": "2c3077d6b70409a84849d363c1d41b950e6ddf96ffde72cb55879aa04aaecf20",
+      "bytes": 167556
+    },
+    {
+      "path": "temp/qa/gacha-spaced-20260925/candidate-mixture-360.png",
+      "sha256": "45917e893feb94d55216391a081ef826f52669580d4c56d5c61517d81c8fa7fd",
+      "bytes": 59227
+    },
+    {
+      "path": "temp/qa/gacha-spaced-20260925/candidate-slogan-mouse-720.png",
+      "sha256": "e38060e89c9b99aa98eb1bebec9d62c287166b3160515414c0466aed55f6e5da",
+      "bytes": 196619
+    },
+    {
+      "path": "temp/qa/gacha-spaced-20260925/candidate-slogan-mouse-360.png",
+      "sha256": "2ae888b76b6b0548e14abc7f51045f69b01ffe1ff097366dec0865c2ba9568d3",
+      "bytes": 72318
+    },
+    {
+      "path": "temp/qa/gacha-spaced-20260925/candidate-slogan-horse-360.png",
+      "sha256": "2613809f5d1985f72c1765f58534ff161c661c9dfd0c63da0d0b9566c8c41dd7",
+      "bytes": 69644
+    },
+    {
+      "path": "temp/qa/gacha-spaced-20260925/candidate-slogan-boundary.json",
+      "sha256": "371b138e6dd0b19dd629157eecf71392eaba0d0a1f2d33b7c4fc207d42450c2c",
+      "bytes": 5654
+    },
+    {
+      "path": "temp/qa/gacha-spaced-20260925/final-slogan-protected-comparison.json",
+      "sha256": "fce1cbb0e73f1d5de930a2c9f6f75f64b7e51be48c4e1dd2e205244329670f3a",
+      "bytes": 1915
+    },
+    {
+      "path": "temp/qa/home-emoji-20260925/candidate/720x1280-four-moods.png",
+      "sha256": "d872d6d69f0c65182b3039ee3a9b8aa191f988a161163d7e5fd7837858c17137",
+      "bytes": 184614
+    },
+    {
+      "path": "temp/qa/home-emoji-20260925/candidate/360x640-four-moods.png",
+      "sha256": "7e8be827d06d88c5ea32d592c4101c8d5d30972d5b361f2d049046bebb947c8c",
+      "bytes": 68468
+    },
+    {
+      "path": "temp/qa/home-emoji-20260925/final-hashes.json",
+      "sha256": "8a09edc640ee47d7e8544dcaf7858fdc6dad389bcb22474df1ea5a03f1db56de",
+      "bytes": 2026
+    },
+    {
+      "path": "temp/qa/home-emoji-20260925/cleanup.json",
+      "sha256": "d7d258dc8104513a974adaaff0d2597c2510521d37bc4e826a2ddfaa31120ed2",
+      "bytes": 370
+    },
+    {
+      "path": "temp/qa/gacha-spaced-20260925/document/render-receipt.json",
+      "sha256": "7517e3190ea4b602478fc472d124f233a887c7516d70f138cfa7d3919185b52c",
+      "bytes": 305
+    }
+  ],
+  "results": {
+    "gacha_layout": {
+      "headless": [
+        421,
+        0
+      ],
+      "gpu": [
+        605,
+        0
+      ]
+    },
+    "slogans_final_renderer": {
+      "headless": [
+        76,
+        0
+      ],
+      "gpu": [
+        332,
+        0
+      ],
+      "32_character_stress": [
+        40,
+        0
+      ]
+    },
+    "emoji": {
+      "headless": [
+        34,
+        0
+      ],
+      "gpu": [
+        54,
+        0
+      ]
+    },
+    "regressions": {
+      "home_runtime": [
+        4617,
+        0
+      ],
+      "gacha_readability": [
+        4672,
+        0
+      ],
+      "card_readability": [
+        363,
+        0
+      ],
+      "gacha_polish": [
+        77,
+        0
+      ]
+    },
+    "configuration_tests": [
+      5,
+      0
+    ],
+    "config_validation": {
+      "tables": 19,
+      "rows": 467,
+      "valid": true
+    },
+    "rag_status": "READY",
+    "docx_final_pages": 14
+  },
+  "review_findings_remaining": 0,
+  "cleanup_exception": {
+    "disposition": "KEPT_AUTOMATIC_APPROVAL_REJECTED",
+    "path": "D:\\AI\\zhanchengdashi\\temp\\qa\\home-emoji-20260925\\normal-user",
+    "logical_bytes_deleted": 0,
+    "actual_disk_change": 0,
+    "reason": "Remove-Item rejected before execution: blocked by policy",
+    "note": "Task-created isolated normal-mode profile retained. No shared user profile touched."
+  },
+  "unrelated_workbook_preserved": true
+}

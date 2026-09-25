@@ -7969,7 +7969,7 @@ func _draw_gacha_screen() -> void:
 	_draw_text_center("抽卡", Rect2(40, 68, 640, 58), 46, Color.WHITE)
 	_resource(Rect2(238, 130, 244, 48), "抽卡券", str(gacha_tickets), COLOR_YELLOW)
 
-	var reward_panel = Rect2(46, 220, 628, 560)
+	var reward_panel = Rect2(46, 208, 628, 822)
 	_box(reward_panel, Color(0.19, 0.16, 0.45), COLOR_LINE, 5)
 	_draw_text_center("最近获得", Rect2(reward_panel.position + Vector2(0, 28), Vector2(reward_panel.size.x, 42)), 30, Color.WHITE)
 	var display_count = last_gacha_cards.size() + gacha_pending_cards.size()
@@ -8020,6 +8020,8 @@ func _draw_gacha_showcase_card(rect: Rect2, card: Dictionary) -> void:
 	if visible_size.x > 0 and visible_size.y > 0:
 		# Fit visible pixels uniformly, preserving the source aspect and removing transparent padding.
 		var fit = minf(art_rect.size.x / visible_size.x, art_rect.size.y / visible_size.y)
+		if _card_kind(card) == CARD_KIND_ANIMAL:
+			fit *= 0.78
 		var full_size = texture.get_size() * fit
 		var full_position = art_rect.get_center() - (visible.position + visible.size * 0.5) * full_size
 		var center = full_position + full_size * 0.5
@@ -8034,19 +8036,28 @@ func _draw_gacha_showcase_card(rect: Rect2, card: Dictionary) -> void:
 func _gacha_reward_card_rect(index: int, count: int) -> Rect2:
 	count = max(1, count)
 	if count == 1:
-		return Rect2(228, 320, COLLECTION_CARD_SIZE.x * 2, COLLECTION_CARD_SIZE.y * 2)
-	var columns = mini(4, count)
+		return Rect2(228, 460, COLLECTION_CARD_SIZE.x * 2, COLLECTION_CARD_SIZE.y * 2)
+	var row_counts = [2, 3, 3, 2] if count == 10 else []
+	if row_counts.is_empty():
+		var remaining = count
+		while remaining > 0:
+			var columns = mini(3, remaining)
+			row_counts.append(columns)
+			remaining -= columns
 	var card_size = COLLECTION_CARD_SIZE
-	var gap = Vector2(20, 4)
-	var row = floori(float(index) / float(columns))
-	var col = index % columns
-	var rows = ceili(float(count) / float(columns))
-	var row_count = columns
-	if row == rows - 1:
-		row_count = count - row * columns
+	var gap = Vector2(40, 28)
+	var row = 0
+	var col = clampi(index, 0, count - 1)
+	while col >= row_counts[row]:
+		col -= row_counts[row]
+		row += 1
+	var row_count = row_counts[row]
 	var row_width = float(row_count) * card_size.x + float(row_count - 1) * gap.x
 	var start_x = (DESIGN_SIZE.x - row_width) * 0.5
-	var start_y = 298.0 if rows > 1 else 396.0
+	if count == 10 and row in [1, 2]:
+		start_x += -12.0 if row == 1 else 12.0
+	var group_height = row_counts.size() * card_size.y + (row_counts.size() - 1) * gap.y
+	var start_y = 298.0 + (716.0 - group_height) * 0.5
 	return Rect2(Vector2(start_x + float(col) * (card_size.x + gap.x), start_y + float(row) * (card_size.y + gap.y)), card_size)
 
 
@@ -10169,11 +10180,11 @@ func _room_primary_action_rect() -> Rect2:
 
 
 func _gacha_draw_rect() -> Rect2:
-	return Rect2(104, 830, 240, 76)
+	return Rect2(104, 1050, 240, 76)
 
 
 func _gacha_ten_draw_rect() -> Rect2:
-	return Rect2(376, 830, 240, 76)
+	return Rect2(376, 1050, 240, 76)
 
 
 func _upgrade_button_rect() -> Rect2:

@@ -31,6 +31,7 @@ static func card_from_row(row: Dictionary) -> Dictionary:
 	return {
 		"id": string_from_value(row.get("id", "")),
 		"name": string_from_value(row.get("name", row.get("id", ""))),
+		"slogan": string_from_value(row.get("slogan", "")),
 		"rarity": string_from_value(row.get("rarity", rarity_for_tier(tier))),
 		"tier": tier,
 		"art_path": string_from_value(row.get("art_path", "")),

@@ -26,7 +26,8 @@
       "swarm",
       "no_skill"
     ],
-    "design_notes": "怪群"
+    "design_notes": "怪群",
+    "slogan": "鼠鼠我呀，主打一个人多。"
   },
   {
     "id": "ant",
@@ -57,7 +58,8 @@
       "attack",
       "skill"
     ],
-    "design_notes": "怪群"
+    "design_notes": "怪群",
+    "slogan": "别叫我打工蚁，我们是集团。"
   },
   {
     "id": "sparrow",
@@ -87,7 +89,8 @@
       "no_skill",
       "flying"
     ],
-    "design_notes": "快攻"
+    "design_notes": "快攻",
+    "slogan": "麻雀虽小，输出不能少。"
   },
   {
     "id": "frog",
@@ -118,7 +121,8 @@
       "control",
       "skill"
     ],
-    "design_notes": "0"
+    "design_notes": "0",
+    "slogan": "孤寡只是叫声，群聊我也有。"
   },
   {
     "id": "rabbit",
@@ -149,7 +153,8 @@
       "frontline",
       "skill"
     ],
-    "design_notes": "快攻"
+    "design_notes": "快攻",
+    "slogan": "这块归我，胆子也大一点。"
   },
   {
     "id": "chicken",
@@ -180,7 +185,8 @@
       "economy",
       "skill"
     ],
-    "design_notes": "发育"
+    "design_notes": "发育",
+    "slogan": "鸡毛可以掉，零钱不能少。"
   },
   {
     "id": "pigeon",
@@ -212,7 +218,8 @@
       "skill",
       "flying"
     ],
-    "design_notes": "发育"
+    "design_notes": "发育",
+    "slogan": "不鸽你，这块地我真要了。"
   },
   {
     "id": "hamster",
@@ -243,7 +250,8 @@
       "economy",
       "skill"
     ],
-    "design_notes": "快攻核心"
+    "design_notes": "快攻核心",
+    "slogan": "这一身存货，真不想便宜你。"
   },
   {
     "id": "snail",
@@ -272,7 +280,8 @@
       "guard",
       "no_skill"
     ],
-    "design_notes": "肉盾"
+    "design_notes": "肉盾",
+    "slogan": "急什么，房子还背在身上。"
   },
   {
     "id": "tadpole",
@@ -301,7 +310,8 @@
       "swarm",
       "no_skill"
     ],
-    "design_notes": "快攻"
+    "design_notes": "快攻",
+    "slogan": "先别叫我小不点，腿在路上。"
   },
   {
     "id": "cat",
@@ -330,7 +340,8 @@
       "striker",
       "no_skill"
     ],
-    "design_notes": "小单位克制"
+    "design_notes": "小单位克制",
+    "slogan": "九条命，八条用来试错。"
   },
   {
     "id": "dog",
@@ -361,7 +372,8 @@
       "economy",
       "skill"
     ],
-    "design_notes": "群怪核心"
+    "design_notes": "群怪核心",
+    "slogan": "兄弟再来一只，我就再凶一点。"
   },
   {
     "id": "duck",
@@ -392,7 +404,8 @@
       "skill",
       "flying"
     ],
-    "design_notes": "怪群"
+    "design_notes": "怪群",
+    "slogan": "压力给到你，鸭力给到我。"
   },
   {
     "id": "squirrel",
@@ -423,7 +436,8 @@
       "capture",
       "skill"
     ],
-    "design_notes": "发育"
+    "design_notes": "发育",
+    "slogan": "别催，零钱埋在哪我想想。"
   },
   {
     "id": "hedgehog",
@@ -454,7 +468,8 @@
       "retaliate",
       "skill"
     ],
-    "design_notes": "小单位克制"
+    "design_notes": "小单位克制",
+    "slogan": "可以扎心，不许摸我的刺。"
   },
   {
     "id": "turtle",
@@ -485,7 +500,8 @@
       "tank",
       "skill"
     ],
-    "design_notes": "小单位克制"
+    "design_notes": "小单位克制",
+    "slogan": "别人卷输出，我卷精装修。"
   },
   {
     "id": "goat",
@@ -516,7 +532,8 @@
       "hp",
       "skill"
     ],
-    "design_notes": "AOE"
+    "design_notes": "AOE",
+    "slogan": "别挡路，我可不是善茬羊。"
   },
   {
     "id": "sheep",
@@ -547,7 +564,8 @@
       "group_buff",
       "skill"
     ],
-    "design_notes": "单体辅助"
+    "design_notes": "单体辅助",
+    "slogan": "咩事，有我在就多撑一会儿。"
   },
   {
     "id": "parrot",
@@ -578,7 +596,8 @@
       "skill",
       "flying"
     ],
-    "design_notes": "AOE"
+    "design_notes": "AOE",
+    "slogan": "再说一遍？顺便再揍一遍。"
   },
   {
     "id": "beaver",
@@ -609,7 +628,8 @@
       "building",
       "skill"
     ],
-    "design_notes": "塔防"
+    "design_notes": "塔防",
+    "slogan": "牙是工具，修房另算工钱。"
   },
   {
     "id": "fox",
@@ -640,7 +660,8 @@
       "group_buff",
       "skill"
     ],
-    "design_notes": "群怪核心"
+    "design_notes": "群怪核心",
+    "slogan": "别急着说我狡猾，先喊军师。"
   },
   {
     "id": "monkey",
@@ -671,7 +692,8 @@
       "tempo",
       "skill"
     ],
-    "design_notes": "暴击核心"
+    "design_notes": "暴击核心",
+    "slogan": "上蹿下跳，是我的工位日常。"
   },
   {
     "id": "pig",
@@ -702,7 +724,8 @@
       "tank",
       "skill"
     ],
-    "design_notes": "肉盾"
+    "design_notes": "肉盾",
+    "slogan": "冲我来，我这身肉有用处。"
   },
   {
     "id": "deer",
@@ -733,7 +756,8 @@
       "charge",
       "skill"
     ],
-    "design_notes": "跳跃"
+    "design_notes": "跳跃",
+    "slogan": "这一跃，算我给你壮个胆。"
   },
   {
     "id": "otter",
@@ -764,7 +788,8 @@
       "economy",
       "skill"
     ],
-    "design_notes": "塔防核心"
+    "design_notes": "塔防核心",
+    "slogan": "给塔加把劲，给我加条鱼。"
   },
   {
     "id": "penguin",
@@ -795,7 +820,8 @@
       "attack",
       "skill"
     ],
-    "design_notes": "发育"
+    "design_notes": "发育",
+    "slogan": "西装穿上，买地像个老板。"
   },
   {
     "id": "peacock",
@@ -826,7 +852,8 @@
       "skill",
       "flying"
     ],
-    "design_notes": "AOE核心"
+    "design_notes": "AOE核心",
+    "slogan": "看我开屏，挨打记得排队。"
   },
   {
     "id": "kangaroo",
@@ -857,7 +884,8 @@
       "burst",
       "skill"
     ],
-    "design_notes": "跳跃"
+    "design_notes": "跳跃",
+    "slogan": "实力不外露，先往兜里揣。"
   },
   {
     "id": "seal",
@@ -886,7 +914,8 @@
       "guard",
       "no_skill"
     ],
-    "design_notes": "远程杀手"
+    "design_notes": "远程杀手",
+    "slogan": "先别鼓掌，我还有一下狠的。"
   },
   {
     "id": "swan",
@@ -918,7 +947,8 @@
       "skill",
       "flying"
     ],
-    "design_notes": "远程"
+    "design_notes": "远程",
+    "slogan": "脖子伸得长，班味离我远。"
   },
   {
     "id": "wolf",
@@ -949,7 +979,8 @@
       "attack",
       "skill"
     ],
-    "design_notes": "群怪核心"
+    "design_notes": "群怪核心",
+    "slogan": "听见一声嚎，来的可不止我。"
   },
   {
     "id": "horse",
@@ -980,7 +1011,8 @@
       "group_buff",
       "skill"
     ],
-    "design_notes": "快攻"
+    "design_notes": "快攻",
+    "slogan": "拒绝画饼，我只吃草。"
   },
   {
     "id": "cow",
@@ -1011,7 +1043,8 @@
       "capture",
       "skill"
     ],
-    "design_notes": "超级肉盾"
+    "design_notes": "超级肉盾",
+    "slogan": "别叫我牛马，我只接牛的活。"
   },
   {
     "id": "zebra",
@@ -1043,7 +1076,8 @@
       "group_buff",
       "skill"
     ],
-    "design_notes": "跳跃"
+    "design_notes": "跳跃",
+    "slogan": "这身斑马线，可不是让你过的。"
   },
   {
     "id": "camel",
@@ -1074,7 +1108,8 @@
       "tank",
       "skill"
     ],
-    "design_notes": "hero"
+    "design_notes": "hero",
+    "slogan": "两座驼峰，都是续航焦虑。"
   },
   {
     "id": "dolphin",
@@ -1104,7 +1139,8 @@
       "shield",
       "skill"
     ],
-    "design_notes": "远程杀手"
+    "design_notes": "远程杀手",
+    "slogan": "谁最能打？出来聊个水花。"
   },
   {
     "id": "falcon",
@@ -1135,7 +1171,8 @@
       "skill",
       "flying"
     ],
-    "design_notes": "快攻"
+    "design_notes": "快攻",
+    "slogan": "你慢慢瞄，我先绕个圈。"
   },
   {
     "id": "boar",
@@ -1166,7 +1203,8 @@
       "stun",
       "skill"
     ],
-    "design_notes": "AOE"
+    "design_notes": "AOE",
+    "slogan": "先让让，我刹车还没学会。"
   },
   {
     "id": "crane",
@@ -1197,7 +1235,8 @@
       "skill",
       "flying"
     ],
-    "design_notes": "远程克制"
+    "design_notes": "远程克制",
+    "slogan": "招呼打个弯，谁也别见外。"
   },
   {
     "id": "lynx",
@@ -1226,7 +1265,8 @@
       "striker",
       "no_skill"
     ],
-    "design_notes": "发育克制"
+    "design_notes": "发育克制",
+    "slogan": "人我收拾，零钱我也笑纳。"
   },
   {
     "id": "bear",
@@ -1257,7 +1297,8 @@
       "tank",
       "skill"
     ],
-    "design_notes": "hero"
+    "design_notes": "hero",
+    "slogan": "这一巴掌，邻座也有份。"
   },
   {
     "id": "tiger",
@@ -1288,7 +1329,8 @@
       "melee",
       "skill"
     ],
-    "design_notes": "hero"
+    "design_notes": "hero",
+    "slogan": "山头还没登顶，饭量先升级。"
   },
   {
     "id": "lion",
@@ -1319,7 +1361,8 @@
       "death",
       "skill"
     ],
-    "design_notes": "快攻"
+    "design_notes": "快攻",
+    "slogan": "王者不空吼，越打越有劲。"
   },
   {
     "id": "rhino",
@@ -1350,7 +1393,8 @@
       "stun",
       "skill"
     ],
-    "design_notes": "冲锋"
+    "design_notes": "冲锋",
+    "slogan": "我的道理，一般直来直往。"
   },
   {
     "id": "hippo",
@@ -1379,7 +1423,8 @@
       "guard",
       "no_skill"
     ],
-    "design_notes": "减伤"
+    "design_notes": "减伤",
+    "slogan": "河里有我，当然很河理。"
   },
   {
     "id": "giraffe",
@@ -1410,7 +1455,8 @@
       "group_buff",
       "skill"
     ],
-    "design_notes": "辅助"
+    "design_notes": "辅助",
+    "slogan": "脖子这么长，也没等到下班。"
   },
   {
     "id": "gorilla",
@@ -1441,7 +1487,8 @@
       "melee",
       "skill"
     ],
-    "design_notes": "暴击"
+    "design_notes": "暴击",
+    "slogan": "在我家门口，拳头格外争气。"
   },
   {
     "id": "leopard",
@@ -1470,7 +1517,8 @@
       "scout",
       "no_skill"
     ],
-    "design_notes": "闪避"
+    "design_notes": "闪避",
+    "slogan": "不接受暴击，我接受豹富。"
   },
   {
     "id": "eagle",
@@ -1501,7 +1549,8 @@
       "skill",
       "flying"
     ],
-    "design_notes": "AOE"
+    "design_notes": "AOE",
+    "slogan": "我来串个门，挨个打招呼。"
   },
   {
     "id": "crocodile",
@@ -1532,7 +1581,8 @@
       "melee",
       "skill"
     ],
-    "design_notes": "快攻核心"
+    "design_notes": "快攻核心",
+    "slogan": "第一口很贵，后面算你打折。"
   },
   {
     "id": "elephant",
@@ -1563,7 +1613,8 @@
       "hp",
       "skill"
     ],
-    "design_notes": "肉盾"
+    "design_notes": "肉盾",
+    "slogan": "对象太难找，大象这就到。"
   },
   {
     "id": "blue_whale",
@@ -1593,7 +1644,8 @@
       "shield",
       "skill"
     ],
-    "design_notes": "远程杀手"
+    "design_notes": "远程杀手",
+    "slogan": "小场面？我下水就没了。"
   },
   {
     "id": "orca",
@@ -1623,7 +1675,8 @@
       "execute",
       "skill"
     ],
-    "design_notes": "AOE"
+    "design_notes": "AOE",
+    "slogan": "海里叫虎鲸，饭点叫我就行。"
   },
   {
     "id": "shark",
@@ -1652,7 +1705,8 @@
       "striker",
       "no_skill"
     ],
-    "design_notes": "hero"
+    "design_notes": "hero",
+    "slogan": "谁掉了一滴血？我来帮你找。"
   },
   {
     "id": "python",
@@ -1682,7 +1736,8 @@
       "control",
       "skill"
     ],
-    "design_notes": "巨人杀手"
+    "design_notes": "巨人杀手",
+    "slogan": "吃得下多少，就长多少底气。"
   },
   {
     "id": "komodo_dragon",
@@ -1712,7 +1767,8 @@
       "poison",
       "skill"
     ],
-    "design_notes": "巨人杀手"
+    "design_notes": "巨人杀手",
+    "slogan": "别跟我硬撑，下口直接对半。"
   },
   {
     "id": "polar_bear",
@@ -1742,7 +1798,8 @@
       "shield",
       "skill"
     ],
-    "design_notes": "hero"
+    "design_notes": "hero",
+    "slogan": "别挤，一熊掌够大家凉快。"
   },
   {
     "id": "silverback",
@@ -1772,7 +1829,8 @@
       "summon",
       "skill"
     ],
-    "design_notes": "暴击核心"
+    "design_notes": "暴击核心",
+    "slogan": "出门做客，拳头得带点诚意。"
   },
   {
     "id": "golden_eagle",
@@ -1802,7 +1860,8 @@
       "skill",
       "flying"
     ],
-    "design_notes": "AOE"
+    "design_notes": "AOE",
+    "slogan": "借过一下，后排我也要招呼。"
   },
   {
     "id": "mammoth",
@@ -1833,7 +1892,8 @@
       "tank",
       "skill"
     ],
-    "design_notes": "肉盾"
+    "design_notes": "肉盾",
+    "slogan": "毛多抗揍，主打一个古早。"
   },
   {
     "id": "gold_mine_card",
@@ -1863,7 +1923,8 @@
       "economy",
       "mandatory"
     ],
-    "design_notes": "金矿：紫色品质经济建筑卡，每套编组必须携带。"
+    "design_notes": "金矿：紫色品质经济建筑卡，每套编组必须携带。",
+    "slogan": null
   },
   {
     "id": "defense_watch_tower",
@@ -1894,7 +1955,8 @@
       "starter",
       "rabbit"
     ],
-    "design_notes": "品质2基础塔；最终属性直接读取；方案A动物同风格低细节正式塔图。"
+    "design_notes": "品质2基础塔；最终属性直接读取；方案A动物同风格低细节正式塔图。",
+    "slogan": null
   },
   {
     "id": "defense_longshot_tower",
@@ -1926,7 +1988,8 @@
       "falcon",
       "ranged_priority"
     ],
-    "design_notes": "品质3远射塔；3.5格为效果后最终距离；方案A动物同风格低细节正式塔图。"
+    "design_notes": "品质3远射塔；3.5格为效果后最终距离；方案A动物同风格低细节正式塔图。",
+    "slogan": null
   },
   {
     "id": "defense_cannon_tower",
@@ -1958,7 +2021,8 @@
       "boar",
       "heavy_bolt"
     ],
-    "design_notes": "品质3强攻塔；攻击2为效果后最终攻击；方案A动物同风格低细节正式塔图。"
+    "design_notes": "品质3强攻塔；攻击2为效果后最终攻击；方案A动物同风格低细节正式塔图。",
+    "slogan": null
   },
   {
     "id": "defense_plunder_tower",
@@ -1990,7 +2054,8 @@
       "squirrel",
       "economy"
     ],
-    "design_notes": "成功直接攻击后转移最多1金币；方案A动物同风格低细节正式塔图。"
+    "design_notes": "成功直接攻击后转移最多1金币；方案A动物同风格低细节正式塔图。",
+    "slogan": null
   },
   {
     "id": "defense_rapid_tower",
@@ -2022,7 +2087,8 @@
       "sparrow",
       "rapid"
     ],
-    "design_notes": "品质4速射塔；0.5秒为效果后最终间隔；方案A动物同风格低细节正式塔图。"
+    "design_notes": "品质4速射塔；0.5秒为效果后最终间隔；方案A动物同风格低细节正式塔图。",
+    "slogan": null
   },
   {
     "id": "defense_repair_beacon",
@@ -2054,7 +2120,8 @@
       "turtle",
       "tank"
     ],
-    "design_notes": "保留旧内部ID；生命21为效果后最终生命；方案A动物同风格低细节正式塔图。"
+    "design_notes": "保留旧内部ID；生命21为效果后最终生命；方案A动物同风格低细节正式塔图。",
+    "slogan": null
   },
   {
     "id": "defense_twinshot_tower",
@@ -2086,7 +2153,8 @@
       "parrot",
       "multi_target"
     ],
-    "design_notes": "额外命中一个不同敌方动物；3格为效果后最终距离；方案A动物同风格低细节正式塔图。"
+    "design_notes": "额外命中一个不同敌方动物；3格为效果后最终距离；方案A动物同风格低细节正式塔图。",
+    "slogan": null
   },
   {
     "id": "defense_bounty_tower",
@@ -2118,7 +2186,8 @@
       "tiger",
       "bounty"
     ],
-    "design_notes": "仅实际击杀动物奖励10金币；攻击3为效果后最终攻击；方案A动物同风格低细节正式塔图。"
+    "design_notes": "仅实际击杀动物奖励10金币；攻击3为效果后最终攻击；方案A动物同风格低细节正式塔图。",
+    "slogan": null
   },
   {
     "id": "defense_territory_tower",
@@ -2150,7 +2219,8 @@
       "golden_eagle",
       "territory"
     ],
-    "design_notes": "仅目标动物位于塔方或盟友领地时合法；方案A动物同风格低细节正式塔图。"
+    "design_notes": "仅目标动物位于塔方或盟友领地时合法；方案A动物同风格低细节正式塔图。",
+    "slogan": null
   },
   {
     "id": "defense_storm_obelisk",
@@ -2182,6 +2252,7 @@
       "mammoth",
       "global_pulse"
     ],
-    "design_notes": "保留旧内部ID；全体脉冲替代单体攻击；方案A动物同风格低细节正式塔图。"
+    "design_notes": "保留旧内部ID；全体脉冲替代单体攻击；方案A动物同风格低细节正式塔图。",
+    "slogan": null
   }
 ]

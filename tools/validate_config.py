@@ -41,6 +41,11 @@ def check_type(
     if value == "":
         return None
 
+    if "max_length" in field_schema and len(value) > field_schema["max_length"]:
+        return f"{table_name}.{field_name}: must contain at most {field_schema['max_length']} characters"
+    if field_schema.get("single_line", False) and any(character in value for character in "\r\n"):
+        return f"{table_name}.{field_name}: must be a single line"
+
     field_type = field_schema["type"]
     if field_type == "string":
         return None

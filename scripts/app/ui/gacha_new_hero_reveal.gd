@@ -131,8 +131,35 @@ func _draw_paw(center: Vector2, color: Color) -> void:
 func _draw_hero() -> void:
 	_draw_portrait(Rect2(96, 260, 528, 528))
 	_text(String(current.get("name", current.get("id", ""))), Rect2(64, 840, 592, 64), 46)
+	_draw_slogan()
 	app.draw_style_box(UISkin.panel(UISkin.PRIMARY, 18, true), Rect2(138, 1112, 444, 76))
 	_text("继续", Rect2(138, 1112, 444, 76), 34)
+
+
+func _draw_slogan() -> void:
+	var slogan = CardRules.string_from_value(current.get("slogan", "")).strip_edges()
+	if slogan.is_empty():
+		return
+	var rect = Rect2(64, 936, 592, 128)
+	var border = UISkin.SURFACE.darkened(0.10)
+	app.draw_style_box(UISkin.panel(border, 22, true), rect)
+	app.draw_style_box(UISkin.panel(UISkin.RAISED, 20, false), rect.grow(-2))
+	var pointer = PackedVector2Array([Vector2(344, 939), Vector2(359, 919), Vector2(378, 939)])
+	app.draw_colored_polygon(pointer, UISkin.RAISED)
+	app.draw_polyline(PackedVector2Array([pointer[0], pointer[1], pointer[2]]), border, 2.0, true)
+	# Config validation limits slogans to 32 characters. Wrap without ellipsis or font shrinking.
+	var lines: Array[String] = []
+	var line = ""
+	for character in slogan:
+		if not line.is_empty() and app.font.get_string_size(line + character, HORIZONTAL_ALIGNMENT_LEFT, -1, 30).x > 540:
+			lines.append(line)
+			line = ""
+		line += character
+	if not line.is_empty():
+		lines.append(line)
+	var top = 996.0 - float(lines.size()) * 19.0
+	for index in range(lines.size()):
+		_text(lines[index], Rect2(90, top + index * 38.0, 540, 38), 30)
 
 
 func _draw_portrait(rect: Rect2, entrance_motion: bool = true) -> void:

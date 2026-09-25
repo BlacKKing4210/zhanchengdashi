@@ -7,6 +7,12 @@ const Visuals = preload("res://scripts/app/ui/home_visual_catalog.gd")
 const MAP_RECT = Rect2(0, 194, 720, 756)
 const TYPE_COLORS = {"castle": 7, "residence": 1, "dining": 5, "entertainment": 2, "sport": 4}
 const TYPE_LABELS = {"castle": "主城堡", "residence": "居住", "dining": "吃饭", "entertainment": "娱乐", "sport": "运动"}
+const MOOD_EMOJI = {
+	"happy": preload("res://assets/ui/home_emoji/1f60a.svg"),
+	"love": preload("res://assets/ui/home_emoji/1f60d.svg"),
+	"excited": preload("res://assets/ui/home_emoji/1f929.svg"),
+	"tired": preload("res://assets/ui/home_emoji/1f634.svg"),
+}
 var app
 var simulation = Simulation.new()
 var state: Dictionary = {}
@@ -220,19 +226,21 @@ func _draw_residents() -> void:
 		app.draw_set_transform(app.canvas_offset + (position + Vector2(0, stride)) * app.canvas_scale, 0, Vector2(a.facing, 1) * app.canvas_scale)
 		app._draw_animal_art_in_rect(app._card_by_id(a.id), Rect2(Vector2(-size.x * 0.5, -size.y), size))
 		app._set_tracked_draw_transform(app.canvas_offset, 0, Vector2.ONE * app.canvas_scale)
-		if a.mood_time > 0: _draw_mood(position + Vector2(0, -66 * zoom), a.mood)
+		if a.mood_time > 0 and MOOD_EMOJI.has(String(a.mood)):
+			# Keep the pointer above the moving head; emoji stays upright and readable.
+			_draw_mood(position + Vector2(0, stride - size.y - 34), a.mood)
 
 func _draw_mood(c: Vector2, mood: String) -> void:
-	app.draw_line(c + Vector2(0, 17), c + Vector2(-4, 27), Palette.INK, 3, true)
-	app.draw_circle(c, 22, Palette.RAISED)
-	app.draw_arc(c, 22, 0, TAU, 32, Palette.INK, 2, true)
-	if mood == "love":
-		app._draw_heart_icon(c, Color("da7381"))
-	else:
-		for x in [-7, 7]:
-			if mood == "tired": app.draw_line(c + Vector2(x - 3, -5), c + Vector2(x + 3, -5), Palette.INK, 2, true)
-			else: app.draw_circle(c + Vector2(x, -5), 2.2, Palette.INK)
-		app.draw_arc(c + Vector2(0, 1 if mood != "tired" else 12), 8, 0 if mood != "tired" else PI, PI if mood != "tired" else TAU, 16, Palette.INK, 2, true)
+	if not MOOD_EMOJI.has(mood): return
+	var paper = Color("fff8e8")
+	var outline = Color("716757")
+	var rect = Rect2(c - Vector2(24, 22), Vector2(48, 44))
+	app.draw_colored_polygon(PackedVector2Array([c + Vector2(-6, 20), c + Vector2(0, 28), c + Vector2(6, 20)]), outline)
+	app.draw_colored_polygon(PackedVector2Array([c + Vector2(-4, 20), c + Vector2(0, 25.5), c + Vector2(4, 20)]), paper)
+	app.draw_style_box(Palette.panel(outline, 12, false), rect)
+	app.draw_style_box(Palette.panel(paper, 11, false), rect.grow(-1.4))
+	# One original Unicode emoji image, with no label or punctuation.
+	app.draw_texture_rect(MOOD_EMOJI[mood], Rect2(c - Vector2(16, 16), Vector2(32, 32)), false)
 
 func _draw_details() -> void:
 	var p = Rules.plot(selected)

@@ -44,6 +44,17 @@ feature_progress:
   source_collection: [functional_documents, numeric_or_config_tables, version_plan, filed_producer_directives, latest_accountable_receipts]
 
 active_modules:
+  - task_id: REQ-20260925-GACHA-2332
+    feature_id: F-ZC-GACHA-NEW-001
+    included_features: [F-ZC-HOME-001, F-ZC-GACHA-NEW-001]
+    owner: codex-primary
+    phase: closure
+    status: COMPLETE_SCOPED
+    release_status: LOCAL_NATIVE_VERIFIED
+    remaining_gates: [android_package_and_device_not_requested, live_account_not_tested]
+    completion_receipt: docs/receipts/REQ-20260925-GACHA-2332.md
+    formal_source: docs/HOME_GACHA_POLISH_IMPLEMENTATION.md
+    read_only_receipt: docs/receipts/REQ-20260925-GACHA-2332.md
   - task_id: REQ-20260925-COMBAT-NATURAL-PROJECTILES
     feature_id: F-ZC-001
     owner: codex-primary
@@ -469,6 +480,29 @@ active_modules:
 queued_modules: []
 
 shared_locks:
+  home_gacha_personality_20260925:
+    task_id: REQ-20260925-GACHA-2332
+    owner: codex-primary
+    status: RELEASED
+    write_set:
+      - scripts/app/main.gd
+      - scripts/app/ui/gacha_new_hero_reveal.gd
+      - scripts/app/ui/home_view.gd
+      - scripts/app/systems/card_rules.gd
+      - assets/ui/home_emoji/
+      - config/tables/cards.csv
+      - config/schema/config_schema.json
+      - runtime/config/cards.json
+      - docs/HOME_GACHA_POLISH_IMPLEMENTATION.md
+      - docs/HOMESTEAD_DESIGN_v1.1.docx
+      - tools/build_home_design_docx.py
+      - tools/config_csv.py
+      - tools/validate_config.py
+      - export_presets.cfg
+      - docs/active_scope.yaml
+      - knowledge/knowledge_manifest.csv
+    evidence_root: temp/qa/gacha-spaced-20260925
+    ownership_receipt: docs/receipts/REQ-20260925-GACHA-2332.md
   combat_natural_20260925:
     task_id: REQ-20260925-COMBAT-NATURAL-PROJECTILES
     owner: codex-primary

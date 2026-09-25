@@ -163,7 +163,8 @@
         "skill_target": { "type": "enum", "required": false, "values": ["self", "enemy", "all_animals"] },
         "skill_text": { "type": "string", "required": false },
         "tags": { "type": "list", "required": false },
-        "design_notes": { "type": "string", "required": false }
+        "design_notes": { "type": "string", "required": false },
+        "slogan": { "type": "string", "required": false, "max_length": 32, "single_line": true }
       }
     },
     "card_skill_voices": {

@@ -190,14 +190,15 @@ func all_result_cards() -> void:
 			check(is_equal_approx(card_rect.size.x / card_rect.size.y, 132.0 / 158.0), card.id + " original collection card ratio " + str(count))
 			for portrait in app.art:
 				check(absf(portrait.target.size.x / portrait.target.size.y - portrait.texture_size.x / portrait.texture_size.y) < 0.001, card.id + " artwork not stretched " + str(count))
-				check(card_rect.size.x > 0 and portrait.visible.size.y >= card_rect.size.y * 0.36, card.id + " visible animal enlarged " + str(count))
+				var requested_scale = 0.78 if app._card_kind(card) == "animal" else 1.0
+				check(card_rect.size.x > 0 and portrait.visible.size.y >= card_rect.size.y * 0.36 * requested_scale, card.id + " visible artwork remains readable at requested scale " + str(count))
 				break
 	check(animals == 60, "all sixty animal artworks covered")
 	for count in range(1, 11):
 		var rectangles: Array = []
 		for i in range(count):
 			var rect = app._gacha_reward_card_rect(i, count)
-			check(Rect2(46, 298, 628, 482).encloses(rect), "result inside panel " + str(count))
+			check(Rect2(46, 298, 628, 732).encloses(rect), "result inside panel " + str(count))
 			for other in rectangles: check(not rect.intersects(other), "result cards never overlap " + str(count))
 			rectangles.append(rect)
 

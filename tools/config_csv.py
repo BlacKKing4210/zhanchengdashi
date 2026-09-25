@@ -66,6 +66,7 @@ FIELD_LABEL_OVERRIDES = {
     "name": "名称",
     "notes": "备注",
     "description": "描述",
+    "slogan": "动物口号",
     "design_notes": "设计备注",
     "display_name": "显示名称",
     "display_key": "显示文本键",
@@ -511,7 +512,7 @@ def _read_rows(path: Path) -> tuple[list[list[str]], bool]:
         text = raw.decode("utf-8-sig")
     except UnicodeDecodeError as exc:
         raise ConfigCsvError(f"{path}: configuration CSV must be UTF-8") from exc
-    return list(csv.reader(text.splitlines())), had_utf8_bom
+    return list(csv.reader(text.splitlines(keepends=True))), had_utf8_bom
 
 
 def read_config_table(path: str | Path, *, allow_legacy: bool = False) -> ConfigTable:

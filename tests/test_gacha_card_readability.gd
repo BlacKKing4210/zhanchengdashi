@@ -45,7 +45,7 @@ func _ready() -> void:
 		var rects: Array = []
 		for i in range(count):
 			var rect = app._gacha_reward_card_rect(i, count)
-			check(Rect2(46, 298, 628, 482).encloses(rect), "Reward stays inside content panel")
+			check(Rect2(46, 298, 628, 732).encloses(rect), "Reward stays inside content panel")
 			for previous in rects: check(not rect.intersects(previous), "Reward cards do not overlap")
 			rects.append(rect)
 	print("GACHA_CARD_READABILITY checks=", checks, " failures=", failures, " cards=", app.cards.size())
