@@ -133,3 +133,4 @@ ZC_HOME_VIEW,scripts/app/ui/home_view.gd,code,canonical,active,v1.1.1,engineerin
 ZC_COMBAT_NATURAL_20260925,docs/receipts/REQ-20260925-COMBAT-NATURAL-PROJECTILES.md,qa,canonical,active,2026-09-25-combat-natural,codex-primary,F-ZC-001,combat;projectile;thorns;building;health;no-trail,2026-09-25,,project,,
 ZC_PROJECTILE_VISUAL_RULES,scripts/app/systems/projectile_visual_rules.gd,code,canonical,active,2026-09-25-combat-natural,codex-primary,F-ZC-001,projectile;source-card;compact;no-trail,2026-09-25,,project,,
 ZC_HOME_GACHA_PERSONALITY_CLOSE,docs/receipts/REQ-20260925-GACHA-2332.md,qa,canonical,active,v1.1.2,engineering_owner,F-ZC-HOME-001;F-ZC-GACHA-NEW-001,2332;间距;动物缩小;emoji;气泡;台词;slogan,2026-09-25,,project,,
+ZC_CLEANUP_APK_20260925,docs/receipts/REQ-20260925-CLEANUP-APK.md,qa,canonical,active,v1.0.20260925.1,codex-primary,F-ZC-001;F-ZC-HOME-001;F-ZC-GACHA-NEW-001,cleanup;temporary;apk;release;signature;github,2026-09-25,,project,,

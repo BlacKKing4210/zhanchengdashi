@@ -44,6 +44,15 @@ feature_progress:
   source_collection: [functional_documents, numeric_or_config_tables, version_plan, filed_producer_directives, latest_accountable_receipts]
 
 active_modules:
+  - task_id: REQ-20260925-CLEANUP-APK
+    feature_id: F-ZC-GACHA-NEW-001
+    owner: codex-primary
+    phase: github_upload
+    status: IN_PROGRESS
+    release_status: APK_VERIFIED_UPLOAD_PENDING
+    remaining_gates: [github_upload, android_device_not_connected, synthetic_fixture_cleanup_approval_blocked]
+    formal_source: docs/receipts/REQ-20260925-CLEANUP-APK.md
+    read_only_receipt: docs/receipts/REQ-20260925-CLEANUP-APK.md
   - task_id: REQ-20260925-GACHA-2332
     feature_id: F-ZC-GACHA-NEW-001
     included_features: [F-ZC-HOME-001, F-ZC-GACHA-NEW-001]
@@ -480,6 +489,21 @@ active_modules:
 queued_modules: []
 
 shared_locks:
+  cleanup_apk_20260925:
+    task_id: REQ-20260925-CLEANUP-APK
+    owner: codex-primary
+    status: HELD
+    write_set:
+      - tools/cleanup_task_temp.ps1
+      - tests/test_cleanup_task_temp.ps1
+      - docs/DEVELOPMENT_WORKFLOW.md
+      - docs/active_scope.yaml
+      - docs/receipts/REQ-20260925-CLEANUP-APK.md
+      - docs/receipts/cleanup-apk-20260925-qa.json
+      - knowledge/knowledge_manifest.csv
+      - export_presets.cfg
+      - build/android/JungleLaw-android-2026-09-25-home-combat-r1.apk
+    evidence_root: temp/qa/cleanup-apk-20260925
   home_gacha_personality_20260925:
     task_id: REQ-20260925-GACHA-2332
     owner: codex-primary

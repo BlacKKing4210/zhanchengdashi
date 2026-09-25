@@ -1,0 +1,361 @@
+{
+  "request_id": "REQ-20260925-CLEANUP-APK",
+  "status": "APK_VERIFIED_UPLOAD_PENDING_WITH_FIXTURE_CLEANUP_EXCEPTION",
+  "gameplay_source_commit": "c99075ef21fd8a425ad404b04b146902f5510f5f",
+  "original_cleanup": {
+    "target": "D:\\AI\\zhanchengdashi\\temp\\qa\\home-emoji-20260925\\normal-user",
+    "status": "REMOVED_VERIFIED",
+    "files_deleted": 3,
+    "logical_bytes_deleted": 822,
+    "volume_free_space_delta_bytes": 0,
+    "free_space_note": "Observed volume delta may include unrelated concurrent I/O; logical removed bytes are exact.",
+    "absent": true,
+    "error": null
+  },
+  "cleanup_guard_regression": {
+    "status": "PASS_SCOPED_INDEPENDENT_REVIEW",
+    "tool_sha256": "C0244CB609993332A8251EA57109321DAE30A9267EC1F952BEF867F2A65B46B0",
+    "probe_sha256": "3F4B6C8D182596B9A82E06162B09723A5478D6DB7DA9102F3A0844FE510244BA",
+    "baseline_checks": 44,
+    "baseline_failures": 5,
+    "candidate_checks": 44,
+    "candidate_failures": 0,
+    "source_matches_tested_hash": true,
+    "probe_unchanged": true,
+    "resolved_findings": [
+      "Reject relative paths and raw parent traversal segments before normalization",
+      "Correct plan-only byte summary"
+    ],
+    "unresolved_code_findings": [],
+    "cleanup": "BLOCKED_AUTOMATIC_APPROVAL",
+    "scope": "Trusted project helper, scratch-only destructive tests; no original normal-user deletion by reviewer"
+  },
+  "remaining_fixture_cleanup": {
+    "status": "BLOCKED_AUTOMATIC_APPROVAL",
+    "reason": "Entire cleanup command rejected before execution: blocked by policy",
+    "logical_bytes_deleted": 0,
+    "measured_volume_delta_bytes": 0,
+    "retained_bytes": 162,
+    "retained_regular_files": [
+      {
+        "path": "D:\\AI\\zhanchengdashi\\temp\\qa\\cleanup-apk-20260925\\fixture-07b289b2b1-changed\\a.txt",
+        "bytes": 5,
+        "sha256": "A7937B64B8CAA58F03721BB6BACF5C78CB235FEBE0E70B1B84CD99541461A08E"
+      },
+      {
+        "path": "D:\\AI\\zhanchengdashi\\temp\\qa\\cleanup-apk-20260925\\fixture-07b289b2b1-changed\\b.txt",
+        "bytes": 6,
+        "sha256": "12EA12EACE7D655F471CE55E34F89B1B77A3D9D05A445CA82877DD2235BEAA51"
+      },
+      {
+        "path": "D:\\AI\\zhanchengdashi\\temp\\qa\\cleanup-apk-20260925\\fixture-07b289b2b1-guard\\keep.txt",
+        "bytes": 4,
+        "sha256": "6CA7EA2FEEFC88ECB5ED6356ED963F47DC9137F82526FDD25D618EA626D0803F"
+      },
+      {
+        "path": "D:\\AI\\zhanchengdashi\\temp\\qa\\cleanup-apk-20260925\\fixture-07b289b2b1-linked-data\\keep.txt",
+        "bytes": 24,
+        "sha256": "D32E7125173491BE558FE53D37CE6C3A4BFAB0476874A9C0CD0316475E0322A9"
+      },
+      {
+        "path": "D:\\AI\\zhanchengdashi\\temp\\qa\\cleanup-apk-20260925\\fixture-07b289b2b1-newdirectory\\a.txt",
+        "bytes": 5,
+        "sha256": "A7937B64B8CAA58F03721BB6BACF5C78CB235FEBE0E70B1B84CD99541461A08E"
+      },
+      {
+        "path": "D:\\AI\\zhanchengdashi\\temp\\qa\\cleanup-apk-20260925\\fixture-07b289b2b1-newdirectory\\b.txt",
+        "bytes": 6,
+        "sha256": "16367AACB67A4A017C8DA8AB95682CCB390863780F7114DDA0A0E0C55644C7C4"
+      },
+      {
+        "path": "D:\\AI\\zhanchengdashi\\temp\\qa\\cleanup-apk-20260925\\fixture-07b289b2b1-newfile\\a.txt",
+        "bytes": 5,
+        "sha256": "A7937B64B8CAA58F03721BB6BACF5C78CB235FEBE0E70B1B84CD99541461A08E"
+      },
+      {
+        "path": "D:\\AI\\zhanchengdashi\\temp\\qa\\cleanup-apk-20260925\\fixture-07b289b2b1-newfile\\b.txt",
+        "bytes": 6,
+        "sha256": "16367AACB67A4A017C8DA8AB95682CCB390863780F7114DDA0A0E0C55644C7C4"
+      },
+      {
+        "path": "D:\\AI\\zhanchengdashi\\temp\\qa\\cleanup-apk-20260925\\fixture-07b289b2b1-newfile\\new.txt",
+        "bytes": 3,
+        "sha256": "11507A0E2F5E69D5DFA40A62A1BD7B6EE57E6BCD85C67C9B8431B36FFF21C437"
+      },
+      {
+        "path": "D:\\AI\\zhanchengdashi\\temp\\qa\\cleanup-apk-20260925\\fixture-07b289b2b1-partial\\b.txt",
+        "bytes": 6,
+        "sha256": "14493F5F5470ED48C3F103D917EC52AE9005FA3913128031D0FAC2A49AC3CC41"
+      },
+      {
+        "path": "D:\\AI\\zhanchengdashi\\temp\\qa\\cleanup-apk-20260925\\fixture-07b289b2b1-tampered-plan\\a.txt",
+        "bytes": 5,
+        "sha256": "A7937B64B8CAA58F03721BB6BACF5C78CB235FEBE0E70B1B84CD99541461A08E"
+      },
+      {
+        "path": "D:\\AI\\zhanchengdashi\\temp\\qa\\cleanup-apk-20260925\\fixture-07b289b2b1-tampered-plan\\b.txt",
+        "bytes": 6,
+        "sha256": "16367AACB67A4A017C8DA8AB95682CCB390863780F7114DDA0A0E0C55644C7C4"
+      },
+      {
+        "path": "D:\\AI\\zhanchengdashi\\temp\\qa\\cleanup-apk-20260925\\fixture-dd030913f8-changed\\a.txt",
+        "bytes": 5,
+        "sha256": "A7937B64B8CAA58F03721BB6BACF5C78CB235FEBE0E70B1B84CD99541461A08E"
+      },
+      {
+        "path": "D:\\AI\\zhanchengdashi\\temp\\qa\\cleanup-apk-20260925\\fixture-dd030913f8-changed\\b.txt",
+        "bytes": 6,
+        "sha256": "12EA12EACE7D655F471CE55E34F89B1B77A3D9D05A445CA82877DD2235BEAA51"
+      },
+      {
+        "path": "D:\\AI\\zhanchengdashi\\temp\\qa\\cleanup-apk-20260925\\fixture-dd030913f8-guard\\keep.txt",
+        "bytes": 4,
+        "sha256": "6CA7EA2FEEFC88ECB5ED6356ED963F47DC9137F82526FDD25D618EA626D0803F"
+      },
+      {
+        "path": "D:\\AI\\zhanchengdashi\\temp\\qa\\cleanup-apk-20260925\\fixture-dd030913f8-linked-data\\keep.txt",
+        "bytes": 24,
+        "sha256": "D32E7125173491BE558FE53D37CE6C3A4BFAB0476874A9C0CD0316475E0322A9"
+      },
+      {
+        "path": "D:\\AI\\zhanchengdashi\\temp\\qa\\cleanup-apk-20260925\\fixture-dd030913f8-newdirectory\\a.txt",
+        "bytes": 5,
+        "sha256": "A7937B64B8CAA58F03721BB6BACF5C78CB235FEBE0E70B1B84CD99541461A08E"
+      },
+      {
+        "path": "D:\\AI\\zhanchengdashi\\temp\\qa\\cleanup-apk-20260925\\fixture-dd030913f8-newdirectory\\b.txt",
+        "bytes": 6,
+        "sha256": "16367AACB67A4A017C8DA8AB95682CCB390863780F7114DDA0A0E0C55644C7C4"
+      },
+      {
+        "path": "D:\\AI\\zhanchengdashi\\temp\\qa\\cleanup-apk-20260925\\fixture-dd030913f8-newfile\\a.txt",
+        "bytes": 5,
+        "sha256": "A7937B64B8CAA58F03721BB6BACF5C78CB235FEBE0E70B1B84CD99541461A08E"
+      },
+      {
+        "path": "D:\\AI\\zhanchengdashi\\temp\\qa\\cleanup-apk-20260925\\fixture-dd030913f8-newfile\\b.txt",
+        "bytes": 6,
+        "sha256": "16367AACB67A4A017C8DA8AB95682CCB390863780F7114DDA0A0E0C55644C7C4"
+      },
+      {
+        "path": "D:\\AI\\zhanchengdashi\\temp\\qa\\cleanup-apk-20260925\\fixture-dd030913f8-newfile\\new.txt",
+        "bytes": 3,
+        "sha256": "11507A0E2F5E69D5DFA40A62A1BD7B6EE57E6BCD85C67C9B8431B36FFF21C437"
+      },
+      {
+        "path": "D:\\AI\\zhanchengdashi\\temp\\qa\\cleanup-apk-20260925\\fixture-dd030913f8-partial\\b.txt",
+        "bytes": 6,
+        "sha256": "14493F5F5470ED48C3F103D917EC52AE9005FA3913128031D0FAC2A49AC3CC41"
+      },
+      {
+        "path": "D:\\AI\\zhanchengdashi\\temp\\qa\\cleanup-apk-20260925\\fixture-dd030913f8-tampered-plan\\a.txt",
+        "bytes": 5,
+        "sha256": "A7937B64B8CAA58F03721BB6BACF5C78CB235FEBE0E70B1B84CD99541461A08E"
+      },
+      {
+        "path": "D:\\AI\\zhanchengdashi\\temp\\qa\\cleanup-apk-20260925\\fixture-dd030913f8-tampered-plan\\b.txt",
+        "bytes": 6,
+        "sha256": "16367AACB67A4A017C8DA8AB95682CCB390863780F7114DDA0A0E0C55644C7C4"
+      }
+    ],
+    "retained_directories": [
+      "D:\\AI\\zhanchengdashi\\temp\\qa\\cleanup-apk-20260925\\fixture-07b289b2b1-changed",
+      "D:\\AI\\zhanchengdashi\\temp\\qa\\cleanup-apk-20260925\\fixture-07b289b2b1-guard",
+      "D:\\AI\\zhanchengdashi\\temp\\qa\\cleanup-apk-20260925\\fixture-07b289b2b1-link-holder",
+      "D:\\AI\\zhanchengdashi\\temp\\qa\\cleanup-apk-20260925\\fixture-07b289b2b1-linked-data",
+      "D:\\AI\\zhanchengdashi\\temp\\qa\\cleanup-apk-20260925\\fixture-07b289b2b1-newdirectory",
+      "D:\\AI\\zhanchengdashi\\temp\\qa\\cleanup-apk-20260925\\fixture-07b289b2b1-newfile",
+      "D:\\AI\\zhanchengdashi\\temp\\qa\\cleanup-apk-20260925\\fixture-07b289b2b1-partial",
+      "D:\\AI\\zhanchengdashi\\temp\\qa\\cleanup-apk-20260925\\fixture-07b289b2b1-tampered-plan",
+      "D:\\AI\\zhanchengdashi\\temp\\qa\\cleanup-apk-20260925\\fixture-dd030913f8-changed",
+      "D:\\AI\\zhanchengdashi\\temp\\qa\\cleanup-apk-20260925\\fixture-dd030913f8-guard",
+      "D:\\AI\\zhanchengdashi\\temp\\qa\\cleanup-apk-20260925\\fixture-dd030913f8-link-holder",
+      "D:\\AI\\zhanchengdashi\\temp\\qa\\cleanup-apk-20260925\\fixture-dd030913f8-linked-data",
+      "D:\\AI\\zhanchengdashi\\temp\\qa\\cleanup-apk-20260925\\fixture-dd030913f8-newdirectory",
+      "D:\\AI\\zhanchengdashi\\temp\\qa\\cleanup-apk-20260925\\fixture-dd030913f8-newfile",
+      "D:\\AI\\zhanchengdashi\\temp\\qa\\cleanup-apk-20260925\\fixture-dd030913f8-partial",
+      "D:\\AI\\zhanchengdashi\\temp\\qa\\cleanup-apk-20260925\\fixture-dd030913f8-tampered-plan"
+    ],
+    "retained_reparse_links": [
+      {
+        "path": "D:\\AI\\zhanchengdashi\\temp\\qa\\cleanup-apk-20260925\\fixture-07b289b2b1-link-holder\\junction",
+        "target": "\\\\?\\D:\\AI\\zhanchengdashi\\temp\\qa\\cleanup-apk-20260925\\fixture-07b289b2b1-linked-data"
+      },
+      {
+        "path": "D:\\AI\\zhanchengdashi\\temp\\qa\\cleanup-apk-20260925\\fixture-dd030913f8-link-holder\\junction",
+        "target": "\\\\?\\D:\\AI\\zhanchengdashi\\temp\\qa\\cleanup-apk-20260925\\fixture-dd030913f8-linked-data"
+      }
+    ],
+    "blocked_command_record": "review-blocked-command.txt",
+    "no_retry_or_bypass": true
+  },
+  "package": {
+    "status": "PASS_PACKAGE_CHECKS_DEVICE_NOT_RUN",
+    "base_head": "c99075ef21fd8a425ad404b04b146902f5510f5f",
+    "captured_at": "2026-09-25T22:42:14.8962703+08:00",
+    "scope": "Read-only preflight and independent APK validation. Evidence-only writes. No install, network request, process stop, package modification, or environment change.",
+    "godot": {
+      "path": "D:/Work/godot/Godot_v4.6.2-stable_win64.exe/Godot_v4.6.2-stable_win64_console.exe",
+      "version": "4.6.2.stable.official.71f334935",
+      "sha256": "2A12DF24D1545FF3924A1F40E8ED9F4EC7CE9B140814C1B566DCD2BDF7B79492",
+      "template_root": "C:/Users/76398/AppData/Roaming/Godot/export_templates/4.6.2.stable",
+      "release_template_sha256": "DE8F89ABF5F04FFD7E6B0BBA5036C150B15151C5EC297E7B5AF8120C2E0A9B5E",
+      "debug_template_sha256": "81873B6A0277B6266901CD2EA9E3F8E78970918422410584DD6DFE12C39EA9FD"
+    },
+    "android": {
+      "sdk": "C:/Users/76398/AppData/Local/GodotBuildTools/AndroidSdk",
+      "build_tools": "35.0.1",
+      "platform": "android-35",
+      "jdk": "C:/Users/76398/AppData/Local/GodotBuildTools/temurin-17",
+      "java_version": "Temurin 17.0.19+10",
+      "connected_devices": 0,
+      "device_install_runtime": "NOT_RUN_NO_CONNECTED_DEVICE"
+    },
+    "old_apk": {
+      "path": "D:/AI/zhanchengdashi/build/android/JungleLaw-android-2026-09-06-animal-audit-flathex-r2.apk",
+      "sha256": "6C4D9C16C1521E01066A53D39B6A55B594E40E33E418392D15103A1382AE1D0B",
+      "version_code": 26090602,
+      "version_name": "1.0.20260906.2"
+    },
+    "candidate": {
+      "path": "D:/AI/zhanchengdashi/build/android/JungleLaw-android-2026-09-25-home-combat-r1.apk",
+      "bytes": 80139004,
+      "sha256": "484F39D03AB4B2429232E6FE71780F9817656A64B3213761CFE2622767EA3AC5",
+      "package_id": "com.blackking4210.junglelaw",
+      "version_code": 26092501,
+      "version_name": "1.0.20260925.1",
+      "min_sdk": 24,
+      "target_sdk": 35,
+      "abi": "arm64-v8a",
+      "screen_orientation": "portrait",
+      "launcher": "com.godot.game.GodotAppLauncher",
+      "internet_permission": true
+    },
+    "signing": {
+      "mode": "release export signed with existing internal testing identity",
+      "same_certificate_as_prior_apk": true,
+      "certificate_sha256": "ba0ae26c9bfe6e0f28a2ecb9c1464f626f57023d39622051d229a0a7620e926c",
+      "signature_v2": true,
+      "signature_v3": true,
+      "verify_exit_code": 0,
+      "zipalign_16kb_exit_code": 0
+    },
+    "evidence": [
+      "evaluator-apksigner.log",
+      "evaluator-zipalign.log",
+      "evaluator-aapt-badging.log",
+      "evaluator-manifest.log",
+      "evaluator-archive-verdict.json",
+      "package-input-hashes.json"
+    ],
+    "known_warning": "aapt2 reports themed_icon anydpi-v26 resource references missing res/mipmap-anydpi-v26/themed_icon.xml; same warning in prior verified September 6 APK. No connected Android device available to assess device rendering.",
+    "archive_probe_note": "First probe run assumed 19 JSON files; it correctly found 20 because config_manifest.json accompanies 19 source tables. Assertion now checks the source manifest set and counts the 19 tables. No APK/runtime files changed."
+  },
+  "archive": {
+    "apk": "D:\\AI\\zhanchengdashi\\build\\android\\JungleLaw-android-2026-09-25-home-combat-r1.apk",
+    "bytes": 80139004,
+    "sha256": "484f39d03ab4b2429232e6fe71780f9817656a64b3213761cfe2622767ea3ac5",
+    "status": "PASS",
+    "archive_entries": 685,
+    "config_hashes": {
+      "board_cells.json": "62237dfe6309738b1b9aa51fe09c0ddac40f62e98f254533106f9a8c54eae40e",
+      "board_rules.json": "1ae8eee81c5d7601813318ded7a3add47ca5e3c3d86ce81571d0b9cfc4a92164",
+      "card_random_pools.json": "5c4290aa718e98440a0d57a1180ab49ddb971d5a6ad2f7ccbd23e4cf2227b2a4",
+      "card_skill_voices.json": "27fd379ef1f2643fe24eb348d67d89efcb90bf88619de8978e87ddee6aa98334",
+      "cards.json": "90f354f63b38715f8fcb013275e83733e625e3f0df909ad69de455f76856e293",
+      "cell_price_pools.json": "9b83b09f584329e50c6e33184e2c91bf014dcec55c526140d0f0a59e22f9095c",
+      "cell_reveal_pools.json": "8ded6ceab62f2c1d0d705630b85732e87d4a316a87c5c70add29973bb16504b2",
+      "config_manifest.json": "7d2638c5fe66c7a40dff9898ef51ba361711bdde20cde2587d1a82aaaea25faa",
+      "defenses.json": "d8f96f14ed17114bb7e2b74a91a8dd2399d3395795c2b0c2d7ba0524d2a88307",
+      "drop_pools.json": "c9382d6367f10a5defcedfa47aea4a2d09bda088df58f91a9a4435df4adfc5be",
+      "economy.json": "871d51ac495ad2628c0c8704449b8ef20193952ffefd3d0f5f3964d2f25225b2",
+      "global.json": "c63f503155c8ef7b225bc4e9fe4c784e01b281b32a87fde9ddfa504a22bfe208",
+      "home_buildings.json": "6b9733755b7832f21cf948ab20b6de26e824cd24f642e95283e913d9d54bc0fc",
+      "home_economy.json": "977ce837daa3b20456ef99a229c5426d3440eb1b95517763ad624ed86df5c1c2",
+      "home_visuals.json": "25f78a7811bafcd2d2f8108f72f4a17aae763e8a7665e0a372c4ff1e52224cfe",
+      "items.json": "d4cc54964a67f35ff6eaf3807886c3d112db18ffeae30e7264fd34e8db395512",
+      "localization_zh.json": "96c796678658916972187ea6050fcdc6651504359793e2c36cb84bd096953833",
+      "skills.json": "06ce2063b5693505821d87a02cc542d738722061bd9f377de502727bd741c054",
+      "stages.json": "c441f0897e35c079ea8c5e08ba33119d41032071e8f768096d4cfb738bb25491",
+      "units.json": "9e6fa612e250cc7f18e0dc7dcb0a3674639a7bbdfd97efe4cae5c712f1047ddc"
+    },
+    "slogan_count": 60,
+    "license_hashes": {
+      "NOTICE.md": "cc9d02d1a7cdb9096554ebd636f0a50b001b4afe3f8024ac6f7932fdaa52b907",
+      "LICENSE-GRAPHICS": "8ae9438818c26e4873b91d8c6ad620526c011e27e125677f13031eda903f007c"
+    },
+    "emoji_textures": {
+      "1f60a": {
+        "target": ".godot/imported/1f60a.svg-61fcbed31eca0d53718400e9036730b6.ctex",
+        "sha256": "e1286aa394274e621e521c645698ada8b74f69cc728702e469843f16fc777de4"
+      },
+      "1f60d": {
+        "target": ".godot/imported/1f60d.svg-6eb676c5cd391907a2d0deb906e44e1e.ctex",
+        "sha256": "9230a5b4612d3ca9bcec30441c626ce0743dddabe4f141d255325c9f46da2e36"
+      },
+      "1f634": {
+        "target": ".godot/imported/1f634.svg-a578769566c8853a79f3d71b35996b80.ctex",
+        "sha256": "01e81d99fbcc5f3dab50a618f369d1162095a2b4c661d7a9c5460f523bf1a43e"
+      },
+      "1f929": {
+        "target": ".godot/imported/1f929.svg-6c80899011d05d50eb40f4591a7063cb.ctex",
+        "sha256": "b7dc6db8ca7852a06ee9463b51233a9d767a96ff2e5a0391975f634d51cf1a3c"
+      }
+    },
+    "resolved_resource_remaps": 281,
+    "compiled_script_hashes": {
+      "scripts/app/main.gdc": "198d1a110424a459ba981ea6be36c7b2ca7348512a603df75bf2daefc78cdc8c",
+      "scripts/app/systems/projectile_visual_rules.gdc": "73bc1f900ca9e425573222555433248a280db007653021d9f4563b014ecd575b",
+      "scripts/app/systems/animal_skill_runtime.gdc": "ac8cbfea8ed2d5e24513dafc69596e56ac4be2450ee611b4f8352a00b01c88ae",
+      "scripts/app/ui/home_view.gdc": "33e6857aaa031448e65dcab47e4add151816e72334f8888fb8b8bc51f9c1ccab",
+      "scripts/app/ui/gacha_new_hero_reveal.gdc": "93effa4533f41377bd7e4710d18b5b6cebdede266bfc026b140e9abd273442c0",
+      "scripts/app/systems/card_rules.gdc": "9433a9218f7756f159336ee74c601c267d91abaffdcd5ab1d54831882e7ddb45",
+      "scripts/server/dedicated_server_bootstrap.gdc": "27aa09c7506ee30a807e475b04ed184ebb62aa7fa34b734af47d1cb03e84db38"
+    },
+    "exported_settings": {
+      "application/run/main_scene": "res://scenes/bootstrap.tscn",
+      "display/window/size/viewport_width": 720,
+      "display/window/size/viewport_height": 1280,
+      "network/server_host": "106.15.61.103",
+      "network/server_port": 24567
+    },
+    "command_arguments": [
+      "--xr_mode_regular",
+      "--xr-mode",
+      "off",
+      "--fullscreen",
+      "--background_color",
+      "#000000"
+    ],
+    "source_hashes_unchanged": true,
+    "device_validation": "NOT_RUN_NO_CONNECTED_DEVICE"
+  },
+  "preserved_source_hashes": {
+    "scripts/app/systems/projectile_visual_rules.gd": "3703E23434C81D3BE433A12FCA28F9729DD52013D7103FB83B02D331C835F078",
+    "design/战斗数值.xlsx": "0C6B63A3885B4A7A6EF42AD364D957F68B1C92B49C2C30A5FF12C2391C5A8F7D",
+    "scripts/app/ui/home_view.gd": "03F6097BCA1520B2BCB20757FADC18EFC5825DE5D535C3F5983D00C861E58362",
+    "scripts/app/main.gd": "8C9E374F65A221AF7BB92A32470503166188A879562D5A1AE220A817D56359CA",
+    "scripts/app/ui/gacha_new_hero_reveal.gd": "1BD20EF0BBFC32AC2982AE1DE2D842F9AC78F9407AD91B0C3C953BFA5586BEB9",
+    "project.godot": "069447A9BA97850EBC37C233B690888E6BE196A0EA46E58E92D5C40845014E3B",
+    "scripts/app/systems/animal_skill_runtime.gd": "234AA2152FB4417030B2C1896D7F92B08482E9A15ED7B383A12FB14CC696D77C",
+    "runtime/config/cards.json": "90F354F63B38715F8FCB013275E83733E625E3F0DF909AD69DE455F76856E293"
+  },
+  "evidence_root": "temp/qa/cleanup-apk-20260925",
+  "github": null,
+  "cleanup_test_lifecycle": {
+    "status": "PASS",
+    "guard_exit": 2,
+    "top_directory_count_before": 16,
+    "top_directory_count_after": 16,
+    "regular_file_count": 24,
+    "logical_bytes_retained": 162,
+    "reparse_count": 2,
+    "fixture_paths_hashes_and_link_targets_unchanged": true,
+    "frozen_44_assertion_block_unchanged": true,
+    "functional_block_sha256": "9B3963A744330F638630A0FCBE78E0EE9292CC49196F222CA84F907747ACAE0B",
+    "probe_before_sha256": "3F4B6C8D182596B9A82E06162B09723A5478D6DB7DA9102F3A0844FE510244BA",
+    "probe_after_sha256": "3B11D5DF523834EC83250060656E914C088B62A6D5A3D189F13E65071E037D1D",
+    "tool_sha256": "C0244CB609993332A8251EA57109321DAE30A9267EC1F952BEF867F2A65B46B0",
+    "validation_scope": "Only the pre-run guard was executed; the 44 functional checks were not rerun and no cleanup was attempted. Lifecycle edits add a pre-run residue refusal and post-run separate functional/cleanup reporting with exit 2 for retained fixtures."
+  }
+}
