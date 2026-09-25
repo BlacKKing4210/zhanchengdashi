@@ -7994,41 +7994,48 @@ func _draw_gacha_reward_card(index: int, card: Dictionary, count: int) -> void:
 	if flip_timer > 0.0:
 		var progress = 1.0 - flip_timer / GACHA_CARD_FLIP_SECONDS
 		var width_scale = maxf(0.08, absf(cos(progress * PI)))
-		var flipped_rect = Rect2(
-			Vector2(rect.position.x + rect.size.x * (1.0 - width_scale) * 0.5, rect.position.y),
-			Vector2(rect.size.x * width_scale, rect.size.y)
-		)
+		# Rotate the complete resting card; never reflow its portrait into a thin rectangle.
+		_set_tracked_draw_transform(canvas_offset + Vector2(rect.get_center().x * (1.0 - width_scale), 0) * canvas_scale, 0.0, Vector2(width_scale, 1.0) * canvas_scale)
 		if progress < 0.5:
-			_draw_gacha_card_back(flipped_rect, index)
+			_draw_gacha_card_back(rect, index)
 		else:
-			_draw_gacha_showcase_card(flipped_rect, card)
-			_draw_gacha_card_glow(rect, progress)
+			_draw_gacha_showcase_card(rect, card)
+		_set_tracked_draw_transform(canvas_offset, 0.0, Vector2.ONE * canvas_scale)
+		if progress >= 0.5: _draw_gacha_card_glow(rect, progress)
 		return
 	_draw_gacha_showcase_card(rect, card)
 
 
 func _draw_gacha_showcase_card(rect: Rect2, card: Dictionary) -> void:
 	var rarity = String(card.get("rarity", "common"))
-	_box(rect, _rarity_color(rarity), COLOR_LINE, 3)
+	_box(rect, _rarity_color(rarity), COLOR_LINE, 0)
 	var large = rect.size.y > 200
-	var footer_height = 76.0 if large else 57.0
-	var art_rect = Rect2(rect.position + Vector2(8, 6), Vector2(maxf(1, rect.size.x - 16), rect.size.y - footer_height - 12))
-	_draw_animal_art_in_rect(card, art_rect, Color.WHITE)
-	# Do not squeeze readable text into the thin middle of the flip.
-	if rect.size.x < 100: return
-	var footer = Rect2(rect.position.x + 4, rect.end.y - footer_height - 3, rect.size.x - 8, footer_height)
-	draw_rect(footer, HanddrawnSkin.PAPER)
-	_draw_text_center(String(card.get("name", "")), Rect2(footer.position, Vector2(footer.size.x, 40 if large else 30)), 32 if large else 24, COLOR_LINE)
-	_draw_text_center(CardRules.rarity_label(rarity) + " · " + String(GachaNewHeroReveal.QUALITY_NAMES.get(rarity, "普通")), Rect2(footer.position + Vector2(0, 40 if large else 30), Vector2(footer.size.x, 33 if large else 27)), 26 if large else 23, COLOR_LINE)
+	var name_height = 44.0 if large else 34.0
+	var art_rect = Rect2(rect.position + Vector2(6, 6), Vector2(rect.size.x - 12, rect.size.y - name_height - 18))
+	var texture = _card_texture(card)
+	var visible = _animal_texture_visible_rect(texture)
+	var visible_size = visible.size * texture.get_size()
+	if visible_size.x > 0 and visible_size.y > 0:
+		# Fit visible pixels uniformly, preserving the source aspect and removing transparent padding.
+		var fit = minf(art_rect.size.x / visible_size.x, art_rect.size.y / visible_size.y)
+		var full_size = texture.get_size() * fit
+		var full_position = art_rect.get_center() - (visible.position + visible.size * 0.5) * full_size
+		var center = full_position + full_size * 0.5
+		var helper_size = full_size / maxf(0.001, _animal_art_display_scale(card))
+		_draw_animal_art_in_rect(card, Rect2(center - helper_size * 0.5, helper_size), Color.WHITE)
+	# Text appears when the face is open; it is never squeezed during rotation.
+	if text_draw_scale.x < canvas_scale * 0.9: return
+	var name_rect = Rect2(rect.position.x + 6, rect.end.y - name_height - 6, rect.size.x - 12, name_height)
+	_draw_text_native(String(card.get("name", "")), name_rect, 32 if large else 24, COLOR_LINE, HORIZONTAL_ALIGNMENT_CENTER)
 
 
 func _gacha_reward_card_rect(index: int, count: int) -> Rect2:
 	count = max(1, count)
 	if count == 1:
-		return Rect2(246, 350, 228, 280)
+		return Rect2(228, 320, COLLECTION_CARD_SIZE.x * 2, COLLECTION_CARD_SIZE.y * 2)
 	var columns = mini(4, count)
-	var card_size = Vector2(138, 146)
-	var gap = Vector2(16, 8)
+	var card_size = COLLECTION_CARD_SIZE
+	var gap = Vector2(20, 4)
 	var row = floori(float(index) / float(columns))
 	var col = index % columns
 	var rows = ceili(float(count) / float(columns))
@@ -8037,7 +8044,7 @@ func _gacha_reward_card_rect(index: int, count: int) -> Rect2:
 		row_count = count - row * columns
 	var row_width = float(row_count) * card_size.x + float(row_count - 1) * gap.x
 	var start_x = (DESIGN_SIZE.x - row_width) * 0.5
-	var start_y = 318.0 if rows > 1 else 396.0
+	var start_y = 298.0 if rows > 1 else 396.0
 	return Rect2(Vector2(start_x + float(col) * (card_size.x + gap.x), start_y + float(row) * (card_size.y + gap.y)), card_size)
 
 

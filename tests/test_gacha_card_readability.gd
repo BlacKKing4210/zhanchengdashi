@@ -10,10 +10,10 @@ class Probe extends Base.TestApp:
 		for card in probe_cards:
 			_draw_gacha_showcase_card(_gacha_reward_card_rect(0, 10), card)
 		card_probe = false
-	func _draw_text_center(text: String, rect: Rect2, size: int, color: Color) -> void:
+	func _draw_text_native(text: String, rect: Rect2, size: int, color: Color, alignment: HorizontalAlignment) -> void:
 		if card_probe:
 			labels.append({"text": text, "width": font.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, size).x, "rect": rect, "size": size})
-		super._draw_text_center(text, rect, size, color)
+		super._draw_text_native(text, rect, size, color, alignment)
 
 var checks = 0
 var failures = 0
@@ -40,7 +40,7 @@ func _ready() -> void:
 	for label in app.labels:
 		check(label.width <= label.rect.size.x, "No ellipsis or clipping: " + label.text)
 		check(label.size >= 23, "Readable reward label: " + label.text)
-	check(app.labels.size() == app.cards.size() * 2, "Every card name and explicit quality measured")
+	check(app.labels.size() == app.cards.size(), "Every card name measured with no explicit quality text")
 	for count in range(1, 11):
 		var rects: Array = []
 		for i in range(count):

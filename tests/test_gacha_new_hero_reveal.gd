@@ -6,6 +6,8 @@ const UISkin = preload("res://scripts/app/ui/handdrawn_ui_skin.gd")
 
 class DrawProbe extends RefCounted:
 	const UNIT_MOVE_SPEED_MULT = 0.5
+	var canvas_offset = Vector2.ZERO
+	var canvas_scale = 1.0
 	var font: Font = ThemeDB.fallback_font
 	var texts: Array = []
 	var colors: Array = []
@@ -25,6 +27,7 @@ class DrawProbe extends RefCounted:
 		return load(String(card.art_path)) as Texture2D
 	func _animal_texture_visible_rect(_texture: Texture2D) -> Rect2:
 		return Rect2(0, 0, 1, 1)
+	func _set_tracked_draw_transform(_origin: Vector2, _rotation: float, _scale: Vector2) -> void: pass
 	func draw_rect(_rect: Rect2, color: Color) -> void: colors.append(color)
 	func draw_circle(_center: Vector2, _radius: float, color: Color) -> void: colors.append(color)
 	func draw_line(_a: Vector2, _b: Vector2, _color: Color, _width: float, _antialias: bool) -> void: pass
@@ -86,11 +89,16 @@ func _test_sequence() -> void:
 	reveal.update(1.99)
 	check(reveal.stage == "rarity", "quality page remains before two seconds")
 	reveal.update(0.01)
-	check(reveal.stage == "hero", "two seconds reveals hero automatically")
+	check(reveal.stage == "flip", "two seconds starts automatic card flip")
+	reveal.tap()
+	check(reveal.stage == "flip", "tap during flip cannot skip the reveal")
+	reveal.update(Reveal.FLIP_SECONDS)
+	check(reveal.stage == "hero", "flip completion reveals the hero")
 	reveal.update(100)
 	check(reveal.stage == "hero" and reveal.current.id == cards[0].id, "hero details never auto-dismiss")
 	check(reveal.tap() and reveal.current.id == cards[1].id and reveal.stage == "rarity", "hero tap advances to next quality reveal")
-	check(reveal.tap() and reveal.stage == "hero", "quality tap skips reveal timer")
+	check(reveal.tap() and reveal.stage == "flip", "card tap starts reveal flip")
+	reveal.update(Reveal.FLIP_SECONDS)
 	reveal.tap()
 	check(not reveal.active() and reveal.pending.is_empty() and reveal.completed_count == 2, "last hero tap returns to caller")
 	check(probe.wallet_gold == 987 and probe.gacha_tickets == 23 and probe.card_counts == original_inventory, "presentation does not grant or spend resources")
@@ -105,24 +113,20 @@ func _test_all_cards() -> void:
 		probe.reset()
 		reveal.draw()
 		check(probe.colors.has(UISkin.rarity(card.rarity)), "official quality color " + card.id)
-		check(probe.texts.any(func(item): return String(item.text).contains(CardRules.rarity_label(card.rarity))), "quality label " + card.id)
+		check(probe.texts.size() == 1 and probe.texts[0].text == "新伙伴即将登场", "no quality labels or below-card instructions " + card.id)
 		check(probe.portraits.is_empty(), "portrait remains hidden on quality page " + card.id)
 		_check_text_bounds(card.id + " quality")
 		reveal.tap()
+		reveal.update(Reveal.FLIP_SECONDS)
 		reveal.update(0.5)
 		probe.reset()
 		reveal.draw()
 		check(probe.portraits.size() == 1 and probe.portraits[0].texture == card.art_path, "existing formal portrait " + card.id)
 		check(probe.texts.any(func(item): return item.text == card.name), "full Chinese name " + card.id)
-		var expected_speed = "%s 格/秒" % str(snappedf(float(card.base_move_speed) * 0.5, 0.01))
-		check(probe.texts.any(func(item): return item.text == expected_speed), "speed displays cells per second, not pixels " + card.id)
-		var expected_range = CardRules.attack_range_label(float(card.base_attack_range), 43.0)
-		check(probe.texts.any(func(item): return item.text == expected_range), "range uses cell units including melee " + card.id)
-		check(not String(card.skill_text).is_empty() or reveal.skill_lines() == ["暂无专属技能"], "empty skill has truthful text")
-		check("".join(reveal.skill_lines()) == String(card.skill_text).replace("\n", "") or String(card.skill_text).is_empty(), "full skill preserved " + card.id)
+		check(probe.texts.size() == 2 and probe.texts[1].text == "继续", "hero only shows name and continue " + card.id)
 		_check_text_bounds(card.id + " hero")
 		for portrait in probe.portraits:
-			check(Rect2(125, 199, 470, 396).encloses(portrait.target), "hero illustration stays above name " + card.id)
+			check(Rect2(90, 254, 540, 548).encloses(portrait.target), "hero illustration stays above name " + card.id)
 		reveal = null
 
 
@@ -132,23 +136,13 @@ func _test_long_skill() -> void:
 	stress.skill_text = "攻击敌人后，为所有友方动物恢复生命并提高移动速度。".repeat(12)
 	reveal.enqueue(stress)
 	reveal.tap()
-	var count = reveal.skill_page_count()
-	check(count > 1, "long skills create readable pages instead of shrinking")
-	var visible_skill = ""
-	for page in range(count):
-		probe.reset()
-		reveal.draw()
-		_check_text_bounds("long skill page %d" % page)
-		for text in probe.texts:
-			if text.rect.position.y >= 908 and text.rect.position.y < 1070:
-				visible_skill += text.text
-		if page < count - 1:
-			check(probe.texts.any(func(item): return item.text == "继续阅读"), "long skill page shows next-reading action")
-			reveal.tap()
-			check(reveal.active() and reveal.stage == "hero", "reading pages do not consume next hero")
-	check(visible_skill == stress.skill_text, "all long skill characters appear exactly once")
+	reveal.update(Reveal.FLIP_SECONDS)
+	probe.reset()
+	reveal.draw()
+	check(probe.texts.size() == 2, "long ability cannot leak into the clean celebration")
+	check(reveal.current.skill_text == stress.skill_text, "ability data remains intact for collection")
 	reveal.tap()
-	check(not reveal.active(), "final skill page continues normally")
+	check(not reveal.active(), "continue exits in one tap regardless of ability length")
 	reveal = null
 
 

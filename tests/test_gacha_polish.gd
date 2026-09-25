@@ -113,6 +113,7 @@ func first_then_duplicate(rarity: String) -> void:
 		await advance(0.25)
 	else:
 		await tap(app._gacha_ten_draw_rect().get_center())
+	await advance(0.60)
 	check(app.gacha_hero_reveal.stage == "hero", rarity + " quality becomes hero by time or tap")
 	check(GameAudio.get_sfx_play_count("gacha_new_hero") == surprised + 1, rarity + " warm surprise plays exactly once at hero")
 	check(GameAudio.get_sfx_play_count("gacha_open") == opened + 1 and GameAudio.get_sfx_play_count("gacha_reveal") == revealed + 1, rarity + " single open and card sound")
@@ -151,7 +152,7 @@ func ten_draws() -> void:
 		shown.append(app.gacha_hero_reveal.current.id)
 		await tap(app._gacha_ten_draw_rect().get_center())
 		var pending = app.gacha_pending_cards.size()
-		await advance(0.2)
+		await advance(0.65)
 		check(app.gacha_pending_cards.size() == pending and app.card_counts == inventory, "ten reveal pauses pending cards without granting")
 		await tap(app._nav_rect(2).get_center())
 		check(app.screen == "gacha", "ten reveal tap cannot enter battle")
