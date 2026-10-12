@@ -1,0 +1,1023 @@
+{
+  "request_id": "REQ-20261012-GACHA-MAP-REFINEMENT",
+  "scope": "Five static gacha candidates only; user-authorized main/history layout redesign, no runtime implementation",
+  "design_canvas": [
+    720,
+    1280
+  ],
+  "renderer": "render_gacha.cjs",
+  "renderer_sha256": "F6F6187984DD184A78AF42E65ED6C8700E32EFDDCA6F3E4137E15CB2A1BF40A0",
+  "kit_sha256": "507DF024CA02043A822BBECF9391F97A6991180A67CCE11859DB47FB0F28AF8F",
+  "source_refs": [
+    "../core_pages/native-scene-data.json",
+    "../core_pages/native-art-sources.json"
+  ],
+  "protected_ten": {
+    "file": "../core_pages/08_gacha_ten_result.png",
+    "bytes": 240604,
+    "sha256": "1C34FFFA67145E1DD6A75D7E19E79E5E879322BAFCF80D792AD2BBDBC3C179BC"
+  },
+  "ui_override": "Main records table replaced by full promotional art and secondary record button per explicit user request; opening feedback moved above busy CTAs to eliminate old overlap.",
+  "new_records_data_source": "Existing ten-result fixture, current authoritative original card art/name/rarity",
+  "illustrations": [
+    {
+      "file": "illustrations/poster.png",
+      "sha256": "7F915AB16C7C056EC9CD98C0D5DD8ECC20E1DD21655E5AECE57EA545896211FD"
+    },
+    {
+      "file": "../map_refinement/illustrations/forest-arena.png",
+      "sha256": "612933DA876282E41AD0D0A9C9B7D708D739C3398B852B854953B9C63E22AA1F"
+    }
+  ],
+  "controls": [
+    {
+      "page": "06_gacha_empty",
+      "id": "gold",
+      "rect": [
+        46,
+        18,
+        186,
+        44
+      ],
+      "meaning": "60"
+    },
+    {
+      "page": "06_gacha_empty",
+      "id": "ticket",
+      "rect": [
+        488,
+        18,
+        186,
+        44
+      ],
+      "meaning": "30"
+    },
+    {
+      "page": "06_gacha_empty",
+      "id": "title",
+      "rect": [
+        40,
+        68,
+        640,
+        58
+      ],
+      "meaning": "抽卡"
+    },
+    {
+      "page": "06_gacha_empty",
+      "id": "recent_history",
+      "rect": [
+        508,
+        142,
+        184,
+        54
+      ],
+      "meaning": "Open recent-record preview"
+    },
+    {
+      "page": "06_gacha_empty",
+      "id": "one",
+      "rect": [
+        104,
+        1050,
+        240,
+        76
+      ],
+      "meaning": "Enabled;cost1"
+    },
+    {
+      "page": "06_gacha_empty",
+      "id": "ten",
+      "rect": [
+        376,
+        1050,
+        240,
+        76
+      ],
+      "meaning": "Enabled;cost10"
+    },
+    {
+      "page": "06_gacha_empty",
+      "id": "nav_0",
+      "rect": [
+        3,
+        1148,
+        138,
+        122
+      ],
+      "meaning": "Current five routes, gacha active"
+    },
+    {
+      "page": "06_gacha_empty",
+      "id": "nav_1",
+      "rect": [
+        147,
+        1148,
+        138,
+        122
+      ],
+      "meaning": "Current five routes, gacha active"
+    },
+    {
+      "page": "06_gacha_empty",
+      "id": "nav_2",
+      "rect": [
+        291,
+        1148,
+        138,
+        122
+      ],
+      "meaning": "Current five routes, gacha active"
+    },
+    {
+      "page": "06_gacha_empty",
+      "id": "nav_3",
+      "rect": [
+        435,
+        1148,
+        138,
+        122
+      ],
+      "meaning": "Current five routes, gacha active"
+    },
+    {
+      "page": "06_gacha_empty",
+      "id": "nav_4",
+      "rect": [
+        579,
+        1148,
+        138,
+        122
+      ],
+      "meaning": "Current five routes, gacha active"
+    },
+    {
+      "page": "07_gacha_opening",
+      "id": "gold",
+      "rect": [
+        46,
+        18,
+        186,
+        44
+      ],
+      "meaning": "60"
+    },
+    {
+      "page": "07_gacha_opening",
+      "id": "ticket",
+      "rect": [
+        488,
+        18,
+        186,
+        44
+      ],
+      "meaning": "29"
+    },
+    {
+      "page": "07_gacha_opening",
+      "id": "title",
+      "rect": [
+        40,
+        68,
+        640,
+        58
+      ],
+      "meaning": "抽卡"
+    },
+    {
+      "page": "07_gacha_opening",
+      "id": "one",
+      "rect": [
+        104,
+        1050,
+        240,
+        76
+      ],
+      "meaning": "Disabled"
+    },
+    {
+      "page": "07_gacha_opening",
+      "id": "ten",
+      "rect": [
+        376,
+        1050,
+        240,
+        76
+      ],
+      "meaning": "Disabled"
+    },
+    {
+      "page": "07_gacha_opening",
+      "id": "nav_0",
+      "rect": [
+        3,
+        1148,
+        138,
+        122
+      ],
+      "meaning": "Current five routes, gacha active"
+    },
+    {
+      "page": "07_gacha_opening",
+      "id": "nav_1",
+      "rect": [
+        147,
+        1148,
+        138,
+        122
+      ],
+      "meaning": "Current five routes, gacha active"
+    },
+    {
+      "page": "07_gacha_opening",
+      "id": "nav_2",
+      "rect": [
+        291,
+        1148,
+        138,
+        122
+      ],
+      "meaning": "Current five routes, gacha active"
+    },
+    {
+      "page": "07_gacha_opening",
+      "id": "nav_3",
+      "rect": [
+        435,
+        1148,
+        138,
+        122
+      ],
+      "meaning": "Current five routes, gacha active"
+    },
+    {
+      "page": "07_gacha_opening",
+      "id": "nav_4",
+      "rect": [
+        579,
+        1148,
+        138,
+        122
+      ],
+      "meaning": "Current five routes, gacha active"
+    },
+    {
+      "page": "07_gacha_opening",
+      "id": "toast",
+      "rect": [
+        130,
+        966,
+        460,
+        62
+      ],
+      "meaning": "获得1张卡牌"
+    },
+    {
+      "page": "07_gacha_opening",
+      "id": "card_back",
+      "rect": [
+        228,
+        460,
+        264,
+        316
+      ],
+      "meaning": "Unrevealed generic star back; no animal or rarity shown"
+    },
+    {
+      "page": "09_gacha_new_hero",
+      "id": "portrait",
+      "rect": [
+        96,
+        260,
+        528,
+        528
+      ],
+      "meaning": "Same high-resolution mouse, exact current portrait rect and pose"
+    },
+    {
+      "page": "09_gacha_new_hero",
+      "id": "name",
+      "rect": [
+        64,
+        840,
+        592,
+        64
+      ],
+      "meaning": "老鼠"
+    },
+    {
+      "page": "09_gacha_new_hero",
+      "id": "slogan",
+      "rect": [
+        64,
+        936,
+        592,
+        128
+      ],
+      "meaning": "鼠鼠我呀，主打一个人多。"
+    },
+    {
+      "page": "09_gacha_new_hero",
+      "id": "continue",
+      "rect": [
+        138,
+        1112,
+        444,
+        76
+      ],
+      "meaning": "Continue"
+    },
+    {
+      "page": "10_recent_history",
+      "id": "gold",
+      "rect": [
+        46,
+        18,
+        186,
+        44
+      ],
+      "meaning": "60"
+    },
+    {
+      "page": "10_recent_history",
+      "id": "ticket",
+      "rect": [
+        488,
+        18,
+        186,
+        44
+      ],
+      "meaning": "30"
+    },
+    {
+      "page": "10_recent_history",
+      "id": "title",
+      "rect": [
+        40,
+        68,
+        640,
+        58
+      ],
+      "meaning": "抽卡"
+    },
+    {
+      "page": "10_recent_history",
+      "id": "recent_history",
+      "rect": [
+        508,
+        142,
+        184,
+        54
+      ],
+      "meaning": "Open recent-record preview"
+    },
+    {
+      "page": "10_recent_history",
+      "id": "one",
+      "rect": [
+        104,
+        1050,
+        240,
+        76
+      ],
+      "meaning": "Enabled;cost1"
+    },
+    {
+      "page": "10_recent_history",
+      "id": "ten",
+      "rect": [
+        376,
+        1050,
+        240,
+        76
+      ],
+      "meaning": "Enabled;cost10"
+    },
+    {
+      "page": "10_recent_history",
+      "id": "nav_0",
+      "rect": [
+        3,
+        1148,
+        138,
+        122
+      ],
+      "meaning": "Current five routes, gacha active"
+    },
+    {
+      "page": "10_recent_history",
+      "id": "nav_1",
+      "rect": [
+        147,
+        1148,
+        138,
+        122
+      ],
+      "meaning": "Current five routes, gacha active"
+    },
+    {
+      "page": "10_recent_history",
+      "id": "nav_2",
+      "rect": [
+        291,
+        1148,
+        138,
+        122
+      ],
+      "meaning": "Current five routes, gacha active"
+    },
+    {
+      "page": "10_recent_history",
+      "id": "nav_3",
+      "rect": [
+        435,
+        1148,
+        138,
+        122
+      ],
+      "meaning": "Current five routes, gacha active"
+    },
+    {
+      "page": "10_recent_history",
+      "id": "nav_4",
+      "rect": [
+        579,
+        1148,
+        138,
+        122
+      ],
+      "meaning": "Current five routes, gacha active"
+    },
+    {
+      "page": "10_recent_history",
+      "id": "close",
+      "rect": [
+        601,
+        242,
+        48,
+        48
+      ],
+      "meaning": "Return to promotional main"
+    },
+    {
+      "page": "10_recent_history",
+      "id": "card_0",
+      "rect": [
+        88,
+        336,
+        264,
+        108
+      ],
+      "meaning": "青蛙"
+    },
+    {
+      "page": "10_recent_history",
+      "id": "card_1",
+      "rect": [
+        368,
+        336,
+        264,
+        108
+      ],
+      "meaning": "蚂蚁"
+    },
+    {
+      "page": "10_recent_history",
+      "id": "card_2",
+      "rect": [
+        88,
+        460,
+        264,
+        108
+      ],
+      "meaning": "麻雀"
+    },
+    {
+      "page": "10_recent_history",
+      "id": "card_3",
+      "rect": [
+        368,
+        460,
+        264,
+        108
+      ],
+      "meaning": "兔子"
+    },
+    {
+      "page": "10_recent_history",
+      "id": "card_4",
+      "rect": [
+        88,
+        584,
+        264,
+        108
+      ],
+      "meaning": "鸭"
+    },
+    {
+      "page": "10_recent_history",
+      "id": "card_5",
+      "rect": [
+        368,
+        584,
+        264,
+        108
+      ],
+      "meaning": "蜗牛"
+    },
+    {
+      "page": "10_recent_history",
+      "id": "card_6",
+      "rect": [
+        88,
+        708,
+        264,
+        108
+      ],
+      "meaning": "仓鼠"
+    },
+    {
+      "page": "10_recent_history",
+      "id": "card_7",
+      "rect": [
+        368,
+        708,
+        264,
+        108
+      ],
+      "meaning": "鸽子"
+    },
+    {
+      "page": "10_recent_history",
+      "id": "card_8",
+      "rect": [
+        88,
+        832,
+        264,
+        108
+      ],
+      "meaning": "鹦鹉"
+    },
+    {
+      "page": "10_recent_history",
+      "id": "card_9",
+      "rect": [
+        368,
+        832,
+        264,
+        108
+      ],
+      "meaning": "兔子"
+    },
+    {
+      "page": "10_recent_history",
+      "id": "return",
+      "rect": [
+        160,
+        958,
+        400,
+        60
+      ],
+      "meaning": "Return to main"
+    },
+    {
+      "page": "11_gacha_no_tickets",
+      "id": "gold",
+      "rect": [
+        46,
+        18,
+        186,
+        44
+      ],
+      "meaning": "60"
+    },
+    {
+      "page": "11_gacha_no_tickets",
+      "id": "ticket",
+      "rect": [
+        488,
+        18,
+        186,
+        44
+      ],
+      "meaning": "0"
+    },
+    {
+      "page": "11_gacha_no_tickets",
+      "id": "title",
+      "rect": [
+        40,
+        68,
+        640,
+        58
+      ],
+      "meaning": "抽卡"
+    },
+    {
+      "page": "11_gacha_no_tickets",
+      "id": "recent_history",
+      "rect": [
+        508,
+        142,
+        184,
+        54
+      ],
+      "meaning": "Open recent-record preview"
+    },
+    {
+      "page": "11_gacha_no_tickets",
+      "id": "one",
+      "rect": [
+        104,
+        1050,
+        240,
+        76
+      ],
+      "meaning": "Disabled"
+    },
+    {
+      "page": "11_gacha_no_tickets",
+      "id": "ten",
+      "rect": [
+        376,
+        1050,
+        240,
+        76
+      ],
+      "meaning": "Disabled"
+    },
+    {
+      "page": "11_gacha_no_tickets",
+      "id": "nav_0",
+      "rect": [
+        3,
+        1148,
+        138,
+        122
+      ],
+      "meaning": "Current five routes, gacha active"
+    },
+    {
+      "page": "11_gacha_no_tickets",
+      "id": "nav_1",
+      "rect": [
+        147,
+        1148,
+        138,
+        122
+      ],
+      "meaning": "Current five routes, gacha active"
+    },
+    {
+      "page": "11_gacha_no_tickets",
+      "id": "nav_2",
+      "rect": [
+        291,
+        1148,
+        138,
+        122
+      ],
+      "meaning": "Current five routes, gacha active"
+    },
+    {
+      "page": "11_gacha_no_tickets",
+      "id": "nav_3",
+      "rect": [
+        435,
+        1148,
+        138,
+        122
+      ],
+      "meaning": "Current five routes, gacha active"
+    },
+    {
+      "page": "11_gacha_no_tickets",
+      "id": "nav_4",
+      "rect": [
+        579,
+        1148,
+        138,
+        122
+      ],
+      "meaning": "Current five routes, gacha active"
+    },
+    {
+      "page": "11_gacha_no_tickets",
+      "id": "insufficient_state",
+      "rect": [
+        220,
+        958,
+        280,
+        32
+      ],
+      "meaning": "0tickets; both CTA disabled"
+    }
+  ],
+  "outputs": [
+    {
+      "id": "06_gacha_empty",
+      "file": "06_gacha_empty.png",
+      "sha256": "392B2D57E8749ABC8F6285694740628722F0EFE5425003E7FE43CA4453656FDF",
+      "size": [
+        720,
+        1280
+      ],
+      "state": {
+        "gold": 60,
+        "tickets": 30,
+        "buttons_enabled": [
+          true,
+          true
+        ],
+        "recent_count": 10,
+        "fixture": "Source-supported30before draw: cost1 leads to existing29opening; cost10 leads to retained20ten-result; promotional main/history share30ticket wallet"
+      },
+      "render_method": "AI_ILLUSTRATION_AND_USER_AUTHORIZED_NATIVE_UI",
+      "runtime_approved": false,
+      "poster_rect": [
+        0,
+        126,
+        720,
+        960
+      ],
+      "poster_source": "illustrations/poster.png",
+      "recent_button": [
+        508,
+        142,
+        184,
+        54
+      ],
+      "poster_transition": "Only detail-free green gradient under top feather; no second forest scene or double-exposure",
+      "canonical_file": "../core_pages/06_gacha_empty.png",
+      "candidate_file_historical": "06_gacha_empty.png"
+    },
+    {
+      "id": "07_gacha_opening",
+      "file": "07_gacha_opening.png",
+      "sha256": "EF20F76B9D1B82C9014195274A85A0D97EDB73FB656A141E2FABE89F310A4D5E",
+      "size": [
+        720,
+        1280
+      ],
+      "state": {
+        "id": "07_gacha_opening",
+        "gold": 60,
+        "tickets": 29,
+        "card_back": "existing normal result blue-purple framed star card",
+        "toast": "获得1张卡牌",
+        "buttons_enabled": [
+          false,
+          false
+        ],
+        "nav_active": 3,
+        "source_evidence": "HISTORICAL_LOCAL_RUNTIME_FIXTURE",
+        "no_new_hero_overlay": true,
+        "record_entry": "Recent records moved to secondary entry on promotional main"
+      },
+      "render_method": "AI_ILLUSTRATION_AND_USER_AUTHORIZED_NATIVE_UI",
+      "runtime_approved": false,
+      "light": {
+        "kind": "central_bloom_finite_beams_energy_orbit",
+        "behind_card": true,
+        "beam_count": 8,
+        "sparks": 5
+      },
+      "source_card_rect": [
+        228,
+        460,
+        264,
+        316
+      ],
+      "canonical_file": "../core_pages/07_gacha_opening.png",
+      "candidate_file_historical": "07_gacha_opening.png"
+    },
+    {
+      "id": "09_gacha_new_hero",
+      "file": "09_gacha_new_hero.png",
+      "sha256": "1A6440343151A2E12B82839B32A08C96B312F836B19317ADC45A5C235D9B9800",
+      "size": [
+        720,
+        1280
+      ],
+      "state": {
+        "id": "09_gacha_new_hero",
+        "card_id": "mouse",
+        "name": "老鼠",
+        "slogan": "鼠鼠我呀，主打一个人多。",
+        "only_button": "继续",
+        "hide_currency": true,
+        "hide_nav": true,
+        "hide_stats": true,
+        "source_evidence": "HISTORICAL_LOCAL_RUNTIME_FIXTURE"
+      },
+      "render_method": "AI_ILLUSTRATION_AND_USER_AUTHORIZED_NATIVE_UI",
+      "runtime_approved": false,
+      "light": {
+        "kind": "warm_central_bloom_finite_tapered_beams",
+        "behind_untouched_alpha_mouse": true,
+        "beam_count": 8,
+        "sparks": 5,
+        "not_drawn_over_UI": true
+      },
+      "portrait_source": {
+        "file": "../native_components/illustrations/gray-mouse-hero.png",
+        "sha256": "FF7AB1A58EBA99BE08F2649FF05431CFF8F356DB5E4A6123BDFCC375E1539335",
+        "alpha_bbox": [
+          0,
+          29,
+          1206,
+          1207
+        ],
+        "rect": [
+          96,
+          260,
+          528,
+          528
+        ],
+        "fit_scale": 0.43781094527363185
+      },
+      "canonical_file": "../core_pages/09_gacha_new_hero.png",
+      "candidate_file_historical": "09_gacha_new_hero.png"
+    },
+    {
+      "id": "10_recent_history",
+      "file": "10_recent_history.png",
+      "sha256": "4640800050FE309AEBB77A18E09AABA3E66FDA31B3F5F8E10CFF7ACA11B93452",
+      "size": [
+        720,
+        1280
+      ],
+      "state": {
+        "gold": 60,
+        "tickets": 30,
+        "card_ids": [
+          "frog",
+          "ant",
+          "sparrow",
+          "rabbit",
+          "duck",
+          "snail",
+          "hamster",
+          "pigeon",
+          "parrot",
+          "rabbit"
+        ],
+        "fixture": "Same existing historical ten-result IDs/order; history view retains promotional-main30ticket wallet; current formal names/rare-blue source applied; not real-account records"
+      },
+      "render_method": "AI_ILLUSTRATION_AND_USER_AUTHORIZED_NATIVE_UI",
+      "runtime_approved": false,
+      "cards": [
+        {
+          "id": "frog",
+          "name": "青蛙",
+          "rarity": "common",
+          "rect": [
+            88,
+            336,
+            264,
+            108
+          ]
+        },
+        {
+          "id": "ant",
+          "name": "蚂蚁",
+          "rarity": "common",
+          "rect": [
+            368,
+            336,
+            264,
+            108
+          ]
+        },
+        {
+          "id": "sparrow",
+          "name": "麻雀",
+          "rarity": "common",
+          "rect": [
+            88,
+            460,
+            264,
+            108
+          ]
+        },
+        {
+          "id": "rabbit",
+          "name": "兔子",
+          "rarity": "common",
+          "rect": [
+            368,
+            460,
+            264,
+            108
+          ]
+        },
+        {
+          "id": "duck",
+          "name": "鸭",
+          "rarity": "rare",
+          "rect": [
+            88,
+            584,
+            264,
+            108
+          ]
+        },
+        {
+          "id": "snail",
+          "name": "蜗牛",
+          "rarity": "common",
+          "rect": [
+            368,
+            584,
+            264,
+            108
+          ]
+        },
+        {
+          "id": "hamster",
+          "name": "仓鼠",
+          "rarity": "common",
+          "rect": [
+            88,
+            708,
+            264,
+            108
+          ]
+        },
+        {
+          "id": "pigeon",
+          "name": "鸽子",
+          "rarity": "common",
+          "rect": [
+            368,
+            708,
+            264,
+            108
+          ]
+        },
+        {
+          "id": "parrot",
+          "name": "鹦鹉",
+          "rarity": "rare",
+          "rect": [
+            88,
+            832,
+            264,
+            108
+          ]
+        },
+        {
+          "id": "rabbit",
+          "name": "兔子",
+          "rarity": "common",
+          "rect": [
+            368,
+            832,
+            264,
+            108
+          ]
+        }
+      ],
+      "panel": [
+        46,
+        214,
+        628,
+        824
+      ],
+      "source_preserved": "Existing08result never re-rendered or modified",
+      "canonical_file": "../core_pages/10_recent_history.png",
+      "candidate_file_historical": "10_recent_history.png"
+    },
+    {
+      "id": "11_gacha_no_tickets",
+      "file": "11_gacha_no_tickets.png",
+      "sha256": "A261767715C362B52E0BCAE80345DA54322B9F80687C9885E520080C74105904",
+      "size": [
+        720,
+        1280
+      ],
+      "state": {
+        "gold": 60,
+        "tickets": 0,
+        "buttons_enabled": [
+          false,
+          false
+        ],
+        "fixture": "Retains prior zero-ticket availability state with the same new poster"
+      },
+      "render_method": "AI_ILLUSTRATION_AND_USER_AUTHORIZED_NATIVE_UI",
+      "runtime_approved": false,
+      "poster_rect": [
+        0,
+        126,
+        720,
+        960
+      ],
+      "poster_source": "illustrations/poster.png",
+      "canonical_file": "../core_pages/11_gacha_no_tickets.png",
+      "candidate_file_historical": "11_gacha_no_tickets.png"
+    }
+  ],
+  "status": "STATIC_PREVIEW_PASS_ADOPTED",
+  "canonical_delivery_rule": "candidate names are historical; canonical_file resolves the sole current physical PNG"
+}

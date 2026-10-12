@@ -1,0 +1,154 @@
+{
+  "schema_version": 1,
+  "request_id": "REQ-20261012-GACHA-MAP-REFINEMENT",
+  "reviewer": "lead_art_director",
+  "producer": "root",
+  "status": "BATCH_STATIC_PREVIEW_PASS",
+  "reviewed_on": "2026-10-12 Asia/Hong_Kong",
+  "files": [
+    {
+      "path": "root_pages/07_victory.png",
+      "candidate_path": "map_refinement/07_victory.png",
+      "sha256": "72C11D9C364CF21AE23FAE81B567170188DA9086EC48952536C88F1FC441BB20",
+      "size": [
+        720,
+        1280
+      ],
+      "verdict": "PREVIEW_PASS",
+      "p0": [],
+      "p1": [],
+      "checks": [
+        "Direct full-canvas image inspection: forest covers real outside background without unpainted paper",
+        "Source board/cell/ownership and true neutral sand remain distinct",
+        "Original object/site silhouettes,price/unknown markers,HUD values and target regions retained",
+        "NativeHUD remains readable; uniform result scrim still applied behind modal",
+        "No full-row sourceworld crop; source tophex cells and FFAHQ flag/roof visibly intact"
+      ],
+      "receipt": "map_refinement/native-render-receipt.json",
+      "top_world_receipt": "map_refinement/top-world-check.json",
+      "runtime_approved": false
+    },
+    {
+      "path": "root_pages/08_defeat.png",
+      "candidate_path": "map_refinement/08_defeat.png",
+      "sha256": "9F4C59763B9318E4BE53B2529C4195836585159241AE0E15E809416538541D9B",
+      "size": [
+        720,
+        1280
+      ],
+      "verdict": "PREVIEW_PASS",
+      "p0": [],
+      "p1": [],
+      "checks": [
+        "Direct full-canvas image inspection: forest covers real outside background without unpainted paper",
+        "Source board/cell/ownership and true neutral sand remain distinct",
+        "Original object/site silhouettes,price/unknown markers,HUD values and target regions retained",
+        "NativeHUD remains readable; uniform result scrim still applied behind modal",
+        "No full-row sourceworld crop; source tophex cells and FFAHQ flag/roof visibly intact"
+      ],
+      "receipt": "map_refinement/native-render-receipt.json",
+      "top_world_receipt": "map_refinement/top-world-check.json",
+      "runtime_approved": false
+    },
+    {
+      "path": "root_pages/09_ffa_result.png",
+      "candidate_path": "map_refinement/09_ffa_result.png",
+      "sha256": "E178BD2C610449E6B4CF07B3B5F1F4656725331A9946629EA19E2EBA960585F4",
+      "size": [
+        720,
+        1280
+      ],
+      "verdict": "PREVIEW_PASS",
+      "p0": [],
+      "p1": [],
+      "checks": [
+        "Direct full-canvas image inspection: forest covers real outside background without unpainted paper",
+        "Source board/cell/ownership and true neutral sand remain distinct",
+        "Original object/site silhouettes,price/unknown markers,HUD values and target regions retained",
+        "NativeHUD remains readable; uniform result scrim still applied behind modal",
+        "No full-row sourceworld crop; source tophex cells and FFAHQ flag/roof visibly intact"
+      ],
+      "receipt": "map_refinement/native-render-receipt.json",
+      "top_world_receipt": "map_refinement/top-world-check.json",
+      "runtime_approved": false
+    },
+    {
+      "path": "root_pages/11_team_battle.png",
+      "candidate_path": "map_refinement/11_team_battle.png",
+      "sha256": "51EC09D97F9C61E541481CCACF4883D92AE68580ADDEF7F19424969F5F36BADB",
+      "size": [
+        720,
+        1280
+      ],
+      "verdict": "PREVIEW_PASS",
+      "p0": [],
+      "p1": [],
+      "checks": [
+        "Direct full-canvas image inspection: forest covers real outside background without unpainted paper",
+        "Source board/cell/ownership and true neutral sand remain distinct",
+        "Original object/site silhouettes,price/unknown markers,HUD values and target regions retained",
+        "NativeHUD remains readable; uniform result scrim still applied behind modal",
+        "No full-row sourceworld crop; source tophex cells and FFAHQ flag/roof visibly intact"
+      ],
+      "receipt": "map_refinement/native-render-receipt.json",
+      "top_world_receipt": "map_refinement/top-world-check.json",
+      "runtime_approved": false
+    },
+    {
+      "path": "root_pages/12_ffa_battle.png",
+      "candidate_path": "map_refinement/12_ffa_battle.png",
+      "sha256": "D03FF253D731514381D50F82E8FC87C7D6EE66893E446DB373EE0894373128A4",
+      "size": [
+        720,
+        1280
+      ],
+      "verdict": "PREVIEW_PASS",
+      "p0": [],
+      "p1": [],
+      "checks": [
+        "Direct full-canvas image inspection: forest covers real outside background without unpainted paper",
+        "Source board/cell/ownership and true neutral sand remain distinct",
+        "Original object/site silhouettes,price/unknown markers,HUD values and target regions retained",
+        "NativeHUD remains readable; uniform result scrim still applied behind modal",
+        "No full-row sourceworld crop; source tophex cells and FFAHQ flag/roof visibly intact"
+      ],
+      "receipt": "map_refinement/native-render-receipt.json",
+      "top_world_receipt": "map_refinement/top-world-check.json",
+      "runtime_approved": false
+    }
+  ],
+  "resolved_p1": [
+    "Original unpainted paper/white strips replaced by full-canvas forest behind source realworld mask",
+    "Former top140blanket clear restored to exact full0..1280source world mask excluding only actual UI",
+    "FFAHQ roof/flag at374,10375x38 restored; source tophex cells not cut"
+  ],
+  "protected_world_evidence": {
+    "top_world_12_points": 28138,
+    "HQ_roof_parent_points": 627,
+    "top_world_category_changes": 0,
+    "top_world_07_points": 30666,
+    "body_class_changes": 0,
+    "HQ_roof_parent_RGB_changes": 0,
+    "declared_body_class_points": 1333507,
+    "independent_HQ_probe": {
+      "rect": [
+        374,
+        103,
+        75,
+        38
+      ],
+      "source": "root_pages/12_ffa_battle.png",
+      "candidate": "map_refinement/12_ffa_battle.png",
+      "selected_blue_gold_dark_RGBA_pixels": 851,
+      "RGBA_changes": 0,
+      "method": "Independent RGB color selection; not parent implementation predicate",
+      "captured_source_sha256": "4010A7230BA911358591E431E6995AEECAD82B9BDA47660FDEB037EE02814704",
+      "captured_candidate_sha256": "D03FF253D731514381D50F82E8FC87C7D6EE66893E446DB373EE0894373128A4"
+    }
+  },
+  "neutral_rule": "Source warm-white neutral sand preserved as playable map content; legitimate cream UI surfaces are not counted as uncovered background",
+  "approval_boundary": "Static art/geometry/data/background proof only; no Godot input, engine rendering, target-device acceptance or release",
+  "runtime_approved": false,
+  "open_p0": 0,
+  "open_p1": 0
+}

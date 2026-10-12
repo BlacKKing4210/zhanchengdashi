@@ -1,0 +1,12 @@
+{
+  "request_id": "REQ-20261012-GACHA-MAP-REFINEMENT",
+  "method": "built-in image_gen",
+  "scope": "Full-bleed original forest environment only; no grid/animals/UI; geometry masks composed natively",
+  "source_generated_path": "C:/Users/76398/.codex/generated_images/01a12ae4-aa44-7cf3-99dd-efb71ad75a4e/exec-92071d32-fc4c-4039-af34-58d078c16cf8.png",
+  "canonical_file": "forest-arena.png",
+  "references": [
+    "../../style_master.png",
+    "../../root_pages/01_lobby.png"
+  ],
+  "prompt": "Use case: stylized-concept / original game environment background. Generate ONE finished FULL-BLEED portrait9:16 forest arena BACKGROUND illustration for the existing original 2D mobile game 丛林法则. Image1 andImage2 are STYLE references only: borrow their own game's matte flat saturated local-color craft, broad dark olive / teal evergreen forms, rounded near-black hand-drawn contours, two-tone rocks/logs and calm sunny forest identity. Ignore their UI, animals, castle and all board geometry. This must be a clean reusable environment layer for different existing hex-board shapes (diamond, cross, six-arm team and free-for-all) to be overlaid separately.\nVery important: illustration fills every pixel top to bottom and left to right with coherent natural forest/ground. NO white/cream paper background, white sky stripe, transparent holes, borders, panels or empty unpainted corners. Frame the outside with broad evergreen canopies/trunks, mossy rocks and at most two distinct fallen log forms, irregular organic composition rather than repeated tiles. Middle60percent is a quiet low-contrast moss-green/gently olive sandy clearing; smooth broad colored terrain patches, no high-contrast debris. Top20percent is fully painted darker green canopy/clearing tones appropriate for overlaying charcoal HUD pills and white text; no white sky. Bottomedge similarly finished vegetation/ground. Strongest illustrative detail near edges, subdued center, no distracting tiny flecks, flower clutter, regular patterns or dense grass. Professionally intentional composition in one whole scene with consistent scale and no seams. NO hexes, grid, board pieces, shadows shaped like a grid, paths imposed on gameplay, buildings, animals, people, faces, card props, symbols, text, numbers, UI, watermarks or logos. Not realistic, not3D, not pastel watercolor, not glossy rendering. Full portrait forest environment only, suited to adaptive masking behind source-owned gameplay geometry with all original neutral tiles, colored ownership fields, prices and controls preserved separately."
+}

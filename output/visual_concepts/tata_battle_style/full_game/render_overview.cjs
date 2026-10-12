@@ -5,13 +5,14 @@ const base=__dirname;
  await K.initAssets();const W=1328,H=1810,c=K.createCanvas(W,H),x=c.getContext('2d');
  x.fillStyle='#13272b';x.fillRect(0,0,W,H);
  K.text(x,'丛林法则 · 全游戏美术效果',34,20,1260,48,33,{color:'#f5f0df'});
- K.text(x,'6 条主要流程与关键状态 · 31 张效果图 · 未实装',34,71,1260,34,20,{color:'#c6d89b'});
+ const count=JSON.parse(require('fs').readFileSync(path.join(base,'manifest.json'),'utf8')).count;
+ K.text(x,'6 条主要流程与关键状态 · '+count+' 张效果图 · 未实装',34,71,1260,34,20,{color:'#c6d89b'});
  const pages=[
  ['core_pages/01_home_selected.png','家园 · 建筑与产出'],
  ['core_pages/04_deck_main.png','编组 · 卡牌与升级'],
  ['root_pages/01_lobby.png','大厅 · 段位与对战入口'],
  ['style_master.png','战斗 · 棋盘与反馈基准'],
- ['core_pages/09_gacha_new_hero.png','抽卡 · 新动物展示'],
+ ['core_pages/06_gacha_empty.png','抽卡 · 伙伴招募宣传'],
  ['account_room/01_room_entry.png','房间 · 模式与加入']];
  for(let i=0;i<pages.length;i++){
   const a=34+(i%3)*432,b=126+Math.floor(i/3)*808;

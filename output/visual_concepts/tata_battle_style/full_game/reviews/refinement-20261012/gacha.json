@@ -1,0 +1,124 @@
+{
+  "schema_version": 1,
+  "request_id": "REQ-20261012-GACHA-MAP-REFINEMENT",
+  "reviewer": "lead_art_director",
+  "producer": "root",
+  "status": "BATCH_STATIC_PREVIEW_PASS",
+  "reviewed_on": "2026-10-12 Asia/Hong_Kong",
+  "files": [
+    {
+      "path": "core_pages/06_gacha_empty.png",
+      "candidate_path": "gacha_refinement/06_gacha_empty.png",
+      "sha256": "392B2D57E8749ABC8F6285694740628722F0EFE5425003E7FE43CA4453656FDF",
+      "size": [
+        720,
+        1280
+      ],
+      "verdict": "PREVIEW_PASS",
+      "p0": [],
+      "p1": [],
+      "checks": [
+        "Full promotional composition; five original identities retained and not cropped",
+        "Large always-on records panel removed; recent-history secondary entry clear",
+        "30-ticket fixture supports cost1 andcost10 enabled actions",
+        "Header transition has no second forest/log ghost or hard horizontal edge"
+      ],
+      "receipt": "gacha_refinement/receipt.json",
+      "runtime_approved": false
+    },
+    {
+      "path": "core_pages/07_gacha_opening.png",
+      "candidate_path": "gacha_refinement/07_gacha_opening.png",
+      "sha256": "EF20F76B9D1B82C9014195274A85A0D97EDB73FB656A141E2FABE89F310A4D5E",
+      "size": [
+        720,
+        1280
+      ],
+      "verdict": "PREVIEW_PASS",
+      "p0": [],
+      "p1": [],
+      "checks": [
+        "One neutral unrevealed star-card in source264x316rect; no identity/rarity disclosed",
+        "Warm center light/limited beams and spark accents behind card",
+        "29-ticket after single draw; busy actions visibly disabled",
+        "Toast above action region and no blocked cost text"
+      ],
+      "receipt": "gacha_refinement/receipt.json",
+      "runtime_approved": false
+    },
+    {
+      "path": "core_pages/09_gacha_new_hero.png",
+      "candidate_path": "gacha_refinement/09_gacha_new_hero.png",
+      "sha256": "1A6440343151A2E12B82839B32A08C96B312F836B19317ADC45A5C235D9B9800",
+      "size": [
+        720,
+        1280
+      ],
+      "verdict": "PREVIEW_PASS",
+      "p0": [],
+      "p1": [],
+      "checks": [
+        "Same high-resolution alpha mouse and source portrait/name/slogan/continue rectangles",
+        "Back light limited to behind silhouette; face and strong outlines intact",
+        "No currency/nav/stat additions; only sourcecontinue remains"
+      ],
+      "receipt": "gacha_refinement/receipt.json",
+      "runtime_approved": false
+    },
+    {
+      "path": "core_pages/10_recent_history.png",
+      "candidate_path": "gacha_refinement/10_recent_history.png",
+      "sha256": "4640800050FE309AEBB77A18E09AABA3E66FDA31B3F5F8E10CFF7ACA11B93452",
+      "size": [
+        720,
+        1280
+      ],
+      "verdict": "PREVIEW_PASS",
+      "p0": [],
+      "p1": [],
+      "checks": [
+        "Same30-ticket main underlay, modal scrub preserves balance",
+        "Same existing10IDs/order and current duck/parrot rareblue",
+        "CloseX and返回抽卡 visible; primary cards readable without cutting",
+        "Data fixtures, no real account claims"
+      ],
+      "receipt": "gacha_refinement/receipt.json",
+      "runtime_approved": false
+    },
+    {
+      "path": "core_pages/11_gacha_no_tickets.png",
+      "candidate_path": "gacha_refinement/11_gacha_no_tickets.png",
+      "sha256": "A261767715C362B52E0BCAE80345DA54322B9F80687C9885E520080C74105904",
+      "size": [
+        720,
+        1280
+      ],
+      "verdict": "PREVIEW_PASS",
+      "p0": [],
+      "p1": [],
+      "checks": [
+        "Same poster art;0tickets and insufficiency text make unavailability explicit",
+        "Both cost1/10 actions disabled; no shopplus or new currency route",
+        "No ghost/header seam; original zero-ticket failure state preserved"
+      ],
+      "receipt": "gacha_refinement/receipt.json",
+      "runtime_approved": false
+    }
+  ],
+  "protected_ten": {
+    "path": "core_pages/08_gacha_ten_result.png",
+    "bytes": 240604,
+    "sha256": "1C34FFFA67145E1DD6A75D7E19E79E5E879322BAFCF80D792AD2BBDBC3C179BC",
+    "unchanged": true
+  },
+  "resolved_p1": [
+    "Poster double-exposure and hard transition removed using single art plus quiet gradient backing",
+    "Main/history30 -> singleopening29 / ten-result20 arithmetic consistent with existing cost1/10",
+    "Original zero-ticket disabled state retained separately"
+  ],
+  "flow": "Poster30 -> recent-history30 without spending; source singlecost1 -> opening29; source tencost10 -> unchangedten20. Hero and insufficient-state screenshots remain illustrative static states.",
+  "approval_boundary": "Approved static promotional/reveal/history/failure images under user-authorized UI override; no runtime/engine interaction or formal implementation acceptance",
+  "runtime_approved": false,
+  "open_p0": 0,
+  "open_p1": 0
+}

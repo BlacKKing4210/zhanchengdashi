@@ -8,9 +8,9 @@
     "project_ui_audit",
     "method_research"
   ],
-  "canonical_full_screen_pngs": 31,
+  "canonical_full_screen_pngs": 33,
   "main_routes": 6,
-  "review_hash_bindings": "PASS_31_CURRENT",
+  "review_hash_bindings": "PASS_33_CURRENT",
   "gallery_qa": "PASS_OFFLINE_GALLERY",
   "main_gd_sha256": "8C9E374F65A221AF7BB92A32470503166188A879562D5A1AE220A817D56359CA",
   "runtime_assets_config_source_changed": false,
@@ -24,12 +24,12 @@
   ],
   "overview": {
     "file": "overview.png",
-    "sha256": "023EEF0D011A2B4B79FCC6A800322DF83667B0EA3D2B0C2C3A47770E51047837",
+    "sha256": "2CBECBD4F9FC836AC033D30C9D711AF0E2E094ED25343D0C2CF19EE72E09B5B8",
     "views": 6,
     "kind": "Derivative review board, not another canonical full-screen state"
   },
-  "manifest_sha256": "7D0D2EDC9401FA340F7E902EF11621F44F30A7B7FD837C3ADD32782D498023C7",
-  "gallery_sha256": "B657E1377B69BF4E39FE05D65D1EC17D8B13A00A3FC22143F87508C557C05BC9",
+  "manifest_sha256": "728C7A733D55B8FDD5801E8E04E8F5C220E88B44FE8C6B8F4EF0D1DEE7EA58A6",
+  "gallery_sha256": "9141F9376174368CB1074F04DB2D39AFBC865E5CCDA2137F5C885F79FD01B06A",
   "cleanup": {
     "receipt": "../cleanup.json",
     "duplicate_copy_deleted_bytes": 52267220,
@@ -44,5 +44,51 @@
   "release_runtime_gate": "Not requested; static preview acceptance only",
   "account_data": "Synthetic, no real credentials",
   "locks": "Returned",
-  "version_control": "This closure is stored in the focused preview-only commit; push receipt is reported separately."
+  "version_control": "This closure is stored in the focused preview-only commit; push receipt is reported separately.",
+  "latest_refinement": {
+    "request_id": "REQ-20261012-GACHA-MAP-REFINEMENT",
+    "review_files": [
+      "reviews/refinement-20261012/gacha.json",
+      "reviews/refinement-20261012/maps.json"
+    ],
+    "adoption": "gacha_refinement/adoption.json",
+    "changed_existing_views": 8,
+    "new_views": 2,
+    "unchanged_existing_views": 23,
+    "ten_result_sha256": "1C34FFFA67145E1DD6A75D7E19E79E5E879322BAFCF80D792AD2BBDBC3C179BC",
+    "cleanup": {
+      "request_id": "REQ-20261012-GACHA-MAP-REFINEMENT",
+      "scope": "Exactly two new task-owned builtin image copies; original user/research/source/other-task files excluded",
+      "logical_duplicate_deleted_bytes": 3768631,
+      "disk_free_before": {
+        "D": 171814731776,
+        "C": 93508767744
+      },
+      "disk_free_after": {
+        "D": 171814731776,
+        "C": 93512540160
+      },
+      "actual_free_change": {
+        "D": 0,
+        "C": 3772416
+      },
+      "measurement_note": "Free-space deltas may include concurrent system activity",
+      "relocations": [
+        {
+          "source": "C:\\Users\\76398\\.codex\\generated_images\\01a12ae4-aa44-7cf3-99dd-efb71ad75a4e\\exec-74056326-e8fe-4196-a82c-4cc323c26006.png",
+          "retained": "D:\\AI\\zhanchengdashi\\output\\visual_concepts\\tata_battle_style\\full_game\\gacha_refinement\\illustrations\\poster.png",
+          "sha256": "7F915AB16C7C056EC9CD98C0D5DD8ECC20E1DD21655E5AECE57EA545896211FD",
+          "bytes": 2042120,
+          "result": "VERIFIED_RETAINED_SINGLE_FORMAL_ENTITY"
+        },
+        {
+          "source": "C:\\Users\\76398\\.codex\\generated_images\\01a12ae4-aa44-7cf3-99dd-efb71ad75a4e\\exec-92071d32-fc4c-4039-af34-58d078c16cf8.png",
+          "retained": "D:\\AI\\zhanchengdashi\\output\\visual_concepts\\tata_battle_style\\full_game\\map_refinement\\illustrations\\forest-arena.png",
+          "sha256": "612933DA876282E41AD0D0A9C9B7D708D739C3398B852B854953B9C63E22AA1F",
+          "bytes": 1726511,
+          "result": "VERIFIED_RETAINED_SINGLE_FORMAL_ENTITY"
+        }
+      ]
+    }
+  }
 }

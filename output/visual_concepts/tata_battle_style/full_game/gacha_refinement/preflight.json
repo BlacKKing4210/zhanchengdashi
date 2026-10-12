@@ -1,0 +1,210 @@
+{
+  "request_id": "REQ-20261012-GACHA-MAP-REFINEMENT",
+  "phase": "READ_ONLY_PREFLIGHT",
+  "producer": "human user",
+  "coordinator": "root",
+  "primary_skill": "game-studio-orchestrator",
+  "art_skills": [
+    "game-visual-quality-pipeline",
+    "ui-design-priority",
+    "imagegen"
+  ],
+  "approval": "User authorizes promotional gacha main, recent-history button/preview and improved reveal lighting plus no-white backgrounds for other map shapes; preview-only.",
+  "native_authorization": "允许原生组件精确排版（推荐）",
+  "ui_override": "New gacha main and recent-history button layout explicitly requested by user; preserve ten-result page and current game sources.",
+  "gacha_owner": "root",
+  "gacha_illustration_owner": "root",
+  "map_owner": "root",
+  "reviewer": "art_director",
+  "protected_ten": {
+    "id": "gacha-result",
+    "file": "core_pages/08_gacha_ten_result.png",
+    "group": "gacha",
+    "title": "抽卡 · 十连结果",
+    "description": "十张结果按当前布局显示，保留品质与数量。",
+    "main": false,
+    "width": 720,
+    "height": 1280,
+    "bytes": 240604,
+    "sha256": "1C34FFFA67145E1DD6A75D7E19E79E5E879322BAFCF80D792AD2BBDBC3C179BC",
+    "design_canvas": [
+      720,
+      1280
+    ],
+    "render_method": "USER_AUTHORIZED_NATIVE_CANVAS_COMPONENTS",
+    "source_refs": [
+      "D:/AI/zhanchengdashi/temp/qa/gacha-spaced-20260925/candidate-finished-10.png"
+    ],
+    "coordinate_parity": true,
+    "review": {
+      "status": "STATIC_PREVIEW_PASS",
+      "file": "reviews/core_pages.json",
+      "hash_matches": true
+    },
+    "runtime_approved": false
+  },
+  "protected_existing_views": [
+    {
+      "file": "style_master.png",
+      "sha256": "BBE3FD3A58369D7ACC66808C7ADBCD7FE39BDC373E27D5B2C76EEB366516405A"
+    },
+    {
+      "file": "core_pages/01_home_selected.png",
+      "sha256": "0A1AA4678A950D190CB3D96FE5E53BBDA132333E29D627E8EB32061A59EC8EC0"
+    },
+    {
+      "file": "core_pages/02_home_new_tomorrow.png",
+      "sha256": "A519F1D6320BB62573016BBD780000AFDA9DE719DBE6813AE1E02B2D84D3C9BB"
+    },
+    {
+      "file": "core_pages/03_home_daily_rewards.png",
+      "sha256": "0A0658C865399CBC299FA63EC6A04C997F9B240ACB8CC95FCC04E3C1FBAF5BED"
+    },
+    {
+      "file": "core_pages/04_deck_main.png",
+      "sha256": "F3B6A8496703FCE12754AF18BE67C2DCA4E90F6CD5359AB07E9BAE0F134E889B"
+    },
+    {
+      "file": "core_pages/05_deck_upgrade.png",
+      "sha256": "3ECFFCD6F88757763CCAA245D4BE5EF18FC86EEAFF95254A1BE1071893BD6648"
+    },
+    {
+      "file": "root_pages/01_lobby.png",
+      "sha256": "02F5797542CBE52A290C8287C6D92938500A9E97CCB8B8938D3555E7C92004B1"
+    },
+    {
+      "file": "core_pages/06_gacha_empty.png",
+      "sha256": "88F0B53F9531F5A102AF933701F9F8451FFC048D70CAAE2B1A68D9D695C1F46E"
+    },
+    {
+      "file": "core_pages/07_gacha_opening.png",
+      "sha256": "C8859DB8D989E832D84B9D8D97A1D195F0F25902E507A0B32074EC0148106A71"
+    },
+    {
+      "file": "core_pages/08_gacha_ten_result.png",
+      "sha256": "1C34FFFA67145E1DD6A75D7E19E79E5E879322BAFCF80D792AD2BBDBC3C179BC"
+    },
+    {
+      "file": "core_pages/09_gacha_new_hero.png",
+      "sha256": "2D51C12B30B64805DC592F93F4E92125CBEDDF509825AABCF8ECC4FC688E7258"
+    },
+    {
+      "file": "account_room/01_room_entry.png",
+      "sha256": "B98F012C34949199D957DE16F49B00FC6ED9950987262898809CDD0A0492FB23"
+    },
+    {
+      "file": "account_room/02_room_error.png",
+      "sha256": "32371E329B94E2D305A6999F89AC8D9FB98C0745F7934F59A174EDC44D92B627"
+    },
+    {
+      "file": "account_room/03_room_host.png",
+      "sha256": "92161CC726A62C10A62A287A49CAE9B1C2CCFFD5D7AB16416848721746213375"
+    },
+    {
+      "file": "account_room/04_room_guest.png",
+      "sha256": "8AE5B4A8EAE2817B3E17AC0E845913175214C554FC3B7667C6BF4D9F2CB5375F"
+    },
+    {
+      "file": "account_room/05_account.png",
+      "sha256": "1C3B51676E0CB32C7CE4AFA3F1648A570CCA25D74FB150F51BFABCD8FF2C1CB7"
+    },
+    {
+      "file": "account_room/06_login.png",
+      "sha256": "536D8BCDF2A04A8422FB77936296E6AD302C8FE212741063F7E8E9B764B9841A"
+    },
+    {
+      "file": "account_room/07_account_switch.png",
+      "sha256": "BD9BB02555C3C763EFBEC35768F96EAAC974CF7A89DD46DDB1B9F9EA5C7A6EB7"
+    },
+    {
+      "file": "account_room/08_avatar.png",
+      "sha256": "DB08EA90F96FC2F8B30031DCDBD4A203A2478EA1D16F93A4CCD963B7B8199AAE"
+    },
+    {
+      "file": "account_room/09_agreement.png",
+      "sha256": "136937BC429B0D5F46F82AF54795930380A3120F6D19A2AAF60905E516D9DD2D"
+    },
+    {
+      "file": "root_pages/02_battle_selected.png",
+      "sha256": "2164761E8BC319B9335BAA88BEDD9A0CF3087BEE14DD726222D7DC86F43A2AEB"
+    },
+    {
+      "file": "root_pages/03_battle_purchase.png",
+      "sha256": "4EC77A95CBCC154DC1E061B7E327BAD4C71F5FC7449B376BB362C2C3569E10B5"
+    },
+    {
+      "file": "root_pages/04_battle_hit.png",
+      "sha256": "52C5FD4A8AF4C1792BAE75B0E69553DB6423E4AD24E7028F754AF9006CF182F7"
+    },
+    {
+      "file": "root_pages/05_battle_no_gold.png",
+      "sha256": "18D8E19C3D5B09A321D43D28830ACEC90FD495B033283DCBD7B7955C329D5EAF"
+    },
+    {
+      "file": "root_pages/06_pause.png",
+      "sha256": "FAADE759B223775E472D3B07A28EF065E4BC20565C311739DE15E1841A6CF057"
+    },
+    {
+      "file": "root_pages/11_team_battle.png",
+      "sha256": "86657679200F10633E6A2CD7ABDA0FA7718889C25CAC5A4A092E1032894F0330"
+    },
+    {
+      "file": "root_pages/12_ffa_battle.png",
+      "sha256": "4010A7230BA911358591E431E6995AEECAD82B9BDA47660FDEB037EE02814704"
+    },
+    {
+      "file": "root_pages/07_victory.png",
+      "sha256": "1AAE789A153BF8E0E1FC4A753BA5C429EE4A985770F1DFFC7C9F7EC737DCCAAB"
+    },
+    {
+      "file": "root_pages/08_defeat.png",
+      "sha256": "1C8522A385D6B5DB9025E98C77466CBC63C1DEC15B9E76A37FAE60BBB1B205F5"
+    },
+    {
+      "file": "root_pages/09_ffa_result.png",
+      "sha256": "39588E9A75535CAFDAE42814FE8D947FE310FC0097C413C724978F4A59304995"
+    },
+    {
+      "file": "root_pages/10_loading.png",
+      "sha256": "B9C9D5761F6AC949CA9258C8C97725D4BB39EBE4F485757629BB93D58809FB5E"
+    }
+  ],
+  "source_sha": {
+    "file": "scripts/app/main.gd",
+    "expected_sha256": "8C9E374F65A221AF7BB92A32470503166188A879562D5A1AE220A817D56359CA",
+    "actual_sha256": "8C9E374F65A221AF7BB92A32470503166188A879562D5A1AE220A817D56359CA"
+  },
+  "write_set": [
+    "full_game/gacha_refinement/**",
+    "full_game/map_refinement/**",
+    "full_game/reviews/refinement-20261012/**",
+    "preview-gallery metadata and audited canonical replacements only"
+  ],
+  "non_goals": [
+    "Game runtime/source/config changes",
+    "probability/pity/discount or new reward mechanics",
+    "New global skills/services/dependencies",
+    "Implementation"
+  ],
+  "rag_grounding": "Existing RAG task receipt REQ-20261011-TATA-FULL-GAME-PREVIEW, fresh check reused",
+  "acceptance": [
+    "Ten-result PNG hash identical",
+    "Poster fills main; recent history secondary and viewable in preview",
+    "Revealing card unknown until reveal; busy CTA disabled",
+    "Mouse identity/pose retained; light behind silhouette and protected fixed UI",
+    "Map neutral/owner geometry/object/price unchanged; no blank background outside intended UI/neutral land",
+    "Lead artist SHA-bound static QA",
+    "One canonical PNG per view; no game writes"
+  ],
+  "rag_status": "READY",
+  "rag_index_signature": "b1ab1b82046cf499dd1264d417863a5d63b712548e3142e53d5ccf9cb4b24133",
+  "delegation_recovery": "Two specialist samplers reported capacity errors before producing artifacts; root assumes their isolated preview write scopes. Lead artist supplied direction and remains independent reviewer.",
+  "status": "STATIC_PREVIEW_PASS_ADOPTED",
+  "canonical_count": 33,
+  "current_request_reviews": [
+    "reviews/refinement-20261012/gacha.json",
+    "reviews/refinement-20261012/maps.json"
+  ],
+  "ten_result_unchanged": true,
+  "write_locks": "Returned after reviewed canonical adoption"
+}

@@ -4,6 +4,12 @@ const K=require('../native_components/common.cjs');
 const S=require('./skin_world.cjs');
 const ROOT=path.resolve(__dirname,'../../../../..');
 const BASE=path.resolve(__dirname,'..');
+const outputArg=process.argv.find(a=>a.startsWith('--output-dir='));
+const OUT=outputArg?path.resolve(outputArg.slice(13)):__dirname;
+if(!OUT.toLowerCase().startsWith((BASE+path.sep).toLowerCase()))throw Error('Output must stay inside this preview delivery');
+const backgroundArg=process.argv.find(a=>a.startsWith('--full-background='));
+const FULL_BG=backgroundArg?path.resolve(backgroundArg.slice(18)):undefined;
+const MAPS_ONLY=process.argv.includes('--maps-only');
 const controls=[];
 const sha=f=>crypto.createHash('sha256').update(fs.readFileSync(f)).digest('hex');
 function record(page,id,rect){controls.push({page,id,rect});}
@@ -56,7 +62,7 @@ async function pause(){
  K.text(ctx,'战斗暂停',120,468,480,52,38,{align:'center'});
  K.button(ctx,184,552,352,68,'继续战斗',{kind:'primary',size:30});record(p,'continue',[184,552,352,68]);
  K.button(ctx,184,644,352,68,'退出战斗',{kind:'secondary',size:30});record(p,'exit',[184,644,352,68]);
- const dst=path.join(__dirname,p+'.png');K.exportPng(canvas,dst);return{page:p,source:src,source_sha256:sha(src),path:p+'.png',sha256:sha(dst),underlay_alpha:.48};
+ const dst=path.join(OUT,p+'.png');K.exportPng(canvas,dst);return{page:p,source:src,source_sha256:sha(src),path:p+'.png',sha256:sha(dst),underlay_alpha:.48};
 }
 const cases=[
  {page:'07_victory',source:'temp/qa/result-reward-area-20260907/victory-720.png',title:'胜利',color:K.C.gold,gold:146,ticket:16,middle:'青铜2星 VS 青铜1星',mode:'classic',self:{rank:1,name:'神秘玩家',old:'青铜2星',next:'青铜3星',delta:1},others:[{rank:2,name:'松果队长',old:'青铜1星',next:'青铜1星',delta:-1}],left:{type:'coin',value:'+12'},right:'+3',bottom:['1V1 十字战场 · 拖动查看地图','点击己方可连接地块购买；防御塔价格随本局购买次数递增。']},
@@ -65,7 +71,7 @@ const cases=[
 ];
 async function result(d){
  const src=path.join(ROOT,d.source),{canvas,ctx}=await sourceLayer(src,.42);
- const world_skin=await S.styleWorld(ctx,{modal:true,lobby:path.join(__dirname,'01_lobby.png')});
+ const world_skin=await S.styleWorld(ctx,{modal:true,lobby:path.join(__dirname,'01_lobby.png'),fullBackground:FULL_BG,layoutKind:d.mode});
  top(ctx,d.page,d,d.mode);if(d.mode==='team'){score(ctx,d.page,0,129);score(ctx,d.page,1,129);}
  instruction(ctx,d.page,...d.bottom);K.dim(ctx,.42);
  K.panel(ctx,60,176,600,824,{fill:K.C.cream,line:4,radius:14});record(d.page,'result_panel',[60,176,600,824]);
@@ -81,11 +87,11 @@ async function result(d){
  K.text(ctx,'本场奖励',108,774,504,28,22,{align:'center'});
  K.reward(ctx,176,816,164,44,d.left.value,d.left.type,{fontSize:25});K.reward(ctx,380,816,164,44,d.right,'ticket',{fontSize:25});
  K.button(ctx,190,900,340,64,'关闭',{size:30});record(d.page,'close',[190,900,340,64]);
- const dst=path.join(__dirname,d.page+'.png');K.exportPng(canvas,dst);return{page:d.page,source:d.source,source_sha256:sha(src),path:d.page+'.png',sha256:sha(dst),underlay_alpha:.42,world_skin,underlay_method:'Undo known source0.42 dim, skin only source field/background pixels, redraw exact UI, apply one uniform0.42 layer; source map/object geometry retained.'};
+ const dst=path.join(OUT,d.page+'.png');K.exportPng(canvas,dst);return{page:d.page,source:d.source,source_sha256:sha(src),path:d.page+'.png',sha256:sha(dst),underlay_alpha:.42,world_skin,underlay_method:'Undo known source0.42 dim, skin only source field/background pixels, redraw exact UI, apply one uniform0.42 layer; source map/object geometry retained.'};
 }
 async function mode(d){
  const src=path.join(ROOT,d.source),{canvas,ctx}=await sourceLayer(src);
- const world_skin=await S.styleWorld(ctx,{lobby:path.join(__dirname,'01_lobby.png')});
+ const world_skin=await S.styleWorld(ctx,{lobby:path.join(__dirname,'01_lobby.png'),fullBackground:FULL_BG,layoutKind:d.kind});
  top(ctx,d.page,d,d.kind);if(d.kind==='team'){score(ctx,d.page,0,108);score(ctx,d.page,1,108);}
  if(d.kind==='ffa'){
   K.panel(ctx,500,148,148,184,{fill:K.C.navy,line:3,radius:10});record(d.page,'leaderboard',[500,148,148,184]);
@@ -93,13 +99,13 @@ async function mode(d){
   const cs=[S.palette.yellow,S.palette.green,S.palette.purple,S.palette.blue,S.palette.orange,S.palette.pink].map(c=>'rgb('+c.join(',')+')');
   for(let i=0;i<6;i++){const y=184+i*22;if(i===4)K.panel(ctx,508,y,132,21,{fill:'#f7db69',line:1.5,stroke:K.C.gold,radius:4});ctx.beginPath();ctx.arc(517,y+10,4.5,0,Math.PI*2);ctx.fillStyle=cs[i];ctx.fill();K.text(ctx,(i+1)+'号',526,y,47,21,17,{color:i===4?K.C.ink:'#fff'});K.text(ctx,'55格',580,y,60,21,17,{align:'right',color:i===4?K.C.ink:'#fff'});}
  }
- instruction(ctx,d.page,...d.bottom);const dst=path.join(__dirname,d.page+'.png');K.exportPng(canvas,dst);
+ instruction(ctx,d.page,...d.bottom);const dst=path.join(OUT,d.page+'.png');K.exportPng(canvas,dst);
  return{page:d.page,source:d.source,source_sha256:sha(src),path:d.page+'.png',sha256:sha(dst),world_skin,method:'Original source map/object geometry; low-density field palette and accepted AI forest only in edge-connected outside-map blank pixels; exact shared native HUD, no map regeneration.'};
 }
 (async()=>{
- await K.initAssets();const outputs=[await pause()];for(const d of cases)outputs.push(await result(d));
+ await K.initAssets();const outputs=MAPS_ONLY?[]:[await pause()];for(const d of cases)outputs.push(await result(d));
  outputs.push(await mode({page:'11_team_battle',source:'temp/qa/all-animals-audit-20260906/hex-3v3-720.png',gold:72,ticket:10,kind:'team',bottom:['空地','已解锁区域，可作为继续扩张的连接点。']}));
  outputs.push(await mode({page:'12_ffa_battle',source:'temp/qa/all-animals-audit-20260906/hex-ffa-720.png',gold:72,ticket:10,middle:'06:00 第5/6',kind:'ffa',bottom:['拖动查看地图，点击地块查看信息','单位自动选择最近敌人；点击己方可连接地块可购买。']}));
- const receipt={request_id:'REQ-20261011-TATA-FULL-GAME-PREVIEW',phase:'USER_AUTHORIZED_NATIVE_COMPOSITION',canvas:[720,1280],runtime_changes:false,kit_sha256:sha(path.join(BASE,'native_components/common.cjs')),outputs,controls,source_geometry:'scripts/app/main.gd source rects',acceptance:'PENDING_INDEPENDENT_STATIC_ART_REVIEW'};
- fs.writeFileSync(path.join(__dirname,'native-render-receipt.json'),JSON.stringify(receipt,null,2));console.log(JSON.stringify({status:'NATIVE_ROOT_RENDERED',count:outputs.length,outputs:outputs.map(x=>x.path)}));
+ const receipt={request_id:FULL_BG?'REQ-20261012-GACHA-MAP-REFINEMENT':'REQ-20261011-TATA-FULL-GAME-PREVIEW',phase:'USER_AUTHORIZED_NATIVE_COMPOSITION',canvas:[720,1280],runtime_changes:false,kit_sha256:sha(path.join(BASE,'native_components/common.cjs')),outputs,controls,source_geometry:'scripts/app/main.gd source rects',full_background:FULL_BG?{file:FULL_BG,sha256:sha(FULL_BG)}:null,acceptance:'PENDING_INDEPENDENT_STATIC_ART_REVIEW'};
+ fs.mkdirSync(OUT,{recursive:true});fs.writeFileSync(path.join(OUT,'native-render-receipt.json'),JSON.stringify(receipt,null,2));console.log(JSON.stringify({status:'NATIVE_ROOT_RENDERED',count:outputs.length,outputs:outputs.map(x=>x.path)}));
 })().catch(e=>{console.error(e.stack);process.exitCode=1;});

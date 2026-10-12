@@ -12,7 +12,7 @@
   "style_master": "D:/AI/zhanchengdashi/output/visual_concepts/tata_battle_style/full_game/style_master.png",
   "nav_master": "D:/AI/zhanchengdashi/output/visual_concepts/tata_battle_style/full_game/root_pages/01_lobby.png",
   "rag_receipt": "D:/AI/zhanchengdashi/temp/rag/receipts/tasks/REQ-20261011-TATA-FULL-GAME-PREVIEW.json",
-  "status": "CORE_NINE_PREVIEW_PASS_NO_RUNTIME",
+  "status": "CORE_ELEVEN_PREVIEW_PASS_NO_RUNTIME",
   "recency_warning": "Historical synthetic runtime fixture inputs are not fresh current-engine proof. 01/02/04/05 remain accepted legacy 941x1672 AI style previews without pixel-coordinate parity. Native 03/06/07/08/09 outputs are exactly720x1280; 03 uniform-scale icon repair, GACHA current-source component coordinates. No implementation, real account, ownership or device behavior claim.",
   "source_overrides": {
     "bear_Lv1": {
@@ -463,30 +463,21 @@
         }
       ],
       "prompt_file": "prompts/06_gacha_empty.native-instruction.txt",
-      "output_sha256": "88F0B53F9531F5A102AF933701F9F8451FFC048D70CAAE2B1A68D9D695C1F46E",
+      "output_sha256": "392B2D57E8749ABC8F6285694740628722F0EFE5425003E7FE43CA4453656FDF",
       "output_pixels": [
         720,
         1280
       ],
-      "render_method": "USER_AUTHORIZED_NATIVE_CANVAS_COMPONENTS",
+      "render_method": "AI_ILLUSTRATION_AND_USER_AUTHORIZED_NATIVE_UI",
       "state": {
-        "id": "06_gacha_empty",
         "gold": 60,
-        "tickets": 0,
-        "heading": "抽卡",
-        "record_heading": "最近获得",
-        "record_empty": "暂无记录",
-        "buttons": [
-          "抽1次",
-          "抽10次"
-        ],
+        "tickets": 30,
         "buttons_enabled": [
-          false,
-          false
+          true,
+          true
         ],
-        "nav_active": 3,
-        "source_evidence": "SOURCE_CONFIRMED_STATE_DERIVED_FROM_HISTORICAL_FIXTURE",
-        "new_features": false
+        "recent_count": 10,
+        "fixture": "Source-supported30before draw: cost1 leads to existing29opening; cost10 leads to retained20ten-result; promotional main/history share30ticket wallet"
       },
       "geometry": {
         "currency_left": [
@@ -627,7 +618,7 @@
         ]
       },
       "animal_assets": [],
-      "native_receipt": "native-render-receipt.json",
+      "native_receipt": "../gacha_refinement/receipt.json",
       "historical_imagegen_planning_prompt": "Use case: style-transfer / ui-mockup. ONE complete9:16 portrait720x1280design game effect screen. Image1 owns all source geometry, controls, data and original identities. Image2 supplies approved flat matte cartoon craft: near-black bold contours, quiet dark olive/teal forest, cream info panels, large simple shapes, minimal two-tone shading. Image3 supplies ONLY five bottom-nav ICONS/style: orange-roof HOUSE 家园, purple/yellow doubleCARDS 编组, white crossedSWORDS 战斗, GOLD paw-stamped ticket 抽卡, roundedWOOD DOOR 房间. Five equal source slots(i×144+3,1148,138,122); idle navy/thispageactive lime. Shared currencyplainNAVYpills with largeprotrudinggoldcoin/blueNOTCHEDticket, largewhite outlined values, nofill/progress/yellowwedge/plus/resource-name text. Preserve exact text and page layout, readable Chinese. No new features/shop/buttons/control regions, no watermarks or phoneframes. PREVIEWonly. GACHA emptyrecordscreen: derive empty EXISTINGstatefrom currentresultlayout. Title抽卡(40,68,640,58),gold60,ticket0;centerblue-ticketcounter0 at(238,130,244,48). Rewardpanel(46,208,628,822) with最近获得 heading and ONLY 暂无记录 centered; remove ALL10resultsand获得10张卡牌toast. Keepexact2bottom CTAs抽1次(104,1050,240,76),抽10次(376,1050,240,76), BOTHdisabledGRAY due0tickets. Nav抽卡active. No collectioncards/management/upgradelevels/newmenus. Thisempty state is source-confirmed, balancesarepreviewfixture.",
       "source_kind": "CURRENT_SOURCE_STATE_DERIVED_FROM_HISTORICAL_SYNTHETIC_FIXTURE",
       "portrait_source_kind": "NONE",
@@ -649,12 +640,12 @@
         720,
         1280
       ],
-      "coordinate_evidence": "Current-source fixed component rectangles rendered natively; no engine/device behavior proof",
-      "independent_review": {
-        "path": "../reviews/core_pages.json",
-        "sha256": "2031F9F0DB82B9F693B599DCC9C422ADF27B093C32065B8EBFBB27FBACD155BC",
-        "verdict": "PREVIEW_PASS",
-        "output_sha256": "88F0B53F9531F5A102AF933701F9F8451FFC048D70CAAE2B1A68D9D695C1F46E"
+      "coordinate_evidence": "USER_AUTHORIZED_GACHA_UI_REVISION_WITH_FIXED_720_RECTS",
+      "independent_review": "../reviews/refinement-20261012/gacha.json",
+      "previous_revision": {
+        "sha256": "88F0B53F9531F5A102AF933701F9F8451FFC048D70CAAE2B1A68D9D695C1F46E",
+        "file": "iterations/06_gacha_empty_before_promo.png",
+        "role": "Prior distinct artwork; excluded from gallery"
       }
     },
     {
@@ -689,12 +680,12 @@
         }
       ],
       "prompt_file": "prompts/07_gacha_opening.native-instruction.txt",
-      "output_sha256": "C8859DB8D989E832D84B9D8D97A1D195F0F25902E507A0B32074EC0148106A71",
+      "output_sha256": "EF20F76B9D1B82C9014195274A85A0D97EDB73FB656A141E2FABE89F310A4D5E",
       "output_pixels": [
         720,
         1280
       ],
-      "render_method": "USER_AUTHORIZED_NATIVE_CANVAS_COMPONENTS",
+      "render_method": "AI_ILLUSTRATION_AND_USER_AUTHORIZED_NATIVE_UI",
       "state": {
         "id": "07_gacha_opening",
         "gold": 60,
@@ -707,7 +698,8 @@
         ],
         "nav_active": 3,
         "source_evidence": "HISTORICAL_LOCAL_RUNTIME_FIXTURE",
-        "no_new_hero_overlay": true
+        "no_new_hero_overlay": true,
+        "record_entry": "Recent records moved to secondary entry on promotional main"
       },
       "geometry": {
         "currency_left": [
@@ -849,7 +841,7 @@
       },
       "animal_assets": [],
       "animation_boundary": "Single static normal result flip-card back; not proof of animation or first-ownership reveal.",
-      "native_receipt": "native-render-receipt.json",
+      "native_receipt": "../gacha_refinement/receipt.json",
       "historical_imagegen_planning_prompt": "Use case: style-transfer / ui-mockup. ONE complete9:16 portrait720x1280design game effect screen. Image1 owns all source geometry, controls, data and original identities. Image2 supplies approved flat matte cartoon craft: near-black bold contours, quiet dark olive/teal forest, cream info panels, large simple shapes, minimal two-tone shading. Image3 supplies ONLY five bottom-nav ICONS/style: orange-roof HOUSE 家园, purple/yellow doubleCARDS 编组, white crossedSWORDS 战斗, GOLD paw-stamped ticket 抽卡, roundedWOOD DOOR 房间. Five equal source slots(i×144+3,1148,138,122); idle navy/thispageactive lime. Shared currencyplainNAVYpills with largeprotrudinggoldcoin/blueNOTCHEDticket, largewhite outlined values, nofill/progress/yellowwedge/plus/resource-name text. Preserve exact text and page layout, readable Chinese. No new features/shop/buttons/control regions, no watermarks or phoneframes. PREVIEWonly. GACHA onecardopening EXISTINGstate. Exacttitle抽卡,最近获得, gold60,tickets29topright andcenter. Onecardbackat(228,460,264,316) withSOURCEsimpleyellowstar, NO revealedanimal/name/stats; softbriefglowallowed. Both抽1次/抽10次 buttonsdisabledgraywhileflip. Toast获得1张卡牌 atsourcey1018, no movingtoptitle/toast. Samepanelgeometryandnav抽卡active. Do notturnitintonewhero pawcard/fullscreenoverlay: thisis normalgacharesultcardflip.",
       "source_kind": "HISTORICAL_SYNTHETIC_FIXTURE_WITH_CURRENT_SOURCE_GEOMETRY_AND_CONFIG",
       "portrait_source_kind": "NONE",
@@ -871,12 +863,12 @@
         720,
         1280
       ],
-      "coordinate_evidence": "Current-source fixed component rectangles rendered natively; no engine/device behavior proof",
-      "independent_review": {
-        "path": "../reviews/core_pages.json",
-        "sha256": "2031F9F0DB82B9F693B599DCC9C422ADF27B093C32065B8EBFBB27FBACD155BC",
-        "verdict": "PREVIEW_PASS",
-        "output_sha256": "C8859DB8D989E832D84B9D8D97A1D195F0F25902E507A0B32074EC0148106A71"
+      "coordinate_evidence": "USER_AUTHORIZED_GACHA_UI_REVISION_WITH_FIXED_720_RECTS",
+      "independent_review": "../reviews/refinement-20261012/gacha.json",
+      "previous_revision": {
+        "sha256": "C8859DB8D989E832D84B9D8D97A1D195F0F25902E507A0B32074EC0148106A71",
+        "file": "iterations/07_gacha_opening_before_promo.png",
+        "role": "Prior distinct artwork; excluded from gallery"
       }
     },
     {
@@ -1414,12 +1406,12 @@
         }
       ],
       "prompt_file": "prompts/09_gacha_new_hero.native-instruction.txt",
-      "output_sha256": "2D51C12B30B64805DC592F93F4E92125CBEDDF509825AABCF8ECC4FC688E7258",
+      "output_sha256": "1A6440343151A2E12B82839B32A08C96B312F836B19317ADC45A5C235D9B9800",
       "output_pixels": [
         720,
         1280
       ],
-      "render_method": "USER_AUTHORIZED_NATIVE_CANVAS_COMPONENTS",
+      "render_method": "AI_ILLUSTRATION_AND_USER_AUTHORIZED_NATIVE_UI",
       "state": {
         "id": "09_gacha_new_hero",
         "card_id": "mouse",
@@ -1481,7 +1473,7 @@
         }
       ],
       "animation_boundary": "Static settled hero stage only; no card grant, ownership or animation claim.",
-      "native_receipt": "native-render-receipt.json",
+      "native_receipt": "../gacha_refinement/receipt.json",
       "historical_imagegen_planning_prompt": "Use case: style-transfer/ui-mockup. Image1 exact NEW HERO existingoverlay ownsALLgeometry/textand originalmouse identity; Image2 approvedflatmattecartoonstyle only. Complete9:16screen720x1280design. A verylargecutegraymouse in creamclothes blackline, drawingheldcrisp(96,260,528,528); sameears, muzzle, pose and ordinarygraymouse identity. Quietcream/olivecommon-qualityradialbackdropwithfewlargeforestshapesperimeter; darkerboldcharacteroutline/matte2tone. Exactname 老鼠 at(64,840,592,64); speechbubble(64,936,592,128) exactslogan 鼠鼠我呀，主打一个人多。; large继续button(138,1112,444,76). ALLtextsharpcompletefont30minimumforslogan. NOcurrencybars/nav/raritylabels/新英雄title/stats/level/progress/buttons except继续 because existingherostage is fullscreenoverlay. Thisis preview-sourcefixture, not ownershipaward.",
       "source_kind": "HISTORICAL_SYNTHETIC_FIXTURE_WITH_CURRENT_SOURCE_GEOMETRY_AND_CONFIG",
       "portrait_source_kind": "ART_DIRECTOR_HIGH_RESOLUTION_TRANSPARENT_AI_ILLUSTRATION",
@@ -1521,7 +1513,7 @@
         720,
         1280
       ],
-      "coordinate_evidence": "Current-source fixed component rectangles rendered natively; no engine/device behavior proof",
+      "coordinate_evidence": "USER_AUTHORIZED_GACHA_UI_REVISION_WITH_FIXED_720_RECTS",
       "quality_reopen": {
         "finding_id": "CORE-HERO-HIGH-RES-09",
         "status": "P1_CLOSED_HIGH_RES_HERO_ART_DIRECTOR_PASS",
@@ -1603,12 +1595,86 @@
         "retained_sha256": "9AF2738763F605C3336F4D5521C1A1A6F3467808FD9D9950D6B823E3DE6194FA",
         "old_iteration_count": 1
       },
-      "independent_review": {
-        "path": "../reviews/core_pages.json",
-        "sha256": "2031F9F0DB82B9F693B599DCC9C422ADF27B093C32065B8EBFBB27FBACD155BC",
-        "verdict": "PREVIEW_PASS",
-        "output_sha256": "2D51C12B30B64805DC592F93F4E92125CBEDDF509825AABCF8ECC4FC688E7258"
+      "independent_review": "../reviews/refinement-20261012/gacha.json",
+      "previous_revision": {
+        "sha256": "2D51C12B30B64805DC592F93F4E92125CBEDDF509825AABCF8ECC4FC688E7258",
+        "file": "iterations/09_gacha_new_hero_before_promo.png",
+        "role": "Prior distinct artwork; excluded from gallery"
       }
+    },
+    {
+      "id": "10_recent_history",
+      "source": "D:/AI/zhanchengdashi/output/visual_concepts/tata_battle_style/full_game/core_pages/native-scene-data.json",
+      "source_kind": "Existing historical gacha fixture plus explicitly authorized revised UI",
+      "output": "D:/AI/zhanchengdashi/output/visual_concepts/tata_battle_style/full_game/core_pages/10_recent_history.png",
+      "output_sha256": "4640800050FE309AEBB77A18E09AABA3E66FDA31B3F5F8E10CFF7ACA11B93452",
+      "output_pixels": [
+        720,
+        1280
+      ],
+      "raster_size": [
+        720,
+        1280
+      ],
+      "design_canvas": [
+        720,
+        1280
+      ],
+      "status": "PREVIEW_ART_DIRECTOR_PASS",
+      "render_method": "AI_ILLUSTRATION_AND_USER_AUTHORIZED_NATIVE_UI",
+      "native_receipt": "../gacha_refinement/receipt.json",
+      "state": {
+        "gold": 60,
+        "tickets": 30,
+        "card_ids": [
+          "frog",
+          "ant",
+          "sparrow",
+          "rabbit",
+          "duck",
+          "snail",
+          "hamster",
+          "pigeon",
+          "parrot",
+          "rabbit"
+        ],
+        "fixture": "Same existing historical ten-result IDs/order; history view retains promotional-main30ticket wallet; current formal names/rare-blue source applied; not real-account records"
+      },
+      "coordinate_evidence": "USER_AUTHORIZED_GACHA_UI_REVISION_WITH_FIXED_720_RECTS",
+      "independent_review": "../reviews/refinement-20261012/gacha.json"
+    },
+    {
+      "id": "11_gacha_no_tickets",
+      "source": "D:/AI/zhanchengdashi/output/visual_concepts/tata_battle_style/full_game/core_pages/native-scene-data.json",
+      "source_kind": "Existing historical gacha fixture plus explicitly authorized revised UI",
+      "output": "D:/AI/zhanchengdashi/output/visual_concepts/tata_battle_style/full_game/core_pages/11_gacha_no_tickets.png",
+      "output_sha256": "A261767715C362B52E0BCAE80345DA54322B9F80687C9885E520080C74105904",
+      "output_pixels": [
+        720,
+        1280
+      ],
+      "raster_size": [
+        720,
+        1280
+      ],
+      "design_canvas": [
+        720,
+        1280
+      ],
+      "status": "PREVIEW_ART_DIRECTOR_PASS",
+      "render_method": "AI_ILLUSTRATION_AND_USER_AUTHORIZED_NATIVE_UI",
+      "native_receipt": "../gacha_refinement/receipt.json",
+      "state": {
+        "gold": 60,
+        "tickets": 0,
+        "buttons_enabled": [
+          false,
+          false
+        ],
+        "fixture": "Retains prior zero-ticket availability state with the same new poster"
+      },
+      "coordinate_evidence": "USER_AUTHORIZED_GACHA_UI_REVISION_WITH_FIXED_720_RECTS",
+      "independent_review": "../reviews/refinement-20261012/gacha.json"
     }
   ],
   "source_hashes": [
@@ -1736,5 +1802,13 @@
       "generated_by": "art_director built-in imagegen; no core-agent imagegen call",
       "role": "Preview illustration only; not runtime animal asset replacement"
     }
+  },
+  "latest_refinement": {
+    "request_id": "REQ-20261012-GACHA-MAP-REFINEMENT",
+    "owner": "root",
+    "reviewer": "lead_art_director",
+    "receipt": "../gacha_refinement/receipt.json",
+    "source_override": "Main30/one29/retainedten20, source-supported cost1/10; zero-ticket disabled variant retained",
+    "runtime_approved": false
   }
 }

@@ -1,0 +1,68 @@
+{
+  "scope": "Static owner-fill, neutral-sand and opaque building-interior class pixels; source map coordinates unchanged, no runtime claim",
+  "checks": [
+    {
+      "name": "07_victory",
+      "protected_class_pixels": 20965,
+      "differences": 0,
+      "neutral_samples": []
+    },
+    {
+      "name": "08_defeat",
+      "protected_class_pixels": 75492,
+      "differences": 0,
+      "neutral_samples": []
+    },
+    {
+      "name": "09_ffa_result",
+      "protected_class_pixels": 139720,
+      "differences": 0,
+      "neutral_samples": []
+    },
+    {
+      "name": "11_team_battle",
+      "protected_class_pixels": 556704,
+      "differences": 0,
+      "neutral_samples": [
+        {
+          "x": 288,
+          "y": 980,
+          "old": [
+            248,
+            232,
+            203,
+            255
+          ],
+          "new": [
+            248,
+            232,
+            203,
+            255
+          ]
+        },
+        {
+          "x": 288,
+          "y": 995,
+          "old": [
+            248,
+            233,
+            204,
+            255
+          ],
+          "new": [
+            248,
+            233,
+            204,
+            255
+          ]
+        }
+      ]
+    },
+    {
+      "name": "12_ffa_battle",
+      "protected_class_pixels": 540626,
+      "differences": 0,
+      "neutral_samples": []
+    }
+  ]
+}

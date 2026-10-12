@@ -1,0 +1,46 @@
+{
+  "schema_version": 1,
+  "request_id": "REQ-20261012-GACHA-MAP-REFINEMENT",
+  "reviewer": "lead_art_director",
+  "scope": "Independent illustration-only static QA before composition",
+  "status": "ILLUSTRATIONS_PREVIEW_PASS",
+  "runtime_approved": false,
+  "files": [
+    {
+      "path": "gacha_refinement/illustrations/poster.png",
+      "sha256": "7F915AB16C7C056EC9CD98C0D5DD8ECC20E1DD21655E5AECE57EA545896211FD",
+      "verdict": "PREVIEW_PASS",
+      "p0": [],
+      "p1": [],
+      "checks": [
+        "Five original character anchors clear: wolf white face, carrot rabbit, reading parrot, orange squirrel, gray mouse pink ears/purple scarf/blue tail",
+        "Bold silhouette line and flat cartoon rendering consistent with prior approved art family",
+        "Promotional composition has one card-recruitment focal point",
+        "No UI/text/logo/probability or new gameplay promises in illustration"
+      ],
+      "composition_constraints": [
+        "Do not crop key face/ears/tail anchors when fitting portrait UI",
+        "Card backs are neutral promotional props, not reward/rarity disclosure",
+        "New main retains resource information and actual actions; history moved only under explicit user authority"
+      ]
+    },
+    {
+      "path": "map_refinement/illustrations/forest-arena.png",
+      "sha256": "612933DA876282E41AD0D0A9C9B7D708D739C3398B852B854953B9C63E22AA1F",
+      "verdict": "PREVIEW_PASS",
+      "p0": [],
+      "p1": [],
+      "checks": [
+        "Complete forest/ground across full canvas; no white sky/window or hard repeated crop seam",
+        "No generated board/actors/UI that could alter source gameplay geometry",
+        "Quiet central clearing and lower-value perimeter support source terrain and native HUD"
+      ],
+      "composition_constraints": [
+        "Draw full-canvas background before source map mask",
+        "Preserve warm-white neutral terrain rather than treating it as uncovered background",
+        "Native HUD and legitimate cream panels remain independent foreground layers"
+      ]
+    }
+  ],
+  "pending": "Actual gacha/reveal/history/map PNGs still require source/data/geometry/foreground readability QA and protected-ten hash check."
+}

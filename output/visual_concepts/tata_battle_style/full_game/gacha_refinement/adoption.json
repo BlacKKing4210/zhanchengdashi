@@ -1,0 +1,99 @@
+{
+  "request_id": "REQ-20261012-GACHA-MAP-REFINEMENT",
+  "status": "ADOPTED_SAME_REVIEWED_BYTES",
+  "canonical_adoptions": [
+    {
+      "source": "D:\\AI\\zhanchengdashi\\output\\visual_concepts\\tata_battle_style\\full_game\\gacha_refinement\\06_gacha_empty.png",
+      "target": "D:\\AI\\zhanchengdashi\\output\\visual_concepts\\tata_battle_style\\full_game\\core_pages\\06_gacha_empty.png",
+      "path": "core_pages/06_gacha_empty.png",
+      "expected": "392B2D57E8749ABC8F6285694740628722F0EFE5425003E7FE43CA4453656FDF",
+      "old": "88F0B53F9531F5A102AF933701F9F8451FFC048D70CAAE2B1A68D9D695C1F46E",
+      "kind": "gacha",
+      "archive": "D:\\AI\\zhanchengdashi\\output\\visual_concepts\\tata_battle_style\\full_game\\core_pages\\iterations\\06_gacha_empty_before_promo.png"
+    },
+    {
+      "source": "D:\\AI\\zhanchengdashi\\output\\visual_concepts\\tata_battle_style\\full_game\\gacha_refinement\\07_gacha_opening.png",
+      "target": "D:\\AI\\zhanchengdashi\\output\\visual_concepts\\tata_battle_style\\full_game\\core_pages\\07_gacha_opening.png",
+      "path": "core_pages/07_gacha_opening.png",
+      "expected": "EF20F76B9D1B82C9014195274A85A0D97EDB73FB656A141E2FABE89F310A4D5E",
+      "old": "C8859DB8D989E832D84B9D8D97A1D195F0F25902E507A0B32074EC0148106A71",
+      "kind": "gacha",
+      "archive": "D:\\AI\\zhanchengdashi\\output\\visual_concepts\\tata_battle_style\\full_game\\core_pages\\iterations\\07_gacha_opening_before_promo.png"
+    },
+    {
+      "source": "D:\\AI\\zhanchengdashi\\output\\visual_concepts\\tata_battle_style\\full_game\\gacha_refinement\\09_gacha_new_hero.png",
+      "target": "D:\\AI\\zhanchengdashi\\output\\visual_concepts\\tata_battle_style\\full_game\\core_pages\\09_gacha_new_hero.png",
+      "path": "core_pages/09_gacha_new_hero.png",
+      "expected": "1A6440343151A2E12B82839B32A08C96B312F836B19317ADC45A5C235D9B9800",
+      "old": "2D51C12B30B64805DC592F93F4E92125CBEDDF509825AABCF8ECC4FC688E7258",
+      "kind": "gacha",
+      "archive": "D:\\AI\\zhanchengdashi\\output\\visual_concepts\\tata_battle_style\\full_game\\core_pages\\iterations\\09_gacha_new_hero_before_promo.png"
+    },
+    {
+      "source": "D:\\AI\\zhanchengdashi\\output\\visual_concepts\\tata_battle_style\\full_game\\gacha_refinement\\10_recent_history.png",
+      "target": "D:\\AI\\zhanchengdashi\\output\\visual_concepts\\tata_battle_style\\full_game\\core_pages\\10_recent_history.png",
+      "path": "core_pages/10_recent_history.png",
+      "expected": "4640800050FE309AEBB77A18E09AABA3E66FDA31B3F5F8E10CFF7ACA11B93452",
+      "old": null,
+      "kind": "gacha",
+      "archive": null
+    },
+    {
+      "source": "D:\\AI\\zhanchengdashi\\output\\visual_concepts\\tata_battle_style\\full_game\\gacha_refinement\\11_gacha_no_tickets.png",
+      "target": "D:\\AI\\zhanchengdashi\\output\\visual_concepts\\tata_battle_style\\full_game\\core_pages\\11_gacha_no_tickets.png",
+      "path": "core_pages/11_gacha_no_tickets.png",
+      "expected": "A261767715C362B52E0BCAE80345DA54322B9F80687C9885E520080C74105904",
+      "old": null,
+      "kind": "gacha",
+      "archive": null
+    },
+    {
+      "source": "D:\\AI\\zhanchengdashi\\output\\visual_concepts\\tata_battle_style\\full_game\\map_refinement\\07_victory.png",
+      "target": "D:\\AI\\zhanchengdashi\\output\\visual_concepts\\tata_battle_style\\full_game\\root_pages\\07_victory.png",
+      "path": "root_pages/07_victory.png",
+      "expected": "72C11D9C364CF21AE23FAE81B567170188DA9086EC48952536C88F1FC441BB20",
+      "old": "1AAE789A153BF8E0E1FC4A753BA5C429EE4A985770F1DFFC7C9F7EC737DCCAAB",
+      "kind": "maps",
+      "archive": "D:\\AI\\zhanchengdashi\\output\\visual_concepts\\tata_battle_style\\full_game\\root_pages\\iterations\\07_victory_before_full_forest.png"
+    },
+    {
+      "source": "D:\\AI\\zhanchengdashi\\output\\visual_concepts\\tata_battle_style\\full_game\\map_refinement\\08_defeat.png",
+      "target": "D:\\AI\\zhanchengdashi\\output\\visual_concepts\\tata_battle_style\\full_game\\root_pages\\08_defeat.png",
+      "path": "root_pages/08_defeat.png",
+      "expected": "9F4C59763B9318E4BE53B2529C4195836585159241AE0E15E809416538541D9B",
+      "old": "1C8522A385D6B5DB9025E98C77466CBC63C1DEC15B9E76A37FAE60BBB1B205F5",
+      "kind": "maps",
+      "archive": "D:\\AI\\zhanchengdashi\\output\\visual_concepts\\tata_battle_style\\full_game\\root_pages\\iterations\\08_defeat_before_full_forest.png"
+    },
+    {
+      "source": "D:\\AI\\zhanchengdashi\\output\\visual_concepts\\tata_battle_style\\full_game\\map_refinement\\09_ffa_result.png",
+      "target": "D:\\AI\\zhanchengdashi\\output\\visual_concepts\\tata_battle_style\\full_game\\root_pages\\09_ffa_result.png",
+      "path": "root_pages/09_ffa_result.png",
+      "expected": "E178BD2C610449E6B4CF07B3B5F1F4656725331A9946629EA19E2EBA960585F4",
+      "old": "39588E9A75535CAFDAE42814FE8D947FE310FC0097C413C724978F4A59304995",
+      "kind": "maps",
+      "archive": "D:\\AI\\zhanchengdashi\\output\\visual_concepts\\tata_battle_style\\full_game\\root_pages\\iterations\\09_ffa_result_before_full_forest.png"
+    },
+    {
+      "source": "D:\\AI\\zhanchengdashi\\output\\visual_concepts\\tata_battle_style\\full_game\\map_refinement\\11_team_battle.png",
+      "target": "D:\\AI\\zhanchengdashi\\output\\visual_concepts\\tata_battle_style\\full_game\\root_pages\\11_team_battle.png",
+      "path": "root_pages/11_team_battle.png",
+      "expected": "51EC09D97F9C61E541481CCACF4883D92AE68580ADDEF7F19424969F5F36BADB",
+      "old": "86657679200F10633E6A2CD7ABDA0FA7718889C25CAC5A4A092E1032894F0330",
+      "kind": "maps",
+      "archive": "D:\\AI\\zhanchengdashi\\output\\visual_concepts\\tata_battle_style\\full_game\\root_pages\\iterations\\11_team_battle_before_full_forest.png"
+    },
+    {
+      "source": "D:\\AI\\zhanchengdashi\\output\\visual_concepts\\tata_battle_style\\full_game\\map_refinement\\12_ffa_battle.png",
+      "target": "D:\\AI\\zhanchengdashi\\output\\visual_concepts\\tata_battle_style\\full_game\\root_pages\\12_ffa_battle.png",
+      "path": "root_pages/12_ffa_battle.png",
+      "expected": "D03FF253D731514381D50F82E8FC87C7D6EE66893E446DB373EE0894373128A4",
+      "old": "4010A7230BA911358591E431E6995AEECAD82B9BDA47660FDEB037EE02814704",
+      "kind": "maps",
+      "archive": "D:\\AI\\zhanchengdashi\\output\\visual_concepts\\tata_battle_style\\full_game\\root_pages\\iterations\\12_ffa_battle_before_full_forest.png"
+    }
+  ],
+  "retained_unrelated_views": 23,
+  "ten_result": "UNCHANGED_BYTES_AND_SHA",
+  "rule": "Individual checked same-volume moves; one physical new PNG per canonical view; distinct prior artwork retained in iterations"
+}

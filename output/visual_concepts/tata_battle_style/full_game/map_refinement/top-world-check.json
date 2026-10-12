@@ -1,0 +1,85 @@
+{
+  "scope": "Static full-canvas source world mask; current UI rectangles excluded. Checks specifically include source y0..140 cells and FFA HQ flag/roof formerly cropped.",
+  "status": "PASS_TOP_WORLD_NO_CROP",
+  "checks": [
+    {
+      "page": "07_victory",
+      "old_sha256": "1AAE789A153BF8E0E1FC4A753BA5C429EE4A985770F1DFFC7C9F7EC737DCCAAB",
+      "candidate_sha256": "72C11D9C364CF21AE23FAE81B567170188DA9086EC48952536C88F1FC441BB20",
+      "source_world_mask_canvas": [
+        0,
+        0,
+        720,
+        1280
+      ],
+      "top_world_membership_pixels": 30666,
+      "top_world_membership_mismatches": 0,
+      "castle_top": null
+    },
+    {
+      "page": "08_defeat",
+      "old_sha256": "1C8522A385D6B5DB9025E98C77466CBC63C1DEC15B9E76A37FAE60BBB1B205F5",
+      "candidate_sha256": "9F4C59763B9318E4BE53B2529C4195836585159241AE0E15E809416538541D9B",
+      "source_world_mask_canvas": [
+        0,
+        0,
+        720,
+        1280
+      ],
+      "top_world_membership_pixels": 0,
+      "top_world_membership_mismatches": 0,
+      "castle_top": null
+    },
+    {
+      "page": "09_ffa_result",
+      "old_sha256": "39588E9A75535CAFDAE42814FE8D947FE310FC0097C413C724978F4A59304995",
+      "candidate_sha256": "E178BD2C610449E6B4CF07B3B5F1F4656725331A9946629EA19E2EBA960585F4",
+      "source_world_mask_canvas": [
+        0,
+        0,
+        720,
+        1280
+      ],
+      "top_world_membership_pixels": 0,
+      "top_world_membership_mismatches": 0,
+      "castle_top": null
+    },
+    {
+      "page": "11_team_battle",
+      "old_sha256": "86657679200F10633E6A2CD7ABDA0FA7718889C25CAC5A4A092E1032894F0330",
+      "candidate_sha256": "51EC09D97F9C61E541481CCACF4883D92AE68580ADDEF7F19424969F5F36BADB",
+      "source_world_mask_canvas": [
+        0,
+        0,
+        720,
+        1280
+      ],
+      "top_world_membership_pixels": 0,
+      "top_world_membership_mismatches": 0,
+      "castle_top": null
+    },
+    {
+      "page": "12_ffa_battle",
+      "old_sha256": "4010A7230BA911358591E431E6995AEECAD82B9BDA47660FDEB037EE02814704",
+      "candidate_sha256": "D03FF253D731514381D50F82E8FC87C7D6EE66893E446DB373EE0894373128A4",
+      "source_world_mask_canvas": [
+        0,
+        0,
+        720,
+        1280
+      ],
+      "top_world_membership_pixels": 28138,
+      "top_world_membership_mismatches": 0,
+      "castle_top": {
+        "rect": [
+          374,
+          103,
+          75,
+          38
+        ],
+        "selected_blue_gold_dark_pixels": 627,
+        "RGB_differences": 0
+      }
+    }
+  ]
+}

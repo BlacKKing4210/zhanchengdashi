@@ -17,11 +17,11 @@ async function run() {
   const decoded=await page.locator('.preview img').evaluateAll(async images=>{
     await Promise.all(images.map(i=>i.decode()));return images.map(i=>({src:i.getAttribute('src'),width:i.naturalWidth,height:i.naturalHeight}));
   });
-  expect(decoded.length===31&&decoded.every(x=>x.width>0&&x.height>0),'Missing PNG decode');
+  expect(decoded.length===manifest.count&&decoded.every(x=>x.width>0&&x.height>0),'Missing PNG decode');
   expect(await page.locator('.card:visible').count()===6,'Six main screens not shown');
   await page.screenshot({path:path.join(out,'desktop-main.png'),fullPage:true});
-  await page.locator('[data-filter="all"]').click();expect(await page.locator('.card:visible').count()===31,'All-screen count');
-  const groups={home:3,deck:2,lobby:1,gacha:4,room:4,account:5,battle:8,result:3,loading:1};
+  await page.locator('[data-filter="all"]').click();expect(await page.locator('.card:visible').count()===manifest.count,'All-screen count');
+  const groups={home:3,deck:2,lobby:1,gacha:6,room:4,account:5,battle:8,result:3,loading:1};
   for(const [group,count] of Object.entries(groups)){await page.locator('[data-filter="'+group+'"]').click();expect(await page.locator('.card:visible').count()===count,'Group mismatch: '+group);}
   await page.locator('[data-filter="battle"]').click();
   await page.locator('#search').fill('金币不足');expect(await page.locator('.card:visible').count()===1,'Search mismatch');
@@ -38,16 +38,25 @@ async function run() {
   await page.locator('#close').click();
   await page.locator('#search').fill('没有这个页面');expect(await page.locator('#empty').isVisible(),'Empty-result state missing');
   await page.locator('#search').fill('');await page.locator('[data-filter="main"]').click();
+  await page.locator('[data-open="gacha-empty"]').click();await page.locator('#viewer-image').evaluate(i=>i.decode());
+  await page.locator('#hotspot-recent').click();expect(await page.locator('#viewer-title').textContent()==='抽卡 · 最近获得','Recent-history PNG transition');
+  await page.locator('#viewer-image').evaluate(i=>i.decode());await page.screenshot({path:path.join(out,'gacha-history-viewer.png')});
+  await page.locator('#hotspot-history-close').click();expect(await page.locator('#viewer-title').textContent()==='抽卡 · 招募宣传','Close history return');
+  await page.locator('#hotspot-recent').click();await page.locator('#hotspot-history-return').click();expect(await page.locator('#viewer-title').textContent()==='抽卡 · 招募宣传','Return CTA history');
+  await page.locator('#close').click();
   await page.setViewportSize({width:390,height:844});expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'Mobile horizontal overflow');
   await page.screenshot({path:path.join(out,'mobile-main.png'),fullPage:true});
   await page.locator('[data-open="battle-default"]').click();await page.locator('#viewer-image').evaluate(i=>i.decode());
   expect(await page.locator('#close').isVisible()&&await page.locator('#viewer-save').isVisible(),'Mobile viewer controls missing');
   await page.screenshot({path:path.join(out,'mobile-viewer.png')});
   await page.locator('#close').click();
+  await page.locator('[data-open="gacha-empty"]').click();await page.locator('#viewer-image').evaluate(i=>i.decode());await page.locator('#hotspot-recent').click();
+  expect(await page.locator('#viewer-title').textContent()==='抽卡 · 最近获得','Mobile recent-history transition');await page.locator('#viewer-image').evaluate(i=>i.decode());
+  await page.screenshot({path:path.join(out,'mobile-gacha-history.png')});await page.locator('#hotspot-history-return').click();await page.locator('#close').click();
   const relative=await page.locator('.preview img').evaluateAll(xs=>xs.every(x=>!/^([a-z]+:|[\\/])/i.test(x.getAttribute('src'))));
   expect(relative,'Gallery has nonrelative images');expect(!errors.length&&!failed.length,'Browser errors');
   await browser.close();
-  const receipt={request_id:manifest.request_id,status:'PASS_OFFLINE_GALLERY',browser:'Fresh isolated headless Edge context; file://; no cookies or user profile',canonical_png_count:31,main_screens:6,decoded_images:decoded.length,group_counts:groups,checks:['31 canonical PNG decoded','6 main screens and all9 group filters','Chinese keyword and empty-result search','Full image dialog, close, Escape and previous/next arrow keys','Original local PNG opened in separate tab and decoded without copying','390px responsive view with zero horizontal overflow','Relative offline image references'],page_errors:errors,failed_requests:failed,source:'index.html',runtime_test:false};
+  const receipt={request_id:manifest.request_id,status:'PASS_OFFLINE_GALLERY',browser:'Fresh isolated headless Edge context; file://; no cookies or user profile',canonical_png_count:manifest.count,main_screens:6,decoded_images:decoded.length,group_counts:groups,checks:[manifest.count+' canonical PNG decoded','6 main screens and all9 group filters','Chinese keyword and empty-result search','Full image dialog, close, Escape and previous/next arrow keys','Original local PNG opened in separate tab and decoded without copying','Recent-history native-position PNG hotspots enter/close/return on desktop and390pxmobile','390px responsive view with zero horizontal overflow','Relative offline image references'],page_errors:errors,failed_requests:failed,source:'index.html',runtime_test:false};
   fs.writeFileSync(path.join(out,'verification.json'),JSON.stringify(receipt,null,2)+'\n');console.log(JSON.stringify(receipt,null,2));
 }
 run().catch(async e=>{console.error(e);if(activeBrowser)await activeBrowser.close();process.exitCode=1;});

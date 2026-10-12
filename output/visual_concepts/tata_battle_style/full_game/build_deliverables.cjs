@@ -14,10 +14,12 @@ const definitions = [
   ['core_pages/04_deck_main.png', 'deck-main', 'deck', '编组 · 卡牌列表', '动物身份、品质、等级和现有编组布局。', true],
   ['core_pages/05_deck_upgrade.png', 'deck-upgrade', 'deck', '编组 · 升级与详情', '展示当前卡牌属性与升级信息。'],
   ['root_pages/01_lobby.png', 'lobby', 'lobby', '战斗大厅', '段位、胜负记录及单人／多人对战入口。', true],
-  ['core_pages/06_gacha_empty.png', 'gacha-empty', 'gacha', '抽卡 · 无记录／票不足', '零张抽卡券时，两种抽取动作显示禁用状态。', true],
+  ['core_pages/06_gacha_empty.png', 'gacha-empty', 'gacha', '抽卡 · 招募宣传', '伙伴集结宣传画；点开大图后，可点击“最近获得”预览记录。', true],
   ['core_pages/07_gacha_opening.png', 'gacha-opening', 'gacha', '抽卡 · 抽取中', '抽取过程的一个静态关键帧。'],
   ['core_pages/08_gacha_ten_result.png', 'gacha-result', 'gacha', '抽卡 · 十连结果', '十张结果按当前布局显示，保留品质与数量。'],
   ['core_pages/09_gacha_new_hero.png', 'gacha-new', 'gacha', '抽卡 · 新动物展示', '高分辨率原创灰鼠插画与固定文字、按钮分开制作。'],
+  ['core_pages/10_recent_history.png', 'gacha-history', 'gacha', '抽卡 · 最近获得', '查看最近十张记录，关闭或返回招募即可回到宣传画。'],
+  ['core_pages/11_gacha_no_tickets.png', 'gacha-no-tickets', 'gacha', '抽卡 · 抽卡券不足', '同一宣传画下保留零票、两种抽取动作禁用的状态。'],
   ['account_room/01_room_entry.png', 'room-entry', 'room', '房间 · 进入', '模式、建房、房间号、加入及重连入口。', true],
   ['account_room/02_room_error.png', 'room-error', 'room', '房间 · 连接失败', '失败提示与不可用操作清晰区分。'],
   ['account_room/03_room_host.png', 'room-host', 'room', '房间 · 房主', '现有席位和房主的开始操作。'],
@@ -49,8 +51,10 @@ async function run() {
   const core = read('core_pages/subset-manifest.json');
   const accounts = read('account_room/subset-manifest.json');
   const native = read('root_pages/native-render-receipt.json');
+  const gachaRef=fs.existsSync(path.join(base,'gacha_refinement/receipt.json'))?read('gacha_refinement/receipt.json'):null;
+  const mapsRef=fs.existsSync(path.join(base,'map_refinement/native-render-receipt.json'))?read('map_refinement/native-render-receipt.json'):null;
   const rootPrompts = ['root_pages/prompts.json','root_pages/additional-prompts.json'].flatMap(p => read(p));
-  const reviews = ['reviews/root-part1.json','reviews/root-part2.json','reviews/core_pages.json','reviews/account_room.json'];
+  const reviews = ['reviews/root-part1.json','reviews/root-part2.json','reviews/core_pages.json','reviews/account_room.json','reviews/refinement-20261012/gacha.json','reviews/refinement-20261012/maps.json'].filter(p=>fs.existsSync(path.join(base,p)));
   const checks = new Map();
   for (const p of reviews) for (const f of read(p).files || []) checks.set(f.path, {...f, review_file:p});
   const direction = read('art-direction.json');
@@ -59,15 +63,17 @@ async function run() {
   for (const [file,id,group,title,description,main=false] of definitions) {
     const full = path.join(base,file), meta = await sharp(full).metadata(), hash = sha(full);
     const review = checks.get(file);
-    const nativeJob = file.startsWith('root_pages/') && native.outputs.find(x => x.path === path.basename(file));
+    const nativeJob = file.startsWith('root_pages/') && (mapsRef?.outputs.find(x => x.path === path.basename(file))||native.outputs.find(x => x.path === path.basename(file)));
+    const revisedGacha=file.startsWith('core_pages/')&&gachaRef?.outputs.find(x=>x.id===path.basename(file,'.png'));
     const coreJob = file.startsWith('core_pages/') && core.jobs.find(x => x.id === path.basename(file,'.png'));
     const accountJob = file.startsWith('account_room/') && accounts.images.find(x => x.canonical_file === path.basename(file));
     const promptJob = file.startsWith('root_pages/') && rootPrompts.find(x => x.id === path.basename(file,'.png'));
-    const method = nativeJob ? 'USER_AUTHORIZED_NATIVE_COMPOSITION' : coreJob?.render_method || accountJob?.render_method || 'BUILTIN_IMAGEGEN_REFERENCE_GUIDED_PREVIEW';
+    const method = revisedGacha ? revisedGacha.render_method : nativeJob ? 'USER_AUTHORIZED_NATIVE_COMPOSITION' : coreJob?.render_method || accountJob?.render_method || 'BUILTIN_IMAGEGEN_REFERENCE_GUIDED_PREVIEW';
     const pass = !!review && review.sha256.toUpperCase() === hash && review.verdict === 'PREVIEW_PASS' && !review.p0?.length && !review.p1?.length;
     outputs.push({id,file,group,title,description,main,width:meta.width,height:meta.height,bytes:fs.statSync(full).size,sha256:hash,design_canvas:[720,1280],render_method:method,source_refs:nativeJob ? [nativeJob.source] : coreJob ? [coreJob.source] : accountJob ? accountJob.source_paths : file === 'style_master.png' ? [direction.edit_target.path] : promptJob?.inputs || [],coordinate_parity:!!nativeJob || coreJob?.render_method === 'USER_AUTHORIZED_NATIVE_CANVAS_COMPONENTS' || (accountJob?.controls?.length > 0 && !accountJob.render_method.includes('local state')),review:{status:pass?'STATIC_PREVIEW_PASS':'PENDING_FINAL_REVIEW',file:review?.review_file || null,hash_matches:!!review && review.sha256.toUpperCase()===hash},runtime_approved:false});
   }
-  if (outputs.length !== 31 || outputs.filter(x=>x.main).length !== 6) throw Error('Coverage mismatch');
+  if (outputs.length !== 33 || outputs.filter(x=>x.main).length !== 6) throw Error('Coverage mismatch');
+  for(const x of outputs){const r=x.file.startsWith('core_pages/')&&gachaRef?.outputs.find(o=>o.id===path.basename(x.file,'.png'));if(r){x.source_refs=['gacha_refinement/receipt.json','gacha_refinement/illustrations/poster.png','map_refinement/illustrations/forest-arena.png'];x.coordinate_parity=false;x.user_approved_ui_revision='Promotional main/history layout explicitly requested; renderer receipt records all fixed rectangles';x.current_state=r.state;x.latest_receipt='gacha_refinement/receipt.json';}else if(x.file.startsWith('root_pages/')&&mapsRef?.outputs.some(o=>o.path===path.basename(x.file))){x.latest_receipt='map_refinement/native-render-receipt.json';x.source_refs.push('map_refinement/illustrations/forest-arena.png');}}
   outputs.forEach(x=>x.source_refs=(x.source_refs||[]).map(retainedSource));
   const mainFile = path.join(project,'scripts/app/main.gd');
   const mainExpected = '8C9E374F65A221AF7BB92A32470503166188A879562D5A1AE220A817D56359CA';
@@ -89,7 +95,8 @@ async function run() {
   </script></body></html>`;
   // file:// browsers open local PNG links; do not promise an unsupported download event.
   const offlineHtml=html.replace(/ href="([^\"]+\.png)" download>/g,' href="$1" target="_blank" rel="noopener">').replace('id="viewer-save" href="#" download','id="viewer-save" href="#" target="_blank" rel="noopener"').replaceAll('保存 PNG 原图','打开 PNG 原图').replaceAll('保存 PNG','打开 PNG 原图').replace('查看完整效果图并保存原图','查看完整效果图并打开原图');
-  fs.writeFileSync(path.join(base,'index.html'),offlineHtml);
+  const interactionHtml=offlineHtml.replaceAll('全部 31 张','全部 '+outputs.length+' 张').replaceAll('31 张完整画面',outputs.length+' 张完整画面').replaceAll('6 / 31 张','6 / '+outputs.length+' 张').replaceAll('31 张均已',outputs.length+' 张均已').replace('<div class="image-space"><img id="viewer-image" alt=""></div>','<div class="image-space"><div id="image-stage" style="position:relative"><img id="viewer-image" alt=""><button id="hotspot-recent" class="png-hotspot" aria-label="预览最近获得"></button><button id="hotspot-history-close" class="png-hotspot" aria-label="关闭最近获得预览"></button><button id="hotspot-history-return" class="png-hotspot" aria-label="返回招募宣传预览"></button></div></div>').replace('</head>','<style>.png-hotspot{position:absolute;background:transparent;border:0;padding:0;z-index:2;cursor:pointer}.png-hotspot[hidden]{display:none}.png-hotspot:focus-visible{outline:3px solid #fff09e;outline-offset:1px}.png-hotspot:hover{box-shadow:inset 0 0 0 2px #ffef9270;border-radius:10px}#image-stage{line-height:0;flex:none}#image-stage img{display:block;max-height:none;width:100%;height:100%}</style></head>').replace('</body>','<script src="gallery-gacha-preview.js"></script></body>');
+  fs.writeFileSync(path.join(base,'index.html'),interactionHtml);
   console.log(JSON.stringify({status:manifest.status,count:outputs.length,main_count:6,passed:outputs.filter(x=>x.review.status==='STATIC_PREVIEW_PASS').length,pending:outputs.filter(x=>x.review.status!=='STATIC_PREVIEW_PASS').map(x=>x.file)},null,2));
 }
 run().catch(e=>{console.error(e);process.exitCode=1;});

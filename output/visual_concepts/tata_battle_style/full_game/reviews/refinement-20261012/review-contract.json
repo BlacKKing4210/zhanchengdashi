@@ -1,0 +1,188 @@
+{
+  "schema_version": 1,
+  "request": "REFINEMENT-20261012-GACHA-AND-MAP",
+  "owner": "lead_art_director",
+  "scope": "Independent read-only PNG QA; write reviews/refinement-20261012 only",
+  "runtime_approved": false,
+  "status": "REVIEW_READY_PENDING_NEW_ART",
+  "protected_ten": {
+    "sha256": "1C34FFFA67145E1DD6A75D7E19E79E5E879322BAFCF80D792AD2BBDBC3C179BC",
+    "bytes": 240604,
+    "path": "core_pages/08_gacha_ten_result.png"
+  },
+  "directions": [
+    "Promotional composition owns gacha main focal area; recent records become explicitly requested secondary entry",
+    "Only authorized new layout/record overlay; retain source costs/data/resource types/actions/nav and busy state",
+    "Unrevealed card state must not leak character/rarity",
+    "High-resolution source mouse retained; restrained light behind identity and foreground UI",
+    "Map full background below original board/object/neutral/HUD masks; no uncovered canvas/whitebands",
+    "Neutral sand and legitimate cream UI panel remain distinct from uncovered background"
+  ],
+  "p1_standards": [
+    "Hero blur or identity/style drift",
+    "Main player decision obscured or record panel remains primary",
+    "Glow obscures animal face/outline/resource/CTA; busy appears clickable",
+    "Unsupported probability/guarantee/discount/resource/control invented",
+    "Background uncovered white strips or hard seams/repeatedcrop",
+    "Forest covers neutral/changes ownership/cell geometry/object position",
+    "Prices or main HUD illegible"
+  ],
+  "baseline": [
+    {
+      "path": "core_pages/01_home_selected.png",
+      "bytes": 1877359,
+      "sha256": "0A1AA4678A950D190CB3D96FE5E53BBDA132333E29D627E8EB32061A59EC8EC0"
+    },
+    {
+      "path": "core_pages/02_home_new_tomorrow.png",
+      "bytes": 1913376,
+      "sha256": "A519F1D6320BB62573016BBD780000AFDA9DE719DBE6813AE1E02B2D84D3C9BB"
+    },
+    {
+      "path": "core_pages/03_home_daily_rewards.png",
+      "bytes": 1063987,
+      "sha256": "0A0658C865399CBC299FA63EC6A04C997F9B240ACB8CC95FCC04E3C1FBAF5BED"
+    },
+    {
+      "path": "core_pages/04_deck_main.png",
+      "bytes": 2006568,
+      "sha256": "F3B6A8496703FCE12754AF18BE67C2DCA4E90F6CD5359AB07E9BAE0F134E889B"
+    },
+    {
+      "path": "core_pages/05_deck_upgrade.png",
+      "bytes": 1908598,
+      "sha256": "3ECFFCD6F88757763CCAA245D4BE5EF18FC86EEAFF95254A1BE1071893BD6648"
+    },
+    {
+      "path": "core_pages/06_gacha_empty.png",
+      "bytes": 127974,
+      "sha256": "88F0B53F9531F5A102AF933701F9F8451FFC048D70CAAE2B1A68D9D695C1F46E"
+    },
+    {
+      "path": "core_pages/07_gacha_opening.png",
+      "bytes": 137462,
+      "sha256": "C8859DB8D989E832D84B9D8D97A1D195F0F25902E507A0B32074EC0148106A71"
+    },
+    {
+      "path": "core_pages/08_gacha_ten_result.png",
+      "bytes": 240604,
+      "sha256": "1C34FFFA67145E1DD6A75D7E19E79E5E879322BAFCF80D792AD2BBDBC3C179BC"
+    },
+    {
+      "path": "core_pages/09_gacha_new_hero.png",
+      "bytes": 255187,
+      "sha256": "2D51C12B30B64805DC592F93F4E92125CBEDDF509825AABCF8ECC4FC688E7258"
+    },
+    {
+      "path": "root_pages/01_lobby.png",
+      "bytes": 1673386,
+      "sha256": "02F5797542CBE52A290C8287C6D92938500A9E97CCB8B8938D3555E7C92004B1"
+    },
+    {
+      "path": "root_pages/02_battle_selected.png",
+      "bytes": 1853187,
+      "sha256": "2164761E8BC319B9335BAA88BEDD9A0CF3087BEE14DD726222D7DC86F43A2AEB"
+    },
+    {
+      "path": "root_pages/03_battle_purchase.png",
+      "bytes": 1953683,
+      "sha256": "4EC77A95CBCC154DC1E061B7E327BAD4C71F5FC7449B376BB362C2C3569E10B5"
+    },
+    {
+      "path": "root_pages/04_battle_hit.png",
+      "bytes": 1880530,
+      "sha256": "52C5FD4A8AF4C1792BAE75B0E69553DB6423E4AD24E7028F754AF9006CF182F7"
+    },
+    {
+      "path": "root_pages/05_battle_no_gold.png",
+      "bytes": 1901766,
+      "sha256": "18D8E19C3D5B09A321D43D28830ACEC90FD495B033283DCBD7B7955C329D5EAF"
+    },
+    {
+      "path": "root_pages/06_pause.png",
+      "bytes": 700688,
+      "sha256": "FAADE759B223775E472D3B07A28EF065E4BC20565C311739DE15E1841A6CF057"
+    },
+    {
+      "path": "root_pages/07_victory.png",
+      "bytes": 121748,
+      "sha256": "1AAE789A153BF8E0E1FC4A753BA5C429EE4A985770F1DFFC7C9F7EC737DCCAAB"
+    },
+    {
+      "path": "root_pages/08_defeat.png",
+      "bytes": 166501,
+      "sha256": "1C8522A385D6B5DB9025E98C77466CBC63C1DEC15B9E76A37FAE60BBB1B205F5"
+    },
+    {
+      "path": "root_pages/09_ffa_result.png",
+      "bytes": 163581,
+      "sha256": "39588E9A75535CAFDAE42814FE8D947FE310FC0097C413C724978F4A59304995"
+    },
+    {
+      "path": "root_pages/10_loading.png",
+      "bytes": 1365149,
+      "sha256": "B9C9D5761F6AC949CA9258C8C97725D4BB39EBE4F485757629BB93D58809FB5E"
+    },
+    {
+      "path": "root_pages/11_team_battle.png",
+      "bytes": 175428,
+      "sha256": "86657679200F10633E6A2CD7ABDA0FA7718889C25CAC5A4A092E1032894F0330"
+    },
+    {
+      "path": "root_pages/12_ffa_battle.png",
+      "bytes": 191124,
+      "sha256": "4010A7230BA911358591E431E6995AEECAD82B9BDA47660FDEB037EE02814704"
+    },
+    {
+      "path": "account_room/01_room_entry.png",
+      "bytes": 1119933,
+      "sha256": "B98F012C34949199D957DE16F49B00FC6ED9950987262898809CDD0A0492FB23"
+    },
+    {
+      "path": "account_room/02_room_error.png",
+      "bytes": 1050454,
+      "sha256": "32371E329B94E2D305A6999F89AC8D9FB98C0745F7934F59A174EDC44D92B627"
+    },
+    {
+      "path": "account_room/03_room_host.png",
+      "bytes": 359826,
+      "sha256": "92161CC726A62C10A62A287A49CAE9B1C2CCFFD5D7AB16416848721746213375"
+    },
+    {
+      "path": "account_room/04_room_guest.png",
+      "bytes": 362219,
+      "sha256": "8AE5B4A8EAE2817B3E17AC0E845913175214C554FC3B7667C6BF4D9F2CB5375F"
+    },
+    {
+      "path": "account_room/05_account.png",
+      "bytes": 179919,
+      "sha256": "1C3B51676E0CB32C7CE4AFA3F1648A570CCA25D74FB150F51BFABCD8FF2C1CB7"
+    },
+    {
+      "path": "account_room/06_login.png",
+      "bytes": 152546,
+      "sha256": "536D8BCDF2A04A8422FB77936296E6AD302C8FE212741063F7E8E9B764B9841A"
+    },
+    {
+      "path": "account_room/07_account_switch.png",
+      "bytes": 150975,
+      "sha256": "BD9BB02555C3C763EFBEC35768F96EAAC974CF7A89DD46DDB1B9F9EA5C7A6EB7"
+    },
+    {
+      "path": "account_room/08_avatar.png",
+      "bytes": 184203,
+      "sha256": "DB08EA90F96FC2F8B30031DCDBD4A203A2478EA1D16F93A4CCD963B7B8199AAE"
+    },
+    {
+      "path": "account_room/09_agreement.png",
+      "bytes": 181590,
+      "sha256": "136937BC429B0D5F46F82AF54795930380A3120F6D19A2AAF60905E516D9DD2D"
+    },
+    {
+      "path": "style_master.png",
+      "bytes": 1837654,
+      "sha256": "BBE3FD3A58369D7ACC66808C7ADBCD7FE39BDC373E27D5B2C76EEB366516405A"
+    }
+  ],
+  "highest_approval": "Static preview only; no runtime or formal UI/UE implementation approval"
+}

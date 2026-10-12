@@ -2,14 +2,14 @@
   "request_id": "REQ-20261011-TATA-FULL-GAME-PREVIEW",
   "status": "PASS_OFFLINE_GALLERY",
   "browser": "Fresh isolated headless Edge context; file://; no cookies or user profile",
-  "canonical_png_count": 31,
+  "canonical_png_count": 33,
   "main_screens": 6,
-  "decoded_images": 31,
+  "decoded_images": 33,
   "group_counts": {
     "home": 3,
     "deck": 2,
     "lobby": 1,
-    "gacha": 4,
+    "gacha": 6,
     "room": 4,
     "account": 5,
     "battle": 8,
@@ -17,11 +17,12 @@
     "loading": 1
   },
   "checks": [
-    "31 canonical PNG decoded",
+    "33 canonical PNG decoded",
     "6 main screens and all9 group filters",
     "Chinese keyword and empty-result search",
     "Full image dialog, close, Escape and previous/next arrow keys",
     "Original local PNG opened in separate tab and decoded without copying",
+    "Recent-history native-position PNG hotspots enter/close/return on desktop and390pxmobile",
     "390px responsive view with zero horizontal overflow",
     "Relative offline image references"
   ],

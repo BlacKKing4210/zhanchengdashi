@@ -3,7 +3,7 @@
   "request_id": "REQ-20261011-TATA-FULL-GAME-PREVIEW",
   "status": "COMPLETE_STATIC_PREVIEW_ONLY",
   "scope": "Existing six routes and key state chain; visual mockups only, no game implementation",
-  "count": 31,
+  "count": 33,
   "main_route_count": 6,
   "design_canvas": [
     720,
@@ -226,28 +226,42 @@
       "id": "gacha-empty",
       "file": "core_pages/06_gacha_empty.png",
       "group": "gacha",
-      "title": "抽卡 · 无记录／票不足",
-      "description": "零张抽卡券时，两种抽取动作显示禁用状态。",
+      "title": "抽卡 · 招募宣传",
+      "description": "伙伴集结宣传画；点开大图后，可点击“最近获得”预览记录。",
       "main": true,
       "width": 720,
       "height": 1280,
-      "bytes": 127974,
-      "sha256": "88F0B53F9531F5A102AF933701F9F8451FFC048D70CAAE2B1A68D9D695C1F46E",
+      "bytes": 1048710,
+      "sha256": "392B2D57E8749ABC8F6285694740628722F0EFE5425003E7FE43CA4453656FDF",
       "design_canvas": [
         720,
         1280
       ],
-      "render_method": "USER_AUTHORIZED_NATIVE_CANVAS_COMPONENTS",
+      "render_method": "AI_ILLUSTRATION_AND_USER_AUTHORIZED_NATIVE_UI",
       "source_refs": [
-        "D:/AI/zhanchengdashi/temp/qa/gacha-spaced-20260925/candidate-finished-10.png"
+        "gacha_refinement/receipt.json",
+        "gacha_refinement/illustrations/poster.png",
+        "map_refinement/illustrations/forest-arena.png"
       ],
-      "coordinate_parity": true,
+      "coordinate_parity": false,
       "review": {
         "status": "STATIC_PREVIEW_PASS",
-        "file": "reviews/core_pages.json",
+        "file": "reviews/refinement-20261012/gacha.json",
         "hash_matches": true
       },
-      "runtime_approved": false
+      "runtime_approved": false,
+      "user_approved_ui_revision": "Promotional main/history layout explicitly requested; renderer receipt records all fixed rectangles",
+      "current_state": {
+        "gold": 60,
+        "tickets": 30,
+        "buttons_enabled": [
+          true,
+          true
+        ],
+        "recent_count": 10,
+        "fixture": "Source-supported30before draw: cost1 leads to existing29opening; cost10 leads to retained20ten-result; promotional main/history share30ticket wallet"
+      },
+      "latest_receipt": "gacha_refinement/receipt.json"
     },
     {
       "id": "gacha-opening",
@@ -258,23 +272,42 @@
       "main": false,
       "width": 720,
       "height": 1280,
-      "bytes": 137462,
-      "sha256": "C8859DB8D989E832D84B9D8D97A1D195F0F25902E507A0B32074EC0148106A71",
+      "bytes": 745755,
+      "sha256": "EF20F76B9D1B82C9014195274A85A0D97EDB73FB656A141E2FABE89F310A4D5E",
       "design_canvas": [
         720,
         1280
       ],
-      "render_method": "USER_AUTHORIZED_NATIVE_CANVAS_COMPONENTS",
+      "render_method": "AI_ILLUSTRATION_AND_USER_AUTHORIZED_NATIVE_UI",
       "source_refs": [
-        "D:/AI/zhanchengdashi/temp/qa/gacha-spaced-20260925/candidate-opening-1.png"
+        "gacha_refinement/receipt.json",
+        "gacha_refinement/illustrations/poster.png",
+        "map_refinement/illustrations/forest-arena.png"
       ],
-      "coordinate_parity": true,
+      "coordinate_parity": false,
       "review": {
         "status": "STATIC_PREVIEW_PASS",
-        "file": "reviews/core_pages.json",
+        "file": "reviews/refinement-20261012/gacha.json",
         "hash_matches": true
       },
-      "runtime_approved": false
+      "runtime_approved": false,
+      "user_approved_ui_revision": "Promotional main/history layout explicitly requested; renderer receipt records all fixed rectangles",
+      "current_state": {
+        "id": "07_gacha_opening",
+        "gold": 60,
+        "tickets": 29,
+        "card_back": "existing normal result blue-purple framed star card",
+        "toast": "获得1张卡牌",
+        "buttons_enabled": [
+          false,
+          false
+        ],
+        "nav_active": 3,
+        "source_evidence": "HISTORICAL_LOCAL_RUNTIME_FIXTURE",
+        "no_new_hero_overlay": true,
+        "record_entry": "Recent records moved to secondary entry on promotional main"
+      },
+      "latest_receipt": "gacha_refinement/receipt.json"
     },
     {
       "id": "gacha-result",
@@ -312,23 +345,126 @@
       "main": false,
       "width": 720,
       "height": 1280,
-      "bytes": 255187,
-      "sha256": "2D51C12B30B64805DC592F93F4E92125CBEDDF509825AABCF8ECC4FC688E7258",
+      "bytes": 910741,
+      "sha256": "1A6440343151A2E12B82839B32A08C96B312F836B19317ADC45A5C235D9B9800",
       "design_canvas": [
         720,
         1280
       ],
-      "render_method": "USER_AUTHORIZED_NATIVE_CANVAS_COMPONENTS",
+      "render_method": "AI_ILLUSTRATION_AND_USER_AUTHORIZED_NATIVE_UI",
       "source_refs": [
-        "D:/AI/zhanchengdashi/temp/qa/gacha-spaced-20260925/candidate-slogan-mouse-720.png"
+        "gacha_refinement/receipt.json",
+        "gacha_refinement/illustrations/poster.png",
+        "map_refinement/illustrations/forest-arena.png"
       ],
-      "coordinate_parity": true,
+      "coordinate_parity": false,
       "review": {
         "status": "STATIC_PREVIEW_PASS",
-        "file": "reviews/core_pages.json",
+        "file": "reviews/refinement-20261012/gacha.json",
         "hash_matches": true
       },
-      "runtime_approved": false
+      "runtime_approved": false,
+      "user_approved_ui_revision": "Promotional main/history layout explicitly requested; renderer receipt records all fixed rectangles",
+      "current_state": {
+        "id": "09_gacha_new_hero",
+        "card_id": "mouse",
+        "name": "老鼠",
+        "slogan": "鼠鼠我呀，主打一个人多。",
+        "only_button": "继续",
+        "hide_currency": true,
+        "hide_nav": true,
+        "hide_stats": true,
+        "source_evidence": "HISTORICAL_LOCAL_RUNTIME_FIXTURE"
+      },
+      "latest_receipt": "gacha_refinement/receipt.json"
+    },
+    {
+      "id": "gacha-history",
+      "file": "core_pages/10_recent_history.png",
+      "group": "gacha",
+      "title": "抽卡 · 最近获得",
+      "description": "查看最近十张记录，关闭或返回招募即可回到宣传画。",
+      "main": false,
+      "width": 720,
+      "height": 1280,
+      "bytes": 296827,
+      "sha256": "4640800050FE309AEBB77A18E09AABA3E66FDA31B3F5F8E10CFF7ACA11B93452",
+      "design_canvas": [
+        720,
+        1280
+      ],
+      "render_method": "AI_ILLUSTRATION_AND_USER_AUTHORIZED_NATIVE_UI",
+      "source_refs": [
+        "gacha_refinement/receipt.json",
+        "gacha_refinement/illustrations/poster.png",
+        "map_refinement/illustrations/forest-arena.png"
+      ],
+      "coordinate_parity": false,
+      "review": {
+        "status": "STATIC_PREVIEW_PASS",
+        "file": "reviews/refinement-20261012/gacha.json",
+        "hash_matches": true
+      },
+      "runtime_approved": false,
+      "user_approved_ui_revision": "Promotional main/history layout explicitly requested; renderer receipt records all fixed rectangles",
+      "current_state": {
+        "gold": 60,
+        "tickets": 30,
+        "card_ids": [
+          "frog",
+          "ant",
+          "sparrow",
+          "rabbit",
+          "duck",
+          "snail",
+          "hamster",
+          "pigeon",
+          "parrot",
+          "rabbit"
+        ],
+        "fixture": "Same existing historical ten-result IDs/order; history view retains promotional-main30ticket wallet; current formal names/rare-blue source applied; not real-account records"
+      },
+      "latest_receipt": "gacha_refinement/receipt.json"
+    },
+    {
+      "id": "gacha-no-tickets",
+      "file": "core_pages/11_gacha_no_tickets.png",
+      "group": "gacha",
+      "title": "抽卡 · 抽卡券不足",
+      "description": "同一宣传画下保留零票、两种抽取动作禁用的状态。",
+      "main": false,
+      "width": 720,
+      "height": 1280,
+      "bytes": 1050309,
+      "sha256": "A261767715C362B52E0BCAE80345DA54322B9F80687C9885E520080C74105904",
+      "design_canvas": [
+        720,
+        1280
+      ],
+      "render_method": "AI_ILLUSTRATION_AND_USER_AUTHORIZED_NATIVE_UI",
+      "source_refs": [
+        "gacha_refinement/receipt.json",
+        "gacha_refinement/illustrations/poster.png",
+        "map_refinement/illustrations/forest-arena.png"
+      ],
+      "coordinate_parity": false,
+      "review": {
+        "status": "STATIC_PREVIEW_PASS",
+        "file": "reviews/refinement-20261012/gacha.json",
+        "hash_matches": true
+      },
+      "runtime_approved": false,
+      "user_approved_ui_revision": "Promotional main/history layout explicitly requested; renderer receipt records all fixed rectangles",
+      "current_state": {
+        "gold": 60,
+        "tickets": 0,
+        "buttons_enabled": [
+          false,
+          false
+        ],
+        "fixture": "Retains prior zero-ticket availability state with the same new poster"
+      },
+      "latest_receipt": "gacha_refinement/receipt.json"
     },
     {
       "id": "room-entry",
@@ -734,23 +870,25 @@
       "main": false,
       "width": 720,
       "height": 1280,
-      "bytes": 175428,
-      "sha256": "86657679200F10633E6A2CD7ABDA0FA7718889C25CAC5A4A092E1032894F0330",
+      "bytes": 285240,
+      "sha256": "51EC09D97F9C61E541481CCACF4883D92AE68580ADDEF7F19424969F5F36BADB",
       "design_canvas": [
         720,
         1280
       ],
       "render_method": "USER_AUTHORIZED_NATIVE_COMPOSITION",
       "source_refs": [
-        "temp/qa/all-animals-audit-20260906/hex-3v3-720.png"
+        "temp/qa/all-animals-audit-20260906/hex-3v3-720.png",
+        "map_refinement/illustrations/forest-arena.png"
       ],
       "coordinate_parity": true,
       "review": {
         "status": "STATIC_PREVIEW_PASS",
-        "file": "reviews/root-part2.json",
+        "file": "reviews/refinement-20261012/maps.json",
         "hash_matches": true
       },
-      "runtime_approved": false
+      "runtime_approved": false,
+      "latest_receipt": "map_refinement/native-render-receipt.json"
     },
     {
       "id": "battle-ffa",
@@ -761,23 +899,25 @@
       "main": false,
       "width": 720,
       "height": 1280,
-      "bytes": 191124,
-      "sha256": "4010A7230BA911358591E431E6995AEECAD82B9BDA47660FDEB037EE02814704",
+      "bytes": 269742,
+      "sha256": "D03FF253D731514381D50F82E8FC87C7D6EE66893E446DB373EE0894373128A4",
       "design_canvas": [
         720,
         1280
       ],
       "render_method": "USER_AUTHORIZED_NATIVE_COMPOSITION",
       "source_refs": [
-        "temp/qa/all-animals-audit-20260906/hex-ffa-720.png"
+        "temp/qa/all-animals-audit-20260906/hex-ffa-720.png",
+        "map_refinement/illustrations/forest-arena.png"
       ],
       "coordinate_parity": true,
       "review": {
         "status": "STATIC_PREVIEW_PASS",
-        "file": "reviews/root-part2.json",
+        "file": "reviews/refinement-20261012/maps.json",
         "hash_matches": true
       },
-      "runtime_approved": false
+      "runtime_approved": false,
+      "latest_receipt": "map_refinement/native-render-receipt.json"
     },
     {
       "id": "result-win",
@@ -788,23 +928,25 @@
       "main": false,
       "width": 720,
       "height": 1280,
-      "bytes": 121748,
-      "sha256": "1AAE789A153BF8E0E1FC4A753BA5C429EE4A985770F1DFFC7C9F7EC737DCCAAB",
+      "bytes": 301991,
+      "sha256": "72C11D9C364CF21AE23FAE81B567170188DA9086EC48952536C88F1FC441BB20",
       "design_canvas": [
         720,
         1280
       ],
       "render_method": "USER_AUTHORIZED_NATIVE_COMPOSITION",
       "source_refs": [
-        "temp/qa/result-reward-area-20260907/victory-720.png"
+        "temp/qa/result-reward-area-20260907/victory-720.png",
+        "map_refinement/illustrations/forest-arena.png"
       ],
       "coordinate_parity": true,
       "review": {
         "status": "STATIC_PREVIEW_PASS",
-        "file": "reviews/root-part2.json",
+        "file": "reviews/refinement-20261012/maps.json",
         "hash_matches": true
       },
-      "runtime_approved": false
+      "runtime_approved": false,
+      "latest_receipt": "map_refinement/native-render-receipt.json"
     },
     {
       "id": "result-loss",
@@ -815,23 +957,25 @@
       "main": false,
       "width": 720,
       "height": 1280,
-      "bytes": 166501,
-      "sha256": "1C8522A385D6B5DB9025E98C77466CBC63C1DEC15B9E76A37FAE60BBB1B205F5",
+      "bytes": 278711,
+      "sha256": "9F4C59763B9318E4BE53B2529C4195836585159241AE0E15E809416538541D9B",
       "design_canvas": [
         720,
         1280
       ],
       "render_method": "USER_AUTHORIZED_NATIVE_COMPOSITION",
       "source_refs": [
-        "temp/qa/result-reward-area-20260907/team-loss-top-720.png"
+        "temp/qa/result-reward-area-20260907/team-loss-top-720.png",
+        "map_refinement/illustrations/forest-arena.png"
       ],
       "coordinate_parity": true,
       "review": {
         "status": "STATIC_PREVIEW_PASS",
-        "file": "reviews/root-part2.json",
+        "file": "reviews/refinement-20261012/maps.json",
         "hash_matches": true
       },
-      "runtime_approved": false
+      "runtime_approved": false,
+      "latest_receipt": "map_refinement/native-render-receipt.json"
     },
     {
       "id": "result-ffa",
@@ -842,23 +986,25 @@
       "main": false,
       "width": 720,
       "height": 1280,
-      "bytes": 163581,
-      "sha256": "39588E9A75535CAFDAE42814FE8D947FE310FC0097C413C724978F4A59304995",
+      "bytes": 270921,
+      "sha256": "E178BD2C610449E6B4CF07B3B5F1F4656725331A9946629EA19E2EBA960585F4",
       "design_canvas": [
         720,
         1280
       ],
       "render_method": "USER_AUTHORIZED_NATIVE_COMPOSITION",
       "source_refs": [
-        "temp/qa/result-reward-area-20260907/ffa-720.png"
+        "temp/qa/result-reward-area-20260907/ffa-720.png",
+        "map_refinement/illustrations/forest-arena.png"
       ],
       "coordinate_parity": true,
       "review": {
         "status": "STATIC_PREVIEW_PASS",
-        "file": "reviews/root-part2.json",
+        "file": "reviews/refinement-20261012/maps.json",
         "hash_matches": true
       },
-      "runtime_approved": false
+      "runtime_approved": false,
+      "latest_receipt": "map_refinement/native-render-receipt.json"
     },
     {
       "id": "loading",
