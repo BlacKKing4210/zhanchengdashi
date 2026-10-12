@@ -1,0 +1,2943 @@
+{
+  "request_id": "REQ-20261011-TATA-FULL-GAME-PREVIEW",
+  "phase": "USER_AUTHORIZED_NATIVE_COMPOSITION",
+  "canvas": [
+    720,
+    1280
+  ],
+  "runtime_changes": false,
+  "kit_sha256": "507df024ca02043a822bbecf9391f97a6991180a67cce11859db47fb0f28af8f",
+  "outputs": [
+    {
+      "page": "06_pause",
+      "source": "D:\\AI\\zhanchengdashi\\output\\visual_concepts\\tata_battle_style\\full_game\\style_master.png",
+      "source_sha256": "bbe3fd3a58369d7acc66808c7adbcd7fe39bdc373e27d5b2c76eeb366516405a",
+      "path": "06_pause.png",
+      "sha256": "faade759b223775e472d3b07a28ef065e4bc20565c311739de15e1841a6cf057",
+      "underlay_alpha": 0.48
+    },
+    {
+      "page": "07_victory",
+      "source": "temp/qa/result-reward-area-20260907/victory-720.png",
+      "source_sha256": "b49fd772b7c6ccb86f25c32ad6b54d92dff3ad0bd74824b493791ae7885a0dc0",
+      "path": "07_victory.png",
+      "sha256": "1aae789a153bf8e0e1fc4a753ba5c429ee4a985770f1dffc7c9f7ec737dccaab",
+      "underlay_alpha": 0.42,
+      "world_skin": {
+        "field_components": [
+          {
+            "family": "purple",
+            "rect": [
+              0,
+              155,
+              63,
+              93
+            ],
+            "pixels": 5462
+          },
+          {
+            "family": "purple",
+            "rect": [
+              657,
+              155,
+              63,
+              93
+            ],
+            "pixels": 5278
+          },
+          {
+            "family": "purple",
+            "rect": [
+              0,
+              252,
+              60,
+              93
+            ],
+            "pixels": 5452
+          },
+          {
+            "family": "purple",
+            "rect": [
+              660,
+              252,
+              60,
+              93
+            ],
+            "pixels": 5452
+          },
+          {
+            "family": "green",
+            "rect": [
+              0,
+              349,
+              60,
+              93
+            ],
+            "pixels": 5453
+          },
+          {
+            "family": "green",
+            "rect": [
+              0,
+              446,
+              60,
+              93
+            ],
+            "pixels": 5454
+          },
+          {
+            "family": "green",
+            "rect": [
+              660,
+              446,
+              60,
+              93
+            ],
+            "pixels": 5454
+          },
+          {
+            "family": "green",
+            "rect": [
+              0,
+              543,
+              60,
+              93
+            ],
+            "pixels": 5452
+          },
+          {
+            "family": "green",
+            "rect": [
+              660,
+              543,
+              60,
+              93
+            ],
+            "pixels": 5452
+          },
+          {
+            "family": "green",
+            "rect": [
+              306,
+              999,
+              108,
+              121
+            ],
+            "pixels": 7376
+          }
+        ],
+        "field_pixels": 56285,
+        "outside_forest_pixels": 121153,
+        "building_materials": [],
+        "geometry": "No polygon generation, object movement or price changes; only detected large field fills, edge-connected outside blank pixels and eroded building-silhouette interiors are recolored.",
+        "forest_source_crop": [
+          65,
+          180,
+          810,
+          125
+        ],
+        "forest_draw_count": 1
+      },
+      "underlay_method": "Undo known source0.42 dim, skin only source field/background pixels, redraw exact UI, apply one uniform0.42 layer; source map/object geometry retained."
+    },
+    {
+      "page": "08_defeat",
+      "source": "temp/qa/result-reward-area-20260907/team-loss-top-720.png",
+      "source_sha256": "033504bbae5f98f44ee6603d366aa20d941f58def3ea7022d84eeaad9e14a015",
+      "path": "08_defeat.png",
+      "sha256": "1c8522a385d6b5db9025e98c77466cbc63c1dec15b9e76a37fae60bbb1b205f5",
+      "underlay_alpha": 0.42,
+      "world_skin": {
+        "field_components": [
+          {
+            "family": "green",
+            "rect": [
+              0,
+              533,
+              60,
+              93
+            ],
+            "pixels": 5453
+          },
+          {
+            "family": "green",
+            "rect": [
+              0,
+              630,
+              60,
+              93
+            ],
+            "pixels": 5452
+          },
+          {
+            "family": "green",
+            "rect": [
+              0,
+              727,
+              60,
+              93
+            ],
+            "pixels": 5454
+          },
+          {
+            "family": "yellow",
+            "rect": [
+              660,
+              727,
+              60,
+              93
+            ],
+            "pixels": 5454
+          },
+          {
+            "family": "green",
+            "rect": [
+              0,
+              824,
+              60,
+              93
+            ],
+            "pixels": 5453
+          },
+          {
+            "family": "orange",
+            "rect": [
+              660,
+              824,
+              60,
+              93
+            ],
+            "pixels": 5453
+          },
+          {
+            "family": "green",
+            "rect": [
+              0,
+              921,
+              60,
+              92
+            ],
+            "pixels": 5401
+          },
+          {
+            "family": "orange",
+            "rect": [
+              660,
+              921,
+              60,
+              92
+            ],
+            "pixels": 5401
+          },
+          {
+            "family": "green",
+            "rect": [
+              55,
+              999,
+              107,
+              63
+            ],
+            "pixels": 5265
+          },
+          {
+            "family": "yellow",
+            "rect": [
+              223,
+              999,
+              107,
+              63
+            ],
+            "pixels": 5264
+          },
+          {
+            "family": "orange",
+            "rect": [
+              390,
+              999,
+              107,
+              63
+            ],
+            "pixels": 5264
+          },
+          {
+            "family": "orange",
+            "rect": [
+              558,
+              999,
+              107,
+              63
+            ],
+            "pixels": 5265
+          },
+          {
+            "family": "green",
+            "rect": [
+              0,
+              999,
+              78,
+              111
+            ],
+            "pixels": 6032
+          },
+          {
+            "family": "yellow",
+            "rect": [
+              139,
+              999,
+              107,
+              111
+            ],
+            "pixels": 7485
+          },
+          {
+            "family": "orange",
+            "rect": [
+              307,
+              999,
+              106,
+              111
+            ],
+            "pixels": 7484
+          },
+          {
+            "family": "orange",
+            "rect": [
+              474,
+              999,
+              107,
+              111
+            ],
+            "pixels": 7485
+          },
+          {
+            "family": "orange",
+            "rect": [
+              642,
+              999,
+              78,
+              111
+            ],
+            "pixels": 6032
+          },
+          {
+            "family": "green",
+            "rect": [
+              55,
+              999,
+              107,
+              129
+            ],
+            "pixels": 5276
+          },
+          {
+            "family": "orange",
+            "rect": [
+              223,
+              999,
+              107,
+              129
+            ],
+            "pixels": 5277
+          },
+          {
+            "family": "orange",
+            "rect": [
+              390,
+              999,
+              107,
+              129
+            ],
+            "pixels": 5277
+          },
+          {
+            "family": "orange",
+            "rect": [
+              558,
+              999,
+              107,
+              129
+            ],
+            "pixels": 5276
+          }
+        ],
+        "field_pixels": 120203,
+        "outside_forest_pixels": 69152,
+        "building_materials": [],
+        "geometry": "No polygon generation, object movement or price changes; only detected large field fills, edge-connected outside blank pixels and eroded building-silhouette interiors are recolored.",
+        "forest_source_crop": [
+          65,
+          180,
+          810,
+          125
+        ],
+        "forest_draw_count": 1
+      },
+      "underlay_method": "Undo known source0.42 dim, skin only source field/background pixels, redraw exact UI, apply one uniform0.42 layer; source map/object geometry retained."
+    },
+    {
+      "page": "09_ffa_result",
+      "source": "temp/qa/result-reward-area-20260907/ffa-720.png",
+      "source_sha256": "0eb0ce6edc7c90f165fbbd9ba928f1869ba2edeab3f9d5ed8fd8c910f1843c34",
+      "path": "09_ffa_result.png",
+      "sha256": "39588e9a75535cafdae42814fe8d947fe310fc0097c413c724978f4a59304995",
+      "underlay_alpha": 0.42,
+      "world_skin": {
+        "field_components": [
+          {
+            "family": "yellow",
+            "rect": [
+              660,
+              243,
+              60,
+              93
+            ],
+            "pixels": 5452
+          },
+          {
+            "family": "yellow",
+            "rect": [
+              660,
+              340,
+              60,
+              93
+            ],
+            "pixels": 5452
+          },
+          {
+            "family": "yellow",
+            "rect": [
+              660,
+              436,
+              60,
+              93
+            ],
+            "pixels": 5453
+          },
+          {
+            "family": "yellow",
+            "rect": [
+              660,
+              533,
+              60,
+              93
+            ],
+            "pixels": 5453
+          },
+          {
+            "family": "yellow",
+            "rect": [
+              0,
+              630,
+              60,
+              93
+            ],
+            "pixels": 5452
+          },
+          {
+            "family": "yellow",
+            "rect": [
+              660,
+              630,
+              60,
+              93
+            ],
+            "pixels": 5452
+          },
+          {
+            "family": "pink",
+            "rect": [
+              0,
+              727,
+              60,
+              93
+            ],
+            "pixels": 5454
+          },
+          {
+            "family": "yellow",
+            "rect": [
+              660,
+              727,
+              60,
+              93
+            ],
+            "pixels": 5454
+          },
+          {
+            "family": "pink",
+            "rect": [
+              0,
+              824,
+              60,
+              93
+            ],
+            "pixels": 5453
+          },
+          {
+            "family": "yellow",
+            "rect": [
+              660,
+              824,
+              60,
+              93
+            ],
+            "pixels": 5453
+          },
+          {
+            "family": "pink",
+            "rect": [
+              0,
+              921,
+              60,
+              92
+            ],
+            "pixels": 5401
+          },
+          {
+            "family": "yellow",
+            "rect": [
+              660,
+              921,
+              60,
+              92
+            ],
+            "pixels": 5401
+          },
+          {
+            "family": "pink",
+            "rect": [
+              55,
+              999,
+              107,
+              63
+            ],
+            "pixels": 5265
+          },
+          {
+            "family": "pink",
+            "rect": [
+              223,
+              999,
+              107,
+              63
+            ],
+            "pixels": 5264
+          },
+          {
+            "family": "pink",
+            "rect": [
+              390,
+              999,
+              107,
+              63
+            ],
+            "pixels": 5264
+          },
+          {
+            "family": "yellow",
+            "rect": [
+              558,
+              999,
+              107,
+              63
+            ],
+            "pixels": 5265
+          },
+          {
+            "family": "pink",
+            "rect": [
+              0,
+              999,
+              78,
+              111
+            ],
+            "pixels": 6032
+          },
+          {
+            "family": "pink",
+            "rect": [
+              139,
+              999,
+              107,
+              111
+            ],
+            "pixels": 7485
+          },
+          {
+            "family": "pink",
+            "rect": [
+              307,
+              999,
+              106,
+              111
+            ],
+            "pixels": 7484
+          },
+          {
+            "family": "pink",
+            "rect": [
+              474,
+              999,
+              107,
+              111
+            ],
+            "pixels": 7485
+          },
+          {
+            "family": "yellow",
+            "rect": [
+              642,
+              999,
+              78,
+              111
+            ],
+            "pixels": 6032
+          },
+          {
+            "family": "pink",
+            "rect": [
+              55,
+              999,
+              107,
+              129
+            ],
+            "pixels": 5276
+          },
+          {
+            "family": "pink",
+            "rect": [
+              223,
+              999,
+              107,
+              129
+            ],
+            "pixels": 5277
+          },
+          {
+            "family": "pink",
+            "rect": [
+              390,
+              999,
+              107,
+              129
+            ],
+            "pixels": 5277
+          },
+          {
+            "family": "pink",
+            "rect": [
+              558,
+              999,
+              107,
+              129
+            ],
+            "pixels": 5276
+          }
+        ],
+        "field_pixels": 142012,
+        "outside_forest_pixels": 47833,
+        "building_materials": [],
+        "geometry": "No polygon generation, object movement or price changes; only detected large field fills, edge-connected outside blank pixels and eroded building-silhouette interiors are recolored.",
+        "forest_source_crop": [
+          65,
+          180,
+          810,
+          125
+        ],
+        "forest_draw_count": 1
+      },
+      "underlay_method": "Undo known source0.42 dim, skin only source field/background pixels, redraw exact UI, apply one uniform0.42 layer; source map/object geometry retained."
+    },
+    {
+      "page": "11_team_battle",
+      "source": "temp/qa/all-animals-audit-20260906/hex-3v3-720.png",
+      "source_sha256": "8e61bcde16cdace1cd0e71baf7f9f365020fb1e7391535cac2b68cb81a7a1589",
+      "path": "11_team_battle.png",
+      "sha256": "86657679200f10633e6a2cd7abda0fa7718889c25cac5a4a092e1032894f0330",
+      "world_skin": {
+        "field_components": [
+          {
+            "family": "yellow",
+            "rect": [
+              223,
+              146,
+              106,
+              91
+            ],
+            "pixels": 7289
+          },
+          {
+            "family": "green",
+            "rect": [
+              139,
+              194,
+              106,
+              93
+            ],
+            "pixels": 7383
+          },
+          {
+            "family": "yellow",
+            "rect": [
+              309,
+              196,
+              102,
+              90
+            ],
+            "pixels": 4609
+          },
+          {
+            "family": "green",
+            "rect": [
+              55,
+              243,
+              107,
+              93
+            ],
+            "pixels": 7484
+          },
+          {
+            "family": "yellow",
+            "rect": [
+              225,
+              244,
+              103,
+              90
+            ],
+            "pixels": 4156
+          },
+          {
+            "family": "yellow",
+            "rect": [
+              392,
+              244,
+              103,
+              90
+            ],
+            "pixels": 6226
+          },
+          {
+            "family": "yellow",
+            "rect": [
+              217,
+              290,
+              364,
+              336
+            ],
+            "pixels": 64666
+          },
+          {
+            "family": "green",
+            "rect": [
+              0,
+              291,
+              78,
+              93
+            ],
+            "pixels": 6031
+          },
+          {
+            "family": "green",
+            "rect": [
+              139,
+              291,
+              106,
+              93
+            ],
+            "pixels": 7382
+          },
+          {
+            "family": "green",
+            "rect": [
+              55,
+              340,
+              107,
+              93
+            ],
+            "pixels": 7484
+          },
+          {
+            "family": "yellow",
+            "rect": [
+              558,
+              340,
+              107,
+              93
+            ],
+            "pixels": 7484
+          },
+          {
+            "family": "green",
+            "rect": [
+              0,
+              388,
+              78,
+              93
+            ],
+            "pixels": 6032
+          },
+          {
+            "family": "green",
+            "rect": [
+              139,
+              388,
+              106,
+              93
+            ],
+            "pixels": 7454
+          },
+          {
+            "family": "yellow",
+            "rect": [
+              642,
+              388,
+              78,
+              93
+            ],
+            "pixels": 6032
+          },
+          {
+            "family": "green",
+            "rect": [
+              55,
+              436,
+              107,
+              93
+            ],
+            "pixels": 7485
+          },
+          {
+            "family": "yellow",
+            "rect": [
+              558,
+              436,
+              107,
+              93
+            ],
+            "pixels": 7485
+          },
+          {
+            "family": "green",
+            "rect": [
+              0,
+              485,
+              78,
+              93
+            ],
+            "pixels": 6031
+          },
+          {
+            "family": "green",
+            "rect": [
+              139,
+              485,
+              106,
+              93
+            ],
+            "pixels": 7456
+          },
+          {
+            "family": "yellow",
+            "rect": [
+              474,
+              485,
+              107,
+              93
+            ],
+            "pixels": 7485
+          },
+          {
+            "family": "yellow",
+            "rect": [
+              642,
+              485,
+              78,
+              93
+            ],
+            "pixels": 6031
+          },
+          {
+            "family": "green",
+            "rect": [
+              55,
+              533,
+              107,
+              93
+            ],
+            "pixels": 7485
+          },
+          {
+            "family": "yellow",
+            "rect": [
+              390,
+              533,
+              107,
+              93
+            ],
+            "pixels": 7485
+          },
+          {
+            "family": "yellow",
+            "rect": [
+              558,
+              533,
+              107,
+              93
+            ],
+            "pixels": 7485
+          },
+          {
+            "family": "green",
+            "rect": [
+              0,
+              582,
+              78,
+              93
+            ],
+            "pixels": 6030
+          },
+          {
+            "family": "green",
+            "rect": [
+              139,
+              582,
+              107,
+              93
+            ],
+            "pixels": 7486
+          },
+          {
+            "family": "yellow",
+            "rect": [
+              307,
+              582,
+              106,
+              93
+            ],
+            "pixels": 7482
+          },
+          {
+            "family": "yellow",
+            "rect": [
+              474,
+              582,
+              107,
+              93
+            ],
+            "pixels": 7486
+          },
+          {
+            "family": "yellow",
+            "rect": [
+              642,
+              582,
+              78,
+              93
+            ],
+            "pixels": 6030
+          },
+          {
+            "family": "green",
+            "rect": [
+              55,
+              630,
+              107,
+              93
+            ],
+            "pixels": 7486
+          },
+          {
+            "family": "yellow",
+            "rect": [
+              222,
+              630,
+              108,
+              93
+            ],
+            "pixels": 7485
+          },
+          {
+            "family": "yellow",
+            "rect": [
+              390,
+              630,
+              108,
+              93
+            ],
+            "pixels": 7485
+          },
+          {
+            "family": "yellow",
+            "rect": [
+              558,
+              630,
+              107,
+              93
+            ],
+            "pixels": 7486
+          },
+          {
+            "family": "green",
+            "rect": [
+              0,
+              678,
+              78,
+              93
+            ],
+            "pixels": 6031
+          },
+          {
+            "family": "green",
+            "rect": [
+              139,
+              678,
+              107,
+              93
+            ],
+            "pixels": 7485
+          },
+          {
+            "family": "yellow",
+            "rect": [
+              307,
+              678,
+              106,
+              93
+            ],
+            "pixels": 7484
+          },
+          {
+            "family": "yellow",
+            "rect": [
+              474,
+              678,
+              107,
+              93
+            ],
+            "pixels": 7485
+          },
+          {
+            "family": "orange",
+            "rect": [
+              642,
+              678,
+              78,
+              93
+            ],
+            "pixels": 6031
+          },
+          {
+            "family": "green",
+            "rect": [
+              55,
+              727,
+              107,
+              93
+            ],
+            "pixels": 7486
+          },
+          {
+            "family": "yellow",
+            "rect": [
+              223,
+              727,
+              107,
+              93
+            ],
+            "pixels": 7485
+          },
+          {
+            "family": "yellow",
+            "rect": [
+              390,
+              727,
+              107,
+              93
+            ],
+            "pixels": 7485
+          },
+          {
+            "family": "orange",
+            "rect": [
+              558,
+              727,
+              107,
+              93
+            ],
+            "pixels": 7486
+          },
+          {
+            "family": "green",
+            "rect": [
+              0,
+              775,
+              78,
+              93
+            ],
+            "pixels": 6031
+          },
+          {
+            "family": "green",
+            "rect": [
+              139,
+              775,
+              107,
+              93
+            ],
+            "pixels": 7484
+          },
+          {
+            "family": "yellow",
+            "rect": [
+              306,
+              775,
+              108,
+              93
+            ],
+            "pixels": 7484
+          },
+          {
+            "family": "orange",
+            "rect": [
+              474,
+              775,
+              107,
+              93
+            ],
+            "pixels": 7484
+          },
+          {
+            "family": "orange",
+            "rect": [
+              642,
+              775,
+              78,
+              93
+            ],
+            "pixels": 6031
+          },
+          {
+            "family": "green",
+            "rect": [
+              55,
+              824,
+              107,
+              93
+            ],
+            "pixels": 7485
+          },
+          {
+            "family": "yellow",
+            "rect": [
+              223,
+              824,
+              107,
+              93
+            ],
+            "pixels": 7485
+          },
+          {
+            "family": "orange",
+            "rect": [
+              390,
+              824,
+              107,
+              93
+            ],
+            "pixels": 7485
+          },
+          {
+            "family": "orange",
+            "rect": [
+              558,
+              824,
+              107,
+              93
+            ],
+            "pixels": 7485
+          },
+          {
+            "family": "purple",
+            "rect": [
+              0,
+              872,
+              78,
+              93
+            ],
+            "pixels": 6030
+          },
+          {
+            "family": "green",
+            "rect": [
+              139,
+              872,
+              107,
+              93
+            ],
+            "pixels": 7485
+          },
+          {
+            "family": "orange",
+            "rect": [
+              306,
+              872,
+              108,
+              93
+            ],
+            "pixels": 7484
+          },
+          {
+            "family": "orange",
+            "rect": [
+              474,
+              872,
+              107,
+              93
+            ],
+            "pixels": 7485
+          },
+          {
+            "family": "orange",
+            "rect": [
+              642,
+              872,
+              78,
+              93
+            ],
+            "pixels": 6030
+          },
+          {
+            "family": "purple",
+            "rect": [
+              55,
+              921,
+              107,
+              92
+            ],
+            "pixels": 7432
+          },
+          {
+            "family": "orange",
+            "rect": [
+              390,
+              921,
+              107,
+              92
+            ],
+            "pixels": 7431
+          },
+          {
+            "family": "orange",
+            "rect": [
+              558,
+              921,
+              107,
+              92
+            ],
+            "pixels": 7432
+          },
+          {
+            "family": "purple",
+            "rect": [
+              0,
+              969,
+              78,
+              93
+            ],
+            "pixels": 6031
+          },
+          {
+            "family": "purple",
+            "rect": [
+              139,
+              969,
+              107,
+              93
+            ],
+            "pixels": 7484
+          },
+          {
+            "family": "pink",
+            "rect": [
+              306,
+              969,
+              108,
+              93
+            ],
+            "pixels": 7486
+          },
+          {
+            "family": "orange",
+            "rect": [
+              474,
+              969,
+              107,
+              93
+            ],
+            "pixels": 7484
+          },
+          {
+            "family": "orange",
+            "rect": [
+              642,
+              969,
+              78,
+              93
+            ],
+            "pixels": 6031
+          },
+          {
+            "family": "purple",
+            "rect": [
+              55,
+              999,
+              107,
+              111
+            ],
+            "pixels": 7485
+          },
+          {
+            "family": "blue",
+            "rect": [
+              223,
+              999,
+              107,
+              111
+            ],
+            "pixels": 7484
+          },
+          {
+            "family": "pink",
+            "rect": [
+              390,
+              999,
+              107,
+              111
+            ],
+            "pixels": 7484
+          },
+          {
+            "family": "orange",
+            "rect": [
+              558,
+              999,
+              107,
+              111
+            ],
+            "pixels": 7485
+          },
+          {
+            "family": "purple",
+            "rect": [
+              0,
+              999,
+              78,
+              129
+            ],
+            "pixels": 4164
+          },
+          {
+            "family": "blue",
+            "rect": [
+              139,
+              999,
+              107,
+              129
+            ],
+            "pixels": 5277
+          },
+          {
+            "family": "pink",
+            "rect": [
+              307,
+              999,
+              106,
+              129
+            ],
+            "pixels": 5276
+          },
+          {
+            "family": "pink",
+            "rect": [
+              474,
+              999,
+              107,
+              129
+            ],
+            "pixels": 5277
+          },
+          {
+            "family": "orange",
+            "rect": [
+              642,
+              999,
+              78,
+              129
+            ],
+            "pixels": 4164
+          }
+        ],
+        "field_pixels": 552929,
+        "outside_forest_pixels": 74685,
+        "building_materials": [
+          {
+            "rect": [
+              327,
+              206,
+              67,
+              69
+            ],
+            "interior_pixels": 1299,
+            "outer_rim_preserved_px": 3,
+            "material": "split_stone"
+          },
+          {
+            "rect": [
+              243,
+              251,
+              66,
+              72
+            ],
+            "interior_pixels": 1804,
+            "outer_rim_preserved_px": 3,
+            "material": "dark_timber_and_slate"
+          },
+          {
+            "rect": [
+              410,
+              347,
+              67,
+              73
+            ],
+            "interior_pixels": 1802,
+            "outer_rim_preserved_px": 3,
+            "material": "dark_timber_and_slate"
+          },
+          {
+            "rect": [
+              327,
+              396,
+              66,
+              72
+            ],
+            "interior_pixels": 1776,
+            "outer_rim_preserved_px": 3,
+            "material": "dark_timber_and_slate"
+          },
+          {
+            "rect": [
+              242,
+              444,
+              68,
+              73
+            ],
+            "interior_pixels": 1781,
+            "outer_rim_preserved_px": 3,
+            "material": "dark_timber_and_slate"
+          }
+        ],
+        "geometry": "No polygon generation, object movement or price changes; only detected large field fills, edge-connected outside blank pixels and eroded building-silhouette interiors are recolored.",
+        "forest_source_crop": [
+          65,
+          180,
+          810,
+          125
+        ],
+        "forest_draw_count": 1
+      },
+      "method": "Original source map/object geometry; low-density field palette and accepted AI forest only in edge-connected outside-map blank pixels; exact shared native HUD, no map regeneration."
+    },
+    {
+      "page": "12_ffa_battle",
+      "source": "temp/qa/all-animals-audit-20260906/hex-ffa-720.png",
+      "source_sha256": "a2f1f76ee91425d13b004e09e09693df002612e43982b390142c1cd2b71e2592",
+      "path": "12_ffa_battle.png",
+      "sha256": "4010a7230ba911358591e431e6995aeecad82b9bda47660fdeb037ee02814704",
+      "world_skin": {
+        "field_components": [
+          {
+            "family": "pink",
+            "rect": [
+              190,
+              140,
+              107,
+              60
+            ],
+            "pixels": 5087
+          },
+          {
+            "family": "pink",
+            "rect": [
+              358,
+              140,
+              107,
+              60
+            ],
+            "pixels": 1996
+          },
+          {
+            "family": "blue",
+            "rect": [
+              500,
+              148,
+              148,
+              184
+            ],
+            "pixels": 19411
+          },
+          {
+            "family": "pink",
+            "rect": [
+              106,
+              155,
+              107,
+              93
+            ],
+            "pixels": 7486
+          },
+          {
+            "family": "pink",
+            "rect": [
+              274,
+              155,
+              107,
+              93
+            ],
+            "pixels": 7485
+          },
+          {
+            "family": "pink",
+            "rect": [
+              442,
+              155,
+              60,
+              93
+            ],
+            "pixels": 4007
+          },
+          {
+            "family": "pink",
+            "rect": [
+              648,
+              155,
+              68,
+              93
+            ],
+            "pixels": 4648
+          },
+          {
+            "family": "pink",
+            "rect": [
+              22,
+              204,
+              107,
+              93
+            ],
+            "pixels": 7484
+          },
+          {
+            "family": "pink",
+            "rect": [
+              190,
+              204,
+              107,
+              93
+            ],
+            "pixels": 7486
+          },
+          {
+            "family": "pink",
+            "rect": [
+              358,
+              204,
+              107,
+              93
+            ],
+            "pixels": 7485
+          },
+          {
+            "family": "pink",
+            "rect": [
+              106,
+              252,
+              107,
+              93
+            ],
+            "pixels": 7484
+          },
+          {
+            "family": "pink",
+            "rect": [
+              274,
+              252,
+              107,
+              93
+            ],
+            "pixels": 7485
+          },
+          {
+            "family": "pink",
+            "rect": [
+              442,
+              252,
+              87,
+              93
+            ],
+            "pixels": 4573
+          },
+          {
+            "family": "pink",
+            "rect": [
+              629,
+              252,
+              87,
+              93
+            ],
+            "pixels": 5373
+          },
+          {
+            "family": "orange",
+            "rect": [
+              22,
+              301,
+              107,
+              93
+            ],
+            "pixels": 7484
+          },
+          {
+            "family": "pink",
+            "rect": [
+              190,
+              301,
+              107,
+              93
+            ],
+            "pixels": 7485
+          },
+          {
+            "family": "pink",
+            "rect": [
+              358,
+              301,
+              107,
+              93
+            ],
+            "pixels": 7486
+          },
+          {
+            "family": "pink",
+            "rect": [
+              526,
+              332,
+              106,
+              62
+            ],
+            "pixels": 5254
+          },
+          {
+            "family": "orange",
+            "rect": [
+              106,
+              349,
+              107,
+              93
+            ],
+            "pixels": 7484
+          },
+          {
+            "family": "pink",
+            "rect": [
+              274,
+              349,
+              107,
+              93
+            ],
+            "pixels": 7486
+          },
+          {
+            "family": "pink",
+            "rect": [
+              442,
+              349,
+              107,
+              93
+            ],
+            "pixels": 7485
+          },
+          {
+            "family": "pink",
+            "rect": [
+              609,
+              349,
+              107,
+              93
+            ],
+            "pixels": 7485
+          },
+          {
+            "family": "orange",
+            "rect": [
+              23,
+              398,
+              106,
+              92
+            ],
+            "pixels": 7429
+          },
+          {
+            "family": "orange",
+            "rect": [
+              190,
+              398,
+              107,
+              92
+            ],
+            "pixels": 7432
+          },
+          {
+            "family": "pink",
+            "rect": [
+              358,
+              398,
+              107,
+              92
+            ],
+            "pixels": 7431
+          },
+          {
+            "family": "pink",
+            "rect": [
+              526,
+              398,
+              106,
+              92
+            ],
+            "pixels": 7428
+          },
+          {
+            "family": "orange",
+            "rect": [
+              106,
+              446,
+              107,
+              93
+            ],
+            "pixels": 7485
+          },
+          {
+            "family": "orange",
+            "rect": [
+              274,
+              446,
+              107,
+              93
+            ],
+            "pixels": 7486
+          },
+          {
+            "family": "pink",
+            "rect": [
+              442,
+              446,
+              107,
+              93
+            ],
+            "pixels": 7485
+          },
+          {
+            "family": "pink",
+            "rect": [
+              609,
+              446,
+              107,
+              93
+            ],
+            "pixels": 7485
+          },
+          {
+            "family": "orange",
+            "rect": [
+              22,
+              494,
+              107,
+              93
+            ],
+            "pixels": 7484
+          },
+          {
+            "family": "orange",
+            "rect": [
+              190,
+              494,
+              107,
+              93
+            ],
+            "pixels": 7486
+          },
+          {
+            "family": "orange",
+            "rect": [
+              358,
+              494,
+              107,
+              93
+            ],
+            "pixels": 7485
+          },
+          {
+            "family": "pink",
+            "rect": [
+              526,
+              494,
+              106,
+              93
+            ],
+            "pixels": 7484
+          },
+          {
+            "family": "orange",
+            "rect": [
+              106,
+              543,
+              107,
+              93
+            ],
+            "pixels": 7485
+          },
+          {
+            "family": "orange",
+            "rect": [
+              274,
+              543,
+              107,
+              93
+            ],
+            "pixels": 7484
+          },
+          {
+            "family": "orange",
+            "rect": [
+              442,
+              543,
+              107,
+              93
+            ],
+            "pixels": 7484
+          },
+          {
+            "family": "pink",
+            "rect": [
+              609,
+              543,
+              107,
+              93
+            ],
+            "pixels": 7484
+          },
+          {
+            "family": "orange",
+            "rect": [
+              22,
+              591,
+              107,
+              93
+            ],
+            "pixels": 7484
+          },
+          {
+            "family": "orange",
+            "rect": [
+              190,
+              591,
+              107,
+              93
+            ],
+            "pixels": 7486
+          },
+          {
+            "family": "orange",
+            "rect": [
+              358,
+              591,
+              107,
+              93
+            ],
+            "pixels": 7484
+          },
+          {
+            "family": "orange",
+            "rect": [
+              525,
+              591,
+              108,
+              93
+            ],
+            "pixels": 7484
+          },
+          {
+            "family": "orange",
+            "rect": [
+              106,
+              640,
+              107,
+              91
+            ],
+            "pixels": 7376
+          },
+          {
+            "family": "orange",
+            "rect": [
+              274,
+              640,
+              107,
+              93
+            ],
+            "pixels": 7484
+          },
+          {
+            "family": "orange",
+            "rect": [
+              442,
+              640,
+              107,
+              93
+            ],
+            "pixels": 7486
+          },
+          {
+            "family": "orange",
+            "rect": [
+              609,
+              640,
+              107,
+              93
+            ],
+            "pixels": 7486
+          },
+          {
+            "family": "orange",
+            "rect": [
+              22,
+              688,
+              106,
+              93
+            ],
+            "pixels": 7396
+          },
+          {
+            "family": "orange",
+            "rect": [
+              191,
+              688,
+              106,
+              93
+            ],
+            "pixels": 7395
+          },
+          {
+            "family": "orange",
+            "rect": [
+              358,
+              688,
+              107,
+              93
+            ],
+            "pixels": 7485
+          },
+          {
+            "family": "orange",
+            "rect": [
+              525,
+              688,
+              108,
+              93
+            ],
+            "pixels": 7484
+          },
+          {
+            "family": "orange",
+            "rect": [
+              274,
+              736,
+              107,
+              92
+            ],
+            "pixels": 7427
+          },
+          {
+            "family": "orange",
+            "rect": [
+              442,
+              736,
+              107,
+              93
+            ],
+            "pixels": 7485
+          },
+          {
+            "family": "orange",
+            "rect": [
+              609,
+              736,
+              107,
+              93
+            ],
+            "pixels": 7485
+          },
+          {
+            "family": "orange",
+            "rect": [
+              108,
+              738,
+              103,
+              90
+            ],
+            "pixels": 6229
+          },
+          {
+            "family": "yellow",
+            "rect": [
+              17,
+              780,
+              118,
+              102
+            ],
+            "pixels": 1447
+          },
+          {
+            "family": "yellow",
+            "rect": [
+              188,
+              781,
+              114,
+              102
+            ],
+            "pixels": 1179
+          },
+          {
+            "family": "orange",
+            "rect": [
+              22,
+              785,
+              107,
+              92
+            ],
+            "pixels": 5201
+          },
+          {
+            "family": "orange",
+            "rect": [
+              191,
+              785,
+              105,
+              93
+            ],
+            "pixels": 4461
+          },
+          {
+            "family": "orange",
+            "rect": [
+              359,
+              785,
+              106,
+              93
+            ],
+            "pixels": 7393
+          },
+          {
+            "family": "orange",
+            "rect": [
+              525,
+              785,
+              108,
+              93
+            ],
+            "pixels": 7484
+          },
+          {
+            "family": "orange",
+            "rect": [
+              442,
+              833,
+              107,
+              93
+            ],
+            "pixels": 7485
+          },
+          {
+            "family": "orange",
+            "rect": [
+              609,
+              833,
+              107,
+              93
+            ],
+            "pixels": 7485
+          },
+          {
+            "family": "orange",
+            "rect": [
+              276,
+              835,
+              103,
+              89
+            ],
+            "pixels": 6183
+          },
+          {
+            "family": "green",
+            "rect": [
+              103,
+              874,
+              88,
+              108
+            ],
+            "pixels": 5969
+          },
+          {
+            "family": "orange",
+            "rect": [
+              359,
+              882,
+              106,
+              93
+            ],
+            "pixels": 7387
+          },
+          {
+            "family": "orange",
+            "rect": [
+              526,
+              882,
+              106,
+              93
+            ],
+            "pixels": 7482
+          },
+          {
+            "family": "orange",
+            "rect": [
+              24,
+              883,
+              75,
+              90
+            ],
+            "pixels": 3505
+          },
+          {
+            "family": "orange",
+            "rect": [
+              196,
+              901,
+              100,
+              72
+            ],
+            "pixels": 2445
+          },
+          {
+            "family": "orange",
+            "rect": [
+              441,
+              930,
+              108,
+              93
+            ],
+            "pixels": 7486
+          },
+          {
+            "family": "blue",
+            "rect": [
+              609,
+              930,
+              108,
+              93
+            ],
+            "pixels": 7486
+          },
+          {
+            "family": "orange",
+            "rect": [
+              275,
+              932,
+              106,
+              91
+            ],
+            "pixels": 4984
+          },
+          {
+            "family": "orange",
+            "rect": [
+              114,
+              950,
+              97,
+              71
+            ],
+            "pixels": 1969
+          },
+          {
+            "family": "orange",
+            "rect": [
+              358,
+              978,
+              107,
+              93
+            ],
+            "pixels": 7481
+          },
+          {
+            "family": "blue",
+            "rect": [
+              526,
+              978,
+              106,
+              93
+            ],
+            "pixels": 7482
+          },
+          {
+            "family": "orange",
+            "rect": [
+              22,
+              980,
+              107,
+              91
+            ],
+            "pixels": 7280
+          },
+          {
+            "family": "orange",
+            "rect": [
+              192,
+              980,
+              103,
+              90
+            ],
+            "pixels": 6230
+          },
+          {
+            "family": "orange",
+            "rect": [
+              275,
+              999,
+              106,
+              121
+            ],
+            "pixels": 7390
+          },
+          {
+            "family": "blue",
+            "rect": [
+              442,
+              999,
+              107,
+              121
+            ],
+            "pixels": 7485
+          },
+          {
+            "family": "blue",
+            "rect": [
+              609,
+              999,
+              107,
+              121
+            ],
+            "pixels": 7485
+          },
+          {
+            "family": "orange",
+            "rect": [
+              106,
+              999,
+              106,
+              121
+            ],
+            "pixels": 7284
+          },
+          {
+            "family": "orange",
+            "rect": [
+              22,
+              999,
+              107,
+              129
+            ],
+            "pixels": 4404
+          },
+          {
+            "family": "blue",
+            "rect": [
+              358,
+              999,
+              107,
+              129
+            ],
+            "pixels": 4405
+          },
+          {
+            "family": "blue",
+            "rect": [
+              525,
+              999,
+              108,
+              129
+            ],
+            "pixels": 4404
+          },
+          {
+            "family": "orange",
+            "rect": [
+              190,
+              999,
+              107,
+              129
+            ],
+            "pixels": 4297
+          }
+        ],
+        "field_pixels": 565490,
+        "outside_forest_pixels": 34211,
+        "building_materials": [
+          {
+            "rect": [
+              46,
+              788,
+              48,
+              77
+            ],
+            "interior_pixels": 982,
+            "outer_rim_preserved_px": 3,
+            "material": "dark_stone"
+          },
+          {
+            "rect": [
+              210,
+              792,
+              67,
+              73
+            ],
+            "interior_pixels": 1784,
+            "outer_rim_preserved_px": 3,
+            "material": "dark_timber_and_slate"
+          },
+          {
+            "rect": [
+              43,
+              894,
+              55,
+              68
+            ],
+            "interior_pixels": 1124,
+            "outer_rim_preserved_px": 3,
+            "material": "split_stone"
+          },
+          {
+            "rect": [
+              298,
+              933,
+              48,
+              77
+            ],
+            "interior_pixels": 993,
+            "outer_rim_preserved_px": 3,
+            "material": "dark_stone"
+          }
+        ],
+        "geometry": "No polygon generation, object movement or price changes; only detected large field fills, edge-connected outside blank pixels and eroded building-silhouette interiors are recolored.",
+        "forest_source_crop": [
+          65,
+          180,
+          810,
+          125
+        ],
+        "forest_draw_count": 1
+      },
+      "method": "Original source map/object geometry; low-density field palette and accepted AI forest only in edge-connected outside-map blank pixels; exact shared native HUD, no map regeneration."
+    }
+  ],
+  "controls": [
+    {
+      "page": "06_pause",
+      "id": "gold",
+      "rect": [
+        46,
+        18,
+        186,
+        44
+      ]
+    },
+    {
+      "page": "06_pause",
+      "id": "ticket",
+      "rect": [
+        488,
+        18,
+        186,
+        44
+      ]
+    },
+    {
+      "page": "06_pause",
+      "id": "rank_or_time",
+      "rect": [
+        250,
+        18,
+        220,
+        44
+      ]
+    },
+    {
+      "page": "06_pause",
+      "id": "pause",
+      "rect": [
+        610,
+        78,
+        62,
+        56
+      ]
+    },
+    {
+      "page": "06_pause",
+      "id": "battle_info",
+      "rect": [
+        26,
+        1132,
+        668,
+        118
+      ]
+    },
+    {
+      "page": "06_pause",
+      "id": "pause_panel",
+      "rect": [
+        120,
+        430,
+        480,
+        330
+      ]
+    },
+    {
+      "page": "06_pause",
+      "id": "continue",
+      "rect": [
+        184,
+        552,
+        352,
+        68
+      ]
+    },
+    {
+      "page": "06_pause",
+      "id": "exit",
+      "rect": [
+        184,
+        644,
+        352,
+        68
+      ]
+    },
+    {
+      "page": "07_victory",
+      "id": "gold",
+      "rect": [
+        46,
+        18,
+        186,
+        44
+      ]
+    },
+    {
+      "page": "07_victory",
+      "id": "ticket",
+      "rect": [
+        488,
+        18,
+        186,
+        44
+      ]
+    },
+    {
+      "page": "07_victory",
+      "id": "rank_or_time",
+      "rect": [
+        250,
+        18,
+        220,
+        44
+      ]
+    },
+    {
+      "page": "07_victory",
+      "id": "pause",
+      "rect": [
+        610,
+        78,
+        62,
+        56
+      ]
+    },
+    {
+      "page": "07_victory",
+      "id": "battle_info",
+      "rect": [
+        26,
+        1132,
+        668,
+        118
+      ]
+    },
+    {
+      "page": "07_victory",
+      "id": "result_panel",
+      "rect": [
+        60,
+        176,
+        600,
+        824
+      ]
+    },
+    {
+      "page": "07_victory",
+      "id": "local_result",
+      "rect": [
+        92,
+        298,
+        536,
+        112
+      ]
+    },
+    {
+      "page": "07_victory",
+      "id": "other_results",
+      "rect": [
+        92,
+        468,
+        536,
+        276
+      ]
+    },
+    {
+      "page": "07_victory",
+      "id": "other_松果队长",
+      "rect": [
+        92,
+        468,
+        536,
+        72
+      ]
+    },
+    {
+      "page": "07_victory",
+      "id": "rewards",
+      "rect": [
+        92,
+        764,
+        536,
+        116
+      ]
+    },
+    {
+      "page": "07_victory",
+      "id": "close",
+      "rect": [
+        190,
+        900,
+        340,
+        64
+      ]
+    },
+    {
+      "page": "08_defeat",
+      "id": "gold",
+      "rect": [
+        46,
+        18,
+        186,
+        44
+      ]
+    },
+    {
+      "page": "08_defeat",
+      "id": "ticket",
+      "rect": [
+        488,
+        18,
+        186,
+        44
+      ]
+    },
+    {
+      "page": "08_defeat",
+      "id": "pause",
+      "rect": [
+        610,
+        116,
+        62,
+        56
+      ]
+    },
+    {
+      "page": "08_defeat",
+      "id": "team_score_0",
+      "rect": [
+        46,
+        70,
+        300,
+        34
+      ]
+    },
+    {
+      "page": "08_defeat",
+      "id": "team_score_1",
+      "rect": [
+        374,
+        70,
+        300,
+        34
+      ]
+    },
+    {
+      "page": "08_defeat",
+      "id": "battle_info",
+      "rect": [
+        26,
+        1132,
+        668,
+        118
+      ]
+    },
+    {
+      "page": "08_defeat",
+      "id": "result_panel",
+      "rect": [
+        60,
+        176,
+        600,
+        824
+      ]
+    },
+    {
+      "page": "08_defeat",
+      "id": "local_result",
+      "rect": [
+        92,
+        298,
+        536,
+        112
+      ]
+    },
+    {
+      "page": "08_defeat",
+      "id": "other_results",
+      "rect": [
+        92,
+        468,
+        536,
+        276
+      ]
+    },
+    {
+      "page": "08_defeat",
+      "id": "other_青柠苏打",
+      "rect": [
+        92,
+        468,
+        524,
+        72
+      ]
+    },
+    {
+      "page": "08_defeat",
+      "id": "other_晚风放映机",
+      "rect": [
+        92,
+        550,
+        524,
+        72
+      ]
+    },
+    {
+      "page": "08_defeat",
+      "id": "other_雾岛来客",
+      "rect": [
+        92,
+        632,
+        524,
+        72
+      ]
+    },
+    {
+      "page": "08_defeat",
+      "id": "rewards",
+      "rect": [
+        92,
+        764,
+        536,
+        116
+      ]
+    },
+    {
+      "page": "08_defeat",
+      "id": "close",
+      "rect": [
+        190,
+        900,
+        340,
+        64
+      ]
+    },
+    {
+      "page": "09_ffa_result",
+      "id": "gold",
+      "rect": [
+        46,
+        18,
+        186,
+        44
+      ]
+    },
+    {
+      "page": "09_ffa_result",
+      "id": "ticket",
+      "rect": [
+        488,
+        18,
+        186,
+        44
+      ]
+    },
+    {
+      "page": "09_ffa_result",
+      "id": "rank_or_time",
+      "rect": [
+        250,
+        18,
+        220,
+        44
+      ]
+    },
+    {
+      "page": "09_ffa_result",
+      "id": "pause",
+      "rect": [
+        610,
+        78,
+        62,
+        56
+      ]
+    },
+    {
+      "page": "09_ffa_result",
+      "id": "battle_info",
+      "rect": [
+        26,
+        1132,
+        668,
+        118
+      ]
+    },
+    {
+      "page": "09_ffa_result",
+      "id": "result_panel",
+      "rect": [
+        60,
+        176,
+        600,
+        824
+      ]
+    },
+    {
+      "page": "09_ffa_result",
+      "id": "local_result",
+      "rect": [
+        92,
+        298,
+        536,
+        112
+      ]
+    },
+    {
+      "page": "09_ffa_result",
+      "id": "other_results",
+      "rect": [
+        92,
+        468,
+        536,
+        276
+      ]
+    },
+    {
+      "page": "09_ffa_result",
+      "id": "other_青柠苏打",
+      "rect": [
+        92,
+        468,
+        524,
+        72
+      ]
+    },
+    {
+      "page": "09_ffa_result",
+      "id": "other_晚风放映机",
+      "rect": [
+        92,
+        550,
+        524,
+        72
+      ]
+    },
+    {
+      "page": "09_ffa_result",
+      "id": "other_雾岛来客",
+      "rect": [
+        92,
+        632,
+        524,
+        72
+      ]
+    },
+    {
+      "page": "09_ffa_result",
+      "id": "rewards",
+      "rect": [
+        92,
+        764,
+        536,
+        116
+      ]
+    },
+    {
+      "page": "09_ffa_result",
+      "id": "close",
+      "rect": [
+        190,
+        900,
+        340,
+        64
+      ]
+    },
+    {
+      "page": "11_team_battle",
+      "id": "gold",
+      "rect": [
+        46,
+        18,
+        186,
+        44
+      ]
+    },
+    {
+      "page": "11_team_battle",
+      "id": "ticket",
+      "rect": [
+        488,
+        18,
+        186,
+        44
+      ]
+    },
+    {
+      "page": "11_team_battle",
+      "id": "pause",
+      "rect": [
+        610,
+        116,
+        62,
+        56
+      ]
+    },
+    {
+      "page": "11_team_battle",
+      "id": "team_score_0",
+      "rect": [
+        46,
+        70,
+        300,
+        34
+      ]
+    },
+    {
+      "page": "11_team_battle",
+      "id": "team_score_1",
+      "rect": [
+        374,
+        70,
+        300,
+        34
+      ]
+    },
+    {
+      "page": "11_team_battle",
+      "id": "battle_info",
+      "rect": [
+        26,
+        1132,
+        668,
+        118
+      ]
+    },
+    {
+      "page": "12_ffa_battle",
+      "id": "gold",
+      "rect": [
+        46,
+        18,
+        186,
+        44
+      ]
+    },
+    {
+      "page": "12_ffa_battle",
+      "id": "ticket",
+      "rect": [
+        488,
+        18,
+        186,
+        44
+      ]
+    },
+    {
+      "page": "12_ffa_battle",
+      "id": "rank_or_time",
+      "rect": [
+        250,
+        18,
+        220,
+        44
+      ]
+    },
+    {
+      "page": "12_ffa_battle",
+      "id": "pause",
+      "rect": [
+        610,
+        78,
+        62,
+        56
+      ]
+    },
+    {
+      "page": "12_ffa_battle",
+      "id": "leaderboard",
+      "rect": [
+        500,
+        148,
+        148,
+        184
+      ]
+    },
+    {
+      "page": "12_ffa_battle",
+      "id": "battle_info",
+      "rect": [
+        26,
+        1132,
+        668,
+        118
+      ]
+    }
+  ],
+  "source_geometry": "scripts/app/main.gd source rects",
+  "acceptance": "PENDING_INDEPENDENT_STATIC_ART_REVIEW"
+}

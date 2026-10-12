@@ -1,0 +1,1801 @@
+{
+  "request_id": "REQ-20261011-TATA-FULL-GAME-PREVIEW",
+  "owner": "method_research",
+  "scope": "Preview only; no runtime changes",
+  "style_master": "../style_master.png",
+  "nav_source": "../root_pages/01_lobby.png",
+  "source_receipt": "temp/rag/receipts/tasks/REQ-20261011-TATA-FULL-GAME-PREVIEW.json",
+  "status": "PREVIEW_ART_DIRECTOR_PASS",
+  "images": [
+    {
+      "id": "01_room_entry",
+      "canonical_file": "01_room_entry.png",
+      "generated_path": "C:\\Users\\76398\\.codex\\generated_images\\01a12aeb-6d53-7e52-9d7a-97a490228f51\\exec-6b0aaced-537f-420c-b4a0-a950ac7d9dd1.png",
+      "sha256": "B98F012C34949199D957DE16F49B00FC6ED9950987262898809CDD0A0492FB23",
+      "prompt": "Make ONLY these local corrections to Image1; keep every coordinate/size/text/data/nav/currency/background and all other pixels unchanged. The six-digit room-code field is empty, so its '加入房间' button is DISABLED: replace green face with a readable light grey face and muted dark border, retain clearly legible dark label. The large information panel keeps its EXACT current geometry but replace wood frame/woodgrain/nail/attached-leaf decorations with plain CREAM face and rounded NAVY outline matching Image2. Do not move title, modes, status, Create, input, toggle, Reconnect or footer. Same60/10 resourcecapsules, nofill/progress/wedge/plus. Image2 is panel surface reference only. One fullportrait.",
+      "input_paths": [
+        "D:\\AI\\zhanchengdashi\\output\\runtime_ui_b_20260906\\06_room_entry.png",
+        "D:\\AI\\zhanchengdashi\\output\\visual_concepts\\tata_battle_style\\full_game\\style_master.png",
+        "D:\\AI\\zhanchengdashi\\output\\visual_concepts\\tata_battle_style\\full_game\\root_pages\\01_lobby.png"
+      ],
+      "attempts": 5,
+      "status": "PREVIEW_ART_DIRECTOR_PASS",
+      "notes": [
+        "Accepted design retained; no native layout parity claim for this retained page."
+      ],
+      "history": [
+        {
+          "generated_path": "C:\\Users\\76398\\.codex\\generated_images\\01a12aeb-6d53-7e52-9d7a-97a490228f51\\exec-90842bc4-032f-4977-9cac-ac78912e97a9.png",
+          "prompt": "Edit Image 1, full 9:16 portrait UI preview. Image 1 owns every existing control, text, state, coordinate and layout. Image 2 is STYLE only: clean matte flat 2D cartoon, bold rounded near-black outlines, cream panels, dark navy shells; borrow no battle layout or animals. Image 3 owns NAV ICONS only: exactly house/家园, double cards/编组, crossed swords/战斗, GOLD paw ticket/抽卡, wood door/房间 in the original five bottom slots. Room tab lime active, other four navy; remove legacy shop/lock icon. Preserve room entry 1V1/2V2/3V3 with 3V3 selected, connected status, Create3V3, 6-digit input, Join, random-fill toggle, Reconnect and complete footer; keep all exact positions and counts60/10. Replace only top currency skins with original GOLD COIN60 and BLUE notched TICKET10, each oversized icon protruding left from a plain dark pill, large white black-outlined number. NO resource progress/fill/yellow wedge/plus. No new controls, no scenery inside forms, no card-level badges. All text sharp/readable, no cropping, no tiny type. Output one polished complete portrait; no phone/frame/captions.",
+          "sha256": "1D6E7133243CF2A4889106FF1AA61880C8F61BCB3FF56BFB8D4C4B1DE1DEC2AE",
+          "result": "P1 layout drift; source only retained in built-in default path"
+        },
+        {
+          "generated_path": "C:\\Users\\76398\\.codex\\generated_images\\01a12aeb-6d53-7e52-9d7a-97a490228f51\\exec-88c83543-e2a2-4d23-92b0-88e45d22d4a2.png",
+          "prompt": "Precise layout correction of Image1 only, keeping its matte cartoon skin, forest edge, currency, typography and nav icons. Image2 is original geometry: match ALL its normalized UI positions/sizes exactly. Put title at original y78, subtitle y134, mode buttons y168. Entry information panel returns to x48,y240,w624,h650 on720x1280 canvas. Create x120,y326,w480,h72, sixdigit input x92,y466,w356,h64 and Join x464,y466,w164,h64, toggle x92,y574,w536,h58, Reconnect x229,y696,w262,h54, footer y836. Original title/subtitle/mode row sit OUTSIDE panel; REMOVE the extra big outer cream container enclosing them. Keep all text/data/states60/10 and connected; preserve original input spelling and toggle on. Keep bottomnav slots at source y1148 same5icons HOUSE/CARDS/SWORDS/GOLDTICKET/DOOR, room lime. Do not add/move controls, no currencyprogress/wedge/plus. One full9:16portrait.",
+          "sha256": "E91E5B3FC13F1FDE19DC43D5B41A7D49185E2116904C05E43FB77A61B2595DC9",
+          "result": "P1 remaining downshift; source only retained in built-in default path"
+        },
+        {
+          "generated_path": "C:\\Users\\76398\\.codex\\generated_images\\01a12aeb-6d53-7e52-9d7a-97a490228f51\\exec-d1863c68-0886-48b7-b791-3b2c17966b78.png",
+          "prompt": "Image1 is THE EDIT TARGET: reskin it, preserve its exact pixel-relative layout and same9:16aspect. Image2 is colors/contours only, Image3 is navicons only. Never follow their composition. Keep source title rect(40,68,640,58), subtitle(52,128,616,32), modes y168, entrypanel(48,240,624,650), status(72,264,576,34), Create(120,326,480,72), helper y418, codeinput(92,466,356,64), Join(464,466,164,64), toggle(92,574,536,58), reconnect(229,696,262,54), footer(72,836,576,28), nav y1148. These are fixed720x1280 coordinates scaled only uniformly to output. Keep EMPTY source gap y890-1148; do not stretch panel to fill it. No new title container, NO added sky header or scene region. Keep ALL exact source text/count60/10/states. Only restyle flat matte comic surfaces, navy edges/cream face, subtle forest decoration behind original empty gaps. Topcoin60/BLUEticket10 plainnavy pills protruding icons/whitedigitsblackstroke, no progress/fill/wedge/plus. Bottom5same slots: HOUSE家园/CARDS编组/SWORDS战斗/GOLDTICKET抽卡/DOOR房间; roomlime othernavy. Readable unclipped. Originalgeometry is absolute. Oneportrait.",
+          "sha256": "D2130ED3D22626831F262C045F46B0F6E3B941395FF16260BDC87411BFF79AA1",
+          "result": "P1 Join enabled at empty code and inconsistent wood component; replaced"
+        }
+      ],
+      "connection_failures": 1,
+      "ai_history_before_native": {
+        "generated_path": "C:\\Users\\76398\\.codex\\generated_images\\01a12aeb-6d53-7e52-9d7a-97a490228f51\\exec-6b0aaced-537f-420c-b4a0-a950ac7d9dd1.png",
+        "sha256": "05FE4E9284151266743EDAB8A576DDC2FB36A2583549AA60C0957076B89BBFB8",
+        "prompt": "Make ONLY these local corrections to Image1; keep every coordinate/size/text/data/nav/currency/background and all other pixels unchanged. The six-digit room-code field is empty, so its '加入房间' button is DISABLED: replace green face with a readable light grey face and muted dark border, retain clearly legible dark label. The large information panel keeps its EXACT current geometry but replace wood frame/woodgrain/nail/attached-leaf decorations with plain CREAM face and rounded NAVY outline matching Image2. Do not move title, modes, status, Create, input, toggle, Reconnect or footer. Same60/10 resourcecapsules, nofill/progress/wedge/plus. Image2 is panel surface reference only. One fullportrait.",
+        "input_paths": [
+          "D:\\AI\\zhanchengdashi\\output\\runtime_ui_b_20260906\\06_room_entry.png",
+          "D:\\AI\\zhanchengdashi\\output\\visual_concepts\\tata_battle_style\\full_game\\style_master.png",
+          "D:\\AI\\zhanchengdashi\\output\\visual_concepts\\tata_battle_style\\full_game\\root_pages\\01_lobby.png"
+        ],
+        "status": "REVIEW_PENDING"
+      },
+      "title": "房间－进入",
+      "width": 720,
+      "height": 1280,
+      "render_method": "Accepted AI artwork normalized to 720x1280",
+      "source_paths": [
+        "output/visual_concepts/tata_battle_style/iterations/generated_originals/01a12aeb-6d53-7e52-9d7a-97a490228f51/exec-6b0aaced-537f-420c-b4a0-a950ac7d9dd1.png"
+      ],
+      "controls": [],
+      "art_director_review": {
+        "path": "../reviews/account_room.json",
+        "review_sha256": "8C9EB7A293896731CFB260EDA212DBA47C8D7EB3575CE01841459D07C9F80C7E",
+        "reviewed_file": "account_room/01_room_entry.png",
+        "sha256": "B98F012C34949199D957DE16F49B00FC6ED9950987262898809CDD0A0492FB23",
+        "verdict": "PREVIEW_PASS"
+      },
+      "source_evidence_roles": [
+        {
+          "path": "output/visual_concepts/tata_battle_style/iterations/generated_originals/01a12aeb-6d53-7e52-9d7a-97a490228f51/exec-6b0aaced-537f-420c-b4a0-a950ac7d9dd1.png",
+          "role": "accepted_ai_generation_source",
+          "independent_current_runtime_evidence": false
+        }
+      ],
+      "independent_current_runtime_evidence": [],
+      "acceptance_scope": "Static preview art; no live input, account/network behavior or engine approval"
+    },
+    {
+      "id": "02_room_error",
+      "canonical_file": "02_room_error.png",
+      "generated_path": "C:\\Users\\76398\\.codex\\generated_images\\01a12aeb-6d53-7e52-9d7a-97a490228f51\\exec-4d0c70c9-e63f-4c59-a474-9e5e7e5f040a.png",
+      "sha256": "32371E329B94E2D305A6999F89AC8D9FB98C0745F7934F59A174EDC44D92B627",
+      "prompt": "Edit Image 1 only into its connection-failed state and new visual skin. Image 1 is exact geometry: every control and region stays at the same normalized coordinate. Full 720x1280-equivalent 9:16. Title rect40,68,640,58; subtitle52,128,616,32; mode buttons y168; information panel48,240,624,650. Do NOT create any outer container around title or mode row. Image2 is STYLE only: matte flat comic, bold dark outlines, cream panels/navy shells, quiet forest framing; no battle content. Image3 supplies NAV ICONS only: house/家园, doublecards/编组, swords/战斗, GOLD pawticket/抽卡, wooddoor/房间 in same five source slots; room active lime, rest navy; noShop. Keep coins60 and BLUE ticket10 in plain dark capsule with protruding original icons and large white blackoutlined digits; NO progress/fill/yellowwedge/plus. Change green status to exact red '服务器连接失败，请检查地址或公网服务' at source y264; disabled Create3V3 and Join use readable grey face. Keep existing 6digit input, fill-toggle on, Reconnect available, all other source texts and positions. No new actions/cards/animal decorations, no tiny type/cropping. One complete portrait.",
+      "input_paths": [
+        "D:\\AI\\zhanchengdashi\\output\\runtime_ui_b_20260906\\06_room_entry.png",
+        "D:\\AI\\zhanchengdashi\\output\\visual_concepts\\tata_battle_style\\full_game\\style_master.png",
+        "D:\\AI\\zhanchengdashi\\output\\visual_concepts\\tata_battle_style\\full_game\\root_pages\\01_lobby.png"
+      ],
+      "attempts": 1,
+      "status": "PREVIEW_ART_DIRECTOR_PASS",
+      "notes": [
+        "Error state uses accepted entry geometry, no independent layout recreation."
+      ],
+      "ai_history_before_native": {
+        "generated_path": "C:\\Users\\76398\\.codex\\generated_images\\01a12aeb-6d53-7e52-9d7a-97a490228f51\\exec-4d0c70c9-e63f-4c59-a474-9e5e7e5f040a.png",
+        "sha256": "7AC3959F61E57F0606CA6CDF94D6DD58E7C2EB0F48A701FE9ED990A85F932EF1",
+        "prompt": "Edit Image 1 only into its connection-failed state and new visual skin. Image 1 is exact geometry: every control and region stays at the same normalized coordinate. Full 720x1280-equivalent 9:16. Title rect40,68,640,58; subtitle52,128,616,32; mode buttons y168; information panel48,240,624,650. Do NOT create any outer container around title or mode row. Image2 is STYLE only: matte flat comic, bold dark outlines, cream panels/navy shells, quiet forest framing; no battle content. Image3 supplies NAV ICONS only: house/家园, doublecards/编组, swords/战斗, GOLD pawticket/抽卡, wooddoor/房间 in same five source slots; room active lime, rest navy; noShop. Keep coins60 and BLUE ticket10 in plain dark capsule with protruding original icons and large white blackoutlined digits; NO progress/fill/yellowwedge/plus. Change green status to exact red '服务器连接失败，请检查地址或公网服务' at source y264; disabled Create3V3 and Join use readable grey face. Keep existing 6digit input, fill-toggle on, Reconnect available, all other source texts and positions. No new actions/cards/animal decorations, no tiny type/cropping. One complete portrait.",
+        "input_paths": [
+          "D:\\AI\\zhanchengdashi\\output\\runtime_ui_b_20260906\\06_room_entry.png",
+          "D:\\AI\\zhanchengdashi\\output\\visual_concepts\\tata_battle_style\\full_game\\style_master.png",
+          "D:\\AI\\zhanchengdashi\\output\\visual_concepts\\tata_battle_style\\full_game\\root_pages\\01_lobby.png"
+        ],
+        "status": "REVIEW_PENDING"
+      },
+      "title": "房间－连接失败",
+      "width": 720,
+      "height": 1280,
+      "render_method": "Native local state edit of accepted entry",
+      "source_paths": [
+        "output/visual_concepts/tata_battle_style/full_game/account_room/01_room_entry.png"
+      ],
+      "controls": [
+        {
+          "id": "room_create",
+          "rect": [
+            113,
+            327,
+            494,
+            81
+          ],
+          "kind": "button",
+          "label": "创建 3V3 房间",
+          "state": "disabled"
+        },
+        {
+          "id": "room_join",
+          "rect": [
+            452,
+            471,
+            180,
+            72
+          ],
+          "kind": "button",
+          "label": "加入房间",
+          "state": "disabled"
+        },
+        {
+          "id": "room_error_base",
+          "rect": [
+            0,
+            0,
+            720,
+            1280
+          ],
+          "kind": "state_source",
+          "label": "accepted01",
+          "state": "same geometry"
+        }
+      ],
+      "art_director_review": {
+        "path": "../reviews/account_room.json",
+        "review_sha256": "8C9EB7A293896731CFB260EDA212DBA47C8D7EB3575CE01841459D07C9F80C7E",
+        "reviewed_file": "account_room/02_room_error.png",
+        "sha256": "32371E329B94E2D305A6999F89AC8D9FB98C0745F7934F59A174EDC44D92B627",
+        "verdict": "PREVIEW_PASS"
+      },
+      "source_evidence_roles": [
+        {
+          "path": "output/visual_concepts/tata_battle_style/full_game/account_room/01_room_entry.png",
+          "role": "approved_art_preview_dependency",
+          "independent_current_runtime_evidence": false
+        }
+      ],
+      "independent_current_runtime_evidence": [],
+      "acceptance_scope": "Static preview art; no live input, account/network behavior or engine approval"
+    },
+    {
+      "id": "03_room_host",
+      "canonical_file": "03_room_host.png",
+      "generated_path": "C:\\Users\\76398\\.codex\\generated_images\\01a12aeb-6d53-7e52-9d7a-97a490228f51\\exec-0c187cdc-1cab-4ca9-8a79-fe37ac7cc53b.png",
+      "sha256": "92161CC726A62C10A62A287A49CAE9B1C2CCFFD5D7AB16416848721746213375",
+      "prompt": "Skin Image1 full portrait room HOST screen, ALL original geometry, text, counts, six rows and states stay at identical normalized positions. Image2 STYLE only matte flat comic, thick rounded nearblack contours, quiet forest and cream info/navy shells. Image3 NAV only samefive equal sourcebottomslots: house家园/cards编组/swords战斗/GOLD pawticket抽卡/wooddoor房间, room lime others navy, noShop/locks. Source720x1280 positions: titley68, modesy168, roomcodepanel48,232,624,82; teampanels48,334,304,470 and368,334,304,470; three rows each samepositions; fill y824; leave/starty900; nav y1148. Keep exact roomcode723322 and copy; A方·暖色:1号·橘猫队长 房主·本机,2号·晚风放映机 已准备,3号·猫尾草 已准备; B方·冷色:4号·夜航星 已准备,5号·星河散步 已准备,6号·枫叶车站 已准备. Keep fill toggle OFF, Leave and START. No portraits/cards/levelcircles/progress in participant boxes. Original COIN60/BLUE TICKET10 plain dark pills/protrudingicons/whiteoutlineddigits; zero progress/fill/yellowwedge/plus. Do not move/resize/add containers or CTAs; clear text, no clipping. One9:16portrait.",
+      "input_paths": [
+        "D:\\AI\\zhanchengdashi\\output\\qa\\REQ-20260820-online-room-ready-names\\host-start.png",
+        "D:\\AI\\zhanchengdashi\\output\\visual_concepts\\tata_battle_style\\full_game\\style_master.png",
+        "D:\\AI\\zhanchengdashi\\output\\visual_concepts\\tata_battle_style\\full_game\\root_pages\\01_lobby.png"
+      ],
+      "attempts": 1,
+      "status": "PREVIEW_ART_DIRECTOR_PASS",
+      "notes": [],
+      "ai_history_before_native": {
+        "generated_path": "C:\\Users\\76398\\.codex\\generated_images\\01a12aeb-6d53-7e52-9d7a-97a490228f51\\exec-0c187cdc-1cab-4ca9-8a79-fe37ac7cc53b.png",
+        "sha256": "538AA16898F2597237AE9D81134CBB9C79BCCED9A62F74AF8DED3D9935E2CD9F",
+        "prompt": "Skin Image1 full portrait room HOST screen, ALL original geometry, text, counts, six rows and states stay at identical normalized positions. Image2 STYLE only matte flat comic, thick rounded nearblack contours, quiet forest and cream info/navy shells. Image3 NAV only samefive equal sourcebottomslots: house家园/cards编组/swords战斗/GOLD pawticket抽卡/wooddoor房间, room lime others navy, noShop/locks. Source720x1280 positions: titley68, modesy168, roomcodepanel48,232,624,82; teampanels48,334,304,470 and368,334,304,470; three rows each samepositions; fill y824; leave/starty900; nav y1148. Keep exact roomcode723322 and copy; A方·暖色:1号·橘猫队长 房主·本机,2号·晚风放映机 已准备,3号·猫尾草 已准备; B方·冷色:4号·夜航星 已准备,5号·星河散步 已准备,6号·枫叶车站 已准备. Keep fill toggle OFF, Leave and START. No portraits/cards/levelcircles/progress in participant boxes. Original COIN60/BLUE TICKET10 plain dark pills/protrudingicons/whiteoutlineddigits; zero progress/fill/yellowwedge/plus. Do not move/resize/add containers or CTAs; clear text, no clipping. One9:16portrait.",
+        "input_paths": [
+          "D:\\AI\\zhanchengdashi\\output\\qa\\REQ-20260820-online-room-ready-names\\host-start.png",
+          "D:\\AI\\zhanchengdashi\\output\\visual_concepts\\tata_battle_style\\full_game\\style_master.png",
+          "D:\\AI\\zhanchengdashi\\output\\visual_concepts\\tata_battle_style\\full_game\\root_pages\\01_lobby.png"
+        ],
+        "status": "REVIEW_PENDING"
+      },
+      "title": "房间－房主",
+      "width": 720,
+      "height": 1280,
+      "render_method": "AI forest edge plus native controls from current code",
+      "source_paths": [
+        "output/visual_concepts/tata_battle_style/full_game/account_room/01_room_entry.png",
+        "scripts/app/main.gd"
+      ],
+      "controls": [
+        {
+          "id": "currency_coin",
+          "rect": [
+            46,
+            18,
+            186,
+            44
+          ],
+          "kind": "resource",
+          "label": "60",
+          "state": "plain"
+        },
+        {
+          "id": "currency_ticket",
+          "rect": [
+            488,
+            18,
+            186,
+            44
+          ],
+          "kind": "resource",
+          "label": "10",
+          "state": "plain"
+        },
+        {
+          "id": "room_mode_1",
+          "rect": [
+            72,
+            168,
+            176,
+            52
+          ],
+          "kind": "button",
+          "label": "1V1",
+          "state": "enabled"
+        },
+        {
+          "id": "room_mode_2",
+          "rect": [
+            272,
+            168,
+            176,
+            52
+          ],
+          "kind": "button",
+          "label": "2V2",
+          "state": "enabled"
+        },
+        {
+          "id": "room_mode_3",
+          "rect": [
+            472,
+            168,
+            176,
+            52
+          ],
+          "kind": "button",
+          "label": "3V3",
+          "state": "enabled"
+        },
+        {
+          "id": "room_code_copy",
+          "rect": [
+            506,
+            246,
+            92,
+            48
+          ],
+          "kind": "button",
+          "label": "复制",
+          "state": "enabled"
+        },
+        {
+          "id": "room_slot_1",
+          "rect": [
+            64,
+            394,
+            270,
+            106
+          ],
+          "kind": "participant",
+          "label": "1号 · 橘猫队长",
+          "state": "房主 · 本机"
+        },
+        {
+          "id": "room_slot_2",
+          "rect": [
+            64,
+            520,
+            270,
+            106
+          ],
+          "kind": "participant",
+          "label": "2号 · 晚风放映机",
+          "state": "已准备"
+        },
+        {
+          "id": "room_slot_3",
+          "rect": [
+            64,
+            646,
+            270,
+            106
+          ],
+          "kind": "participant",
+          "label": "3号 · 猫尾草",
+          "state": "已准备"
+        },
+        {
+          "id": "room_slot_4",
+          "rect": [
+            386,
+            394,
+            270,
+            106
+          ],
+          "kind": "participant",
+          "label": "4号 · 夜航星",
+          "state": "已准备"
+        },
+        {
+          "id": "room_slot_5",
+          "rect": [
+            386,
+            520,
+            270,
+            106
+          ],
+          "kind": "participant",
+          "label": "5号 · 星河散步",
+          "state": "已准备"
+        },
+        {
+          "id": "room_slot_6",
+          "rect": [
+            386,
+            646,
+            270,
+            106
+          ],
+          "kind": "participant",
+          "label": "6号 · 枫叶车站",
+          "state": "已准备"
+        },
+        {
+          "id": "room_fill_toggle",
+          "rect": [
+            580,
+            836,
+            72,
+            36
+          ],
+          "kind": "toggle",
+          "label": "随机玩家补位",
+          "state": "OFF"
+        },
+        {
+          "id": "room_leave",
+          "rect": [
+            48,
+            900,
+            300,
+            54
+          ],
+          "kind": "button",
+          "label": "离开房间",
+          "state": "enabled"
+        },
+        {
+          "id": "room_primary",
+          "rect": [
+            372,
+            900,
+            300,
+            54
+          ],
+          "kind": "button",
+          "label": "开始",
+          "state": "enabled"
+        }
+      ],
+      "art_director_review": {
+        "path": "../reviews/account_room.json",
+        "review_sha256": "8C9EB7A293896731CFB260EDA212DBA47C8D7EB3575CE01841459D07C9F80C7E",
+        "reviewed_file": "account_room/03_room_host.png",
+        "sha256": "92161CC726A62C10A62A287A49CAE9B1C2CCFFD5D7AB16416848721746213375",
+        "verdict": "PREVIEW_PASS"
+      },
+      "source_locations": [
+        {
+          "path": "scripts/app/main.gd",
+          "locator": "lines 7730-7850",
+          "role": "read_only_source_layout_or_rules"
+        },
+        {
+          "path": "scripts/app/main.gd",
+          "locator": "lines 10129-10178",
+          "role": "read_only_source_layout_or_rules"
+        }
+      ],
+      "source_evidence_roles": [
+        {
+          "path": "output/visual_concepts/tata_battle_style/full_game/account_room/01_room_entry.png",
+          "role": "approved_art_preview_dependency",
+          "independent_current_runtime_evidence": false
+        },
+        {
+          "path": "scripts/app/main.gd",
+          "role": "current_read_only_layout_or_rule_code",
+          "independent_current_runtime_evidence": false
+        }
+      ],
+      "independent_current_runtime_evidence": [],
+      "acceptance_scope": "Static preview art; no live input, account/network behavior or engine approval"
+    },
+    {
+      "id": "04_room_guest",
+      "canonical_file": "04_room_guest.png",
+      "generated_path": "C:\\Users\\76398\\.codex\\generated_images\\01a12aeb-6d53-7e52-9d7a-97a490228f51\\exec-56347bf2-0ef8-44f2-b8c2-bfebd9f1db67.png",
+      "sha256": "8AE5B4A8EAE2817B3E17AC0E845913175214C554FC3B7667C6BF4D9F2CB5375F",
+      "prompt": "Reskin Image1 guest room screenshot, keep ALL source positions/sizes/text/counts/states exactly; same9:16. Image2 is STYLE ONLY matte cartoon, thick rounded nearblack outlines/cream navy shells, subtle forest behind existing gaps. Image3 NAV ONLY house/cards/swords/GOLDticket/wooddoor; labels家园/编组/战斗/抽卡/房间, sourcefive equalbottomslots, roomlime othersnavy. Do not enlarge title, mode row or gaps: title(40,68,640,58), subtitle(52,128,616,32), modes y168, codepanel48,232,624,82; teampanels48,334,304,470 and368,334,304,470; fill y824, leave/ready y900, navy1148. Fixedsource720coords onlyuniformscale. Preserve room723322; six names/states exact. A:1号·橘猫队长 房主, 2号·晚风放映机 本机·未准备 YELLOWrow,3号·猫尾草 已准备; B:4号·夜航星/5号·星河散步/6号·枫叶车站 all已准备. FillOFF and primarybutton准备 (never开始). Source emptygap y960-1148 remains, no expanding panel. Coin60 and BLUEticket10 plainnavy capsules/protrudingicons/whiteblackoutlineddigits; no progress/fill/yellowwedge/plus. No portraits/cardstats/newregions. Crisp readable fullportrait.",
+      "input_paths": [
+        "D:\\AI\\zhanchengdashi\\output\\qa\\REQ-20260820-online-room-ready-names\\guest-ready.png",
+        "D:\\AI\\zhanchengdashi\\output\\visual_concepts\\tata_battle_style\\full_game\\style_master.png",
+        "D:\\AI\\zhanchengdashi\\output\\visual_concepts\\tata_battle_style\\full_game\\root_pages\\01_lobby.png"
+      ],
+      "attempts": 1,
+      "status": "PREVIEW_ART_DIRECTOR_PASS",
+      "notes": [],
+      "ai_history_before_native": {
+        "generated_path": "C:\\Users\\76398\\.codex\\generated_images\\01a12aeb-6d53-7e52-9d7a-97a490228f51\\exec-56347bf2-0ef8-44f2-b8c2-bfebd9f1db67.png",
+        "sha256": "6B7BA8020F8A60C0463E579562F30AA4C62799369784C5DEA787445D6139D856",
+        "prompt": "Reskin Image1 guest room screenshot, keep ALL source positions/sizes/text/counts/states exactly; same9:16. Image2 is STYLE ONLY matte cartoon, thick rounded nearblack outlines/cream navy shells, subtle forest behind existing gaps. Image3 NAV ONLY house/cards/swords/GOLDticket/wooddoor; labels家园/编组/战斗/抽卡/房间, sourcefive equalbottomslots, roomlime othersnavy. Do not enlarge title, mode row or gaps: title(40,68,640,58), subtitle(52,128,616,32), modes y168, codepanel48,232,624,82; teampanels48,334,304,470 and368,334,304,470; fill y824, leave/ready y900, navy1148. Fixedsource720coords onlyuniformscale. Preserve room723322; six names/states exact. A:1号·橘猫队长 房主, 2号·晚风放映机 本机·未准备 YELLOWrow,3号·猫尾草 已准备; B:4号·夜航星/5号·星河散步/6号·枫叶车站 all已准备. FillOFF and primarybutton准备 (never开始). Source emptygap y960-1148 remains, no expanding panel. Coin60 and BLUEticket10 plainnavy capsules/protrudingicons/whiteblackoutlineddigits; no progress/fill/yellowwedge/plus. No portraits/cardstats/newregions. Crisp readable fullportrait.",
+        "input_paths": [
+          "D:\\AI\\zhanchengdashi\\output\\qa\\REQ-20260820-online-room-ready-names\\guest-ready.png",
+          "D:\\AI\\zhanchengdashi\\output\\visual_concepts\\tata_battle_style\\full_game\\style_master.png",
+          "D:\\AI\\zhanchengdashi\\output\\visual_concepts\\tata_battle_style\\full_game\\root_pages\\01_lobby.png"
+        ],
+        "status": "REVIEW_PENDING"
+      },
+      "title": "房间－玩家准备",
+      "width": 720,
+      "height": 1280,
+      "render_method": "AI forest edge plus native controls from current code",
+      "source_paths": [
+        "output/visual_concepts/tata_battle_style/full_game/account_room/01_room_entry.png",
+        "scripts/app/main.gd"
+      ],
+      "controls": [
+        {
+          "id": "currency_coin",
+          "rect": [
+            46,
+            18,
+            186,
+            44
+          ],
+          "kind": "resource",
+          "label": "60",
+          "state": "plain"
+        },
+        {
+          "id": "currency_ticket",
+          "rect": [
+            488,
+            18,
+            186,
+            44
+          ],
+          "kind": "resource",
+          "label": "10",
+          "state": "plain"
+        },
+        {
+          "id": "room_mode_1",
+          "rect": [
+            72,
+            168,
+            176,
+            52
+          ],
+          "kind": "button",
+          "label": "1V1",
+          "state": "enabled"
+        },
+        {
+          "id": "room_mode_2",
+          "rect": [
+            272,
+            168,
+            176,
+            52
+          ],
+          "kind": "button",
+          "label": "2V2",
+          "state": "enabled"
+        },
+        {
+          "id": "room_mode_3",
+          "rect": [
+            472,
+            168,
+            176,
+            52
+          ],
+          "kind": "button",
+          "label": "3V3",
+          "state": "enabled"
+        },
+        {
+          "id": "room_code_copy",
+          "rect": [
+            506,
+            246,
+            92,
+            48
+          ],
+          "kind": "button",
+          "label": "复制",
+          "state": "enabled"
+        },
+        {
+          "id": "room_slot_1",
+          "rect": [
+            64,
+            394,
+            270,
+            106
+          ],
+          "kind": "participant",
+          "label": "1号 · 橘猫队长",
+          "state": "房主"
+        },
+        {
+          "id": "room_slot_2",
+          "rect": [
+            64,
+            520,
+            270,
+            106
+          ],
+          "kind": "participant",
+          "label": "2号 · 晚风放映机",
+          "state": "本机 · 未准备"
+        },
+        {
+          "id": "room_slot_3",
+          "rect": [
+            64,
+            646,
+            270,
+            106
+          ],
+          "kind": "participant",
+          "label": "3号 · 猫尾草",
+          "state": "已准备"
+        },
+        {
+          "id": "room_slot_4",
+          "rect": [
+            386,
+            394,
+            270,
+            106
+          ],
+          "kind": "participant",
+          "label": "4号 · 夜航星",
+          "state": "已准备"
+        },
+        {
+          "id": "room_slot_5",
+          "rect": [
+            386,
+            520,
+            270,
+            106
+          ],
+          "kind": "participant",
+          "label": "5号 · 星河散步",
+          "state": "已准备"
+        },
+        {
+          "id": "room_slot_6",
+          "rect": [
+            386,
+            646,
+            270,
+            106
+          ],
+          "kind": "participant",
+          "label": "6号 · 枫叶车站",
+          "state": "已准备"
+        },
+        {
+          "id": "room_fill_toggle",
+          "rect": [
+            580,
+            836,
+            72,
+            36
+          ],
+          "kind": "toggle",
+          "label": "随机玩家补位",
+          "state": "OFF"
+        },
+        {
+          "id": "room_leave",
+          "rect": [
+            48,
+            900,
+            300,
+            54
+          ],
+          "kind": "button",
+          "label": "离开房间",
+          "state": "enabled"
+        },
+        {
+          "id": "room_primary",
+          "rect": [
+            372,
+            900,
+            300,
+            54
+          ],
+          "kind": "button",
+          "label": "准备",
+          "state": "enabled"
+        }
+      ],
+      "art_director_review": {
+        "path": "../reviews/account_room.json",
+        "review_sha256": "8C9EB7A293896731CFB260EDA212DBA47C8D7EB3575CE01841459D07C9F80C7E",
+        "reviewed_file": "account_room/04_room_guest.png",
+        "sha256": "8AE5B4A8EAE2817B3E17AC0E845913175214C554FC3B7667C6BF4D9F2CB5375F",
+        "verdict": "PREVIEW_PASS"
+      },
+      "source_locations": [
+        {
+          "path": "scripts/app/main.gd",
+          "locator": "lines 7730-7850",
+          "role": "read_only_source_layout_or_rules"
+        },
+        {
+          "path": "scripts/app/main.gd",
+          "locator": "lines 10129-10178",
+          "role": "read_only_source_layout_or_rules"
+        }
+      ],
+      "source_evidence_roles": [
+        {
+          "path": "output/visual_concepts/tata_battle_style/full_game/account_room/01_room_entry.png",
+          "role": "approved_art_preview_dependency",
+          "independent_current_runtime_evidence": false
+        },
+        {
+          "path": "scripts/app/main.gd",
+          "role": "current_read_only_layout_or_rule_code",
+          "independent_current_runtime_evidence": false
+        }
+      ],
+      "independent_current_runtime_evidence": [],
+      "acceptance_scope": "Static preview art; no live input, account/network behavior or engine approval"
+    },
+    {
+      "id": "05_account",
+      "title": "设置与账号",
+      "canonical_file": "05_account.png",
+      "sha256": "1C3B51676E0CB32C7CE4AFA3F1648A570CCA25D74FB150F51BFABCD8FF2C1CB7",
+      "width": 720,
+      "height": 1280,
+      "render_method": "Native synthetic account form; approved AI lobby background",
+      "source_paths": [
+        "output/visual_concepts/tata_battle_style/full_game/root_pages/01_lobby.png",
+        "scripts/app/main.gd",
+        "assets/card_art/animals/squirrel.png"
+      ],
+      "controls": [
+        {
+          "id": "currency_coin",
+          "rect": [
+            46,
+            18,
+            186,
+            44
+          ],
+          "kind": "resource",
+          "label": "60",
+          "state": "plain"
+        },
+        {
+          "id": "currency_ticket",
+          "rect": [
+            488,
+            18,
+            186,
+            44
+          ],
+          "kind": "resource",
+          "label": "10",
+          "state": "plain"
+        },
+        {
+          "id": "account_panel",
+          "rect": [
+            62,
+            156,
+            596,
+            1004
+          ],
+          "kind": "panel",
+          "label": "设置与账号",
+          "state": "open"
+        },
+        {
+          "id": "account_close",
+          "rect": [
+            532,
+            194,
+            96,
+            46
+          ],
+          "kind": "button",
+          "label": "关闭",
+          "state": "enabled"
+        },
+        {
+          "id": "account_avatar_entry",
+          "kind": "avatar",
+          "label": "松鼠",
+          "state": "selected"
+        },
+        {
+          "id": "account_username",
+          "rect": [
+            226,
+            350,
+            370,
+            54
+          ],
+          "kind": "field",
+          "label": "小松果",
+          "state": "editable"
+        },
+        {
+          "id": "account_password_view",
+          "rect": [
+            476,
+            480,
+            120,
+            40
+          ],
+          "kind": "button",
+          "label": "查看",
+          "state": "enabled"
+        },
+        {
+          "id": "account_copy",
+          "rect": [
+            116,
+            526,
+            488,
+            48
+          ],
+          "kind": "button",
+          "label": "复制",
+          "state": "enabled"
+        },
+        {
+          "id": "account_save",
+          "rect": [
+            104,
+            612,
+            512,
+            64
+          ],
+          "kind": "button",
+          "label": "保存用户名与头像",
+          "state": "enabled"
+        },
+        {
+          "id": "account_agreement",
+          "rect": [
+            104,
+            728,
+            512,
+            60
+          ],
+          "kind": "button",
+          "label": "玩家协议",
+          "state": "enabled"
+        },
+        {
+          "id": "account_music",
+          "rect": [
+            104,
+            838,
+            246,
+            60
+          ],
+          "kind": "button",
+          "label": "音乐：开",
+          "state": "enabled"
+        },
+        {
+          "id": "account_sfx",
+          "rect": [
+            370,
+            838,
+            246,
+            60
+          ],
+          "kind": "button",
+          "label": "音效：开",
+          "state": "enabled"
+        },
+        {
+          "id": "account_switch",
+          "rect": [
+            104,
+            926,
+            246,
+            64
+          ],
+          "kind": "button",
+          "label": "切换账号",
+          "state": "enabled"
+        },
+        {
+          "id": "account_bind",
+          "rect": [
+            370,
+            926,
+            246,
+            64
+          ],
+          "kind": "button",
+          "label": "重新登录/绑定",
+          "state": "enabled"
+        }
+      ],
+      "notes": [
+        "Only U-DEMO identifiers and literal masked password used."
+      ],
+      "status": "PREVIEW_ART_DIRECTOR_PASS",
+      "ai_history_before_native": {
+        "sha256": "BA6B4FBB31EFC13CCF0508519A5253A09E558B7396F53A2F57BD2C313A4E7F8C",
+        "status": "NATIVE_REVIEW_PENDING"
+      },
+      "art_director_review": {
+        "path": "../reviews/account_room.json",
+        "review_sha256": "8C9EB7A293896731CFB260EDA212DBA47C8D7EB3575CE01841459D07C9F80C7E",
+        "reviewed_file": "account_room/05_account.png",
+        "sha256": "1C3B51676E0CB32C7CE4AFA3F1648A570CCA25D74FB150F51BFABCD8FF2C1CB7",
+        "verdict": "PREVIEW_PASS"
+      },
+      "source_locations": [
+        {
+          "path": "scripts/app/main.gd",
+          "locator": "lines 7622-7682",
+          "role": "read_only_source_layout_or_rules"
+        },
+        {
+          "path": "scripts/app/main.gd",
+          "locator": "lines 10049-10113",
+          "role": "read_only_source_layout_or_rules"
+        }
+      ],
+      "source_evidence_roles": [
+        {
+          "path": "output/visual_concepts/tata_battle_style/full_game/root_pages/01_lobby.png",
+          "role": "approved_art_preview_dependency",
+          "independent_current_runtime_evidence": false
+        },
+        {
+          "path": "scripts/app/main.gd",
+          "role": "current_read_only_layout_or_rule_code",
+          "independent_current_runtime_evidence": false
+        },
+        {
+          "path": "assets/card_art/animals/squirrel.png",
+          "role": "formal_original_asset",
+          "independent_current_runtime_evidence": false
+        }
+      ],
+      "independent_current_runtime_evidence": [],
+      "acceptance_scope": "Static preview art; no live input, account/network behavior or engine approval"
+    },
+    {
+      "id": "06_login",
+      "title": "账号－登录注册",
+      "canonical_file": "06_login.png",
+      "sha256": "536D8BCDF2A04A8422FB77936296E6AD302C8FE212741063F7E8E9B764B9841A",
+      "width": 720,
+      "height": 1280,
+      "render_method": "Native manual login form; safe placeholders",
+      "source_paths": [
+        "output/visual_concepts/tata_battle_style/full_game/root_pages/01_lobby.png",
+        "scripts/app/main.gd"
+      ],
+      "controls": [
+        {
+          "id": "currency_coin",
+          "rect": [
+            46,
+            18,
+            186,
+            44
+          ],
+          "kind": "resource",
+          "label": "60",
+          "state": "plain"
+        },
+        {
+          "id": "currency_ticket",
+          "rect": [
+            488,
+            18,
+            186,
+            44
+          ],
+          "kind": "resource",
+          "label": "10",
+          "state": "plain"
+        },
+        {
+          "id": "account_panel",
+          "rect": [
+            62,
+            156,
+            596,
+            1004
+          ],
+          "kind": "panel",
+          "label": "设置与账号",
+          "state": "open"
+        },
+        {
+          "id": "account_close",
+          "rect": [
+            532,
+            194,
+            96,
+            46
+          ],
+          "kind": "button",
+          "label": "关闭",
+          "state": "enabled"
+        },
+        {
+          "id": "login_account",
+          "rect": [
+            190,
+            334,
+            426,
+            58
+          ],
+          "kind": "field",
+          "label": "输入账号（3–32位）",
+          "state": "editable"
+        },
+        {
+          "id": "login_password",
+          "rect": [
+            190,
+            416,
+            426,
+            58
+          ],
+          "kind": "field",
+          "label": "输入密码（8–72位）",
+          "state": "editable"
+        },
+        {
+          "id": "login_login",
+          "rect": [
+            104,
+            494,
+            246,
+            64
+          ],
+          "kind": "button",
+          "label": "登录",
+          "state": "enabled"
+        },
+        {
+          "id": "login_register",
+          "rect": [
+            370,
+            494,
+            246,
+            64
+          ],
+          "kind": "button",
+          "label": "注册",
+          "state": "enabled"
+        },
+        {
+          "id": "account_agreement",
+          "rect": [
+            104,
+            728,
+            512,
+            60
+          ],
+          "kind": "button",
+          "label": "玩家协议",
+          "state": "enabled"
+        },
+        {
+          "id": "account_music",
+          "rect": [
+            104,
+            838,
+            246,
+            60
+          ],
+          "kind": "button",
+          "label": "音乐：开",
+          "state": "enabled"
+        },
+        {
+          "id": "account_sfx",
+          "rect": [
+            370,
+            838,
+            246,
+            60
+          ],
+          "kind": "button",
+          "label": "音效：开",
+          "state": "enabled"
+        }
+      ],
+      "notes": [],
+      "status": "PREVIEW_ART_DIRECTOR_PASS",
+      "ai_history_before_native": {
+        "sha256": "D1C6219B2774F04F83C4D082578B94475A88A33B70A7B85D8D99D81608FA907E",
+        "status": "NATIVE_REVIEW_PENDING"
+      },
+      "art_director_review": {
+        "path": "../reviews/account_room.json",
+        "review_sha256": "8C9EB7A293896731CFB260EDA212DBA47C8D7EB3575CE01841459D07C9F80C7E",
+        "reviewed_file": "account_room/06_login.png",
+        "sha256": "536D8BCDF2A04A8422FB77936296E6AD302C8FE212741063F7E8E9B764B9841A",
+        "verdict": "PREVIEW_PASS"
+      },
+      "source_locations": [
+        {
+          "path": "scripts/app/main.gd",
+          "locator": "lines 7634-7649",
+          "role": "read_only_source_layout_or_rules"
+        },
+        {
+          "path": "scripts/app/main.gd",
+          "locator": "lines 10077-10090",
+          "role": "read_only_source_layout_or_rules"
+        }
+      ],
+      "source_evidence_roles": [
+        {
+          "path": "output/visual_concepts/tata_battle_style/full_game/root_pages/01_lobby.png",
+          "role": "approved_art_preview_dependency",
+          "independent_current_runtime_evidence": false
+        },
+        {
+          "path": "scripts/app/main.gd",
+          "role": "current_read_only_layout_or_rule_code",
+          "independent_current_runtime_evidence": false
+        }
+      ],
+      "independent_current_runtime_evidence": [],
+      "acceptance_scope": "Static preview art; no live input, account/network behavior or engine approval"
+    },
+    {
+      "id": "07_account_switch",
+      "title": "账号－切换",
+      "canonical_file": "07_account_switch.png",
+      "sha256": "BD9BB02555C3C763EFBEC35768F96EAAC974CF7A89DD46DDB1B9F9EA5C7A6EB7",
+      "width": 720,
+      "height": 1280,
+      "render_method": "Native synthetic account switcher",
+      "source_paths": [
+        "output/visual_concepts/tata_battle_style/full_game/root_pages/01_lobby.png",
+        "scripts/app/main.gd",
+        "assets/card_art/animals/squirrel.png",
+        "assets/card_art/animals/parrot.png"
+      ],
+      "controls": [
+        {
+          "id": "currency_coin",
+          "rect": [
+            46,
+            18,
+            186,
+            44
+          ],
+          "kind": "resource",
+          "label": "60",
+          "state": "plain"
+        },
+        {
+          "id": "currency_ticket",
+          "rect": [
+            488,
+            18,
+            186,
+            44
+          ],
+          "kind": "resource",
+          "label": "10",
+          "state": "plain"
+        },
+        {
+          "id": "account_panel",
+          "rect": [
+            62,
+            156,
+            596,
+            1004
+          ],
+          "kind": "panel",
+          "label": "设置与账号",
+          "state": "open"
+        },
+        {
+          "id": "account_close",
+          "rect": [
+            532,
+            194,
+            96,
+            46
+          ],
+          "kind": "button",
+          "label": "关闭",
+          "state": "enabled"
+        },
+        {
+          "id": "switch_row0",
+          "rect": [
+            104,
+            334,
+            512,
+            52
+          ],
+          "kind": "account",
+          "label": "U-DEMO-20261012",
+          "state": "current"
+        },
+        {
+          "id": "switch_row1",
+          "rect": [
+            104,
+            392,
+            512,
+            52
+          ],
+          "kind": "account",
+          "label": "U-DEMO-000002",
+          "state": "switchable"
+        },
+        {
+          "id": "switch_new",
+          "rect": [
+            154,
+            824,
+            412,
+            62
+          ],
+          "kind": "button",
+          "label": "新建账号",
+          "state": "enabled"
+        },
+        {
+          "id": "switch_bind",
+          "rect": [
+            154,
+            1002,
+            412,
+            62
+          ],
+          "kind": "button",
+          "label": "绑定/登录账号",
+          "state": "enabled"
+        }
+      ],
+      "notes": [
+        "Two synthetic accounts only; geometry and existing actions retained."
+      ],
+      "status": "PREVIEW_ART_DIRECTOR_PASS",
+      "ai_history_before_native": {
+        "sha256": "BA30C4DD1846BA82774C9D56CA66480C465E774ED3A83D1862DC4E58CC162703",
+        "status": "NATIVE_REVIEW_PENDING"
+      },
+      "art_director_review": {
+        "path": "../reviews/account_room.json",
+        "review_sha256": "8C9EB7A293896731CFB260EDA212DBA47C8D7EB3575CE01841459D07C9F80C7E",
+        "reviewed_file": "account_room/07_account_switch.png",
+        "sha256": "BD9BB02555C3C763EFBEC35768F96EAAC974CF7A89DD46DDB1B9F9EA5C7A6EB7",
+        "verdict": "PREVIEW_PASS"
+      },
+      "source_locations": [
+        {
+          "path": "scripts/app/main.gd",
+          "locator": "lines 7684-7712",
+          "role": "read_only_source_layout_or_rules"
+        },
+        {
+          "path": "scripts/app/main.gd",
+          "locator": "lines 10117-10122",
+          "role": "read_only_source_layout_or_rules"
+        }
+      ],
+      "source_evidence_roles": [
+        {
+          "path": "output/visual_concepts/tata_battle_style/full_game/root_pages/01_lobby.png",
+          "role": "approved_art_preview_dependency",
+          "independent_current_runtime_evidence": false
+        },
+        {
+          "path": "scripts/app/main.gd",
+          "role": "current_read_only_layout_or_rule_code",
+          "independent_current_runtime_evidence": false
+        },
+        {
+          "path": "assets/card_art/animals/squirrel.png",
+          "role": "formal_original_asset",
+          "independent_current_runtime_evidence": false
+        },
+        {
+          "path": "assets/card_art/animals/parrot.png",
+          "role": "formal_original_asset",
+          "independent_current_runtime_evidence": false
+        }
+      ],
+      "independent_current_runtime_evidence": [],
+      "acceptance_scope": "Static preview art; no live input, account/network behavior or engine approval"
+    },
+    {
+      "id": "08_avatar",
+      "title": "账号－头像选择",
+      "canonical_file": "08_avatar.png",
+      "sha256": "DB08EA90F96FC2F8B30031DCDBD4A203A2478EA1D16F93A4CCD963B7B8199AAE",
+      "width": 720,
+      "height": 1280,
+      "render_method": "Native 4-column catalog from formal original animal art",
+      "source_paths": [
+        "output/visual_concepts/tata_battle_style/full_game/root_pages/01_lobby.png",
+        "scripts/app/ui/account_avatar_picker.gd",
+        "config/tables/cards.csv",
+        "output/runtime_ui_b_20260906/19_avatar.png",
+        "assets/card_art/animals/"
+      ],
+      "controls": [
+        {
+          "id": "currency_coin",
+          "rect": [
+            46,
+            18,
+            186,
+            44
+          ],
+          "kind": "resource",
+          "label": "60",
+          "state": "plain"
+        },
+        {
+          "id": "currency_ticket",
+          "rect": [
+            488,
+            18,
+            186,
+            44
+          ],
+          "kind": "resource",
+          "label": "10",
+          "state": "plain"
+        },
+        {
+          "id": "avatar_panel",
+          "rect": [
+            20,
+            60,
+            680,
+            1160
+          ],
+          "kind": "panel",
+          "label": "选择动物头像",
+          "state": "open"
+        },
+        {
+          "id": "avatar_close",
+          "rect": [
+            564,
+            90,
+            104,
+            56
+          ],
+          "kind": "button",
+          "label": "关闭",
+          "state": "enabled"
+        },
+        {
+          "id": "avatar_mouse",
+          "rect": [
+            56,
+            214,
+            142,
+            190
+          ],
+          "kind": "avatar",
+          "label": "老鼠",
+          "state": "locked"
+        },
+        {
+          "id": "avatar_ant",
+          "rect": [
+            210,
+            214,
+            142,
+            190
+          ],
+          "kind": "avatar",
+          "label": "蚂蚁",
+          "state": "locked"
+        },
+        {
+          "id": "avatar_sparrow",
+          "rect": [
+            364,
+            214,
+            142,
+            190
+          ],
+          "kind": "avatar",
+          "label": "麻雀",
+          "state": "locked"
+        },
+        {
+          "id": "avatar_frog",
+          "rect": [
+            518,
+            214,
+            142,
+            190
+          ],
+          "kind": "avatar",
+          "label": "青蛙",
+          "state": "locked"
+        },
+        {
+          "id": "avatar_rabbit",
+          "rect": [
+            56,
+            416,
+            142,
+            190
+          ],
+          "kind": "avatar",
+          "label": "兔子",
+          "state": "unlocked"
+        },
+        {
+          "id": "avatar_chicken",
+          "rect": [
+            210,
+            416,
+            142,
+            190
+          ],
+          "kind": "avatar",
+          "label": "鸡",
+          "state": "locked"
+        },
+        {
+          "id": "avatar_pigeon",
+          "rect": [
+            364,
+            416,
+            142,
+            190
+          ],
+          "kind": "avatar",
+          "label": "鸽子",
+          "state": "locked"
+        },
+        {
+          "id": "avatar_hamster",
+          "rect": [
+            518,
+            416,
+            142,
+            190
+          ],
+          "kind": "avatar",
+          "label": "仓鼠",
+          "state": "locked"
+        },
+        {
+          "id": "avatar_snail",
+          "rect": [
+            56,
+            618,
+            142,
+            190
+          ],
+          "kind": "avatar",
+          "label": "蜗牛",
+          "state": "locked"
+        },
+        {
+          "id": "avatar_tadpole",
+          "rect": [
+            210,
+            618,
+            142,
+            190
+          ],
+          "kind": "avatar",
+          "label": "蝌蚪",
+          "state": "locked"
+        },
+        {
+          "id": "avatar_cat",
+          "rect": [
+            364,
+            618,
+            142,
+            190
+          ],
+          "kind": "avatar",
+          "label": "猫",
+          "state": "unlocked"
+        },
+        {
+          "id": "avatar_dog",
+          "rect": [
+            518,
+            618,
+            142,
+            190
+          ],
+          "kind": "avatar",
+          "label": "狗",
+          "state": "locked"
+        },
+        {
+          "id": "avatar_duck",
+          "rect": [
+            56,
+            820,
+            142,
+            190
+          ],
+          "kind": "avatar",
+          "label": "鸭",
+          "state": "locked"
+        },
+        {
+          "id": "avatar_squirrel",
+          "rect": [
+            210,
+            820,
+            142,
+            190
+          ],
+          "kind": "avatar",
+          "label": "松鼠",
+          "state": "selected"
+        },
+        {
+          "id": "avatar_hedgehog",
+          "rect": [
+            364,
+            820,
+            142,
+            190
+          ],
+          "kind": "avatar",
+          "label": "刺猬",
+          "state": "locked"
+        },
+        {
+          "id": "avatar_turtle",
+          "rect": [
+            518,
+            820,
+            142,
+            190
+          ],
+          "kind": "avatar",
+          "label": "乌龟",
+          "state": "locked"
+        },
+        {
+          "id": "avatar_goat",
+          "rect": [
+            56,
+            1022,
+            142,
+            190
+          ],
+          "kind": "avatar",
+          "label": "山羊",
+          "state": "locked"
+        },
+        {
+          "id": "avatar_sheep",
+          "rect": [
+            210,
+            1022,
+            142,
+            190
+          ],
+          "kind": "avatar",
+          "label": "羊",
+          "state": "locked"
+        },
+        {
+          "id": "avatar_parrot",
+          "rect": [
+            364,
+            1022,
+            142,
+            190
+          ],
+          "kind": "avatar",
+          "label": "鹦鹉",
+          "state": "unlocked"
+        },
+        {
+          "id": "avatar_beaver",
+          "rect": [
+            518,
+            1022,
+            142,
+            190
+          ],
+          "kind": "avatar",
+          "label": "河狸",
+          "state": "locked"
+        }
+      ],
+      "notes": [
+        "Synthetic 9-unlocked fixture, matching source visible unlocked states. Fourth-column/partial fifth-row clipping is the source scroll viewport, not hidden footer. Underlying route is account-center lobby."
+      ],
+      "status": "PREVIEW_ART_DIRECTOR_PASS",
+      "ai_history_before_native": {
+        "sha256": "18657D72619B5ED18652ED3F71BFE49B8DB2CB98B530FDCB2E3C0EE1711D8218",
+        "status": "NATIVE_REVIEW_PENDING"
+      },
+      "art_director_review": {
+        "path": "../reviews/account_room.json",
+        "review_sha256": "8C9EB7A293896731CFB260EDA212DBA47C8D7EB3575CE01841459D07C9F80C7E",
+        "reviewed_file": "account_room/08_avatar.png",
+        "sha256": "DB08EA90F96FC2F8B30031DCDBD4A203A2478EA1D16F93A4CCD963B7B8199AAE",
+        "verdict": "PREVIEW_PASS"
+      },
+      "source_evidence_roles": [
+        {
+          "path": "output/visual_concepts/tata_battle_style/full_game/root_pages/01_lobby.png",
+          "role": "approved_art_preview_dependency",
+          "independent_current_runtime_evidence": false
+        },
+        {
+          "path": "scripts/app/ui/account_avatar_picker.gd",
+          "role": "current_read_only_layout_or_rule_code",
+          "independent_current_runtime_evidence": false
+        },
+        {
+          "path": "config/tables/cards.csv",
+          "role": "formal_source_catalog",
+          "independent_current_runtime_evidence": false
+        },
+        {
+          "path": "output/runtime_ui_b_20260906/19_avatar.png",
+          "role": "historical_layout_fixture",
+          "independent_current_runtime_evidence": false
+        },
+        {
+          "path": "assets/card_art/animals/",
+          "role": "formal_original_asset",
+          "independent_current_runtime_evidence": false
+        }
+      ],
+      "independent_current_runtime_evidence": [],
+      "acceptance_scope": "Static preview art; no live input, account/network behavior or engine approval"
+    },
+    {
+      "id": "09_agreement",
+      "title": "账号－玩家协议",
+      "canonical_file": "09_agreement.png",
+      "sha256": "136937BC429B0D5F46F82AF54795930380A3120F6D19A2AAF60905E516D9DD2D",
+      "width": 720,
+      "height": 1280,
+      "render_method": "Native existing agreement text, no added terms",
+      "source_paths": [
+        "output/visual_concepts/tata_battle_style/full_game/root_pages/01_lobby.png",
+        "scripts/app/main.gd"
+      ],
+      "controls": [
+        {
+          "id": "currency_coin",
+          "rect": [
+            46,
+            18,
+            186,
+            44
+          ],
+          "kind": "resource",
+          "label": "60",
+          "state": "plain"
+        },
+        {
+          "id": "currency_ticket",
+          "rect": [
+            488,
+            18,
+            186,
+            44
+          ],
+          "kind": "resource",
+          "label": "10",
+          "state": "plain"
+        },
+        {
+          "id": "account_panel",
+          "rect": [
+            62,
+            156,
+            596,
+            1004
+          ],
+          "kind": "panel",
+          "label": "玩家协议",
+          "state": "open"
+        },
+        {
+          "id": "account_close",
+          "rect": [
+            532,
+            194,
+            96,
+            46
+          ],
+          "kind": "button",
+          "label": "关闭",
+          "state": "enabled"
+        },
+        {
+          "id": "agreement_text",
+          "rect": [
+            108,
+            294,
+            504,
+            468
+          ],
+          "kind": "paragraph",
+          "label": "欢迎使用《丛林法则》。请文明游戏并妥善保管账号。游戏进度由服务器保存；禁止利用漏洞、外挂或干扰其他玩家。我们仅处理提供账号与游戏服务所需的数据。账号中心可切换本机拥有的档案；新建账号会从全新进度开始。",
+          "state": "existing"
+        },
+        {
+          "id": "agreement_back",
+          "rect": [
+            154,
+            1064,
+            412,
+            64
+          ],
+          "kind": "button",
+          "label": "返回账号中心",
+          "state": "enabled"
+        }
+      ],
+      "notes": [
+        "Agreement text wrapped into 5 lines without truncation."
+      ],
+      "status": "PREVIEW_ART_DIRECTOR_PASS",
+      "ai_history_before_native": {
+        "sha256": "58DCC420A57006F36F94101F3B4B2E196D39EC16668E793570AF6AEEB47DB1EC",
+        "status": "NATIVE_REVIEW_PENDING"
+      },
+      "art_director_review": {
+        "path": "../reviews/account_room.json",
+        "review_sha256": "8C9EB7A293896731CFB260EDA212DBA47C8D7EB3575CE01841459D07C9F80C7E",
+        "reviewed_file": "account_room/09_agreement.png",
+        "sha256": "136937BC429B0D5F46F82AF54795930380A3120F6D19A2AAF60905E516D9DD2D",
+        "verdict": "PREVIEW_PASS"
+      },
+      "source_locations": [
+        {
+          "path": "scripts/app/main.gd",
+          "locator": "lines 7622-7632",
+          "role": "read_only_source_layout_or_rules"
+        },
+        {
+          "path": "scripts/app/main.gd",
+          "locator": "lines 10125-10126",
+          "role": "read_only_source_layout_or_rules"
+        }
+      ],
+      "source_evidence_roles": [
+        {
+          "path": "output/visual_concepts/tata_battle_style/full_game/root_pages/01_lobby.png",
+          "role": "approved_art_preview_dependency",
+          "independent_current_runtime_evidence": false
+        },
+        {
+          "path": "scripts/app/main.gd",
+          "role": "current_read_only_layout_or_rule_code",
+          "independent_current_runtime_evidence": false
+        }
+      ],
+      "independent_current_runtime_evidence": [],
+      "acceptance_scope": "Static preview art; no live input, account/network behavior or engine approval"
+    }
+  ],
+  "native_renderer": {
+    "path": "native_renderer.cjs",
+    "sha256": "87F95C28DA0C297B5B26B08F6A4655D740D129F469ED814214E7CB76F42E4507",
+    "kit_path": "output/visual_concepts/tata_battle_style/full_game/native_components/common.cjs",
+    "kit_sha256": "507DF024CA02043A822BBECF9391F97A6991180A67CCE11859DB47FB0F28AF8F",
+    "code_sha256": "8C9E374F65A221AF7BB92A32470503166188A879562D5A1AE220A817D56359CA",
+    "target_resolution": [
+      720,
+      1280
+    ],
+    "actual_credentials_used": false,
+    "execution_date": "2026-10-12 Asia/Hong_Kong"
+  },
+  "art_director_review": {
+    "path": "../reviews/account_room.json",
+    "sha256": "8C9EB7A293896731CFB260EDA212DBA47C8D7EB3575CE01841459D07C9F80C7E",
+    "status": "BATCH_PREVIEW_PASS",
+    "reviewed_on": "2026-10-12 Asia/Hong_Kong",
+    "scope": "Static PNG art preview",
+    "runtime_approved": false,
+    "files": [
+      {
+        "canonical_file": "01_room_entry.png",
+        "sha256": "B98F012C34949199D957DE16F49B00FC6ED9950987262898809CDD0A0492FB23",
+        "verdict": "PREVIEW_PASS"
+      },
+      {
+        "canonical_file": "02_room_error.png",
+        "sha256": "32371E329B94E2D305A6999F89AC8D9FB98C0745F7934F59A174EDC44D92B627",
+        "verdict": "PREVIEW_PASS"
+      },
+      {
+        "canonical_file": "03_room_host.png",
+        "sha256": "92161CC726A62C10A62A287A49CAE9B1C2CCFFD5D7AB16416848721746213375",
+        "verdict": "PREVIEW_PASS"
+      },
+      {
+        "canonical_file": "04_room_guest.png",
+        "sha256": "8AE5B4A8EAE2817B3E17AC0E845913175214C554FC3B7667C6BF4D9F2CB5375F",
+        "verdict": "PREVIEW_PASS"
+      },
+      {
+        "canonical_file": "05_account.png",
+        "sha256": "1C3B51676E0CB32C7CE4AFA3F1648A570CCA25D74FB150F51BFABCD8FF2C1CB7",
+        "verdict": "PREVIEW_PASS"
+      },
+      {
+        "canonical_file": "06_login.png",
+        "sha256": "536D8BCDF2A04A8422FB77936296E6AD302C8FE212741063F7E8E9B764B9841A",
+        "verdict": "PREVIEW_PASS"
+      },
+      {
+        "canonical_file": "07_account_switch.png",
+        "sha256": "BD9BB02555C3C763EFBEC35768F96EAAC974CF7A89DD46DDB1B9F9EA5C7A6EB7",
+        "verdict": "PREVIEW_PASS"
+      },
+      {
+        "canonical_file": "08_avatar.png",
+        "sha256": "DB08EA90F96FC2F8B30031DCDBD4A203A2478EA1D16F93A4CCD963B7B8199AAE",
+        "verdict": "PREVIEW_PASS"
+      },
+      {
+        "canonical_file": "09_agreement.png",
+        "sha256": "136937BC429B0D5F46F82AF54795930380A3120F6D19A2AAF60905E516D9DD2D",
+        "verdict": "PREVIEW_PASS"
+      }
+    ]
+  },
+  "independent_current_runtime_evidence": [],
+  "provenance_relocation_map": {
+    "path": "../../cleanup.json",
+    "sha256": "E86FA3878C45791A31CA83DD22D4A8CA8996A820A8298C1FD77F9605E8CE8763",
+    "path_base": "project_root",
+    "active_field_replacements": 2,
+    "unique_resolved_inputs": 1,
+    "entry_original_sha256": "05FE4E9284151266743EDAB8A576DDC2FB36A2583549AA60C0957076B89BBFB8",
+    "note": "Historical generated_path and history tool paths remain original provenance. Resolve those historical paths through cleanup.relocations; active input references use retained paths."
+  }
+}

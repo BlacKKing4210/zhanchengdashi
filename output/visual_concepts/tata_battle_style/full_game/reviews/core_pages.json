@@ -1,0 +1,415 @@
+{
+  "schema_version": 2,
+  "reviewer": "lead_art_director",
+  "request_id": "REQ-20261011-TATA-FULL-GAME-PREVIEW",
+  "scope": "Full9CORE static preview QA, retained AI art plus user-authorized native completion",
+  "status": "BATCH_PREVIEW_PASS",
+  "reviewed_on": "2026-10-12 Asia/Hong_Kong",
+  "runtime_approved": false,
+  "files": [
+    {
+      "path": "core_pages/01_home_selected.png",
+      "sha256": "0A1AA4678A950D190CB3D96FE5E53BBDA132333E29D627E8EB32061A59EC8EC0",
+      "verdict": "PREVIEW_PASS",
+      "p0": [],
+      "p1": [],
+      "design_canvas": [
+        720,
+        1280
+      ],
+      "raster_size": [
+        941,
+        1672
+      ],
+      "source": "D:/AI/zhanchengdashi/temp/qa/home-readability-20260925/home/candidate/720x1280-detail-value-14.png",
+      "controls_receipt": "core_pages/native-render-receipt.json",
+      "checks": [
+        "Direct screen image inspection",
+        "Currency no progress/wedge/shop-plus; correct same blue ticket identity in newly native slots",
+        "Existing labels/data/action counts/state meanings retained",
+        "Full fixed text readable at target viewing size; native text fits without shortening"
+      ],
+      "limitations": [
+        "Static preview only, no engine/input/transaction tests"
+      ]
+    },
+    {
+      "path": "core_pages/04_deck_main.png",
+      "sha256": "F3B6A8496703FCE12754AF18BE67C2DCA4E90F6CD5359AB07E9BAE0F134E889B",
+      "verdict": "PREVIEW_PASS",
+      "p0": [],
+      "p1": [],
+      "design_canvas": [
+        720,
+        1280
+      ],
+      "raster_size": [
+        941,
+        1672
+      ],
+      "source": "D:/AI/zhanchengdashi/output/runtime_ui_dot_corner_20260906/deck_corner_badges.png",
+      "controls_receipt": "core_pages/native-render-receipt.json",
+      "checks": [
+        "Direct screen image inspection",
+        "Currency no progress/wedge/shop-plus; correct same blue ticket identity in newly native slots",
+        "Existing labels/data/action counts/state meanings retained",
+        "Full fixed text readable at target viewing size; native text fits without shortening"
+      ],
+      "limitations": [
+        "Static preview only, no engine/input/transaction tests"
+      ]
+    },
+    {
+      "path": "core_pages/02_home_new_tomorrow.png",
+      "sha256": "A519F1D6320BB62573016BBD780000AFDA9DE719DBE6813AE1E02B2D84D3C9BB",
+      "verdict": "PREVIEW_PASS",
+      "p0": [],
+      "p1": [],
+      "design_canvas": [
+        720,
+        1280
+      ],
+      "raster_size": [
+        941,
+        1672
+      ],
+      "source": "D:/AI/zhanchengdashi/temp/qa/home-readability-20260925/home/candidate/720x1280-tomorrow.png",
+      "controls_receipt": "core_pages/native-render-receipt.json",
+      "checks": [
+        "Direct screen image inspection",
+        "Currency no progress/wedge/shop-plus; correct same blue ticket identity in newly native slots",
+        "Existing labels/data/action counts/state meanings retained",
+        "Full fixed text readable at target viewing size; native text fits without shortening"
+      ],
+      "limitations": [
+        "Static preview only, no engine/input/transaction tests"
+      ]
+    },
+    {
+      "path": "core_pages/03_home_daily_rewards.png",
+      "sha256": "0A0658C865399CBC299FA63EC6A04C997F9B240ACB8CC95FCC04E3C1FBAF5BED",
+      "verdict": "PREVIEW_PASS",
+      "p0": [],
+      "p1": [],
+      "design_canvas": [
+        720,
+        1280
+      ],
+      "raster_size": [
+        720,
+        1280
+      ],
+      "source": "D:/AI/zhanchengdashi/temp/qa/home-readability-20260925/home/candidate/720x1280-four-quality-rewards.png",
+      "controls_receipt": "core_pages/native-render-receipt.json",
+      "checks": [
+        "Direct screen image inspection",
+        "Currency no progress/wedge/shop-plus; correct same blue ticket identity in newly native slots",
+        "Existing labels/data/action counts/state meanings retained",
+        "Full fixed text readable at target viewing size; native text fits without shortening"
+      ],
+      "limitations": [
+        "Static preview only, no engine/input/transaction tests"
+      ]
+    },
+    {
+      "path": "core_pages/05_deck_upgrade.png",
+      "sha256": "3ECFFCD6F88757763CCAA245D4BE5EF18FC86EEAFF95254A1BE1071893BD6648",
+      "verdict": "PREVIEW_PASS",
+      "p0": [],
+      "p1": [],
+      "design_canvas": [
+        720,
+        1280
+      ],
+      "raster_size": [
+        941,
+        1672
+      ],
+      "source": "D:/AI/zhanchengdashi/output/runtime_ui_states_20260906/04_after_upgrade.png",
+      "controls_receipt": "core_pages/native-render-receipt.json",
+      "checks": [
+        "Direct screen image inspection",
+        "Currency no progress/wedge/shop-plus; correct same blue ticket identity in newly native slots",
+        "Existing labels/data/action counts/state meanings retained",
+        "Full fixed text readable at target viewing size; native text fits without shortening"
+      ],
+      "limitations": [
+        "Static preview only, no engine/input/transaction tests"
+      ]
+    },
+    {
+      "path": "core_pages/06_gacha_empty.png",
+      "sha256": "88F0B53F9531F5A102AF933701F9F8451FFC048D70CAAE2B1A68D9D695C1F46E",
+      "verdict": "PREVIEW_PASS",
+      "p0": [],
+      "p1": [],
+      "design_canvas": [
+        720,
+        1280
+      ],
+      "raster_size": [
+        720,
+        1280
+      ],
+      "source": "D:/AI/zhanchengdashi/temp/qa/gacha-spaced-20260925/candidate-finished-10.png",
+      "controls_receipt": "core_pages/native-render-receipt.json",
+      "checks": [
+        "Direct screen image inspection",
+        "Currency no progress/wedge/shop-plus; correct same blue ticket identity in newly native slots",
+        "Existing labels/data/action counts/state meanings retained",
+        "Full fixed text readable at target viewing size; native text fits without shortening"
+      ],
+      "limitations": [
+        "Static preview only, no engine/input/transaction tests"
+      ]
+    },
+    {
+      "path": "core_pages/07_gacha_opening.png",
+      "sha256": "C8859DB8D989E832D84B9D8D97A1D195F0F25902E507A0B32074EC0148106A71",
+      "verdict": "PREVIEW_PASS",
+      "p0": [],
+      "p1": [],
+      "design_canvas": [
+        720,
+        1280
+      ],
+      "raster_size": [
+        720,
+        1280
+      ],
+      "source": "D:/AI/zhanchengdashi/temp/qa/gacha-spaced-20260925/candidate-opening-1.png",
+      "controls_receipt": "core_pages/native-render-receipt.json",
+      "checks": [
+        "Direct screen image inspection",
+        "Currency no progress/wedge/shop-plus; correct same blue ticket identity in newly native slots",
+        "Existing labels/data/action counts/state meanings retained",
+        "Full fixed text readable at target viewing size; native text fits without shortening"
+      ],
+      "limitations": [
+        "Static preview only, no engine/input/transaction tests"
+      ]
+    },
+    {
+      "path": "core_pages/08_gacha_ten_result.png",
+      "sha256": "1C34FFFA67145E1DD6A75D7E19E79E5E879322BAFCF80D792AD2BBDBC3C179BC",
+      "verdict": "PREVIEW_PASS",
+      "p0": [],
+      "p1": [],
+      "design_canvas": [
+        720,
+        1280
+      ],
+      "raster_size": [
+        720,
+        1280
+      ],
+      "source": "D:/AI/zhanchengdashi/temp/qa/gacha-spaced-20260925/candidate-finished-10.png",
+      "controls_receipt": "core_pages/native-render-receipt.json",
+      "checks": [
+        "Direct screen image inspection",
+        "Currency no progress/wedge/shop-plus; correct same blue ticket identity in newly native slots",
+        "Existing labels/data/action counts/state meanings retained",
+        "Full fixed text readable at target viewing size; native text fits without shortening"
+      ],
+      "limitations": [
+        "Static preview only, no engine/input/transaction tests"
+      ]
+    },
+    {
+      "path": "core_pages/09_gacha_new_hero.png",
+      "sha256": "2D51C12B30B64805DC592F93F4E92125CBEDDF509825AABCF8ECC4FC688E7258",
+      "verdict": "PREVIEW_PASS",
+      "p0": [],
+      "p1": [],
+      "design_canvas": [
+        720,
+        1280
+      ],
+      "raster_size": [
+        720,
+        1280
+      ],
+      "source": "D:/AI/zhanchengdashi/temp/qa/gacha-spaced-20260925/candidate-slogan-mouse-720.png",
+      "controls_receipt": "core_pages/native-render-receipt.json",
+      "checks": [
+        "Direct screen image inspection",
+        "Currency no progress/wedge/shop-plus; correct same blue ticket identity in newly native slots",
+        "Existing labels/data/action counts/state meanings retained",
+        "Full fixed text readable at target viewing size; native text fits without shortening"
+      ],
+      "limitations": [
+        "Static preview only, no engine/input/transaction tests"
+      ],
+      "illustration": {
+        "path": "native_components/illustrations/gray-mouse-hero.png",
+        "sha256": "FF7AB1A58EBA99BE08F2649FF05431CFF8F356DB5E4A6123BDFCC375E1539335",
+        "pixels": [
+          1254,
+          1254
+        ],
+        "background": "True RGBA alpha",
+        "source_identity": "Approved04deckgraymouse",
+        "rect": [
+          96,
+          260,
+          528,
+          528
+        ],
+        "outside_portrait_pixel_changes": 0
+      }
+    }
+  ],
+  "resolved_prior_findings": [
+    "HOME01 nav/common fixed components aligned with HOME02",
+    "Daily reward ticket identity replaced by shared canonical blue paw-ticket PNG",
+    "Fullscreen hero raw sketch replaced with already approved DECK04 gray-mouse pixels",
+    "P1 fullscreen portrait resolution limitation replaced by single authorized high-resolution1254RGBA illustration; source04identity and native UI held unchanged"
+  ],
+  "gacha_checks": [
+    "Empty0tickets has no records and both draw actions disabled",
+    "Opening29tickets has exactly one unrevealed star card; both draw actions disabled",
+    "Ten20tickets has2/3/3/2 source cards in exact order; duck and parrot current rarityblue overrides stale fixturegreen",
+    "Hero has exact老鼠/name/slogan and single继续 at source rect; no invented ownership or narrative"
+  ],
+  "minor": [
+    "Short source toast intentionally overlaps CTA top edge without covering CTA text",
+    "Unidentified partial next DECK row is source scroll crop, not a verified duplicate ID"
+  ],
+  "source_boundary": "01/02/04/05 retain941x1672accepted raster and do not claim exact-source pixel parity.03 is source-art normalization plus icon replacement. GACHA4 use exact fixed native control/text rectangles.",
+  "superseded_review": {
+    "schema_version": 1,
+    "reviewer": "lead_art_director",
+    "request_id": "REQ-20261011-TATA-FULL-GAME-PREVIEW",
+    "scope": "Static preview QA only",
+    "reviewed_on": "2026-10-11 Asia/Hong_Kong",
+    "status": "IN_PROGRESS_WITH_P1",
+    "runtime_approved": false,
+    "files": [
+      {
+        "path": "core_pages/01_home_selected.png",
+        "sha256": "0A1AA4678A950D190CB3D96FE5E53BBDA132333E29D627E8EB32061A59EC8EC0",
+        "source": {
+          "path": "temp/qa/home-readability-20260925/home/candidate/720x1280-detail-value-14.png",
+          "sha256": "BF50366C1C8CC4B20E8DF7F287FABFCE2FBECDDDC91A002B251482A23C0F0798"
+        },
+        "verdict": "PREVIEW_PASS",
+        "p0": [],
+        "p1": [],
+        "checks": [
+          "9914/13;8residents4buildings;11:00;森林餐厅;basket×1 legible",
+          "Fixed top/resource/detail/nav content is unobscured",
+          "Right-edge map price clipping inherited from panned world viewport; not treated as fixed UI clipping"
+        ],
+        "limitations": [
+          "World viewport clipping allowed by source; exact camera/layout not mechanically verified"
+        ],
+        "resolved_findings": [
+          {
+            "id": "CORE-HOME-NAV-01",
+            "issue": "Home castle icon and blue gacha ticket action differ from final common-nav house and gold ticket icon.",
+            "owner": "project_ui_audit",
+            "fix": "Align same five nav icons to root lobby while preserving active HOME and source coordinates.",
+            "resolution": "Targeted edit confirmed: final common nav and shared cream HOME header/detail surfaces restored."
+          },
+          {
+            "id": "CORE-HOME-COMPONENT-02",
+            "issue": "Same HOME fixed header and detail surface vary between this wood framing and tomorrow state's cream grouping.",
+            "owner": "project_ui_audit; scope decision root",
+            "fix": "Align common fixed component skin to tomorrow cream version within existing geometry; no content/control changes.",
+            "resolution": "Targeted edit confirmed: final common nav and shared cream HOME header/detail surfaces restored."
+          }
+        ],
+        "minor": "HOME legend category icons differ in colored versus dark treatment between states; shapes and meanings remain clear. Nonblocking."
+      },
+      {
+        "path": "core_pages/02_home_new_tomorrow.png",
+        "sha256": "A519F1D6320BB62573016BBD780000AFDA9DE719DBE6813AE1E02B2D84D3C9BB",
+        "source": {
+          "path": "temp/qa/home-readability-20260925/home/candidate/720x1280-tomorrow.png"
+        },
+        "verdict": "PREVIEW_PASS_SUBJECT_TO_HOME_COMPONENT_ALIGNMENT",
+        "p0": [],
+        "p1": [],
+        "checks": [
+          "9914/13;8residents6buildings;11:00;温馨小屋;明日开始产出;pillow×1",
+          "Existing领取收益 action with red dot and HOME nav red dot retained",
+          "No-progress resource component and final common-nav icons correct",
+          "Fixed content readable, preserved source prices and world tile topology visually"
+        ],
+        "limitations": [
+          "A related state has open component consistency finding; this state is alignment reference"
+        ]
+      },
+      {
+        "path": "core_pages/04_deck_main.png",
+        "sha256": "F3B6A8496703FCE12754AF18BE67C2DCA4E90F6CD5359AB07E9BAE0F134E889B",
+        "source": {
+          "path": "output/runtime_ui_dot_corner20260906/deck_corner_badges.png",
+          "override": "Current cards.csv bear3/23 and sheep rare-blue supersede historical screenshot values/colors."
+        },
+        "verdict": "PREVIEW_PASS",
+        "p0": [],
+        "p1": [],
+        "checks": [
+          "8deckslots in4×2 and4collectioncolumns retained",
+          "Selected熊 shows attack3/HP23 and攻击造成溅射效果",
+          "羊 rare card is blue after correction",
+          "Upgrade disabled and card fragments/levels/dots readable",
+          "Standard nav uses house/cards/swords/gold ticket/door and active DECK"
+        ],
+        "minor": "Detailed stat icons could receive stronger black contours in a later formal asset pass; nonblocking for preview.",
+        "limitations": [
+          "Static preview; collection scrolling, equip and upgrade transactions not tested"
+        ]
+      },
+      {
+        "path": "core_pages/03_home_daily_rewards.png",
+        "sha256": "1E98B1F936AB15A1E59E4C74193AA9063CACC2940355D8B28429014B5B3DDC96",
+        "source": {
+          "path": "temp/qa/home-readability-20260925/home/candidate/720x1280-four-quality-rewards.png"
+        },
+        "verdict": "PENDING_TARGETED_FIX",
+        "p0": [],
+        "p1": [
+          {
+            "id": "CORE-REWARD-TICKET-03",
+            "issue": "Reward's horizontal plain punched ticket differs from formal blue paw-stamped ticket in same screen HUD.",
+            "fix": "Replace only reward ticket illustration with smaller same master ticket identity in existing slot; do not alter2count."
+          }
+        ],
+        "checks": [
+          "Correct HOME building/map behind fully dimmed resource/header/nav underlay",
+          "8residents5buildings,2days/max3,maincastle200gold2tickets",
+          "Four rarity pillow×1 cards and exchange/close controls retained"
+        ],
+        "limitations": [
+          "Static preview; collection conversion/reward authority not verified"
+        ]
+      },
+      {
+        "path": "core_pages/05_deck_upgrade.png",
+        "sha256": "3ECFFCD6F88757763CCAA245D4BE5EF18FC86EEAFF95254A1BE1071893BD6648",
+        "source": {
+          "path": "output/runtime_ui_states_20260906/04_after_upgrade.png",
+          "override": "Current cards.csv and upgrade floor formula override old duck HP6 toHP2; current skill出生时，数量+1；远程."
+        },
+        "verdict": "PREVIEW_PASS",
+        "p0": [],
+        "p1": [],
+        "checks": [
+          "DuckLv3/ATK1/HP2/fragment0of5; equip available and upgrade disabled",
+          "Eight equipped cards, four collection columns and standard nav retained",
+          "Sheepblue/foxpurple/hamstergreen/bearorange match rarity roles",
+          "Upper and full visible collection rows readable"
+        ],
+        "minor": "Next collection row exposes unidentified partial heads at natural viewport crop. No complete ID/label shown; duplicate IDs are unproven and not treated as a blocker.",
+        "limitations": [
+          "Static resting upgrade state; no progression or collection transaction proof"
+        ]
+      }
+    ],
+    "unresolved_batch_items": "Daily-reward ticket identity targeted correction pending; four gacha states await generation/review.",
+    "acceptance": "No runtime/asset/release approval."
+  },
+  "acceptance": "Full CORE preview set passed; no runtime visual/asset/release gate approval"
+}

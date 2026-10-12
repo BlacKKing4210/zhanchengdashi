@@ -1,0 +1,60 @@
+{
+  "schema_version": 1,
+  "scope": "PREVIEW_ONLY_NO_RUNTIME",
+  "human_authorization": "允许原生组件精确排版（推荐）",
+  "entry": "common.cjs",
+  "renderer": "Bundled @napi-rs/canvas; no install",
+  "canvas": [
+    720,
+    1280
+  ],
+  "font": "Microsoft YaHei loaded from Windows msyh.ttc and msyhbd.ttc",
+  "initialization": "await kit.initAssets(); const {canvas,ctx}=kit.createPage(fill);",
+  "readonly_assets": true,
+  "functions": {
+    "createPage": "(fill='#fbf5e6',width=720,height=1280) -> {canvas,ctx}",
+    "rr": "(ctx,x,y,w,h,{fill,stroke,line,radius})",
+    "text": "(ctx,value,x,y,w,h,size=24,{align:'left|center|right',color,outline,outlineColor,bold,allowOverflow:false})",
+    "wrapped": "(ctx,value,x,y,w,h,size,{lineHeight,...textOptions}) -> complete lines; throws vertical overflow",
+    "multiline": "(ctx,arrayOfLines,x,y,w,h,size,opts)",
+    "resource": "(ctx,x,y,w,h,value,'coin|ticket|star',{iconSize,fontSize}); default h+26 left protruding icon, plain dark pill, white outlined number",
+    "reward": "(ctx,x,y,w,h,value,'coin|ticket|star',{iconSize,fontSize,color,fill,stroke})",
+    "button": "(ctx,x,y,w,h,label,{enabled:true,kind:'primary|secondary|gold',size:28})",
+    "nav": "(ctx,'home|deck|battle|gacha|room',{x:3,y:1148,w:138,h:122,step:144})",
+    "dim": "(ctx,alpha=.42) -> dims every previously drawn pixel only",
+    "icon": "(ctx,formalIconID,x,y,w,h=w)",
+    "header": "(ctx,label,x=40,y=68,w=640,h=58,opts)",
+    "toggle": "(ctx,x,y,w,h,on)",
+    "pauseMark": "(ctx,x=610,y=78,w=62,h=56)",
+    "image": "(ctx,loadedImage,x,y,w,h,'stretch|contain|cover')",
+    "loadImage": "async (fileOrBuffer) from @napi-rs/canvas",
+    "save": "(canvas,absolutePngPath); writes PNG only"
+  },
+  "icon_ids": [
+    "coin",
+    "ticket",
+    "nav_home",
+    "nav_deck",
+    "nav_battle",
+    "nav_gacha",
+    "nav_room",
+    "star",
+    "heart",
+    "paw"
+  ],
+  "icon_authority": "One native SVG and matching transparent PNG per stable ID in icons/. Currency ticket is blue; nav_gacha action icon is gold. Exact same PNG is reused across native screens.",
+  "overflow_policy": "Actual font measurement throws; no automatic shrinking, truncation, clipping or ellipsis.",
+  "layer_order": [
+    "Scene/illustration",
+    "Existing base UI",
+    "42% or48% dim when source requires",
+    "Modal and its exact existing controls"
+  ],
+  "boundaries": [
+    "No source/runtime/GDScript/config edits",
+    "No live account/server operations",
+    "No package/dependency installation",
+    "No new player controls",
+    "No runtime parity claim"
+  ]
+}

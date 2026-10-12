@@ -1,0 +1,57 @@
+[
+  {
+    "id": "01_lobby",
+    "title": "战斗大厅",
+    "group": "主页面",
+    "inputs": [
+      "D:\\AI\\zhanchengdashi\\output\\runtime_ui_b_20260906\\01_lobby.png",
+      "D:\\AI\\zhanchengdashi\\output\\visual_concepts\\tata_battle_style\\full_game\\style_master.png"
+    ],
+    "prompt": "Use case: style-transfer/ui-mockup. Image1 is the actual game LOBBY layout target; Image2 is the lead-art-director STYLE MASTER. Preserve Image1's exact source control positions, scene/castle/animal count and placements, rankpanel, buttons, portrait720x1280 composition. Apply Image2's flat matte graphic 2D art, near-black confident chunky outlines, original same squirrel/rabbit/parrot/hippo/monkey/wolf identities, subdued olive/teal forest/environment and clear navy UI. Forest/grass belongs INSIDE existing scene rectangle(58,144,604,680), no enlargement/moving castle. Keep castle as clickable account entry, no additional settings icon. Rest ofpage clean warm ivory backdrop, no unnecessaryscenery behindrank or buttons.\nTop currency counters use master: plain darkslate horizontal rounded capsules, oversized own goldcoin/notchedblueticket protrudingLEFT, whiteheavyblackstroke numeric60 and10; NO progress/yellowwedge/plus/name. Title '丛林法则'. Retain rankpanel exact '黄金3星', '段位赛', '胜192 负137', star dots. Singleplayer button(190,950,340,68) exact'单人对战', limegreenwithnearblackborder; multiplayer button(190,1030,340,68) exact'多人对战', cheerfulgold-yellowflatface, retainHOTbadge. Current runtime's five bottomtabs, SAME source slotrects(i*144+3,1148,138,122): first is NOW UNLOCKED '家园' with house icon (replace obsolete SHOP+lock only in thatfirstslot); then'编组' card icon,'战斗'crossedswords SELECTED,'抽卡'ticket/card icon,'房间'door icon. Inactive deepnavy panels and whitelegibleicons/labels; selected thirdfreshlimegreenwithdarkinkicon/text. No plus icons, no newtabs, no cardbelt, no extraquests/shop. Bold Chinese type, all text readable. Preserve actual UE, just new visualskin, no phoneframe/annotations.",
+    "file": "01_lobby.png"
+  },
+  {
+    "id": "02_battle_selected",
+    "title": "战斗·动物详情",
+    "group": "战斗交互",
+    "file": "02_battle_selected.png",
+    "inputs": [
+      "D:\\AI\\zhanchengdashi\\output\\visual_concepts\\tata_battle_style\\02_selected_animal.png",
+      "D:\\AI\\zhanchengdashi\\output\\visual_concepts\\tata_battle_style\\full_game\\style_master.png"
+    ],
+    "prompt": "Use case: precise-object-edit / UI style consistency. Image1 is the SPECIFIC battle-state edit target, Image2 is leadartdirector's FINAL STYLEMASTER.\nApply only shared visual corrections: replace both top currency plates with Image2's exact PLAIN DARKSLATE pill, oversized protruding own coin/ticket, whiteheavy blackoutline digits. REMOVE all yellow wedges/progress/diagonalfills/plus. Keep Image1's existing numericVALUES (do not copy master60 if thisstate10or20). Retain all captions/card/selection/toast/worldpositions exactly from Image1. Match Image2's quieter matte forest and subduedlarge-block hex surface texture by reducing tinyflowers/details, keep allhex colors/positions/count and affordability state fromImage1. Do not copymaster defaultinstruction overdetailcard or delete toast. All source control footprintsinvariant; full portrait no annotations/no newfeatures.\nSelectedrabbit state must remain: bottom '我方 · 兔子 Lv.1', paw1, heart3/3, '技能：占领地块时，生命+1'; greenportraitborder and same selectedlower-rabbitgoldring. Wallet60/ticket10, 50sitesgold,250grey."
+  },
+  {
+    "id": "03_battle_purchase",
+    "title": "战斗·购买营地",
+    "group": "战斗交互",
+    "file": "03_battle_purchase.png",
+    "inputs": [
+      "D:\\AI\\zhanchengdashi\\output\\visual_concepts\\tata_battle_style\\03_purchase_camp.png",
+      "D:\\AI\\zhanchengdashi\\output\\visual_concepts\\tata_battle_style\\full_game\\style_master.png"
+    ],
+    "prompt": "Use case: precise-object-edit / UI style consistency. Image1 is the SPECIFIC battle-state edit target, Image2 is leadartdirector's FINAL STYLEMASTER.\nApply only shared visual corrections: replace both top currency plates with Image2's exact PLAIN DARKSLATE pill, oversized protruding own coin/ticket, whiteheavy blackoutline digits. REMOVE all yellow wedges/progress/diagonalfills/plus. Keep Image1's existing numericVALUES (do not copy master60 if thisstate10or20). Retain all captions/card/selection/toast/worldpositions exactly from Image1. Match Image2's quieter matte forest and subduedlarge-block hex surface texture by reducing tinyflowers/details, keep allhex colors/positions/count and affordability state fromImage1. Do not copymaster defaultinstruction overdetailcard or delete toast. All source control footprintsinvariant; full portrait no annotations/no newfeatures.\nPurchase state invariant: goldwallet10/ticket10, EXACTLYone new rabbitcamp atoriginaltop-left50site directly ABOVE blueflagcastle, no newunits/campduplicates; remaining50 and250 sitesgrey, toast '已解锁 兔子营地' remains immediatelyabovebottominstructionpanel. Newcamp mintproductionbar is validautomaticprogress, differentfromcurrencybars."
+  },
+  {
+    "id": "04_battle_hit",
+    "title": "战斗·自动攻击反馈",
+    "group": "战斗交互",
+    "file": "04_battle_hit.png",
+    "inputs": [
+      "D:\\AI\\zhanchengdashi\\output\\visual_concepts\\tata_battle_style\\04_autoattack_hit.png",
+      "D:\\AI\\zhanchengdashi\\output\\visual_concepts\\tata_battle_style\\full_game\\style_master.png"
+    ],
+    "prompt": "Use case: precise-object-edit / UI style consistency. Image1 is the SPECIFIC battle-state edit target, Image2 is leadartdirector's FINAL STYLEMASTER.\nApply only shared visual corrections: replace both top currency plates with Image2's exact PLAIN DARKSLATE pill, oversized protruding own coin/ticket, whiteheavy blackoutline digits. REMOVE all yellow wedges/progress/diagonalfills/plus. Keep Image1's existing numericVALUES (do not copy master60 if thisstate10or20). Retain all captions/card/selection/toast/worldpositions exactly from Image1. Match Image2's quieter matte forest and subduedlarge-block hex surface texture by reducing tinyflowers/details, keep allhex colors/positions/count and affordability state fromImage1. Do not copymaster defaultinstruction overdetailcard or delete toast. All source control footprintsinvariant; full portrait no annotations/no newfeatures.\nHit stateinvariant: top-right blueHPparrotautoattacksadjacentupper-middle redHPrabbit with onlysmallpea/orangeimpact/-1, no connectingtrail. Bottom exact '敌方 · 鹦鹉 Lv.1', paw1,heart7/7, '技能：额外攻击1个敌人', BLUEportraitborder. Wallet60/ticket10 andotherworldpositionsunchanged."
+  },
+  {
+    "id": "05_battle_no_gold",
+    "title": "战斗·金币不足",
+    "group": "战斗交互",
+    "file": "05_battle_no_gold.png",
+    "inputs": [
+      "D:\\AI\\zhanchengdashi\\output\\visual_concepts\\tata_battle_style\\05_insufficient_gold.png",
+      "D:\\AI\\zhanchengdashi\\output\\visual_concepts\\tata_battle_style\\full_game\\style_master.png"
+    ],
+    "prompt": "Use case: precise-object-edit / UI style consistency. Image1 is the SPECIFIC battle-state edit target, Image2 is leadartdirector's FINAL STYLEMASTER.\nApply only shared visual corrections: replace both top currency plates with Image2's exact PLAIN DARKSLATE pill, oversized protruding own coin/ticket, whiteheavy blackoutline digits. REMOVE all yellow wedges/progress/diagonalfills/plus. Keep Image1's existing numericVALUES (do not copy master60 if thisstate10or20). Retain all captions/card/selection/toast/worldpositions exactly from Image1. Match Image2's quieter matte forest and subduedlarge-block hex surface texture by reducing tinyflowers/details, keep allhex colors/positions/count and affordability state fromImage1. Do not copymaster defaultinstruction overdetailcard or delete toast. All source control footprintsinvariant; full portrait no annotations/no newfeatures.\nNo-fundsstateinvariant: wallet20/ticket10, all50/250locked sitesGREYordinaryoutlines; no newcamp orunit. Exacttoast '金币不足，还差30' near bottom abovesameinstructionpanel. Do NOT fillany goldoutline or wallet60."
+  }
+]

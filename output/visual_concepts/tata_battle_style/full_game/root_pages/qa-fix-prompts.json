@@ -1,0 +1,60 @@
+[
+  {
+    "id": "06_pause",
+    "file": "06_pause.png",
+    "inputs": [
+      "D:\\AI\\zhanchengdashi\\output\\visual_concepts\\tata_battle_style\\full_game\\reviews\\pause-layout-guide.png",
+      "D:\\AI\\zhanchengdashi\\output\\visual_concepts\\tata_battle_style\\full_game\\style_master.png",
+      "D:\\AI\\zhanchengdashi\\output\\visual_concepts\\tata_battle_style\\full_game\\root_pages\\06_pause.png"
+    ],
+    "prompt": "Usecase: UI-mockup/compositing viaImageGen. Image1 is EXACTauthoritative720x1280 STRUCTURE GUIDE drawnfromcurrentGodotsource; Image2 is STYLEandUNDERLAYbattleimage; Image3 ispreviousWRONG-layoutpause candidate forbuttonmaterialonly. FollowImage1 rectangles EXACTLY—do notfollowImage3 panel/buttonpositions. Replace guideplainbackground withImage2'sentirebattleatunchangedcoordinates, includingitsbottominstructionpanel, thenapplyuniform48%blackfullscreenOVERallunderlay. Above that draw Image1'smodal120,430,480,330 andbuttons184,552,352,68 /184,644,352,68, title戦? EXACTCHINESE '战斗暂停',firstbutton'继续战斗'limegreen,second'退出战斗'navy. Warmivorypanel/navycontourthickness sameImage3materialbutcorrectSourceguidepositions. No moving/downshifting/narrowingcontrols, no newX/newbutton. Preserveunderlaytop60/10/rank/pauseandall12animalsandmap/sourcebottomtextvisibleunderuniformdim. Keep guide'sfull720x1280ratio scaleduniformlytooutput. Allguide labels/coordinateannotations ifany mustnotrender exceptactualChineseUItext. NOextraUI/no phoneframe."
+  },
+  {
+    "id": "07_victory",
+    "file": "07_victory.png",
+    "inputs": [
+      "D:\\AI\\zhanchengdashi\\temp\\qa\\result-reward-area-20260907\\victory-720.png",
+      "D:\\AI\\zhanchengdashi\\output\\visual_concepts\\tata_battle_style\\full_game\\root_pages\\07_victory.png",
+      "D:\\AI\\zhanchengdashi\\output\\visual_concepts\\tata_battle_style\\full_game\\style_master.png"
+    ],
+    "prompt": "Usecase: precise-object-edit/layout-locked UI skin. INPUTROLES: Image1 is ACTUAL GODOT RESULT SCREEN andtheONLYcontrol-layout/text/data authority. Image2 is the visuallypolished result candidate STYLE ONLY; Image3 is commongame style/own resource icon reference ONLY. Restore EVERYFIXEDrectangle to Image1's position/size/scrollarea. Do not enlarge/reorder/removepanelorbuttons. Entiremodal logical(60,176,600,824), title(60,200,600,56),mylabel(92,264,536,28),selfrow(92,298,536,112),otherslabel(92,426,536,30),othersscroll(92,468,536,276),reward(92,764,536,116),close(190,900,340,64).\nCRITICAL: ActualSOURCE shows uniform42%blackFULLSCREENscrim behindmodal. Rebuild that uniformdarkening over ALLworld, HUD, pause AND bottominstructionpanel, withonlythemodalcontentsfullbrightness. Keep entirebottomSOURCEinstructionpanelvisible throughscrim atitsoriginalbounds. Sourcebattlegeometry/units/modes unchanged; DO NOTcopy master1v1map into6teamworld.\nUse restrainedroundedNAVYouterframe/warmivoryinnerface. ALL3resultstatesuse SAMEflatnavy headerstripcontainedinoriginalpaneltitlearea, gold/red/whiteoutlinedtitleletters byoutcome. NO floatingribbon/laurels/newportrait/banner protrudingoutsidepanel. Preserve SOURCEexact rownames/ranks/arrows/stardeltas/visible-rowcount+scrollbar. Allresourceicons mustbe theexact recognizable OWN roundgoldcoin/notchedBLUEpawTICKETidentityshownImage3; replace anycircularpawbadge/hourglassstrip/three-holegenericcoupon. Reward+/-signs preserve numericalmeaning. No resource namesinsideTOP compactcounters, no progress/yellowwedge/plusbutton. Keep big whiteblack-strokeSOURCEcounts. Buttonclose limegreen atEXACTsourcebounds, no enlargement. Fullscreen720x1280proportions,nophonenoannotations. Source controls mandatory; candidate suppliesonlylinework/palette.\nVICTORY source: title胜利, 神秘玩家自己1st 2→3青铜星+1;松果队长2nd 1→1星-1; rewards goldcoin+12 and BLUE PAW TICKET+3. Top146/16. Keeponly1visibleotherrow thenemptyarea."
+  },
+  {
+    "id": "08_defeat",
+    "file": "08_defeat.png",
+    "inputs": [
+      "D:\\AI\\zhanchengdashi\\temp\\qa\\result-reward-area-20260907\\team-loss-top-720.png",
+      "D:\\AI\\zhanchengdashi\\output\\visual_concepts\\tata_battle_style\\full_game\\root_pages\\08_defeat.png",
+      "D:\\AI\\zhanchengdashi\\output\\visual_concepts\\tata_battle_style\\full_game\\style_master.png"
+    ],
+    "prompt": "Usecase: precise-object-edit/layout-locked UI skin. INPUTROLES: Image1 is ACTUAL GODOT RESULT SCREEN andtheONLYcontrol-layout/text/data authority. Image2 is the visuallypolished result candidate STYLE ONLY; Image3 is commongame style/own resource icon reference ONLY. Restore EVERYFIXEDrectangle to Image1's position/size/scrollarea. Do not enlarge/reorder/removepanelorbuttons. Entiremodal logical(60,176,600,824), title(60,200,600,56),mylabel(92,264,536,28),selfrow(92,298,536,112),otherslabel(92,426,536,30),othersscroll(92,468,536,276),reward(92,764,536,116),close(190,900,340,64).\nCRITICAL: ActualSOURCE shows uniform42%blackFULLSCREENscrim behindmodal. Rebuild that uniformdarkening over ALLworld, HUD, pause AND bottominstructionpanel, withonlythemodalcontentsfullbrightness. Keep entirebottomSOURCEinstructionpanelvisible throughscrim atitsoriginalbounds. Sourcebattlegeometry/units/modes unchanged; DO NOTcopy master1v1map into6teamworld.\nUse restrainedroundedNAVYouterframe/warmivoryinnerface. ALL3resultstatesuse SAMEflatnavy headerstripcontainedinoriginalpaneltitlearea, gold/red/whiteoutlinedtitleletters byoutcome. NO floatingribbon/laurels/newportrait/banner protrudingoutsidepanel. Preserve SOURCEexact rownames/ranks/arrows/stardeltas/visible-rowcount+scrollbar. Allresourceicons mustbe theexact recognizable OWN roundgoldcoin/notchedBLUEpawTICKETidentityshownImage3; replace anycircularpawbadge/hourglassstrip/three-holegenericcoupon. Reward+/-signs preserve numericalmeaning. No resource namesinsideTOP compactcounters, no progress/yellowwedge/plusbutton. Keep big whiteblack-strokeSOURCEcounts. Buttonclose limegreen atEXACTsourcebounds, no enlargement. Fullscreen720x1280proportions,nophonenoannotations. Source controls mandatory; candidate suppliesonlylinework/palette.\nLOSS source: title失败 red, 林间信使自己第1名3→2青铜星-1. Exactly3visibleothers:青柠苏打-1、晚风放映机-1、雾岛来客+3withoriginalstarbeforeafter. Keep scrollbar. Reward star-1/BLUE PAW TICKET+1. Top146/17+A/B129格. RestorepanelUPtoexactsourcegeometry ratherthanexistingcandidate40pxshift."
+  },
+  {
+    "id": "09_ffa_result",
+    "file": "09_ffa_result.png",
+    "inputs": [
+      "D:\\AI\\zhanchengdashi\\temp\\qa\\result-reward-area-20260907\\ffa-720.png",
+      "D:\\AI\\zhanchengdashi\\output\\visual_concepts\\tata_battle_style\\full_game\\root_pages\\09_ffa_result.png",
+      "D:\\AI\\zhanchengdashi\\output\\visual_concepts\\tata_battle_style\\full_game\\style_master.png"
+    ],
+    "prompt": "Usecase: precise-object-edit/layout-locked UI skin. INPUTROLES: Image1 is ACTUAL GODOT RESULT SCREEN andtheONLYcontrol-layout/text/data authority. Image2 is the visuallypolished result candidate STYLE ONLY; Image3 is commongame style/own resource icon reference ONLY. Restore EVERYFIXEDrectangle to Image1's position/size/scrollarea. Do not enlarge/reorder/removepanelorbuttons. Entiremodal logical(60,176,600,824), title(60,200,600,56),mylabel(92,264,536,28),selfrow(92,298,536,112),otherslabel(92,426,536,30),othersscroll(92,468,536,276),reward(92,764,536,116),close(190,900,340,64).\nCRITICAL: ActualSOURCE shows uniform42%blackFULLSCREENscrim behindmodal. Rebuild that uniformdarkening over ALLworld, HUD, pause AND bottominstructionpanel, withonlythemodalcontentsfullbrightness. Keep entirebottomSOURCEinstructionpanelvisible throughscrim atitsoriginalbounds. Sourcebattlegeometry/units/modes unchanged; DO NOTcopy master1v1map into6teamworld.\nUse restrainedroundedNAVYouterframe/warmivoryinnerface. ALL3resultstatesuse SAMEflatnavy headerstripcontainedinoriginalpaneltitlearea, gold/red/whiteoutlinedtitleletters byoutcome. NO floatingribbon/laurels/newportrait/banner protrudingoutsidepanel. Preserve SOURCEexact rownames/ranks/arrows/stardeltas/visible-rowcount+scrollbar. Allresourceicons mustbe theexact recognizable OWN roundgoldcoin/notchedBLUEpawTICKETidentityshownImage3; replace anycircularpawbadge/hourglassstrip/three-holegenericcoupon. Reward+/-signs preserve numericalmeaning. No resource namesinsideTOP compactcounters, no progress/yellowwedge/plusbutton. Keep big whiteblack-strokeSOURCEcounts. Buttonclose limegreen atEXACTsourcebounds, no enlargement. Fullscreen720x1280proportions,nophonenoannotations. Source controls mandatory; candidate suppliesonlylinework/palette.\nFFA title第1名 goldletters on SAMEcontainednavystripasvictory/defeat—DELETEcandidategoldribbonandgreenlaurels. Otherrowdata/source3visible+scrollbar retained. My2→5青铜星+3; rewardsstar+3/BLUEPAWTICKET+5;top146/22,06:00第6/6. Header不得新增飘带或独立奖章."
+  },
+  {
+    "id": "11_team_battle",
+    "file": "11_team_battle.png",
+    "inputs": [
+      "D:\\AI\\zhanchengdashi\\output\\visual_concepts\\tata_battle_style\\full_game\\root_pages\\11_team_battle.png",
+      "D:\\AI\\zhanchengdashi\\output\\visual_concepts\\tata_battle_style\\full_game\\style_master.png"
+    ],
+    "prompt": "Usecase: precise-object-edit. Image1 existing3V3battlecandidateEDITtarget,Image2STYLEreferenceonly. ChangeONLY topcurrencyandpauseUI: removeword'金币'andword'券'fromtopcounters; baronlylargeprotrudingownROUNDcoin+72andnotchedBLUEpawTICKET+10, sameexactcounterrectanchorsasinreference. RighticoncurrentlyroundpawbadgeisWRONG replacewithImage2exactlongnotchedticketidentity, no progress/yellowwedge/plus. Pausebuttonsamepositionbarsshape adoptImage2deepnavyface/whitebarsinsteadcream. KeepEVERYotherpixel, source6colorhexcoords/building/siteprices50/25/100/250/100, A/B108格scoresanddots/goldlocalframe,bottom空地instructionunchanged. No1v1rankplate/noanimalsadded/no moves. Fullscreennoannotations."
+  },
+  {
+    "id": "12_ffa_battle",
+    "file": "12_ffa_battle.png",
+    "inputs": [
+      "D:\\AI\\zhanchengdashi\\output\\visual_concepts\\tata_battle_style\\full_game\\root_pages\\12_ffa_battle.png",
+      "D:\\AI\\zhanchengdashi\\output\\visual_concepts\\tata_battle_style\\full_game\\style_master.png"
+    ],
+    "prompt": "Usecase: precise-object-edit. EditImage1existing6-playerbattle,Image2onlyreferenceforcurrencies/pause. ChangeONLY: (1) Removewords'金币'and'券'fromtopbar, plaincompactdarknavycapsules+largeprotrudingownROUNDcoin72/notchedBLUEpawTICKET10, whiteblackstrokenumbers; sameglobalmasterlook, no yellow/progress/plus. (2) Pausebuttonsamesourcepositionnavyfacewhitebars. (3) The partlyoccludedlowerlockedsitecoin labeljustBELOW rabbitpopup currentlyreads'55'; correctEXACTto'50'fromsource, originalcoin/positionunchanged. (4) BlueHUDrankingface matchingmasterdeepnavywithwhiteclearnumbers, retains6rows1号..6号each55格and5号yellowlocaloutline. EverythingELSEstrictlyunchangedincluding06:00第5/6,map6coloredregions,sourceunit/buildingcoords,cardpopup兔子哨塔Lv1 0/1,otherprices100/250/25/5,fullbottominstructions. No newunits/buttons/labels."
+  }
+]

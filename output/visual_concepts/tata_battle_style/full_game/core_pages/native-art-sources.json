@@ -1,0 +1,185 @@
+{
+  "source_kind": "Original authoritative project animal PNG assets",
+  "assets": [
+    {
+      "id": "frog",
+      "name": "青蛙",
+      "rarity": "common",
+      "path": "D:\\AI\\zhanchengdashi\\assets\\card_art\\animals\\frog.png",
+      "sha256": "AF4E1A44E00C1477865795544BCFDE4EA9FCA256B1D88F9EA0F45CEFE167CF6B",
+      "size": [
+        480,
+        480
+      ],
+      "alpha_visible_bbox": [
+        110,
+        133,
+        369,
+        346
+      ],
+      "fit_rule": "Uniform visible-alpha fit; preserve original pixels and proportions; no silhouette edit"
+    },
+    {
+      "id": "ant",
+      "name": "蚂蚁",
+      "rarity": "common",
+      "path": "D:\\AI\\zhanchengdashi\\assets\\card_art\\animals\\ant.png",
+      "sha256": "D489AF6743CD14DF6536519223F79270EEBB628245CDB9FA331FE88E2E9EF319",
+      "size": [
+        480,
+        480
+      ],
+      "alpha_visible_bbox": [
+        157,
+        112,
+        323,
+        368
+      ],
+      "fit_rule": "Uniform visible-alpha fit; preserve original pixels and proportions; no silhouette edit"
+    },
+    {
+      "id": "sparrow",
+      "name": "麻雀",
+      "rarity": "common",
+      "path": "D:\\AI\\zhanchengdashi\\assets\\card_art\\animals\\sparrow.png",
+      "sha256": "7F1B48D235FF249BE2D3BEFD3DEEB23AD1F2FDB9645D01BBFF28189260B16E39",
+      "size": [
+        480,
+        480
+      ],
+      "alpha_visible_bbox": [
+        118,
+        137,
+        361,
+        343
+      ],
+      "fit_rule": "Uniform visible-alpha fit; preserve original pixels and proportions; no silhouette edit"
+    },
+    {
+      "id": "rabbit",
+      "name": "兔子",
+      "rarity": "common",
+      "path": "D:\\AI\\zhanchengdashi\\assets\\card_art\\animals\\rabbit.png",
+      "sha256": "1EBC2DEE3F29B6E41465720AEB1FF565BBFA155CD08DE93B83AEEF3B68B5A11C",
+      "size": [
+        480,
+        480
+      ],
+      "alpha_visible_bbox": [
+        138,
+        106,
+        341,
+        374
+      ],
+      "fit_rule": "Uniform visible-alpha fit; preserve original pixels and proportions; no silhouette edit"
+    },
+    {
+      "id": "duck",
+      "name": "鸭",
+      "rarity": "rare",
+      "path": "D:\\AI\\zhanchengdashi\\assets\\card_art\\animals\\duck.png",
+      "sha256": "74FEBE8569D95AFEBBFEBF93E2E9B8E2DFCBA353F945E8AAC4907DE7BE164853",
+      "size": [
+        480,
+        480
+      ],
+      "alpha_visible_bbox": [
+        97,
+        107,
+        383,
+        373
+      ],
+      "fit_rule": "Uniform visible-alpha fit; preserve original pixels and proportions; no silhouette edit"
+    },
+    {
+      "id": "snail",
+      "name": "蜗牛",
+      "rarity": "common",
+      "path": "D:\\AI\\zhanchengdashi\\assets\\card_art\\animals\\snail.png",
+      "sha256": "4B973F2A16FA7583125A437AA7CF6479CCEC4277A706EADFD0F7A572FA2D13FF",
+      "size": [
+        480,
+        480
+      ],
+      "alpha_visible_bbox": [
+        133,
+        138,
+        346,
+        342
+      ],
+      "fit_rule": "Uniform visible-alpha fit; preserve original pixels and proportions; no silhouette edit"
+    },
+    {
+      "id": "hamster",
+      "name": "仓鼠",
+      "rarity": "common",
+      "path": "D:\\AI\\zhanchengdashi\\assets\\card_art\\animals\\hamster.png",
+      "sha256": "C58F85BBD6ADFB39110C6F102428B9D7AA930EF72A1B5B376AF5F2F91FC9A42A",
+      "size": [
+        480,
+        480
+      ],
+      "alpha_visible_bbox": [
+        90,
+        119,
+        390,
+        361
+      ],
+      "fit_rule": "Uniform visible-alpha fit; preserve original pixels and proportions; no silhouette edit"
+    },
+    {
+      "id": "pigeon",
+      "name": "鸽子",
+      "rarity": "common",
+      "path": "D:\\AI\\zhanchengdashi\\assets\\card_art\\animals\\pigeon.png",
+      "sha256": "092792157EAEB84D5CF1E39466E1051ACB668994BC36DD2AD53A6FE0D005626B",
+      "size": [
+        480,
+        480
+      ],
+      "alpha_visible_bbox": [
+        109,
+        145,
+        370,
+        333
+      ],
+      "fit_rule": "Uniform visible-alpha fit; preserve original pixels and proportions; no silhouette edit"
+    },
+    {
+      "id": "parrot",
+      "name": "鹦鹉",
+      "rarity": "rare",
+      "path": "D:\\AI\\zhanchengdashi\\assets\\card_art\\animals\\parrot.png",
+      "sha256": "7EC7B09A151FBDB2B2E00B973A08B79B58785180FCAB7AF88207890E7469F53E",
+      "size": [
+        480,
+        480
+      ],
+      "alpha_visible_bbox": [
+        47,
+        59,
+        386,
+        353
+      ],
+      "fit_rule": "Uniform visible-alpha fit; preserve original pixels and proportions; no silhouette edit"
+    },
+    {
+      "id": "mouse",
+      "name": "老鼠",
+      "rarity": "common",
+      "path": "D:\\AI\\zhanchengdashi\\assets\\card_art\\animals\\mouse.png",
+      "sha256": "CFE79C829A2B9F707C7E4CE5387BEA12DABE8131B3B7E1BAEEE1BC001D3873F5",
+      "size": [
+        480,
+        480
+      ],
+      "alpha_visible_bbox": [
+        111,
+        111,
+        369,
+        368
+      ],
+      "fit_rule": "Uniform visible-alpha fit; preserve original pixels and proportions; no silhouette edit"
+    }
+  ]
+}

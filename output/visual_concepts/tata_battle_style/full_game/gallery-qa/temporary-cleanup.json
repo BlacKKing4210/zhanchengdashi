@@ -1,0 +1,9 @@
+{
+  "scope": "Own bounded crop study only",
+  "path": "D:\\AI\\zhanchengdashi\\output\\visual_concepts\\tata_battle_style\\full_game\\root_pages\\iterations\\forest-wide-crop-study.png",
+  "bytes": 105833,
+  "sha256": "B05241D35126F5D7EA886DAC252BA1DC48E37DEA66078CAE6BB142B3E9B175AF",
+  "retained_source": "root_pages/01_lobby.png",
+  "retained_recipe": "root_pages/skin_world.cjs forest_source_crop [65,180,810,125]",
+  "purpose": "Temporary crop inspection; never a gallery or source input"
+}

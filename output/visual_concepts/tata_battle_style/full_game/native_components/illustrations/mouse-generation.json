@@ -1,0 +1,53 @@
+{
+  "schema_version": 1,
+  "id": "mouse",
+  "scope": "PREVIEW_ONLY_HIGH_RES_HERO_ILLUSTRATION_NO_RUNTIME",
+  "skill": "game-character-image-production plus imagegen",
+  "generated_on": "2026-10-12 Asia/Hong_Kong",
+  "source": "../core_pages/04_deck_main.png",
+  "source_crop": [
+    518,
+    474,
+    122,
+    112
+  ],
+  "reference": "mouse-reference.png",
+  "asset": "gray-mouse-hero.png",
+  "candidate_count": 1,
+  "method": "Built-in image_gen one globally authorized call",
+  "background": "Real alpha transparency; no UI or backing",
+  "protected_anchors": [
+    "Huge round gray ears with pink interior",
+    "Gray head and pale snout; black eyes/nose and friendly smile",
+    "Purple neck scarf and amber throat button",
+    "Blue upward-curving tail",
+    "Slight left-facing stance; left paw extended and other hand against torso"
+  ],
+  "intended_rect": [
+    96,
+    260,
+    528,
+    528
+  ],
+  "prompt": "Use case: stylized-concept / identity-preserving illustration. Create ONE high-resolution TRANSPARENT-background full-body portrait cutout for the original gray mouse 老鼠 in the game 丛林法则. Image 1 is the exact already-approved mouse IDENTITY AND POSE reference extracted from the project's card, and Image 2 shows the approved same-use cartoon art family. Reconstruct this same mouse cleanly at high resolution without changing its design: huge round gray ears with soft pink inner-ear areas, very large rounded slate-gray head, pale-gray snout and cheeks, tiny rounded black nose, two shiny black oval eyes, small friendly smiling mouth, subtle warm cheek blush. Small squat chibi body with lavender-gray jacket/pale gray belly, tiny purple neck scarf and amber button at throat, two short feet, dark blue/teal tail curving upward at its right. Keep the reference's slight left-facing three-quarter stance, left paw extended forward-left, other paw bent against the chest, exactly the same head/body ratio and happy face. Professional flat matte 2D mobile-game cartoon craft: crisp confident near-black silhouette outlines, rounded comic shapes, simple two-tone color blocks, minimal clean shading and detail, sharp high-resolution edges with no pixelation. Do not reproduce the source screenshot's pixel blocks, blurry edges or green card background. Render the mouse only, entire ears/paws/feet/tail all fully visible, generous transparent margins, centered composition approximately square. No card frame, UI, text, symbols, backdrop, ground, shadows, glow, props, watermark, logos, additional animals or redesign. A real alpha-transparent background is mandatory. Intended to fit the existing 528x528 hero illustration region while native UI is composed separately; do not generate any UI.",
+  "status": "PREVIEW_CHARACTER_PASS",
+  "runtime_ready": false,
+  "cleanup": "Bounded native reference crop and source provenance kept; no source/art input or runtime file mutated.",
+  "sha256": "FF7AB1A58EBA99BE08F2649FF05431CFF8F356DB5E4A6123BDFCC375E1539335",
+  "pixels": [
+    1254,
+    1254
+  ],
+  "alpha_check": {
+    "format": "Format32bppArgb",
+    "corner": 0,
+    "center": 254
+  },
+  "page_verdict": {
+    "path": "core_pages/09_gacha_new_hero.png",
+    "sha256": "2D51C12B30B64805DC592F93F4E92125CBEDDF509825AABCF8ECC4FC688E7258",
+    "verdict": "PREVIEW_PASS",
+    "p0": [],
+    "p1": []
+  }
+}

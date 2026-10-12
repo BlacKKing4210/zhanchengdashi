@@ -1,0 +1,53 @@
+const fs = require('fs');
+const path = require('path');
+const {pathToFileURL} = require('url');
+const {chromium} = require('C:/Users/76398/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright');
+const base = __dirname;
+let activeBrowser;
+async function run() {
+  const out = path.join(base,'gallery-qa');fs.mkdirSync(out,{recursive:true});
+  const errors=[],failed=[];
+  const browser=activeBrowser=await chromium.launch({executablePath:'C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe',headless:true});
+  const context=await browser.newContext({viewport:{width:1440,height:1000},acceptDownloads:true});
+  const page=await context.newPage();
+  page.on('pageerror',e=>errors.push(e.message));page.on('requestfailed',r=>failed.push({url:r.url(),error:r.failure()?.errorText}));
+  await page.goto(pathToFileURL(path.join(base,'index.html')).href);
+  const manifest=JSON.parse(fs.readFileSync(path.join(base,'manifest.json')));
+  const expect=(ok,message)=>{if(!ok)throw Error(message);};
+  const decoded=await page.locator('.preview img').evaluateAll(async images=>{
+    await Promise.all(images.map(i=>i.decode()));return images.map(i=>({src:i.getAttribute('src'),width:i.naturalWidth,height:i.naturalHeight}));
+  });
+  expect(decoded.length===31&&decoded.every(x=>x.width>0&&x.height>0),'Missing PNG decode');
+  expect(await page.locator('.card:visible').count()===6,'Six main screens not shown');
+  await page.screenshot({path:path.join(out,'desktop-main.png'),fullPage:true});
+  await page.locator('[data-filter="all"]').click();expect(await page.locator('.card:visible').count()===31,'All-screen count');
+  const groups={home:3,deck:2,lobby:1,gacha:4,room:4,account:5,battle:8,result:3,loading:1};
+  for(const [group,count] of Object.entries(groups)){await page.locator('[data-filter="'+group+'"]').click();expect(await page.locator('.card:visible').count()===count,'Group mismatch: '+group);}
+  await page.locator('[data-filter="battle"]').click();
+  await page.locator('#search').fill('金币不足');expect(await page.locator('.card:visible').count()===1,'Search mismatch');
+  await page.locator('.card:visible .preview').click();expect(await page.locator('#viewer').evaluate(e=>e.open),'Modal not open');
+  expect(await page.locator('#viewer-title').textContent()==='战斗 · 金币不足','Modal title mismatch');
+  await page.locator('#viewer-image').evaluate(i=>i.decode());await page.screenshot({path:path.join(out,'battle-viewer.png')});
+  const [original]=await Promise.all([context.waitForEvent('page'),page.locator('#viewer-save').click()]);
+  await original.waitForLoadState();expect(original.url().endsWith('05_battle_no_gold.png'),'Original PNG link mismatch');
+  expect(await original.locator('img').evaluate(async i=>{await i.decode();return i.naturalWidth>0;}),'Original PNG failed decode');await original.close();
+  await page.keyboard.press('Escape');expect(await page.locator('#viewer').evaluate(e=>!e.open),'Escape failed');
+  await page.locator('#search').fill('');await page.locator('[data-open="battle-default"]').click();
+  await page.keyboard.press('ArrowRight');expect(await page.locator('#viewer-title').textContent()==='战斗 · 选中动物','Next-state keyboard mismatch');
+  await page.keyboard.press('ArrowLeft');expect(await page.locator('#viewer-title').textContent()==='战斗 · 常态与风格基准','Previous-state keyboard mismatch');
+  await page.locator('#close').click();
+  await page.locator('#search').fill('没有这个页面');expect(await page.locator('#empty').isVisible(),'Empty-result state missing');
+  await page.locator('#search').fill('');await page.locator('[data-filter="main"]').click();
+  await page.setViewportSize({width:390,height:844});expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'Mobile horizontal overflow');
+  await page.screenshot({path:path.join(out,'mobile-main.png'),fullPage:true});
+  await page.locator('[data-open="battle-default"]').click();await page.locator('#viewer-image').evaluate(i=>i.decode());
+  expect(await page.locator('#close').isVisible()&&await page.locator('#viewer-save').isVisible(),'Mobile viewer controls missing');
+  await page.screenshot({path:path.join(out,'mobile-viewer.png')});
+  await page.locator('#close').click();
+  const relative=await page.locator('.preview img').evaluateAll(xs=>xs.every(x=>!/^([a-z]+:|[\\/])/i.test(x.getAttribute('src'))));
+  expect(relative,'Gallery has nonrelative images');expect(!errors.length&&!failed.length,'Browser errors');
+  await browser.close();
+  const receipt={request_id:manifest.request_id,status:'PASS_OFFLINE_GALLERY',browser:'Fresh isolated headless Edge context; file://; no cookies or user profile',canonical_png_count:31,main_screens:6,decoded_images:decoded.length,group_counts:groups,checks:['31 canonical PNG decoded','6 main screens and all9 group filters','Chinese keyword and empty-result search','Full image dialog, close, Escape and previous/next arrow keys','Original local PNG opened in separate tab and decoded without copying','390px responsive view with zero horizontal overflow','Relative offline image references'],page_errors:errors,failed_requests:failed,source:'index.html',runtime_test:false};
+  fs.writeFileSync(path.join(out,'verification.json'),JSON.stringify(receipt,null,2)+'\n');console.log(JSON.stringify(receipt,null,2));
+}
+run().catch(async e=>{console.error(e);if(activeBrowser)await activeBrowser.close();process.exitCode=1;});

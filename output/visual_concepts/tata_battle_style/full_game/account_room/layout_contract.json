@@ -1,0 +1,274 @@
+{
+  "schema_version": 1,
+  "request_id": "REQ-20261011-TATA-FULL-GAME-PREVIEW",
+  "render_method": "AI art with native vector panels/text/buttons, PNG preview only",
+  "target_resolution": [
+    720,
+    1280
+  ],
+  "geometry_source": "scripts/app/main.gd:10049-10178; scripts/app/ui/account_avatar_picker.gd and output/runtime_ui_b_20260906/19_avatar.png",
+  "safe_data": {
+    "username": "小松果",
+    "account": "U-DEMO-20261012",
+    "user_id": "U-DEMO-20261012",
+    "password_display": "••••••••",
+    "switch_rows": [
+      {
+        "avatar": "squirrel",
+        "username": "小松果",
+        "account": "U-DEMO-20261012",
+        "rank": "青铜2星",
+        "active": true
+      },
+      {
+        "avatar": "parrot",
+        "username": "彩虹羽",
+        "account": "U-DEMO-000002",
+        "rank": "白银3星",
+        "active": false
+      }
+    ],
+    "avatar_total": 60,
+    "avatar_unlocked": 9,
+    "avatar_locked": 51,
+    "avatar_selected": "squirrel"
+  },
+  "rects": {
+    "account_panel": [
+      62,
+      156,
+      596,
+      1004
+    ],
+    "account_title": [
+      96,
+      188,
+      420,
+      56
+    ],
+    "account_close": [
+      532,
+      194,
+      96,
+      46
+    ],
+    "account_username": [
+      226,
+      350,
+      370,
+      54
+    ],
+    "account_agreement": [
+      104,
+      728,
+      512,
+      60
+    ],
+    "account_music": [
+      104,
+      838,
+      246,
+      60
+    ],
+    "account_sfx": [
+      370,
+      838,
+      246,
+      60
+    ],
+    "account_password_view": [
+      476,
+      480,
+      120,
+      40
+    ],
+    "account_copy": [
+      116,
+      526,
+      488,
+      48
+    ],
+    "account_save": [
+      104,
+      612,
+      512,
+      64
+    ],
+    "account_switch": [
+      104,
+      926,
+      246,
+      64
+    ],
+    "account_bind": [
+      370,
+      926,
+      246,
+      64
+    ],
+    "login_account": [
+      190,
+      334,
+      426,
+      58
+    ],
+    "login_password": [
+      190,
+      416,
+      426,
+      58
+    ],
+    "login_login": [
+      104,
+      494,
+      246,
+      64
+    ],
+    "login_register": [
+      370,
+      494,
+      246,
+      64
+    ],
+    "switch_row0": [
+      104,
+      334,
+      512,
+      52
+    ],
+    "switch_row1": [
+      104,
+      392,
+      512,
+      52
+    ],
+    "switch_new": [
+      154,
+      824,
+      412,
+      62
+    ],
+    "switch_bind": [
+      154,
+      1002,
+      412,
+      62
+    ],
+    "agreement_text": [
+      108,
+      294,
+      504,
+      468
+    ],
+    "agreement_back": [
+      154,
+      1064,
+      412,
+      64
+    ],
+    "room_title": [
+      40,
+      68,
+      640,
+      58
+    ],
+    "room_subtitle": [
+      52,
+      128,
+      616,
+      32
+    ],
+    "room_entry_panel": [
+      48,
+      240,
+      624,
+      650
+    ],
+    "room_create": [
+      120,
+      326,
+      480,
+      72
+    ],
+    "room_code_input": [
+      92,
+      466,
+      356,
+      64
+    ],
+    "room_join": [
+      464,
+      466,
+      164,
+      64
+    ],
+    "room_entry_fill": [
+      92,
+      574,
+      536,
+      58
+    ],
+    "room_retry": [
+      230,
+      690,
+      260,
+      60
+    ],
+    "room_code_panel": [
+      48,
+      232,
+      624,
+      82
+    ],
+    "room_code_copy": [
+      506,
+      246,
+      92,
+      48
+    ],
+    "room_team_a": [
+      48,
+      334,
+      302,
+      470
+    ],
+    "room_team_b": [
+      370,
+      334,
+      302,
+      470
+    ],
+    "room_fill": [
+      48,
+      824,
+      624,
+      62
+    ],
+    "room_leave": [
+      48,
+      900,
+      300,
+      54
+    ],
+    "room_primary": [
+      372,
+      900,
+      300,
+      54
+    ],
+    "nav": [
+      0,
+      1148,
+      720,
+      132
+    ]
+  },
+  "agreement_text": "欢迎使用《丛林法则》。请文明游戏并妥善保管账号。游戏进度由服务器保存；禁止利用漏洞、外挂或干扰其他玩家。我们仅处理提供账号与游戏服务所需的数据。账号中心可切换本机拥有的档案；新建账号会从全新进度开始。",
+  "invariants": [
+    "No runtime/config/server write",
+    "No real account identifiers or credentials read or transmitted",
+    "Plain dark currency capsules, gold coin and BLUE ticket, white black-outlined counts, no fill/progress/wedge/plus",
+    "Five approved nav identities/slots; GOLD ticket nav action differs from BLUE admission-ticket resource",
+    "All room state variants use identical native base geometry"
+  ]
+}

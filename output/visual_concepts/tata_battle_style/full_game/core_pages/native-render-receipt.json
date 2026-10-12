@@ -1,0 +1,1115 @@
+{
+  "schema_version": 1,
+  "date": "2026-10-12",
+  "mode": "NO_RUNTIME_STATIC_NATIVE_PREVIEW",
+  "renderer": "D:/AI/zhanchengdashi/output/visual_concepts/tata_battle_style/full_game/core_pages/render_core.cjs",
+  "renderer_sha256": "FBF61E32395F1ECFEC08A39126910C3656D07495B68DA8A6E5CF679413A8D75A",
+  "native_kit": {
+    "path": "D:\\AI\\zhanchengdashi\\output\\visual_concepts\\tata_battle_style\\full_game\\native_components\\common.cjs",
+    "sha256": "507DF024CA02043A822BBECF9391F97A6991180A67CCE11859DB47FB0F28AF8F",
+    "icons": {
+      "coin": {
+        "path": "D:\\AI\\zhanchengdashi\\output\\visual_concepts\\tata_battle_style\\full_game\\native_components\\icons\\coin.png",
+        "sha256": "A2417FB02C97F771D55DCAD8521675614195E57F433EB74CCB878C693C6AE9C0"
+      },
+      "ticket": {
+        "path": "D:\\AI\\zhanchengdashi\\output\\visual_concepts\\tata_battle_style\\full_game\\native_components\\icons\\ticket.png",
+        "sha256": "749E72DB2A73149518A499E3771C4CAFE217824203FBAAA6E2EA7B81498DD663"
+      },
+      "nav_home": {
+        "path": "D:\\AI\\zhanchengdashi\\output\\visual_concepts\\tata_battle_style\\full_game\\native_components\\icons\\nav_home.png",
+        "sha256": "15BFC0FEC60337BA6EADB5B1D18C7BCB17E7B0B89C1F48C8375B5CD6BA42479C"
+      },
+      "nav_deck": {
+        "path": "D:\\AI\\zhanchengdashi\\output\\visual_concepts\\tata_battle_style\\full_game\\native_components\\icons\\nav_deck.png",
+        "sha256": "8629BC1119BA48089A3AB43CCC3873CAA689289B9A22E4C36A85A9027C3688F2"
+      },
+      "nav_battle": {
+        "path": "D:\\AI\\zhanchengdashi\\output\\visual_concepts\\tata_battle_style\\full_game\\native_components\\icons\\nav_battle.png",
+        "sha256": "56E8DF7171AF9EA1CD129821D890473CC8E69F30997C94F53696193AC239D978"
+      },
+      "nav_gacha": {
+        "path": "D:\\AI\\zhanchengdashi\\output\\visual_concepts\\tata_battle_style\\full_game\\native_components\\icons\\nav_gacha.png",
+        "sha256": "3AF70BE194BBCD5742CA8CEBEF022D244BC3DE6248099F1D5B9A29B2C144710F"
+      },
+      "nav_room": {
+        "path": "D:\\AI\\zhanchengdashi\\output\\visual_concepts\\tata_battle_style\\full_game\\native_components\\icons\\nav_room.png",
+        "sha256": "F0AAACD893F093BC29DE82FAE2E636044A613B3B059D39CD7828089EA02197C4"
+      },
+      "star": {
+        "path": "D:\\AI\\zhanchengdashi\\output\\visual_concepts\\tata_battle_style\\full_game\\native_components\\icons\\star.png",
+        "sha256": "63DDD7A26CFB58AFDEF30BE1BDDD6D0B0440412A731AA4AD5D08FC841AD07C0E"
+      },
+      "heart": {
+        "path": "D:\\AI\\zhanchengdashi\\output\\visual_concepts\\tata_battle_style\\full_game\\native_components\\icons\\heart.png",
+        "sha256": "2DD7F28AB99B7775B11161676E9AEC9B29732D53F86F41FF8EE1FCFEAD938518"
+      },
+      "paw": {
+        "path": "D:\\AI\\zhanchengdashi\\output\\visual_concepts\\tata_battle_style\\full_game\\native_components\\icons\\paw.png",
+        "sha256": "2DCF2A10D1B563EC5698A6A5D1ED1DD3A4FB6D736E35B3D9FB5A1060931DC57F"
+      }
+    }
+  },
+  "formal_sources": [
+    {
+      "path": "D:/AI/zhanchengdashi/scripts/app/main.gd",
+      "sha256": "8C9E374F65A221AF7BB92A32470503166188A879562D5A1AE220A817D56359CA"
+    },
+    {
+      "path": "D:/AI/zhanchengdashi/scripts/app/ui/home_view.gd",
+      "sha256": "03F6097BCA1520B2BCB20757FADC18EFC5825DE5D535C3F5983D00C861E58362"
+    },
+    {
+      "path": "D:/AI/zhanchengdashi/scripts/app/ui/gacha_new_hero_reveal.gd",
+      "sha256": "1BD20EF0BBFC32AC2982AE1DE2D842F9AC78F9407AD91B0C3C953BFA5586BEB9"
+    },
+    {
+      "path": "D:/AI/zhanchengdashi/scripts/foundation/ui/main_page_layout.gd",
+      "sha256": "8847E4C4F1E80A7E5523720F890AF68AED94DCD9AC0D44BEDDA0DD122143405A"
+    },
+    {
+      "path": "D:/AI/zhanchengdashi/config/tables/cards.csv",
+      "sha256": "B8F7781B311423A57F2205D4A66C93D81E4F8EB0C15A03658FE20B52723D7FBC"
+    },
+    {
+      "path": "D:\\AI\\zhanchengdashi\\runtime\\config\\cards.json",
+      "sha256": "90F354F63B38715F8FCB013275E83733E625E3F0DF909AD69DE455F76856E293"
+    }
+  ],
+  "animal_source_document": "native-art-sources.json",
+  "foliage_source": {
+    "path": "D:/AI/zhanchengdashi/output/visual_concepts/tata_battle_style/full_game/style_master.png",
+    "sha256": "BBE3FD3A58369D7ACC66808C7ADBCD7FE39BDC373E27D5B2C76EEB366516405A",
+    "logical_crop": [
+      0,
+      82,
+      140,
+      155
+    ],
+    "rule": "Only clean forest pixels reused with alpha feather on free crop edges. No full-screen battle background or animal/control crop."
+  },
+  "outputs": [
+    {
+      "id": "03_home_daily_rewards",
+      "output": "D:/AI/zhanchengdashi/output/visual_concepts/tata_battle_style/full_game/core_pages/03_home_daily_rewards.png",
+      "output_sha256": "0A0658C865399CBC299FA63EC6A04C997F9B240ACB8CC95FCC04E3C1FBAF5BED",
+      "output_pixels": [
+        720,
+        1280
+      ],
+      "render_method": "USER_AUTHORIZED_NATIVE_CANVAS_COMPONENTS",
+      "status": "PREVIEW_ART_DIRECTOR_PASS",
+      "repair": {
+        "input": "C:/Users/76398/.codex/generated_images/01a12ae8-e0b1-7283-b9eb-711ff560c36b/exec-105697f1-9636-4c6a-8361-edaa4736411c.png",
+        "input_sha256": "1E98B1F936AB15A1E59E4C74193AA9063CACC2940355D8B28429014B5B3DDC96",
+        "old_pixels": [
+          941,
+          1672
+        ],
+        "uniform_scale": 0.7651434643995749,
+        "y_offset": 0.34006376195532084,
+        "cleared_old_roi": [
+          663,
+          607,
+          67,
+          54
+        ],
+        "background_sample_roi": [
+          730,
+          607,
+          10,
+          54
+        ],
+        "native_icon": "ticket",
+        "new_icon_rect": [
+          512.2635494155154,
+          464.7821466524973,
+          41.317747077577046,
+          41.317747077577046
+        ],
+        "unchanged": "All page pixels outside original reward-ticket slot undergo uniform scale only; digit 2, all modal text, pillows, backdrop and nav preserved."
+      },
+      "independent_review": {
+        "path": "../reviews/core_pages.json",
+        "sha256": "2031F9F0DB82B9F693B599DCC9C422ADF27B093C32065B8EBFBB27FBACD155BC",
+        "verdict": "PREVIEW_PASS",
+        "output_sha256": "0A0658C865399CBC299FA63EC6A04C997F9B240ACB8CC95FCC04E3C1FBAF5BED"
+      }
+    },
+    {
+      "id": "06_gacha_empty",
+      "output": "D:/AI/zhanchengdashi/output/visual_concepts/tata_battle_style/full_game/core_pages/06_gacha_empty.png",
+      "output_sha256": "88F0B53F9531F5A102AF933701F9F8451FFC048D70CAAE2B1A68D9D695C1F46E",
+      "output_pixels": [
+        720,
+        1280
+      ],
+      "render_method": "USER_AUTHORIZED_NATIVE_CANVAS_COMPONENTS",
+      "status": "PREVIEW_ART_DIRECTOR_PASS",
+      "state": {
+        "id": "06_gacha_empty",
+        "gold": 60,
+        "tickets": 0,
+        "heading": "抽卡",
+        "record_heading": "最近获得",
+        "record_empty": "暂无记录",
+        "buttons": [
+          "抽1次",
+          "抽10次"
+        ],
+        "buttons_enabled": [
+          false,
+          false
+        ],
+        "nav_active": 3,
+        "source_evidence": "SOURCE_CONFIRMED_STATE_DERIVED_FROM_HISTORICAL_FIXTURE",
+        "new_features": false
+      },
+      "geometry": {
+        "currency_left": [
+          46,
+          18,
+          186,
+          44
+        ],
+        "currency_right": [
+          488,
+          18,
+          186,
+          44
+        ],
+        "title": [
+          40,
+          68,
+          640,
+          58
+        ],
+        "gacha_tickets": [
+          238,
+          130,
+          244,
+          48
+        ],
+        "reward_panel": [
+          46,
+          208,
+          628,
+          822
+        ],
+        "reward_heading": [
+          46,
+          236,
+          628,
+          42
+        ],
+        "empty_text": [
+          46,
+          446,
+          628,
+          42
+        ],
+        "single_card": [
+          228,
+          460,
+          264,
+          316
+        ],
+        "one_cta": [
+          104,
+          1050,
+          240,
+          76
+        ],
+        "ten_cta": [
+          376,
+          1050,
+          240,
+          76
+        ],
+        "toast": [
+          130,
+          1018,
+          460,
+          58
+        ],
+        "nav_slots": [
+          [
+            3,
+            1148,
+            138,
+            122
+          ],
+          [
+            147,
+            1148,
+            138,
+            122
+          ],
+          [
+            291,
+            1148,
+            138,
+            122
+          ],
+          [
+            435,
+            1148,
+            138,
+            122
+          ],
+          [
+            579,
+            1148,
+            138,
+            122
+          ]
+        ],
+        "ten_card_size": [
+          132,
+          158
+        ],
+        "ten_gap": [
+          40,
+          28
+        ],
+        "ten_row_counts": [
+          2,
+          3,
+          3,
+          2
+        ],
+        "hero_portrait": [
+          96,
+          260,
+          528,
+          528
+        ],
+        "hero_name": [
+          64,
+          840,
+          592,
+          64
+        ],
+        "hero_slogan": [
+          64,
+          936,
+          592,
+          128
+        ],
+        "hero_continue": [
+          138,
+          1112,
+          444,
+          76
+        ]
+      },
+      "animal_assets": [],
+      "independent_review": {
+        "path": "../reviews/core_pages.json",
+        "sha256": "2031F9F0DB82B9F693B599DCC9C422ADF27B093C32065B8EBFBB27FBACD155BC",
+        "verdict": "PREVIEW_PASS",
+        "output_sha256": "88F0B53F9531F5A102AF933701F9F8451FFC048D70CAAE2B1A68D9D695C1F46E"
+      }
+    },
+    {
+      "id": "07_gacha_opening",
+      "output": "D:/AI/zhanchengdashi/output/visual_concepts/tata_battle_style/full_game/core_pages/07_gacha_opening.png",
+      "output_sha256": "C8859DB8D989E832D84B9D8D97A1D195F0F25902E507A0B32074EC0148106A71",
+      "output_pixels": [
+        720,
+        1280
+      ],
+      "render_method": "USER_AUTHORIZED_NATIVE_CANVAS_COMPONENTS",
+      "status": "PREVIEW_ART_DIRECTOR_PASS",
+      "state": {
+        "id": "07_gacha_opening",
+        "gold": 60,
+        "tickets": 29,
+        "card_back": "existing normal result blue-purple framed star card",
+        "toast": "获得1张卡牌",
+        "buttons_enabled": [
+          false,
+          false
+        ],
+        "nav_active": 3,
+        "source_evidence": "HISTORICAL_LOCAL_RUNTIME_FIXTURE",
+        "no_new_hero_overlay": true
+      },
+      "geometry": {
+        "currency_left": [
+          46,
+          18,
+          186,
+          44
+        ],
+        "currency_right": [
+          488,
+          18,
+          186,
+          44
+        ],
+        "title": [
+          40,
+          68,
+          640,
+          58
+        ],
+        "gacha_tickets": [
+          238,
+          130,
+          244,
+          48
+        ],
+        "reward_panel": [
+          46,
+          208,
+          628,
+          822
+        ],
+        "reward_heading": [
+          46,
+          236,
+          628,
+          42
+        ],
+        "empty_text": [
+          46,
+          446,
+          628,
+          42
+        ],
+        "single_card": [
+          228,
+          460,
+          264,
+          316
+        ],
+        "one_cta": [
+          104,
+          1050,
+          240,
+          76
+        ],
+        "ten_cta": [
+          376,
+          1050,
+          240,
+          76
+        ],
+        "toast": [
+          130,
+          1018,
+          460,
+          58
+        ],
+        "nav_slots": [
+          [
+            3,
+            1148,
+            138,
+            122
+          ],
+          [
+            147,
+            1148,
+            138,
+            122
+          ],
+          [
+            291,
+            1148,
+            138,
+            122
+          ],
+          [
+            435,
+            1148,
+            138,
+            122
+          ],
+          [
+            579,
+            1148,
+            138,
+            122
+          ]
+        ],
+        "ten_card_size": [
+          132,
+          158
+        ],
+        "ten_gap": [
+          40,
+          28
+        ],
+        "ten_row_counts": [
+          2,
+          3,
+          3,
+          2
+        ],
+        "hero_portrait": [
+          96,
+          260,
+          528,
+          528
+        ],
+        "hero_name": [
+          64,
+          840,
+          592,
+          64
+        ],
+        "hero_slogan": [
+          64,
+          936,
+          592,
+          128
+        ],
+        "hero_continue": [
+          138,
+          1112,
+          444,
+          76
+        ]
+      },
+      "animal_assets": [],
+      "animation_boundary": "Single static normal result flip-card back; not proof of animation or first-ownership reveal.",
+      "independent_review": {
+        "path": "../reviews/core_pages.json",
+        "sha256": "2031F9F0DB82B9F693B599DCC9C422ADF27B093C32065B8EBFBB27FBACD155BC",
+        "verdict": "PREVIEW_PASS",
+        "output_sha256": "C8859DB8D989E832D84B9D8D97A1D195F0F25902E507A0B32074EC0148106A71"
+      }
+    },
+    {
+      "id": "08_gacha_ten_result",
+      "output": "D:/AI/zhanchengdashi/output/visual_concepts/tata_battle_style/full_game/core_pages/08_gacha_ten_result.png",
+      "output_sha256": "1C34FFFA67145E1DD6A75D7E19E79E5E879322BAFCF80D792AD2BBDBC3C179BC",
+      "output_pixels": [
+        720,
+        1280
+      ],
+      "render_method": "USER_AUTHORIZED_NATIVE_CANVAS_COMPONENTS",
+      "status": "PREVIEW_ART_DIRECTOR_PASS",
+      "state": {
+        "id": "08_gacha_ten_result",
+        "gold": 60,
+        "tickets": 20,
+        "card_ids": [
+          "frog",
+          "ant",
+          "sparrow",
+          "rabbit",
+          "duck",
+          "snail",
+          "hamster",
+          "pigeon",
+          "parrot",
+          "rabbit"
+        ],
+        "toast": "获得10张卡牌",
+        "buttons_enabled": [
+          true,
+          true
+        ],
+        "nav_active": 3,
+        "read_names_rarity_art_from_current_config": true,
+        "source_evidence": "HISTORICAL_LOCAL_RUNTIME_FIXTURE_WITH_CURRENT_CSV_OVERRIDE"
+      },
+      "geometry": {
+        "currency_left": [
+          46,
+          18,
+          186,
+          44
+        ],
+        "currency_right": [
+          488,
+          18,
+          186,
+          44
+        ],
+        "title": [
+          40,
+          68,
+          640,
+          58
+        ],
+        "gacha_tickets": [
+          238,
+          130,
+          244,
+          48
+        ],
+        "reward_panel": [
+          46,
+          208,
+          628,
+          822
+        ],
+        "reward_heading": [
+          46,
+          236,
+          628,
+          42
+        ],
+        "empty_text": [
+          46,
+          446,
+          628,
+          42
+        ],
+        "single_card": [
+          228,
+          460,
+          264,
+          316
+        ],
+        "one_cta": [
+          104,
+          1050,
+          240,
+          76
+        ],
+        "ten_cta": [
+          376,
+          1050,
+          240,
+          76
+        ],
+        "toast": [
+          130,
+          1018,
+          460,
+          58
+        ],
+        "nav_slots": [
+          [
+            3,
+            1148,
+            138,
+            122
+          ],
+          [
+            147,
+            1148,
+            138,
+            122
+          ],
+          [
+            291,
+            1148,
+            138,
+            122
+          ],
+          [
+            435,
+            1148,
+            138,
+            122
+          ],
+          [
+            579,
+            1148,
+            138,
+            122
+          ]
+        ],
+        "ten_card_size": [
+          132,
+          158
+        ],
+        "ten_gap": [
+          40,
+          28
+        ],
+        "ten_row_counts": [
+          2,
+          3,
+          3,
+          2
+        ],
+        "hero_portrait": [
+          96,
+          260,
+          528,
+          528
+        ],
+        "hero_name": [
+          64,
+          840,
+          592,
+          64
+        ],
+        "hero_slogan": [
+          64,
+          936,
+          592,
+          128
+        ],
+        "hero_continue": [
+          138,
+          1112,
+          444,
+          76
+        ]
+      },
+      "cards": [
+        {
+          "id": "frog",
+          "name": "青蛙",
+          "rarity": "common",
+          "rect": [
+            208,
+            298,
+            132,
+            158
+          ]
+        },
+        {
+          "id": "ant",
+          "name": "蚂蚁",
+          "rarity": "common",
+          "rect": [
+            380,
+            298,
+            132,
+            158
+          ]
+        },
+        {
+          "id": "sparrow",
+          "name": "麻雀",
+          "rarity": "common",
+          "rect": [
+            110,
+            484,
+            132,
+            158
+          ]
+        },
+        {
+          "id": "rabbit",
+          "name": "兔子",
+          "rarity": "common",
+          "rect": [
+            282,
+            484,
+            132,
+            158
+          ]
+        },
+        {
+          "id": "duck",
+          "name": "鸭",
+          "rarity": "rare",
+          "rect": [
+            454,
+            484,
+            132,
+            158
+          ]
+        },
+        {
+          "id": "snail",
+          "name": "蜗牛",
+          "rarity": "common",
+          "rect": [
+            134,
+            670,
+            132,
+            158
+          ]
+        },
+        {
+          "id": "hamster",
+          "name": "仓鼠",
+          "rarity": "common",
+          "rect": [
+            306,
+            670,
+            132,
+            158
+          ]
+        },
+        {
+          "id": "pigeon",
+          "name": "鸽子",
+          "rarity": "common",
+          "rect": [
+            478,
+            670,
+            132,
+            158
+          ]
+        },
+        {
+          "id": "parrot",
+          "name": "鹦鹉",
+          "rarity": "rare",
+          "rect": [
+            208,
+            856,
+            132,
+            158
+          ]
+        },
+        {
+          "id": "rabbit",
+          "name": "兔子",
+          "rarity": "common",
+          "rect": [
+            380,
+            856,
+            132,
+            158
+          ]
+        }
+      ],
+      "animal_assets": [
+        {
+          "id": "frog",
+          "name": "青蛙",
+          "rarity": "common",
+          "path": "D:\\AI\\zhanchengdashi\\assets\\card_art\\animals\\frog.png",
+          "sha256": "AF4E1A44E00C1477865795544BCFDE4EA9FCA256B1D88F9EA0F45CEFE167CF6B",
+          "size": [
+            480,
+            480
+          ],
+          "alpha_visible_bbox": [
+            110,
+            133,
+            369,
+            346
+          ],
+          "fit_rule": "Uniform visible-alpha fit; preserve original pixels and proportions; no silhouette edit"
+        },
+        {
+          "id": "ant",
+          "name": "蚂蚁",
+          "rarity": "common",
+          "path": "D:\\AI\\zhanchengdashi\\assets\\card_art\\animals\\ant.png",
+          "sha256": "D489AF6743CD14DF6536519223F79270EEBB628245CDB9FA331FE88E2E9EF319",
+          "size": [
+            480,
+            480
+          ],
+          "alpha_visible_bbox": [
+            157,
+            112,
+            323,
+            368
+          ],
+          "fit_rule": "Uniform visible-alpha fit; preserve original pixels and proportions; no silhouette edit"
+        },
+        {
+          "id": "sparrow",
+          "name": "麻雀",
+          "rarity": "common",
+          "path": "D:\\AI\\zhanchengdashi\\assets\\card_art\\animals\\sparrow.png",
+          "sha256": "7F1B48D235FF249BE2D3BEFD3DEEB23AD1F2FDB9645D01BBFF28189260B16E39",
+          "size": [
+            480,
+            480
+          ],
+          "alpha_visible_bbox": [
+            118,
+            137,
+            361,
+            343
+          ],
+          "fit_rule": "Uniform visible-alpha fit; preserve original pixels and proportions; no silhouette edit"
+        },
+        {
+          "id": "rabbit",
+          "name": "兔子",
+          "rarity": "common",
+          "path": "D:\\AI\\zhanchengdashi\\assets\\card_art\\animals\\rabbit.png",
+          "sha256": "1EBC2DEE3F29B6E41465720AEB1FF565BBFA155CD08DE93B83AEEF3B68B5A11C",
+          "size": [
+            480,
+            480
+          ],
+          "alpha_visible_bbox": [
+            138,
+            106,
+            341,
+            374
+          ],
+          "fit_rule": "Uniform visible-alpha fit; preserve original pixels and proportions; no silhouette edit"
+        },
+        {
+          "id": "duck",
+          "name": "鸭",
+          "rarity": "rare",
+          "path": "D:\\AI\\zhanchengdashi\\assets\\card_art\\animals\\duck.png",
+          "sha256": "74FEBE8569D95AFEBBFEBF93E2E9B8E2DFCBA353F945E8AAC4907DE7BE164853",
+          "size": [
+            480,
+            480
+          ],
+          "alpha_visible_bbox": [
+            97,
+            107,
+            383,
+            373
+          ],
+          "fit_rule": "Uniform visible-alpha fit; preserve original pixels and proportions; no silhouette edit"
+        },
+        {
+          "id": "snail",
+          "name": "蜗牛",
+          "rarity": "common",
+          "path": "D:\\AI\\zhanchengdashi\\assets\\card_art\\animals\\snail.png",
+          "sha256": "4B973F2A16FA7583125A437AA7CF6479CCEC4277A706EADFD0F7A572FA2D13FF",
+          "size": [
+            480,
+            480
+          ],
+          "alpha_visible_bbox": [
+            133,
+            138,
+            346,
+            342
+          ],
+          "fit_rule": "Uniform visible-alpha fit; preserve original pixels and proportions; no silhouette edit"
+        },
+        {
+          "id": "hamster",
+          "name": "仓鼠",
+          "rarity": "common",
+          "path": "D:\\AI\\zhanchengdashi\\assets\\card_art\\animals\\hamster.png",
+          "sha256": "C58F85BBD6ADFB39110C6F102428B9D7AA930EF72A1B5B376AF5F2F91FC9A42A",
+          "size": [
+            480,
+            480
+          ],
+          "alpha_visible_bbox": [
+            90,
+            119,
+            390,
+            361
+          ],
+          "fit_rule": "Uniform visible-alpha fit; preserve original pixels and proportions; no silhouette edit"
+        },
+        {
+          "id": "pigeon",
+          "name": "鸽子",
+          "rarity": "common",
+          "path": "D:\\AI\\zhanchengdashi\\assets\\card_art\\animals\\pigeon.png",
+          "sha256": "092792157EAEB84D5CF1E39466E1051ACB668994BC36DD2AD53A6FE0D005626B",
+          "size": [
+            480,
+            480
+          ],
+          "alpha_visible_bbox": [
+            109,
+            145,
+            370,
+            333
+          ],
+          "fit_rule": "Uniform visible-alpha fit; preserve original pixels and proportions; no silhouette edit"
+        },
+        {
+          "id": "parrot",
+          "name": "鹦鹉",
+          "rarity": "rare",
+          "path": "D:\\AI\\zhanchengdashi\\assets\\card_art\\animals\\parrot.png",
+          "sha256": "7EC7B09A151FBDB2B2E00B973A08B79B58785180FCAB7AF88207890E7469F53E",
+          "size": [
+            480,
+            480
+          ],
+          "alpha_visible_bbox": [
+            47,
+            59,
+            386,
+            353
+          ],
+          "fit_rule": "Uniform visible-alpha fit; preserve original pixels and proportions; no silhouette edit"
+        }
+      ],
+      "current_config_override": "Duck uses current formal rare-blue rarity; source fixture duck common-green is stale.",
+      "independent_review": {
+        "path": "../reviews/core_pages.json",
+        "sha256": "2031F9F0DB82B9F693B599DCC9C422ADF27B093C32065B8EBFBB27FBACD155BC",
+        "verdict": "PREVIEW_PASS",
+        "output_sha256": "1C34FFFA67145E1DD6A75D7E19E79E5E879322BAFCF80D792AD2BBDBC3C179BC"
+      }
+    },
+    {
+      "id": "09_gacha_new_hero",
+      "output": "D:/AI/zhanchengdashi/output/visual_concepts/tata_battle_style/full_game/core_pages/09_gacha_new_hero.png",
+      "output_sha256": "2D51C12B30B64805DC592F93F4E92125CBEDDF509825AABCF8ECC4FC688E7258",
+      "output_pixels": [
+        720,
+        1280
+      ],
+      "render_method": "USER_AUTHORIZED_NATIVE_CANVAS_COMPONENTS",
+      "status": "PREVIEW_ART_DIRECTOR_PASS",
+      "state": {
+        "id": "09_gacha_new_hero",
+        "card_id": "mouse",
+        "name": "老鼠",
+        "slogan": "鼠鼠我呀，主打一个人多。",
+        "only_button": "继续",
+        "hide_currency": true,
+        "hide_nav": true,
+        "hide_stats": true,
+        "source_evidence": "HISTORICAL_LOCAL_RUNTIME_FIXTURE"
+      },
+      "geometry": {
+        "portrait": [
+          96,
+          260,
+          528,
+          528
+        ],
+        "name": [
+          64,
+          840,
+          592,
+          64
+        ],
+        "slogan": [
+          64,
+          936,
+          592,
+          128
+        ],
+        "continue": [
+          138,
+          1112,
+          444,
+          76
+        ]
+      },
+      "formal_identity_source": {
+        "id": "mouse",
+        "name": "老鼠",
+        "rarity": "common",
+        "path": "D:\\AI\\zhanchengdashi\\assets\\card_art\\animals\\mouse.png",
+        "sha256": "CFE79C829A2B9F707C7E4CE5387BEA12DABE8131B3B7E1BAEEE1BC001D3873F5",
+        "size": [
+          480,
+          480
+        ],
+        "alpha_visible_bbox": [
+          111,
+          111,
+          369,
+          368
+        ],
+        "fit_rule": "Uniform visible-alpha fit; preserve original pixels and proportions; no silhouette edit"
+      },
+      "animal_assets": [
+        {
+          "id": "mouse",
+          "identity": "Same approved04gray mouse identity/pose; current formal name/common rarity/slogan authoritative.",
+          "source": "D:/AI/zhanchengdashi/output/visual_concepts/tata_battle_style/full_game/native_components/illustrations/gray-mouse-hero.png",
+          "source_sha256": "FF7AB1A58EBA99BE08F2649FF05431CFF8F356DB5E4A6123BDFCC375E1539335",
+          "source_pixels": [
+            1254,
+            1254
+          ],
+          "alpha_visible_bbox": [
+            0,
+            29,
+            1206,
+            1207
+          ],
+          "visible_to_target_scale": 0.43781094527363185,
+          "source_kind": "ART_DIRECTOR_HIGH_RESOLUTION_TRANSPARENT_AI_ILLUSTRATION",
+          "fit_rule": "Uniform visible-alpha fit into fixed528x528portrait rect; no enlargement, silhouette/color editing or UI reflow",
+          "generated_by": "art_director built-in imagegen; no core-agent imagegen call",
+          "role": "Preview illustration only; not runtime animal asset replacement"
+        }
+      ],
+      "portrait_only_change": {
+        "method": "RGBA pixel equality outside Rect96,260,528,528 against retained prior09",
+        "outside_portrait_differences": 0,
+        "retained_old_iteration": "D:/AI/zhanchengdashi/output/visual_concepts/tata_battle_style/full_game/core_pages/iterations/09_gacha_new_hero_low_resolution.png",
+        "retained_sha256": "9AF2738763F605C3336F4D5521C1A1A6F3467808FD9D9950D6B823E3DE6194FA",
+        "old_iteration_count": 1
+      },
+      "animation_boundary": "Static settled hero stage only; no card grant, ownership or animation claim.",
+      "quality_reopen": {
+        "finding_id": "CORE-HERO-HIGH-RES-09",
+        "status": "P1_CLOSED_HIGH_RES_HERO_ART_DIRECTOR_PASS",
+        "producer": "root",
+        "reviewer": "lead_art_director",
+        "reason": "The122x112 approved card crop is visibly pixelated as a528portrait; MINOR acceptance was reopened asP1 by producer and art-director agreement.",
+        "previous_output_sha256": "9AF2738763F605C3336F4D5521C1A1A6F3467808FD9D9950D6B823E3DE6194FA",
+        "scope": "Only09hero illustration and corresponding own metadata; preserve all UI/layout/state values and other8PNG",
+        "required_asset_owner": "art_director",
+        "preserve_single_low_resolution_iteration": true,
+        "guard": "RGBA differences outside96,260,528,528 must equal0",
+        "other_png_baseline": [
+          {
+            "path": "D:/AI/zhanchengdashi/output/visual_concepts/tata_battle_style/full_game/core_pages/01_home_selected.png",
+            "sha256": "0A1AA4678A950D190CB3D96FE5E53BBDA132333E29D627E8EB32061A59EC8EC0"
+          },
+          {
+            "path": "D:/AI/zhanchengdashi/output/visual_concepts/tata_battle_style/full_game/core_pages/04_deck_main.png",
+            "sha256": "F3B6A8496703FCE12754AF18BE67C2DCA4E90F6CD5359AB07E9BAE0F134E889B"
+          },
+          {
+            "path": "D:/AI/zhanchengdashi/output/visual_concepts/tata_battle_style/full_game/core_pages/02_home_new_tomorrow.png",
+            "sha256": "A519F1D6320BB62573016BBD780000AFDA9DE719DBE6813AE1E02B2D84D3C9BB"
+          },
+          {
+            "path": "D:/AI/zhanchengdashi/output/visual_concepts/tata_battle_style/full_game/core_pages/03_home_daily_rewards.png",
+            "sha256": "0A0658C865399CBC299FA63EC6A04C997F9B240ACB8CC95FCC04E3C1FBAF5BED"
+          },
+          {
+            "path": "D:/AI/zhanchengdashi/output/visual_concepts/tata_battle_style/full_game/core_pages/05_deck_upgrade.png",
+            "sha256": "3ECFFCD6F88757763CCAA245D4BE5EF18FC86EEAFF95254A1BE1071893BD6648"
+          },
+          {
+            "path": "D:/AI/zhanchengdashi/output/visual_concepts/tata_battle_style/full_game/core_pages/06_gacha_empty.png",
+            "sha256": "88F0B53F9531F5A102AF933701F9F8451FFC048D70CAAE2B1A68D9D695C1F46E"
+          },
+          {
+            "path": "D:/AI/zhanchengdashi/output/visual_concepts/tata_battle_style/full_game/core_pages/07_gacha_opening.png",
+            "sha256": "C8859DB8D989E832D84B9D8D97A1D195F0F25902E507A0B32074EC0148106A71"
+          },
+          {
+            "path": "D:/AI/zhanchengdashi/output/visual_concepts/tata_battle_style/full_game/core_pages/08_gacha_ten_result.png",
+            "sha256": "1C34FFFA67145E1DD6A75D7E19E79E5E879322BAFCF80D792AD2BBDBC3C179BC"
+          }
+        ],
+        "new_output_sha256": "2D51C12B30B64805DC592F93F4E92125CBEDDF509825AABCF8ECC4FC688E7258",
+        "replacement_asset": {
+          "id": "mouse",
+          "identity": "Same approved04gray mouse identity/pose; current formal name/common rarity/slogan authoritative.",
+          "source": "D:/AI/zhanchengdashi/output/visual_concepts/tata_battle_style/full_game/native_components/illustrations/gray-mouse-hero.png",
+          "source_sha256": "FF7AB1A58EBA99BE08F2649FF05431CFF8F356DB5E4A6123BDFCC375E1539335",
+          "source_pixels": [
+            1254,
+            1254
+          ],
+          "alpha_visible_bbox": [
+            0,
+            29,
+            1206,
+            1207
+          ],
+          "visible_to_target_scale": 0.43781094527363185,
+          "source_kind": "ART_DIRECTOR_HIGH_RESOLUTION_TRANSPARENT_AI_ILLUSTRATION",
+          "fit_rule": "Uniform visible-alpha fit into fixed528x528portrait rect; no enlargement, silhouette/color editing or UI reflow",
+          "generated_by": "art_director built-in imagegen; no core-agent imagegen call",
+          "role": "Preview illustration only; not runtime animal asset replacement"
+        }
+      },
+      "independent_review": {
+        "path": "../reviews/core_pages.json",
+        "sha256": "2031F9F0DB82B9F693B599DCC9C422ADF27B093C32065B8EBFBB27FBACD155BC",
+        "verdict": "PREVIEW_PASS",
+        "output_sha256": "2D51C12B30B64805DC592F93F4E92125CBEDDF509825AABCF8ECC4FC688E7258"
+      }
+    }
+  ],
+  "boundary": "Generated files are effects only. Native coordinates prove composition geometry, not game/device behavior; all shown inventories and rewards are synthetic historical fixtures."
+}

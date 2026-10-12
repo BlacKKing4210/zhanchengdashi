@@ -1,0 +1,1 @@
+Native720x1280 static normal flip-card fixture:60coin,29bluepawticket top and center. Single current normal cardback228,460,264,316:bluepurple border/yellow inner frame/fivepoint star. Both CTAs disabled. Toast获得1张卡牌 at CURRENT generic toast130,1018,460,58. Standard five nav active抽卡. This is not the distinct new-hero paw-card reveal.

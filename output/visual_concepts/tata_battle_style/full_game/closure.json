@@ -1,0 +1,48 @@
+{
+  "request_id": "REQ-20261011-TATA-FULL-GAME-PREVIEW",
+  "status": "COMPLETE_STATIC_PREVIEW_ONLY",
+  "producer": "user-producer",
+  "coordinator": "root",
+  "specialists": [
+    "art_director",
+    "project_ui_audit",
+    "method_research"
+  ],
+  "canonical_full_screen_pngs": 31,
+  "main_routes": 6,
+  "review_hash_bindings": "PASS_31_CURRENT",
+  "gallery_qa": "PASS_OFFLINE_GALLERY",
+  "main_gd_sha256": "8C9E374F65A221AF7BB92A32470503166188A879562D5A1AE220A817D56359CA",
+  "runtime_assets_config_source_changed": false,
+  "user_existing_work": "Existing modified design/战斗数值.xlsx remains unstaged and untouched",
+  "review_files": [
+    "art-direction.json",
+    "reviews/root-part1.json",
+    "reviews/root-part2.json",
+    "reviews/core_pages.json",
+    "reviews/account_room.json"
+  ],
+  "overview": {
+    "file": "overview.png",
+    "sha256": "023EEF0D011A2B4B79FCC6A800322DF83667B0EA3D2B0C2C3A47770E51047837",
+    "views": 6,
+    "kind": "Derivative review board, not another canonical full-screen state"
+  },
+  "manifest_sha256": "7D0D2EDC9401FA340F7E902EF11621F44F30A7B7FD837C3ADD32782D498023C7",
+  "gallery_sha256": "B657E1377B69BF4E39FE05D65D1EC17D8B13A00A3FC22143F87508C557C05BC9",
+  "cleanup": {
+    "receipt": "../cleanup.json",
+    "duplicate_copy_deleted_bytes": 52267220,
+    "unique_evidence_relocated_bytes": 34561365,
+    "logical_source_copy_removed_bytes": 86828585,
+    "actual_free_change": {
+      "C": 86925312,
+      "D": -34615296
+    },
+    "skipped": 0
+  },
+  "release_runtime_gate": "Not requested; static preview acceptance only",
+  "account_data": "Synthetic, no real credentials",
+  "locks": "Returned",
+  "version_control": "This closure is stored in the focused preview-only commit; push receipt is reported separately."
+}

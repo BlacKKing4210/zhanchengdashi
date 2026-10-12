@@ -1,0 +1,360 @@
+{
+  "schema_version": 2,
+  "reviewer": "lead_art_director",
+  "request_id": "REQ-20261011-TATA-FULL-GAME-PREVIEW",
+  "scope": "Static720x1280PNG preview QA; native source rectangles checked via file-backed draw receipt",
+  "status": "BATCH_PREVIEW_PASS",
+  "reviewed_on": "2026-10-12 Asia/Hong_Kong",
+  "runtime_approved": false,
+  "files": [
+    {
+      "path": "account_room/01_room_entry.png",
+      "sha256": "B98F012C34949199D957DE16F49B00FC6ED9950987262898809CDD0A0492FB23",
+      "verdict": "PREVIEW_PASS",
+      "p0": [],
+      "p1": [],
+      "size": [
+        720,
+        1280
+      ],
+      "render_method": "Accepted AI artwork normalized to 720x1280",
+      "source_paths": [
+        "output/visual_concepts/tata_battle_style/full_game/account_room/01_room_entry.png"
+      ],
+      "controls_receipt": "account_room/native-controls.json",
+      "checked_controls": 0,
+      "checks": [
+        "Direct full-screen image inspection",
+        "Chinese labels and counts readable; no key fixed-text clipping",
+        "Existing source state and actions retained; resource no progress/shop-plus",
+        "Same native icon assets where native controls are used"
+      ],
+      "limitations": [
+        "Static preview only; no live account, networking, input or runtime behavior proof"
+      ]
+    },
+    {
+      "path": "account_room/02_room_error.png",
+      "sha256": "32371E329B94E2D305A6999F89AC8D9FB98C0745F7934F59A174EDC44D92B627",
+      "verdict": "PREVIEW_PASS",
+      "p0": [],
+      "p1": [],
+      "size": [
+        720,
+        1280
+      ],
+      "render_method": "Native local state edit of accepted entry",
+      "source_paths": [
+        "output/visual_concepts/tata_battle_style/full_game/account_room/01_room_entry.png"
+      ],
+      "controls_receipt": "account_room/native-controls.json",
+      "checked_controls": 3,
+      "checks": [
+        "Direct full-screen image inspection",
+        "Chinese labels and counts readable; no key fixed-text clipping",
+        "Existing source state and actions retained; resource no progress/shop-plus",
+        "Same native icon assets where native controls are used"
+      ],
+      "limitations": [
+        "Static preview only; no live account, networking, input or runtime behavior proof"
+      ]
+    },
+    {
+      "path": "account_room/03_room_host.png",
+      "sha256": "92161CC726A62C10A62A287A49CAE9B1C2CCFFD5D7AB16416848721746213375",
+      "verdict": "PREVIEW_PASS",
+      "p0": [],
+      "p1": [],
+      "size": [
+        720,
+        1280
+      ],
+      "render_method": "AI forest edge plus native controls from current code",
+      "source_paths": [
+        "output/visual_concepts/tata_battle_style/full_game/account_room/01_room_entry.png",
+        "scripts/app/main.gd:7730-7850",
+        "scripts/app/main.gd:10129-10178"
+      ],
+      "controls_receipt": "account_room/native-controls.json",
+      "checked_controls": 15,
+      "checks": [
+        "Direct full-screen image inspection",
+        "Chinese labels and counts readable; no key fixed-text clipping",
+        "Existing source state and actions retained; resource no progress/shop-plus",
+        "Same native icon assets where native controls are used"
+      ],
+      "limitations": [
+        "Static preview only; no live account, networking, input or runtime behavior proof"
+      ]
+    },
+    {
+      "path": "account_room/04_room_guest.png",
+      "sha256": "8AE5B4A8EAE2817B3E17AC0E845913175214C554FC3B7667C6BF4D9F2CB5375F",
+      "verdict": "PREVIEW_PASS",
+      "p0": [],
+      "p1": [],
+      "size": [
+        720,
+        1280
+      ],
+      "render_method": "AI forest edge plus native controls from current code",
+      "source_paths": [
+        "output/visual_concepts/tata_battle_style/full_game/account_room/01_room_entry.png",
+        "scripts/app/main.gd:7730-7850",
+        "scripts/app/main.gd:10129-10178"
+      ],
+      "controls_receipt": "account_room/native-controls.json",
+      "checked_controls": 15,
+      "checks": [
+        "Direct full-screen image inspection",
+        "Chinese labels and counts readable; no key fixed-text clipping",
+        "Existing source state and actions retained; resource no progress/shop-plus",
+        "Same native icon assets where native controls are used"
+      ],
+      "limitations": [
+        "Static preview only; no live account, networking, input or runtime behavior proof"
+      ]
+    },
+    {
+      "path": "account_room/05_account.png",
+      "sha256": "1C3B51676E0CB32C7CE4AFA3F1648A570CCA25D74FB150F51BFABCD8FF2C1CB7",
+      "verdict": "PREVIEW_PASS",
+      "p0": [],
+      "p1": [],
+      "size": [
+        720,
+        1280
+      ],
+      "render_method": "Native synthetic account form; approved AI lobby background",
+      "source_paths": [
+        "output/visual_concepts/tata_battle_style/full_game/root_pages/01_lobby.png",
+        "scripts/app/main.gd:7622-7682",
+        "scripts/app/main.gd:10049-10113",
+        "assets/card_art/animals/squirrel.png"
+      ],
+      "controls_receipt": "account_room/native-controls.json",
+      "checked_controls": 14,
+      "checks": [
+        "Direct full-screen image inspection",
+        "Chinese labels and counts readable; no key fixed-text clipping",
+        "Existing source state and actions retained; resource no progress/shop-plus",
+        "Same native icon assets where native controls are used"
+      ],
+      "limitations": [
+        "Static preview only; no live account, networking, input or runtime behavior proof"
+      ]
+    },
+    {
+      "path": "account_room/06_login.png",
+      "sha256": "536D8BCDF2A04A8422FB77936296E6AD302C8FE212741063F7E8E9B764B9841A",
+      "verdict": "PREVIEW_PASS",
+      "p0": [],
+      "p1": [],
+      "size": [
+        720,
+        1280
+      ],
+      "render_method": "Native manual login form; safe placeholders",
+      "source_paths": [
+        "output/visual_concepts/tata_battle_style/full_game/root_pages/01_lobby.png",
+        "scripts/app/main.gd:7634-7649",
+        "scripts/app/main.gd:10077-10090"
+      ],
+      "controls_receipt": "account_room/native-controls.json",
+      "checked_controls": 11,
+      "checks": [
+        "Direct full-screen image inspection",
+        "Chinese labels and counts readable; no key fixed-text clipping",
+        "Existing source state and actions retained; resource no progress/shop-plus",
+        "Same native icon assets where native controls are used"
+      ],
+      "limitations": [
+        "Static preview only; no live account, networking, input or runtime behavior proof"
+      ]
+    },
+    {
+      "path": "account_room/07_account_switch.png",
+      "sha256": "BD9BB02555C3C763EFBEC35768F96EAAC974CF7A89DD46DDB1B9F9EA5C7A6EB7",
+      "verdict": "PREVIEW_PASS",
+      "p0": [],
+      "p1": [],
+      "size": [
+        720,
+        1280
+      ],
+      "render_method": "Native synthetic account switcher",
+      "source_paths": [
+        "output/visual_concepts/tata_battle_style/full_game/root_pages/01_lobby.png",
+        "scripts/app/main.gd:7684-7712",
+        "scripts/app/main.gd:10117-10122",
+        "assets/card_art/animals/squirrel.png",
+        "assets/card_art/animals/parrot.png"
+      ],
+      "controls_receipt": "account_room/native-controls.json",
+      "checked_controls": 8,
+      "checks": [
+        "Direct full-screen image inspection",
+        "Chinese labels and counts readable; no key fixed-text clipping",
+        "Existing source state and actions retained; resource no progress/shop-plus",
+        "Same native icon assets where native controls are used"
+      ],
+      "limitations": [
+        "Static preview only; no live account, networking, input or runtime behavior proof"
+      ]
+    },
+    {
+      "path": "account_room/08_avatar.png",
+      "sha256": "DB08EA90F96FC2F8B30031DCDBD4A203A2478EA1D16F93A4CCD963B7B8199AAE",
+      "verdict": "PREVIEW_PASS",
+      "p0": [],
+      "p1": [],
+      "size": [
+        720,
+        1280
+      ],
+      "render_method": "Native 4-column catalog from formal original animal art",
+      "source_paths": [
+        "output/visual_concepts/tata_battle_style/full_game/root_pages/01_lobby.png",
+        "scripts/app/ui/account_avatar_picker.gd",
+        "config/tables/cards.csv",
+        "output/runtime_ui_b_20260906/19_avatar.png",
+        "assets/card_art/animals/"
+      ],
+      "controls_receipt": "account_room/native-controls.json",
+      "checked_controls": 24,
+      "checks": [
+        "Direct full-screen image inspection",
+        "Chinese labels and counts readable; no key fixed-text clipping",
+        "Existing source state and actions retained; resource no progress/shop-plus",
+        "Same native icon assets where native controls are used"
+      ],
+      "limitations": [
+        "Static preview only; no live account, networking, input or runtime behavior proof"
+      ]
+    },
+    {
+      "path": "account_room/09_agreement.png",
+      "sha256": "136937BC429B0D5F46F82AF54795930380A3120F6D19A2AAF60905E516D9DD2D",
+      "verdict": "PREVIEW_PASS",
+      "p0": [],
+      "p1": [],
+      "size": [
+        720,
+        1280
+      ],
+      "render_method": "Native existing agreement text, no added terms",
+      "source_paths": [
+        "output/visual_concepts/tata_battle_style/full_game/root_pages/01_lobby.png",
+        "scripts/app/main.gd:7622-7632",
+        "scripts/app/main.gd:10125-10126"
+      ],
+      "controls_receipt": "account_room/native-controls.json",
+      "checked_controls": 6,
+      "checks": [
+        "Direct full-screen image inspection",
+        "Chinese labels and counts readable; no key fixed-text clipping",
+        "Existing source state and actions retained; resource no progress/shop-plus",
+        "Same native icon assets where native controls are used"
+      ],
+      "limitations": [
+        "Static preview only; no live account, networking, input or runtime behavior proof"
+      ]
+    }
+  ],
+  "resolved_prior_findings": [
+    "Room01 source-first layout, disabled blank-code JOIN and cream/navy material fixed",
+    "Room02 now derives accepted01 geometry and changes only explicit failure/disabled state",
+    "Room03/04 source roomcode/team/fill/action rectangles restored by native layout"
+  ],
+  "superseded_review": {
+    "schema_version": 1,
+    "reviewer": "lead_art_director",
+    "request_id": "REQ-20261011-TATA-FULL-GAME-PREVIEW",
+    "scope": "Static preview QA only",
+    "status": "IN_PROGRESS_WITH_P1",
+    "runtime_approved": false,
+    "files": [
+      {
+        "path": "account_room/01_room_entry.png",
+        "sha256": "05FE4E9284151266743EDAB8A576DDC2FB36A2583549AA60C0957076B89BBFB8",
+        "source": {
+          "path": "output/runtime_ui_b_20260906/06_room_entry.png",
+          "sha256": "32D18481B28928100341C9779CDE0665A71B1A8AB2797730649B6FB5C85B64BF"
+        },
+        "verdict": "PREVIEW_PASS",
+        "p0": [],
+        "p1": [],
+        "resolved_findings": [
+          "Source-first generation restored major source title/mode/panel/control regions",
+          "Blank code JOIN restored to gray disabled",
+          "Outer wood border/material removed in favor of common cream/navy panel"
+        ],
+        "checks": [
+          "60/10 plain no-progress resource pills and standard five-route nav",
+          "3V3 selected; CREATE enabled; JOIN disabled; random-fill ON; reconnect secondary",
+          "Source connected status and port information retained"
+        ],
+        "limitations": [
+          "Major regions visually compared; no pixel-level runtime coordinate parity",
+          "No real connection, room action or account interaction executed"
+        ]
+      },
+      {
+        "path": "account_room/02_room_error.png",
+        "sha256": "7AC3959F61E57F0606CA6CDF94D6DD58E7C2EB0F48A701FE9ED990A85F932EF1",
+        "source": {
+          "path": "output/runtime_ui_b_20260906/06_room_entry.png",
+          "state_override": "Current main.gd disconnected/error branch sets red failure text and disables create/join."
+        },
+        "verdict": "PENDING_TARGETED_FIX",
+        "p0": [],
+        "p1": [
+          {
+            "id": "ROOM-ERROR-BASE-01",
+            "issue": "Same room-entry header/panel/control regions shift versus final connected-state preview.",
+            "fix": "Use final01 as edit target and alter only error status text plus create/join disabled visual states."
+          }
+        ],
+        "checks": [
+          "Error text readable; CREATE/JOIN disabled; retry visible",
+          "60/10 currency,3V3/toggle and standard nav retained"
+        ],
+        "limitations": [
+          "Source-confirmed derived error preview; not a captured current live server failure"
+        ]
+      },
+      {
+        "path": "account_room/03_room_host.png",
+        "sha256": "538AA16898F2597237AE9D81134CBB9C79BCCED9A62F74AF8DED3D9935E2CD9F",
+        "source": {
+          "path": "output/qa/REQ-20260820-online-room-ready-names/host-start.png"
+        },
+        "verdict": "PENDING_TARGETED_FIX",
+        "p0": [],
+        "p1": [
+          {
+            "id": "ROOM-HOST-GEOMETRY-02",
+            "issue": "Roomcode/team/fill/start block shifts down approximately35to55logical pixels versus source.",
+            "fix": "One source-first geometry correction; retain source roomcodepanel232,team panels334,fill824,start900 and six row contents."
+          }
+        ],
+        "checks": [
+          "60/10;723322;copy action;6 exact source participants and host/ready labels",
+          "Random fill OFF; leave and START actions; standard nav correct"
+        ],
+        "limitations": [
+          "No live rooms or remote server state verified"
+        ]
+      }
+    ],
+    "unresolved_batch_items": "Guest and remaining account/modals await review; room-error shared base and host layout await authorized corrections.",
+    "acceptance": "Preview-only; no runtime/asset/release gate claims."
+  },
+  "minor": [
+    "Room03/04 use quiet flat green center with AI forest perimeter to protect exact source text/control layout",
+    "Avatar source scroll viewport exposes a partial fifth row; footer and fixed controls are intact",
+    "Retained accepted01 and derived02 do not claim exact-current-code layout"
+  ],
+  "identity_boundary": "Account fields and switch records are safe DEMO fixtures; no real credential or account operation",
+  "acceptance": "Preview art and data/geometry evidence only; no runtime visual gate claim"
+}

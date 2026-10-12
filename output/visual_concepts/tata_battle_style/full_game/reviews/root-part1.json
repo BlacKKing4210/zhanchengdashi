@@ -1,0 +1,83 @@
+{
+  "schema_version": 1,
+  "reviewer": "lead_art_director",
+  "request_id": "REQ-20261011-TATA-FULL-GAME-PREVIEW",
+  "scope": "Static preview QA only",
+  "reviewed_on": "2026-10-11 Asia/Hong_Kong",
+  "status": "BATCH_PREVIEW_PASS",
+  "runtime_approved": false,
+  "files": [
+    {
+      "path": "root_pages/01_lobby.png",
+      "sha256": "02F5797542CBE52A290C8287C6D92938500A9E97CCB8B8938D3555E7C92004B1",
+      "source": {
+        "path": "output/runtime_ui_b_20260906/01_lobby.png",
+        "sha256": "88F1C4EB89BF6A7DAFA814E47FC6C34B659E00763D7FF907EC2BEC53AD35137A"
+      },
+      "verdict": "PREVIEW_PASS",
+      "p0": [],
+      "p1": [],
+      "checks": [
+        "60 gold/10 tickets; no-progress/plain dark currency pills",
+        "gold rank3stars and192wins137losses retained",
+        "Castle/account entry, six original animal identities, two site illustrations, single/multiplayer CTA and HOT badge remain",
+        "Five current routes shown; first nav slot corrected to current HOME route with plain house icon",
+        "Navy idle/lime active nav and gold gacha ticket action icon form the batch nav reference",
+        "Readable title, rank, counters and actions; no visible fixed UI clipping"
+      ],
+      "limitations": [
+        "Nav first slot intentionally follows current main.gd HOME route instead of historical locked shop screenshot",
+        "Exact source pixel coordinates not mechanically verified",
+        "No engine/device interaction test"
+      ]
+    },
+    {
+      "path": "root_pages/02_battle_selected.png",
+      "sha256": "2164761E8BC319B9335BAA88BEDD9A0CF3087BEE14DD726222D7DC86F43A2AEB",
+      "source": {
+        "path": "output/visual_concepts/tata_battle_style/02_selected_animal.png",
+        "role": "existing selected-state preview; refined against style_master"
+      },
+      "verdict": "PREVIEW_PASS",
+      "p0": [],
+      "p1": [],
+      "checks": [
+        "60/10 plain no-progress currency pills",
+        "Twelve animal positions and identities, territory topology and purchasable sites remain",
+        "Selected ally rabbit has distinct yellow ring",
+        "Bottom same rabbit identity, Lv1, attack1, HP3/3, exact skill生命+1 readable",
+        "Forest detail subdued to match style master",
+        "Pause button and existing panel regions retained"
+      ],
+      "limitations": [
+        "Static effect-image evidence; not proof of selection/hit behavior",
+        "Exact runtime coordinates and typography not mechanically verified"
+      ]
+    },
+    {
+      "path": "root_pages/03_battle_purchase.png",
+      "sha256": "4EC77A95CBCC154DC1E061B7E327BAD4C71F5FC7449B376BB362C2C3569E10B5",
+      "source": {
+        "path": "output/visual_concepts/tata_battle_style/03_purchase_camp.png",
+        "role": "prior purchase-state preview refined against style_master"
+      },
+      "verdict": "PREVIEW_PASS",
+      "p0": [],
+      "p1": [],
+      "checks": [
+        "10 gold/10 tickets; plain pills/no progress/no shop plus",
+        "Exactly one former50gold locked site converted to rabbit camp",
+        "Remaining50gold mine and250gold locked site have gray availability outlines",
+        "Existing unlocked rabbit camp identity and green bar retained",
+        "Purchase toast已解锁 兔子营地 is unobscured and separated from fixed bottom explanation",
+        "Animals/board/layout ownership and muted master scene remain continuous"
+      ],
+      "limitations": [
+        "Static preview; no transaction/inventory/runtime proof",
+        "Pixel-level coordinate parity not measured"
+      ]
+    }
+  ],
+  "unresolved_batch_items": "This part covers lobby, selected rabbit and successful camp purchase only. Remaining root batch states reviewed separately.",
+  "acceptance": "Only visual preview ready; does not advance runtime or release visual gates."
+}

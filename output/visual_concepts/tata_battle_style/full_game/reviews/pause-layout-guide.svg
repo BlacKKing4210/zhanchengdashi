@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="720" height="1280" viewBox="0 0 720 1280">
+<title>Internal pause geometry draft - NOT_RUNTIME - NOT_DELIVERABLE</title>
+<rect x="0" y="0" width="720" height="1280" fill="#b4b4b4"/>
+<g fill="#e0e0e0" stroke="#222" stroke-width="2">
+<rect x="46" y="18" width="186" height="44" rx="10"/><rect x="488" y="18" width="186" height="44" rx="10"/>
+<rect x="250" y="18" width="220" height="44" rx="10"/><rect x="610" y="78" width="62" height="56" rx="10"/>
+<rect x="26" y="1132" width="668" height="118" rx="10"/>
+</g>
+<g fill="#222" font-family="Microsoft YaHei, sans-serif" text-anchor="middle" font-weight="bold">
+<text x="139" y="49" font-size="28">60</text><text x="581" y="49" font-size="28">10</text>
+<text x="360" y="47" font-size="20">黄金3星 VS 黄金3星</text>
+<text x="360" y="1170" font-size="24">1V1 菱形战场 · 拖动查看地图</text>
+<text x="360" y="1205" font-size="17">点击己方可连接地块购买；防御塔价格随本局购买次数递增。</text>
+</g>
+<g fill="#222"><rect x="629" y="93" width="8" height="26"/><rect x="645" y="93" width="8" height="26"/></g>
+<rect x="0" y="0" width="720" height="1280" fill="#000" opacity="0.48"/>
+<rect x="120" y="430" width="480" height="330" rx="12" fill="#efefef" stroke="#222" stroke-width="5"/>
+<rect x="184" y="552" width="352" height="68" rx="10" fill="#d5d5d5" stroke="#222" stroke-width="3"/>
+<rect x="184" y="644" width="352" height="68" rx="10" fill="#929292" stroke="#222" stroke-width="3"/>
+<g font-family="Microsoft YaHei, sans-serif" text-anchor="middle" font-weight="bold">
+<text x="360" y="509" font-size="38" fill="#222">战斗暂停</text>
+<text x="360" y="597" font-size="30" fill="#222">继续战斗</text>
+<text x="360" y="689" font-size="30" fill="#fff">退出战斗</text>
+</g>
+</svg>

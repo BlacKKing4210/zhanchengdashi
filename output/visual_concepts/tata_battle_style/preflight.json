@@ -1,0 +1,46 @@
+{
+  "request_id": "REQ-20261011-TATA-BATTLE-PREVIEW",
+  "feature_id": "F-ZC-001",
+  "phase": "mockup-only",
+  "owner": "codex-primary",
+  "producer": "user-producer",
+  "primary_skill": "imagegen",
+  "workflow": "game-studio-orchestrator + game-project-control-plane",
+  "authorization": "User explicitly requests effects only, no implementation; latest scope battle layout/select/release/feedback interpreted against actual tile purchase/autospawn rules.",
+  "status": "PREVIEW_ONLY_READ_ONLY_PREFLIGHT",
+  "rag_gate": "temp/rag/receipts/rag-gate.json",
+  "rag_task": "temp/rag/receipts/tasks/REQ-20261011-TATA-BATTLE-PREVIEW.json",
+  "rag_status": "READY",
+  "citations": 8,
+  "branch": "codex/animal-art-integration-20260811",
+  "head": "1dce3f0f9b12d271a8008abaa0720cb95a99597e",
+  "source_hashes": {
+    "scripts/app/main.gd": "8c9e374f65a221af7bb92a32470503166188a879562d5a1ae220a817d56359ca"
+  },
+  "write_set": [
+    "output/visual_concepts/tata_battle_style/**"
+  ],
+  "non_goals": [
+    "runtime/code/config/design-source edits",
+    "manual card belt or new battle rules",
+    "integration/build/deployment",
+    "global skill/memory changes"
+  ],
+  "fingerprint": "F-ZC-001|v1|preview-only|codex-primary|output/visual_concepts/tata_battle_style/**",
+  "locks": "No conflicting active output scope found; runtime locks are irrelevant to allowed output-only writes.",
+  "baseline_screenshots": [
+    "output/runtime_ui_b_20260906/10_battle_single.png"
+  ],
+  "baseline_note": "Historical normal battle composition checked against current source HUD geometry; candidate only, no assertion of exact runtime parity.",
+  "method": "Separate visual style reference and own layout constraints, image-reference edit, iterative state comparison",
+  "search_status": "DEGRADED: AnySearch unavailable; repeated API autoregistration responses and browser timeouts. Primary official page and original papers verified through web tools.",
+  "acceptance": [
+    "one full battle style frame",
+    "same composition interaction states for selected detail, purchase/autospawn feedback, insufficient gold",
+    "readable HUD/card text",
+    "retain source controls and rules",
+    "reference style applied without source character/logo transfer"
+  ],
+  "cleanup": "Move selected generated images into one canonical project output; retain original references in research cache with hashes; no duplicate complete working tree.",
+  "reusable_method_candidate": "none"
+}

@@ -1,0 +1,408 @@
+{
+  "request_id": "REQ-20261011-TATA-FULL-GAME-PREVIEW",
+  "phase": "EXECUTED",
+  "scope": "Only exact three task-owned builtin-generated PNG directories; no user/temp references, source, research cache or other tasks",
+  "source_png_count": 48,
+  "duplicate_copy_deleted_bytes": 52267220,
+  "unique_evidence_relocated_bytes": 34561365,
+  "logical_source_copy_removed_bytes": 86828585,
+  "disk_free_before": {
+    "C": 93793292288,
+    "D": 171894857728
+  },
+  "disk_free_after": {
+    "C": 93880217600,
+    "D": 171860242432
+  },
+  "actual_free_change": {
+    "C": 86925312,
+    "D": -34615296
+  },
+  "measurement_note": "Free-space deltas measured across the operation, may include concurrent system activity; relocated evidence consumes D space.",
+  "relocations": [
+    {
+      "source": "C:\\Users\\76398\\.codex\\generated_images\\01a12ae4-aa44-7cf3-99dd-efb71ad75a4e\\exec-1ffc4016-ef27-4265-80e0-17bafd7e63a4.png",
+      "retained": "D:\\AI\\zhanchengdashi\\output\\visual_concepts\\tata_battle_style\\iterations\\generated_originals\\01a12ae4-aa44-7cf3-99dd-efb71ad75a4e\\exec-1ffc4016-ef27-4265-80e0-17bafd7e63a4.png",
+      "sha256": "0EF40A22704BBA5D8CA6E6677AD4165CA782405D8CBF0552066D80AE4D8FFC9E",
+      "bytes": 1924372,
+      "action": "RELOCATE_UNIQUE_TASK_EVIDENCE",
+      "result": "VERIFIED_AND_SOURCE_COPY_REMOVED"
+    },
+    {
+      "source": "C:\\Users\\76398\\.codex\\generated_images\\01a12ae4-aa44-7cf3-99dd-efb71ad75a4e\\exec-429b20d9-910b-486e-9b0e-05c4b509f4d9.png",
+      "retained": "D:\\AI\\zhanchengdashi\\output\\visual_concepts\\tata_battle_style\\full_game\\root_pages\\iterations\\11_team_battle_v1.png",
+      "sha256": "59E677B6432CC2F55394A0F3CE8FBDC9EE9A60C0FEB25AC1BD099EBF29C8091D",
+      "bytes": 1878667,
+      "action": "REMOVE_IDENTICAL_WORKING_COPY",
+      "result": "VERIFIED_AND_SOURCE_COPY_REMOVED"
+    },
+    {
+      "source": "C:\\Users\\76398\\.codex\\generated_images\\01a12ae4-aa44-7cf3-99dd-efb71ad75a4e\\exec-453fbd8b-0dbc-48c2-a9bb-ac7e5854a1a1.png",
+      "retained": "D:\\AI\\zhanchengdashi\\output\\visual_concepts\\tata_battle_style\\full_game\\root_pages\\10_loading.png",
+      "sha256": "B9C9D5761F6AC949CA9258C8C97725D4BB39EBE4F485757629BB93D58809FB5E",
+      "bytes": 1365149,
+      "action": "REMOVE_IDENTICAL_WORKING_COPY",
+      "result": "VERIFIED_AND_SOURCE_COPY_REMOVED"
+    },
+    {
+      "source": "C:\\Users\\76398\\.codex\\generated_images\\01a12ae4-aa44-7cf3-99dd-efb71ad75a4e\\exec-469e5a84-7ff0-4e50-9d38-0cb6738816bf.png",
+      "retained": "D:\\AI\\zhanchengdashi\\output\\visual_concepts\\tata_battle_style\\iterations\\03_purchase_v1.png",
+      "sha256": "0010C0640103BD4CA533CE04EE0B9D54C1780094554B1C1F05DBF22E53EFFA5D",
+      "bytes": 2032723,
+      "action": "REMOVE_IDENTICAL_WORKING_COPY",
+      "result": "VERIFIED_AND_SOURCE_COPY_REMOVED"
+    },
+    {
+      "source": "C:\\Users\\76398\\.codex\\generated_images\\01a12ae4-aa44-7cf3-99dd-efb71ad75a4e\\exec-474e9b49-eceb-4ca0-8a32-fe7f8a20a4a6.png",
+      "retained": "D:\\AI\\zhanchengdashi\\output\\visual_concepts\\tata_battle_style\\iterations\\04_hit_v1.png",
+      "sha256": "5F5AFFDC9F6B140917CFFFC20F20B53989B6216A1B2BEC323DFF824D074E9113",
+      "bytes": 1959913,
+      "action": "REMOVE_IDENTICAL_WORKING_COPY",
+      "result": "VERIFIED_AND_SOURCE_COPY_REMOVED"
+    },
+    {
+      "source": "C:\\Users\\76398\\.codex\\generated_images\\01a12ae4-aa44-7cf3-99dd-efb71ad75a4e\\exec-4de7608a-5c0a-47e2-b103-40758da913b1.png",
+      "retained": "D:\\AI\\zhanchengdashi\\output\\visual_concepts\\tata_battle_style\\03_purchase_camp.png",
+      "sha256": "DC8365F35F6C8B3B5604D17A4440C2517341FD100431EDBF401E869464958C0A",
+      "bytes": 1991283,
+      "action": "REMOVE_IDENTICAL_WORKING_COPY",
+      "result": "VERIFIED_AND_SOURCE_COPY_REMOVED"
+    },
+    {
+      "source": "C:\\Users\\76398\\.codex\\generated_images\\01a12ae4-aa44-7cf3-99dd-efb71ad75a4e\\exec-526f4b89-5f90-46e2-b473-efa6cf5826ad.png",
+      "retained": "D:\\AI\\zhanchengdashi\\output\\visual_concepts\\tata_battle_style\\full_game\\root_pages\\01_lobby.png",
+      "sha256": "02F5797542CBE52A290C8287C6D92938500A9E97CCB8B8938D3555E7C92004B1",
+      "bytes": 1673386,
+      "action": "REMOVE_IDENTICAL_WORKING_COPY",
+      "result": "VERIFIED_AND_SOURCE_COPY_REMOVED"
+    },
+    {
+      "source": "C:\\Users\\76398\\.codex\\generated_images\\01a12ae4-aa44-7cf3-99dd-efb71ad75a4e\\exec-60dfc78f-a7b4-4674-996d-af023506b50b.png",
+      "retained": "D:\\AI\\zhanchengdashi\\output\\visual_concepts\\tata_battle_style\\iterations\\03_purchase_v2.png",
+      "sha256": "2B19BACC9418C2957E6CD5FE8479FF3C0C7DDC786452A5E072D49101913429BE",
+      "bytes": 2013001,
+      "action": "REMOVE_IDENTICAL_WORKING_COPY",
+      "result": "VERIFIED_AND_SOURCE_COPY_REMOVED"
+    },
+    {
+      "source": "C:\\Users\\76398\\.codex\\generated_images\\01a12ae4-aa44-7cf3-99dd-efb71ad75a4e\\exec-65746790-b3a8-4ce9-8c1e-20fd7d7b37f5.png",
+      "retained": "D:\\AI\\zhanchengdashi\\output\\visual_concepts\\tata_battle_style\\full_game\\root_pages\\iterations\\09_ffa_result_v1.png",
+      "sha256": "BCBF335C80B7E010E4264217AAC04FD62C92A11A1F4D2C8753AF697D606B89C2",
+      "bytes": 1676646,
+      "action": "REMOVE_IDENTICAL_WORKING_COPY",
+      "result": "VERIFIED_AND_SOURCE_COPY_REMOVED"
+    },
+    {
+      "source": "C:\\Users\\76398\\.codex\\generated_images\\01a12ae4-aa44-7cf3-99dd-efb71ad75a4e\\exec-66fa75ee-b82d-4e8d-8f28-fc187034e717.png",
+      "retained": "D:\\AI\\zhanchengdashi\\output\\visual_concepts\\tata_battle_style\\full_game\\root_pages\\02_battle_selected.png",
+      "sha256": "2164761E8BC319B9335BAA88BEDD9A0CF3087BEE14DD726222D7DC86F43A2AEB",
+      "bytes": 1853187,
+      "action": "REMOVE_IDENTICAL_WORKING_COPY",
+      "result": "VERIFIED_AND_SOURCE_COPY_REMOVED"
+    },
+    {
+      "source": "C:\\Users\\76398\\.codex\\generated_images\\01a12ae4-aa44-7cf3-99dd-efb71ad75a4e\\exec-67e98df2-cf43-4500-a24b-4680dda449d2.png",
+      "retained": "D:\\AI\\zhanchengdashi\\output\\visual_concepts\\tata_battle_style\\04_autoattack_hit.png",
+      "sha256": "B9C71D2D6EB927B30487EC08031740DF9D34B77E828C3ED7451A8D6C15E6B38D",
+      "bytes": 1990638,
+      "action": "REMOVE_IDENTICAL_WORKING_COPY",
+      "result": "VERIFIED_AND_SOURCE_COPY_REMOVED"
+    },
+    {
+      "source": "C:\\Users\\76398\\.codex\\generated_images\\01a12ae4-aa44-7cf3-99dd-efb71ad75a4e\\exec-7128e498-8de4-4817-88fc-966f35e75898.png",
+      "retained": "D:\\AI\\zhanchengdashi\\output\\visual_concepts\\tata_battle_style\\full_game\\root_pages\\iterations\\08_defeat_v1.png",
+      "sha256": "6C11E56643E65335109B9C2C558FEDA8A41FED0CF8D0F40FD7D2C26856686704",
+      "bytes": 1605488,
+      "action": "REMOVE_IDENTICAL_WORKING_COPY",
+      "result": "VERIFIED_AND_SOURCE_COPY_REMOVED"
+    },
+    {
+      "source": "C:\\Users\\76398\\.codex\\generated_images\\01a12ae4-aa44-7cf3-99dd-efb71ad75a4e\\exec-72001dec-e8c4-456f-af21-65cd69514e32.png",
+      "retained": "D:\\AI\\zhanchengdashi\\output\\visual_concepts\\tata_battle_style\\iterations\\01_default_v3_progress.png",
+      "sha256": "F4B28BFBFAA941C7652A6137DAEBE1BCBE90D012F2CB37896ACF5D026DA7F8CF",
+      "bytes": 1980729,
+      "action": "REMOVE_IDENTICAL_WORKING_COPY",
+      "result": "VERIFIED_AND_SOURCE_COPY_REMOVED"
+    },
+    {
+      "source": "C:\\Users\\76398\\.codex\\generated_images\\01a12ae4-aa44-7cf3-99dd-efb71ad75a4e\\exec-734b3894-c1c3-405e-8de6-8392cd9a70e5.png",
+      "retained": "D:\\AI\\zhanchengdashi\\output\\visual_concepts\\tata_battle_style\\iterations\\generated_originals\\01a12ae4-aa44-7cf3-99dd-efb71ad75a4e\\exec-734b3894-c1c3-405e-8de6-8392cd9a70e5.png",
+      "sha256": "D4D3BA65F9B2B4E4AC69BC11C63E8975B970CEC53DDA712545DD256BE06543E5",
+      "bytes": 1556213,
+      "action": "RELOCATE_UNIQUE_TASK_EVIDENCE",
+      "result": "VERIFIED_AND_SOURCE_COPY_REMOVED"
+    },
+    {
+      "source": "C:\\Users\\76398\\.codex\\generated_images\\01a12ae4-aa44-7cf3-99dd-efb71ad75a4e\\exec-7dd301e9-b1b2-467b-8009-f3a5b674c2c3.png",
+      "retained": "D:\\AI\\zhanchengdashi\\output\\visual_concepts\\tata_battle_style\\01_battle_default.png",
+      "sha256": "3A05E0116E951868B03785CC1A89B1447B4BF0D91C51D3C5CB1D279F95605994",
+      "bytes": 1991006,
+      "action": "REMOVE_IDENTICAL_WORKING_COPY",
+      "result": "VERIFIED_AND_SOURCE_COPY_REMOVED"
+    },
+    {
+      "source": "C:\\Users\\76398\\.codex\\generated_images\\01a12ae4-aa44-7cf3-99dd-efb71ad75a4e\\exec-8af9e435-00d3-4ce0-b4ff-5bf8806d9330.png",
+      "retained": "D:\\AI\\zhanchengdashi\\output\\visual_concepts\\tata_battle_style\\full_game\\root_pages\\05_battle_no_gold.png",
+      "sha256": "18D8E19C3D5B09A321D43D28830ACEC90FD495B033283DCBD7B7955C329D5EAF",
+      "bytes": 1901766,
+      "action": "REMOVE_IDENTICAL_WORKING_COPY",
+      "result": "VERIFIED_AND_SOURCE_COPY_REMOVED"
+    },
+    {
+      "source": "C:\\Users\\76398\\.codex\\generated_images\\01a12ae4-aa44-7cf3-99dd-efb71ad75a4e\\exec-99ca721e-5fc9-4c17-b158-31c47de48bb5.png",
+      "retained": "D:\\AI\\zhanchengdashi\\output\\visual_concepts\\tata_battle_style\\iterations\\01_default_v1.png",
+      "sha256": "F09AEBF40A489660BB5864AEBCFDC642847D0772DEB6717649BA8033BFE6EE70",
+      "bytes": 1955955,
+      "action": "REMOVE_IDENTICAL_WORKING_COPY",
+      "result": "VERIFIED_AND_SOURCE_COPY_REMOVED"
+    },
+    {
+      "source": "C:\\Users\\76398\\.codex\\generated_images\\01a12ae4-aa44-7cf3-99dd-efb71ad75a4e\\exec-a0372b29-4bb6-4233-819c-ca147ffd0b9a.png",
+      "retained": "D:\\AI\\zhanchengdashi\\output\\visual_concepts\\tata_battle_style\\full_game\\root_pages\\03_battle_purchase.png",
+      "sha256": "4EC77A95CBCC154DC1E061B7E327BAD4C71F5FC7449B376BB362C2C3569E10B5",
+      "bytes": 1953683,
+      "action": "REMOVE_IDENTICAL_WORKING_COPY",
+      "result": "VERIFIED_AND_SOURCE_COPY_REMOVED"
+    },
+    {
+      "source": "C:\\Users\\76398\\.codex\\generated_images\\01a12ae4-aa44-7cf3-99dd-efb71ad75a4e\\exec-a1b6b969-eb34-49ab-a992-0848e48285b2.png",
+      "retained": "D:\\AI\\zhanchengdashi\\output\\visual_concepts\\tata_battle_style\\full_game\\root_pages\\04_battle_hit.png",
+      "sha256": "52C5FD4A8AF4C1792BAE75B0E69553DB6423E4AD24E7028F754AF9006CF182F7",
+      "bytes": 1880530,
+      "action": "REMOVE_IDENTICAL_WORKING_COPY",
+      "result": "VERIFIED_AND_SOURCE_COPY_REMOVED"
+    },
+    {
+      "source": "C:\\Users\\76398\\.codex\\generated_images\\01a12ae4-aa44-7cf3-99dd-efb71ad75a4e\\exec-a8f8d1e6-c8cc-4d6e-bc08-05b56d10e72b.png",
+      "retained": "D:\\AI\\zhanchengdashi\\output\\visual_concepts\\tata_battle_style\\iterations\\generated_originals\\01a12ae4-aa44-7cf3-99dd-efb71ad75a4e\\exec-a8f8d1e6-c8cc-4d6e-bc08-05b56d10e72b.png",
+      "sha256": "88C6BB886242A3EBE2AE22409F6A4DC8B272726A081F48EB9E81ADCB6EDDD6D5",
+      "bytes": 1490774,
+      "action": "RELOCATE_UNIQUE_TASK_EVIDENCE",
+      "result": "VERIFIED_AND_SOURCE_COPY_REMOVED"
+    },
+    {
+      "source": "C:\\Users\\76398\\.codex\\generated_images\\01a12ae4-aa44-7cf3-99dd-efb71ad75a4e\\exec-af6a59a7-c06b-454f-91ac-67e9f987bd65.png",
+      "retained": "D:\\AI\\zhanchengdashi\\output\\visual_concepts\\tata_battle_style\\full_game\\root_pages\\iterations\\06_pause_v1.png",
+      "sha256": "12AF1AD9A93958E90529D5FE21E5AF7B5464D9B38F25961E75D03323DB879FB6",
+      "bytes": 1594584,
+      "action": "REMOVE_IDENTICAL_WORKING_COPY",
+      "result": "VERIFIED_AND_SOURCE_COPY_REMOVED"
+    },
+    {
+      "source": "C:\\Users\\76398\\.codex\\generated_images\\01a12ae4-aa44-7cf3-99dd-efb71ad75a4e\\exec-b1994e20-01f1-42f6-9689-f620a6d45234.png",
+      "retained": "D:\\AI\\zhanchengdashi\\output\\visual_concepts\\tata_battle_style\\full_game\\root_pages\\iterations\\07_victory_v1.png",
+      "sha256": "70B8CBE8D77834E98926F3D2F034F10C4FCE539BBFA6A8113CA975AC9C4CDD43",
+      "bytes": 1599124,
+      "action": "REMOVE_IDENTICAL_WORKING_COPY",
+      "result": "VERIFIED_AND_SOURCE_COPY_REMOVED"
+    },
+    {
+      "source": "C:\\Users\\76398\\.codex\\generated_images\\01a12ae4-aa44-7cf3-99dd-efb71ad75a4e\\exec-b3266c62-710e-4905-9a4e-6ebd1badf813.png",
+      "retained": "D:\\AI\\zhanchengdashi\\output\\visual_concepts\\tata_battle_style\\iterations\\generated_originals\\01a12ae4-aa44-7cf3-99dd-efb71ad75a4e\\exec-b3266c62-710e-4905-9a4e-6ebd1badf813.png",
+      "sha256": "6AAFDF3060DCD32CCA3F9B6ECF4FF4D9B879694A8BBCC9BE1CFFC653B9FC5DB1",
+      "bytes": 1560290,
+      "action": "RELOCATE_UNIQUE_TASK_EVIDENCE",
+      "result": "VERIFIED_AND_SOURCE_COPY_REMOVED"
+    },
+    {
+      "source": "C:\\Users\\76398\\.codex\\generated_images\\01a12ae4-aa44-7cf3-99dd-efb71ad75a4e\\exec-bba67e81-916e-4bb0-a03c-8f25cd1ab2e2.png",
+      "retained": "D:\\AI\\zhanchengdashi\\output\\visual_concepts\\tata_battle_style\\full_game\\root_pages\\iterations\\12_ffa_battle_v1.png",
+      "sha256": "7D7074851ECD3CE76BEB3C352955755769469FBD9DF2EF7337670E16FB16A875",
+      "bytes": 1792721,
+      "action": "REMOVE_IDENTICAL_WORKING_COPY",
+      "result": "VERIFIED_AND_SOURCE_COPY_REMOVED"
+    },
+    {
+      "source": "C:\\Users\\76398\\.codex\\generated_images\\01a12ae4-aa44-7cf3-99dd-efb71ad75a4e\\exec-c2b3ca74-9363-44f8-a00b-a485cb320bf7.png",
+      "retained": "D:\\AI\\zhanchengdashi\\output\\visual_concepts\\tata_battle_style\\iterations\\01_default_v2.png",
+      "sha256": "44E93892156E119C64FBFE404312AEA682347AA5A23D5F2B9B4043937F99C8A2",
+      "bytes": 1919996,
+      "action": "REMOVE_IDENTICAL_WORKING_COPY",
+      "result": "VERIFIED_AND_SOURCE_COPY_REMOVED"
+    },
+    {
+      "source": "C:\\Users\\76398\\.codex\\generated_images\\01a12ae4-aa44-7cf3-99dd-efb71ad75a4e\\exec-ca0fdce1-8bd0-4b98-97fc-a09019f99868.png",
+      "retained": "D:\\AI\\zhanchengdashi\\output\\visual_concepts\\tata_battle_style\\iterations\\04_hit_v2.png",
+      "sha256": "F5A87AB4BA40E740C845F7EAA752DD5BEA8A4881E97699233F136BA59CCAC457",
+      "bytes": 1968917,
+      "action": "REMOVE_IDENTICAL_WORKING_COPY",
+      "result": "VERIFIED_AND_SOURCE_COPY_REMOVED"
+    },
+    {
+      "source": "C:\\Users\\76398\\.codex\\generated_images\\01a12ae4-aa44-7cf3-99dd-efb71ad75a4e\\exec-cfa5332f-1e94-4099-90bf-3a5b1b40ed6f.png",
+      "retained": "D:\\AI\\zhanchengdashi\\output\\visual_concepts\\tata_battle_style\\02_selected_animal.png",
+      "sha256": "55F4182B1AD778012A195FF4C44E60832FBA4792FF0C28FF9399DE99143FBBC6",
+      "bytes": 1989149,
+      "action": "REMOVE_IDENTICAL_WORKING_COPY",
+      "result": "VERIFIED_AND_SOURCE_COPY_REMOVED"
+    },
+    {
+      "source": "C:\\Users\\76398\\.codex\\generated_images\\01a12ae4-aa44-7cf3-99dd-efb71ad75a4e\\exec-d6156c6d-fd22-4017-970f-f16391c8920b.png",
+      "retained": "D:\\AI\\zhanchengdashi\\output\\visual_concepts\\tata_battle_style\\iterations\\generated_originals\\01a12ae4-aa44-7cf3-99dd-efb71ad75a4e\\exec-d6156c6d-fd22-4017-970f-f16391c8920b.png",
+      "sha256": "C6351C234ACA5ABC78981BEB23628F03222D58594C65A8FFD4A05AE52B9233CB",
+      "bytes": 1798273,
+      "action": "RELOCATE_UNIQUE_TASK_EVIDENCE",
+      "result": "VERIFIED_AND_SOURCE_COPY_REMOVED"
+    },
+    {
+      "source": "C:\\Users\\76398\\.codex\\generated_images\\01a12ae4-aa44-7cf3-99dd-efb71ad75a4e\\exec-e3e352aa-ebf4-4e81-bb30-c30cea96bb7a.png",
+      "retained": "D:\\AI\\zhanchengdashi\\output\\visual_concepts\\tata_battle_style\\05_insufficient_gold.png",
+      "sha256": "31FDA5153F0D466C0001A48DAC14019DB5EB55793DD28625B26AB784E2995A37",
+      "bytes": 1993078,
+      "action": "REMOVE_IDENTICAL_WORKING_COPY",
+      "result": "VERIFIED_AND_SOURCE_COPY_REMOVED"
+    },
+    {
+      "source": "C:\\Users\\76398\\.codex\\generated_images\\01a12ae4-aa44-7cf3-99dd-efb71ad75a4e\\exec-f73436a0-d6bc-4ef9-946d-f133549c5e95.png",
+      "retained": "D:\\AI\\zhanchengdashi\\output\\visual_concepts\\tata_battle_style\\iterations\\generated_originals\\01a12ae4-aa44-7cf3-99dd-efb71ad75a4e\\exec-f73436a0-d6bc-4ef9-946d-f133549c5e95.png",
+      "sha256": "E29835438B9BEDF006428A182070E70AD6C67E4BB8E2482B81F853D61CAADA3B",
+      "bytes": 1598038,
+      "action": "RELOCATE_UNIQUE_TASK_EVIDENCE",
+      "result": "VERIFIED_AND_SOURCE_COPY_REMOVED"
+    },
+    {
+      "source": "C:\\Users\\76398\\.codex\\generated_images\\01a12ae8-e0b1-7283-b9eb-711ff560c36b\\exec-0f555088-6933-4eba-9405-dfc22e62d5c8.png",
+      "retained": "D:\\AI\\zhanchengdashi\\output\\visual_concepts\\tata_battle_style\\full_game\\core_pages\\01_home_selected.png",
+      "sha256": "0A1AA4678A950D190CB3D96FE5E53BBDA132333E29D627E8EB32061A59EC8EC0",
+      "bytes": 1877359,
+      "action": "REMOVE_IDENTICAL_WORKING_COPY",
+      "result": "VERIFIED_AND_SOURCE_COPY_REMOVED"
+    },
+    {
+      "source": "C:\\Users\\76398\\.codex\\generated_images\\01a12ae8-e0b1-7283-b9eb-711ff560c36b\\exec-105697f1-9636-4c6a-8361-edaa4736411c.png",
+      "retained": "D:\\AI\\zhanchengdashi\\output\\visual_concepts\\tata_battle_style\\iterations\\generated_originals\\01a12ae8-e0b1-7283-b9eb-711ff560c36b\\exec-105697f1-9636-4c6a-8361-edaa4736411c.png",
+      "sha256": "1E98B1F936AB15A1E59E4C74193AA9063CACC2940355D8B28429014B5B3DDC96",
+      "bytes": 1662143,
+      "action": "RELOCATE_UNIQUE_TASK_EVIDENCE",
+      "result": "VERIFIED_AND_SOURCE_COPY_REMOVED"
+    },
+    {
+      "source": "C:\\Users\\76398\\.codex\\generated_images\\01a12ae8-e0b1-7283-b9eb-711ff560c36b\\exec-15197ec9-606e-4efa-8cd5-6f04295f2ad2.png",
+      "retained": "D:\\AI\\zhanchengdashi\\output\\visual_concepts\\tata_battle_style\\iterations\\generated_originals\\01a12ae8-e0b1-7283-b9eb-711ff560c36b\\exec-15197ec9-606e-4efa-8cd5-6f04295f2ad2.png",
+      "sha256": "EA030F47AF9FC5E49F68C4A12B1CA1F8DB6B956465F1BA1C5871751D3B81FDB6",
+      "bytes": 1888878,
+      "action": "RELOCATE_UNIQUE_TASK_EVIDENCE",
+      "result": "VERIFIED_AND_SOURCE_COPY_REMOVED"
+    },
+    {
+      "source": "C:\\Users\\76398\\.codex\\generated_images\\01a12ae8-e0b1-7283-b9eb-711ff560c36b\\exec-16e5cf6d-c477-45f6-b8d8-11e5525d9e1d.png",
+      "retained": "D:\\AI\\zhanchengdashi\\output\\visual_concepts\\tata_battle_style\\iterations\\generated_originals\\01a12ae8-e0b1-7283-b9eb-711ff560c36b\\exec-16e5cf6d-c477-45f6-b8d8-11e5525d9e1d.png",
+      "sha256": "EF0B69A28E21B561A66A40011E4F517243934AD04DF0A1B91D94A7D22EC68686",
+      "bytes": 1957428,
+      "action": "RELOCATE_UNIQUE_TASK_EVIDENCE",
+      "result": "VERIFIED_AND_SOURCE_COPY_REMOVED"
+    },
+    {
+      "source": "C:\\Users\\76398\\.codex\\generated_images\\01a12ae8-e0b1-7283-b9eb-711ff560c36b\\exec-20332f89-70b3-4524-ae2a-a25e4631d35d.png",
+      "retained": "D:\\AI\\zhanchengdashi\\output\\visual_concepts\\tata_battle_style\\iterations\\generated_originals\\01a12ae8-e0b1-7283-b9eb-711ff560c36b\\exec-20332f89-70b3-4524-ae2a-a25e4631d35d.png",
+      "sha256": "5DEE6864C4833C225086F18092D9AC00AADC80AA71C5551B6F93013EDBEDDC74",
+      "bytes": 1647301,
+      "action": "RELOCATE_UNIQUE_TASK_EVIDENCE",
+      "result": "VERIFIED_AND_SOURCE_COPY_REMOVED"
+    },
+    {
+      "source": "C:\\Users\\76398\\.codex\\generated_images\\01a12ae8-e0b1-7283-b9eb-711ff560c36b\\exec-927f644f-220a-45a2-a700-ffbaf1c93302.png",
+      "retained": "D:\\AI\\zhanchengdashi\\output\\visual_concepts\\tata_battle_style\\full_game\\core_pages\\04_deck_main.png",
+      "sha256": "F3B6A8496703FCE12754AF18BE67C2DCA4E90F6CD5359AB07E9BAE0F134E889B",
+      "bytes": 2006568,
+      "action": "REMOVE_IDENTICAL_WORKING_COPY",
+      "result": "VERIFIED_AND_SOURCE_COPY_REMOVED"
+    },
+    {
+      "source": "C:\\Users\\76398\\.codex\\generated_images\\01a12ae8-e0b1-7283-b9eb-711ff560c36b\\exec-ac0740f3-9d6b-4b10-9e29-25fe3a9e3ac5.png",
+      "retained": "D:\\AI\\zhanchengdashi\\output\\visual_concepts\\tata_battle_style\\iterations\\generated_originals\\01a12ae8-e0b1-7283-b9eb-711ff560c36b\\exec-ac0740f3-9d6b-4b10-9e29-25fe3a9e3ac5.png",
+      "sha256": "0ECBEE7B08710B29A4DA477740C1B43EBAB02C4589F88A36F0F3607FC36FA4E2",
+      "bytes": 1886379,
+      "action": "RELOCATE_UNIQUE_TASK_EVIDENCE",
+      "result": "VERIFIED_AND_SOURCE_COPY_REMOVED"
+    },
+    {
+      "source": "C:\\Users\\76398\\.codex\\generated_images\\01a12ae8-e0b1-7283-b9eb-711ff560c36b\\exec-ddb99c67-4f58-47fc-9927-48d734659a15.png",
+      "retained": "D:\\AI\\zhanchengdashi\\output\\visual_concepts\\tata_battle_style\\full_game\\core_pages\\02_home_new_tomorrow.png",
+      "sha256": "A519F1D6320BB62573016BBD780000AFDA9DE719DBE6813AE1E02B2D84D3C9BB",
+      "bytes": 1913376,
+      "action": "REMOVE_IDENTICAL_WORKING_COPY",
+      "result": "VERIFIED_AND_SOURCE_COPY_REMOVED"
+    },
+    {
+      "source": "C:\\Users\\76398\\.codex\\generated_images\\01a12ae8-e0b1-7283-b9eb-711ff560c36b\\exec-de2dfb48-9aed-4b2e-9d5b-3817df52f760.png",
+      "retained": "D:\\AI\\zhanchengdashi\\output\\visual_concepts\\tata_battle_style\\iterations\\generated_originals\\01a12ae8-e0b1-7283-b9eb-711ff560c36b\\exec-de2dfb48-9aed-4b2e-9d5b-3817df52f760.png",
+      "sha256": "27B85FD12F29881A647AB5BDD8B1266C67A78D5A43F08B7486E152624D4EF49E",
+      "bytes": 1997673,
+      "action": "RELOCATE_UNIQUE_TASK_EVIDENCE",
+      "result": "VERIFIED_AND_SOURCE_COPY_REMOVED"
+    },
+    {
+      "source": "C:\\Users\\76398\\.codex\\generated_images\\01a12ae8-e0b1-7283-b9eb-711ff560c36b\\exec-e392feda-de87-4cd6-81d5-152147b034fb.png",
+      "retained": "D:\\AI\\zhanchengdashi\\output\\visual_concepts\\tata_battle_style\\iterations\\generated_originals\\01a12ae8-e0b1-7283-b9eb-711ff560c36b\\exec-e392feda-de87-4cd6-81d5-152147b034fb.png",
+      "sha256": "B321E07945CB41B9404D1DB5C419AF4477DF69F178120FA2F8CA339B9B886150",
+      "bytes": 1943228,
+      "action": "RELOCATE_UNIQUE_TASK_EVIDENCE",
+      "result": "VERIFIED_AND_SOURCE_COPY_REMOVED"
+    },
+    {
+      "source": "C:\\Users\\76398\\.codex\\generated_images\\01a12ae8-e0b1-7283-b9eb-711ff560c36b\\exec-fb0b69c1-4d38-4849-b2ca-aa62e01d807d.png",
+      "retained": "D:\\AI\\zhanchengdashi\\output\\visual_concepts\\tata_battle_style\\full_game\\core_pages\\05_deck_upgrade.png",
+      "sha256": "3ECFFCD6F88757763CCAA245D4BE5EF18FC86EEAFF95254A1BE1071893BD6648",
+      "bytes": 1908598,
+      "action": "REMOVE_IDENTICAL_WORKING_COPY",
+      "result": "VERIFIED_AND_SOURCE_COPY_REMOVED"
+    },
+    {
+      "source": "C:\\Users\\76398\\.codex\\generated_images\\01a12aeb-6d53-7e52-9d7a-97a490228f51\\exec-0c187cdc-1cab-4ca9-8a79-fe37ac7cc53b.png",
+      "retained": "D:\\AI\\zhanchengdashi\\output\\visual_concepts\\tata_battle_style\\iterations\\generated_originals\\01a12aeb-6d53-7e52-9d7a-97a490228f51\\exec-0c187cdc-1cab-4ca9-8a79-fe37ac7cc53b.png",
+      "sha256": "538AA16898F2597237AE9D81134CBB9C79BCCED9A62F74AF8DED3D9935E2CD9F",
+      "bytes": 1667493,
+      "action": "RELOCATE_UNIQUE_TASK_EVIDENCE",
+      "result": "VERIFIED_AND_SOURCE_COPY_REMOVED"
+    },
+    {
+      "source": "C:\\Users\\76398\\.codex\\generated_images\\01a12aeb-6d53-7e52-9d7a-97a490228f51\\exec-4d0c70c9-e63f-4c59-a474-9e5e7e5f040a.png",
+      "retained": "D:\\AI\\zhanchengdashi\\output\\visual_concepts\\tata_battle_style\\iterations\\generated_originals\\01a12aeb-6d53-7e52-9d7a-97a490228f51\\exec-4d0c70c9-e63f-4c59-a474-9e5e7e5f040a.png",
+      "sha256": "7AC3959F61E57F0606CA6CDF94D6DD58E7C2EB0F48A701FE9ED990A85F932EF1",
+      "bytes": 1561258,
+      "action": "RELOCATE_UNIQUE_TASK_EVIDENCE",
+      "result": "VERIFIED_AND_SOURCE_COPY_REMOVED"
+    },
+    {
+      "source": "C:\\Users\\76398\\.codex\\generated_images\\01a12aeb-6d53-7e52-9d7a-97a490228f51\\exec-56347bf2-0ef8-44f2-b8c2-bfebd9f1db67.png",
+      "retained": "D:\\AI\\zhanchengdashi\\output\\visual_concepts\\tata_battle_style\\iterations\\generated_originals\\01a12aeb-6d53-7e52-9d7a-97a490228f51\\exec-56347bf2-0ef8-44f2-b8c2-bfebd9f1db67.png",
+      "sha256": "6B7BA8020F8A60C0463E579562F30AA4C62799369784C5DEA787445D6139D856",
+      "bytes": 1638731,
+      "action": "RELOCATE_UNIQUE_TASK_EVIDENCE",
+      "result": "VERIFIED_AND_SOURCE_COPY_REMOVED"
+    },
+    {
+      "source": "C:\\Users\\76398\\.codex\\generated_images\\01a12aeb-6d53-7e52-9d7a-97a490228f51\\exec-6b0aaced-537f-420c-b4a0-a950ac7d9dd1.png",
+      "retained": "D:\\AI\\zhanchengdashi\\output\\visual_concepts\\tata_battle_style\\iterations\\generated_originals\\01a12aeb-6d53-7e52-9d7a-97a490228f51\\exec-6b0aaced-537f-420c-b4a0-a950ac7d9dd1.png",
+      "sha256": "05FE4E9284151266743EDAB8A576DDC2FB36A2583549AA60C0957076B89BBFB8",
+      "bytes": 1718608,
+      "action": "RELOCATE_UNIQUE_TASK_EVIDENCE",
+      "result": "VERIFIED_AND_SOURCE_COPY_REMOVED"
+    },
+    {
+      "source": "C:\\Users\\76398\\.codex\\generated_images\\01a12aeb-6d53-7e52-9d7a-97a490228f51\\exec-88c83543-e2a2-4d23-92b0-88e45d22d4a2.png",
+      "retained": "D:\\AI\\zhanchengdashi\\output\\visual_concepts\\tata_battle_style\\iterations\\generated_originals\\01a12aeb-6d53-7e52-9d7a-97a490228f51\\exec-88c83543-e2a2-4d23-92b0-88e45d22d4a2.png",
+      "sha256": "E91E5B3FC13F1FDE19DC43D5B41A7D49185E2116904C05E43FB77A61B2595DC9",
+      "bytes": 1689784,
+      "action": "RELOCATE_UNIQUE_TASK_EVIDENCE",
+      "result": "VERIFIED_AND_SOURCE_COPY_REMOVED"
+    },
+    {
+      "source": "C:\\Users\\76398\\.codex\\generated_images\\01a12aeb-6d53-7e52-9d7a-97a490228f51\\exec-90842bc4-032f-4977-9cac-ac78912e97a9.png",
+      "retained": "D:\\AI\\zhanchengdashi\\output\\visual_concepts\\tata_battle_style\\iterations\\generated_originals\\01a12aeb-6d53-7e52-9d7a-97a490228f51\\exec-90842bc4-032f-4977-9cac-ac78912e97a9.png",
+      "sha256": "1D6E7133243CF2A4889106FF1AA61880C8F61BCB3FF56BFB8D4C4B1DE1DEC2AE",
+      "bytes": 1610461,
+      "action": "RELOCATE_UNIQUE_TASK_EVIDENCE",
+      "result": "VERIFIED_AND_SOURCE_COPY_REMOVED"
+    },
+    {
+      "source": "C:\\Users\\76398\\.codex\\generated_images\\01a12aeb-6d53-7e52-9d7a-97a490228f51\\exec-d1863c68-0886-48b7-b791-3b2c17966b78.png",
+      "retained": "D:\\AI\\zhanchengdashi\\output\\visual_concepts\\tata_battle_style\\iterations\\generated_originals\\01a12aeb-6d53-7e52-9d7a-97a490228f51\\exec-d1863c68-0886-48b7-b791-3b2c17966b78.png",
+      "sha256": "D2130ED3D22626831F262C045F46B0F6E3B941395FF16260BDC87411BFF79AA1",
+      "bytes": 1764040,
+      "action": "RELOCATE_UNIQUE_TASK_EVIDENCE",
+      "result": "VERIFIED_AND_SOURCE_COPY_REMOVED"
+    }
+  ]
+}

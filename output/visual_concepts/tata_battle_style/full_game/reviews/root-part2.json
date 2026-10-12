@@ -1,0 +1,421 @@
+{
+  "schema_version": 2,
+  "reviewer": "lead_art_director",
+  "producer": "root",
+  "request_id": "REQ-20261011-TATA-FULL-GAME-PREVIEW",
+  "status": "BATCH_PREVIEW_PASS",
+  "reviewed_on": "2026-10-12 Asia/Hong_Kong",
+  "runtime_approved": false,
+  "files": [
+    {
+      "path": "root_pages/04_battle_hit.png",
+      "sha256": "52C5FD4A8AF4C1792BAE75B0E69553DB6423E4AD24E7028F754AF9006CF182F7",
+      "design_canvas": [
+        720,
+        1280
+      ],
+      "raster_size": [
+        941,
+        1672
+      ],
+      "verdict": "PREVIEW_PASS",
+      "p0": [],
+      "p1": [],
+      "native_receipt": null,
+      "source": "Existing approved art/previous state reference",
+      "checks": [
+        "Direct final screenshot inspection",
+        "Correct original data/action/state labels and clear source hierarchy",
+        "Original source geometry and actor/site semantics retained",
+        "Resource no progress/wedge/shop-plus; navy/cream/lime family coherent",
+        "No key fixed text cutting or blocking overlay"
+      ]
+    },
+    {
+      "path": "root_pages/05_battle_no_gold.png",
+      "sha256": "18D8E19C3D5B09A321D43D28830ACEC90FD495B033283DCBD7B7955C329D5EAF",
+      "design_canvas": [
+        720,
+        1280
+      ],
+      "raster_size": [
+        941,
+        1672
+      ],
+      "verdict": "PREVIEW_PASS",
+      "p0": [],
+      "p1": [],
+      "native_receipt": null,
+      "source": "Existing approved art/previous state reference",
+      "checks": [
+        "Direct final screenshot inspection",
+        "Correct original data/action/state labels and clear source hierarchy",
+        "Original source geometry and actor/site semantics retained",
+        "Resource no progress/wedge/shop-plus; navy/cream/lime family coherent",
+        "No key fixed text cutting or blocking overlay"
+      ]
+    },
+    {
+      "path": "root_pages/06_pause.png",
+      "sha256": "FAADE759B223775E472D3B07A28EF065E4BC20565C311739DE15E1841A6CF057",
+      "design_canvas": [
+        720,
+        1280
+      ],
+      "raster_size": [
+        720,
+        1280
+      ],
+      "verdict": "PREVIEW_PASS",
+      "p0": [],
+      "p1": [],
+      "native_receipt": "root_pages/native-render-receipt.json",
+      "source": "D:\\AI\\zhanchengdashi\\output\\visual_concepts\\tata_battle_style\\full_game\\style_master.png",
+      "checks": [
+        "Direct final screenshot inspection",
+        "Correct original data/action/state labels and clear source hierarchy",
+        "Original source geometry and actor/site semantics retained",
+        "Resource no progress/wedge/shop-plus; navy/cream/lime family coherent",
+        "No key fixed text cutting or blocking overlay"
+      ]
+    },
+    {
+      "path": "root_pages/07_victory.png",
+      "sha256": "1AAE789A153BF8E0E1FC4A753BA5C429EE4A985770F1DFFC7C9F7EC737DCCAAB",
+      "design_canvas": [
+        720,
+        1280
+      ],
+      "raster_size": [
+        720,
+        1280
+      ],
+      "verdict": "PREVIEW_PASS",
+      "p0": [],
+      "p1": [],
+      "native_receipt": "root_pages/native-render-receipt.json",
+      "source": "temp/qa/result-reward-area-20260907/victory-720.png",
+      "checks": [
+        "Direct final screenshot inspection",
+        "Correct original data/action/state labels and clear source hierarchy",
+        "Original source geometry and actor/site semantics retained",
+        "Resource no progress/wedge/shop-plus; navy/cream/lime family coherent",
+        "No key fixed text cutting or blocking overlay"
+      ]
+    },
+    {
+      "path": "root_pages/08_defeat.png",
+      "sha256": "1C8522A385D6B5DB9025E98C77466CBC63C1DEC15B9E76A37FAE60BBB1B205F5",
+      "design_canvas": [
+        720,
+        1280
+      ],
+      "raster_size": [
+        720,
+        1280
+      ],
+      "verdict": "PREVIEW_PASS",
+      "p0": [],
+      "p1": [],
+      "native_receipt": "root_pages/native-render-receipt.json",
+      "source": "temp/qa/result-reward-area-20260907/team-loss-top-720.png",
+      "checks": [
+        "Direct final screenshot inspection",
+        "Correct original data/action/state labels and clear source hierarchy",
+        "Original source geometry and actor/site semantics retained",
+        "Resource no progress/wedge/shop-plus; navy/cream/lime family coherent",
+        "No key fixed text cutting or blocking overlay"
+      ]
+    },
+    {
+      "path": "root_pages/09_ffa_result.png",
+      "sha256": "39588E9A75535CAFDAE42814FE8D947FE310FC0097C413C724978F4A59304995",
+      "design_canvas": [
+        720,
+        1280
+      ],
+      "raster_size": [
+        720,
+        1280
+      ],
+      "verdict": "PREVIEW_PASS",
+      "p0": [],
+      "p1": [],
+      "native_receipt": "root_pages/native-render-receipt.json",
+      "source": "temp/qa/result-reward-area-20260907/ffa-720.png",
+      "checks": [
+        "Direct final screenshot inspection",
+        "Correct original data/action/state labels and clear source hierarchy",
+        "Original source geometry and actor/site semantics retained",
+        "Resource no progress/wedge/shop-plus; navy/cream/lime family coherent",
+        "No key fixed text cutting or blocking overlay"
+      ]
+    },
+    {
+      "path": "root_pages/10_loading.png",
+      "sha256": "B9C9D5761F6AC949CA9258C8C97725D4BB39EBE4F485757629BB93D58809FB5E",
+      "design_canvas": [
+        720,
+        1280
+      ],
+      "raster_size": [
+        941,
+        1672
+      ],
+      "verdict": "PREVIEW_PASS",
+      "p0": [],
+      "p1": [],
+      "native_receipt": null,
+      "source": "Existing approved art/previous state reference",
+      "checks": [
+        "Direct final screenshot inspection",
+        "Correct original data/action/state labels and clear source hierarchy",
+        "Original source geometry and actor/site semantics retained",
+        "Resource no progress/wedge/shop-plus; navy/cream/lime family coherent",
+        "No key fixed text cutting or blocking overlay"
+      ]
+    },
+    {
+      "path": "root_pages/11_team_battle.png",
+      "sha256": "86657679200F10633E6A2CD7ABDA0FA7718889C25CAC5A4A092E1032894F0330",
+      "design_canvas": [
+        720,
+        1280
+      ],
+      "raster_size": [
+        720,
+        1280
+      ],
+      "verdict": "PREVIEW_PASS",
+      "p0": [],
+      "p1": [],
+      "native_receipt": "root_pages/native-render-receipt.json",
+      "source": "temp/qa/all-animals-audit-20260906/hex-3v3-720.png",
+      "checks": [
+        "Direct final screenshot inspection",
+        "Correct original data/action/state labels and clear source hierarchy",
+        "Original source geometry and actor/site semantics retained",
+        "Resource no progress/wedge/shop-plus; navy/cream/lime family coherent",
+        "No key fixed text cutting or blocking overlay"
+      ]
+    },
+    {
+      "path": "root_pages/12_ffa_battle.png",
+      "sha256": "4010A7230BA911358591E431E6995AEECAD82B9BDA47660FDEB037EE02814704",
+      "design_canvas": [
+        720,
+        1280
+      ],
+      "raster_size": [
+        720,
+        1280
+      ],
+      "verdict": "PREVIEW_PASS",
+      "p0": [],
+      "p1": [],
+      "native_receipt": "root_pages/native-render-receipt.json",
+      "source": "temp/qa/all-animals-audit-20260906/hex-ffa-720.png",
+      "checks": [
+        "Direct final screenshot inspection",
+        "Correct original data/action/state labels and clear source hierarchy",
+        "Original source geometry and actor/site semantics retained",
+        "Resource no progress/wedge/shop-plus; navy/cream/lime family coherent",
+        "No key fixed text cutting or blocking overlay"
+      ]
+    }
+  ],
+  "resolved_prior_findings": [
+    "Pause exact modal120,430,480,330 and source continue/exit restored; underlay info panel retained with48percent dim",
+    "Result3 headers/rows/scroll/rewards/close exact existing rectangles and42percent dim restored",
+    "Result blue paw-ticket identity uniform; source cross/team/FFA maps retained instead of master map",
+    "Multiplayer HUD preserves all6 ownership/score/leaderboard values and source region topology",
+    "Field background and six palette groups simplified; same HUD dot palettes and outside-map forest only",
+    "3V3 neutral warm-white at288,980 preserved byte-exact248,232,203 and288,995 preserved248,233,204",
+    "Repeated150pixel forest patch replaced by single approved wide forest ROI65,180,810,125",
+    "Original unknown-site silhouette geometry preserved; only interiors receive2tone wood/stone, leaving prices/unknown questionmarks/outer outlines unchanged"
+  ],
+  "loading_checks": [
+    "Own lion/crown/flag/green clothing and original boot composition preserved",
+    "Original clean upper area retained; no invented progress/currency/title/buttons"
+  ],
+  "minor": [
+    "Small existing unknown-site symbols stay intentionally generic and untyped to preserve unlock semantics",
+    "This is static art preview, not a new runtime rendering or export device acceptance"
+  ],
+  "superseded_review": {
+    "schema_version": 1,
+    "reviewer": "lead_art_director",
+    "request_id": "REQ-20261011-TATA-FULL-GAME-PREVIEW",
+    "scope": "Static preview QA only",
+    "reviewed_on": "2026-10-11 Asia/Hong_Kong",
+    "status": "IN_PROGRESS_WITH_P1",
+    "runtime_approved": false,
+    "files": [
+      {
+        "path": "root_pages/04_battle_hit.png",
+        "sha256": "52C5FD4A8AF4C1792BAE75B0E69553DB6423E4AD24E7028F754AF9006CF182F7",
+        "source": {
+          "path": "output/visual_concepts/tata_battle_style/04_autoattack_hit.png",
+          "role": "prior attack-feedback state"
+        },
+        "verdict": "PREVIEW_PASS",
+        "p0": [],
+        "p1": [],
+        "checks": [
+          "60/10 plain no-progress currency pills",
+          "Enemy parrot portrait and Lv1/attack1/HP7/7/extra attack skill legible",
+          "Small projectile and -1 feedback on allied rabbit; feedback does not obscure board UI",
+          "Preserved twelve animal identities/positions and site costs",
+          "Quiet master-style forest and terrain"
+        ],
+        "limitations": [
+          "Static image; motion timing, attack causality and actual health mutation not verified"
+        ]
+      },
+      {
+        "path": "root_pages/05_battle_no_gold.png",
+        "sha256": "18D8E19C3D5B09A321D43D28830ACEC90FD495B033283DCBD7B7955C329D5EAF",
+        "source": {
+          "path": "output/visual_concepts/tata_battle_style/05_insufficient_gold.png",
+          "role": "prior insufficient-wallet state"
+        },
+        "verdict": "PREVIEW_PASS",
+        "p0": [],
+        "p1": [],
+        "checks": [
+          "20/10 plain no-progress currency pills",
+          "No available yellow site borders at insufficient gold",
+          "Toast金币不足，还差30 exactly matches20wallet/50price",
+          "50/50/250 site costs retained",
+          "Existing units, information panel and pause button preserved"
+        ],
+        "limitations": [
+          "Static image; transaction rejection and wallet authority not verified"
+        ]
+      },
+      {
+        "path": "root_pages/06_pause.png",
+        "sha256": "E29835438B9BEDF006428A182070E70AD6C67E4BB8E2482B81F853D61CAADA3B",
+        "verdict": "PENDING_TARGETED_FIX",
+        "p0": [],
+        "p1": [
+          {
+            "id": "PAUSE-GEOMETRY-01",
+            "issue": "Modal and two buttons materially shifted/narrowed versus exact source rects.",
+            "fix": "Use pause-layout-guide.png as geometry owner; panel120,430,480,330; buttons184,552,352,68 and184,644,352,68."
+          },
+          {
+            "id": "PAUSE-UNDERLAY-02",
+            "issue": "Existing bottom instruction panel removed from the paused underlay.",
+            "fix": "Restore original bottom panel behind same48percent dim."
+          }
+        ],
+        "checks": [
+          "Exact two action labels and darkened battlefield readable",
+          "60/10 currencies preserve plain no-progress pills"
+        ],
+        "source": {
+          "path": "scripts/app/main.gd",
+          "locator": "_draw_pause_overlay/_pause_button_rect/_pause_continue_rect/_pause_exit_rect"
+        },
+        "guide": "reviews/pause-layout-guide.png"
+      },
+      {
+        "path": "root_pages/07_victory.png",
+        "sha256": "70B8CBE8D77834E98926F3D2F034F10C4FCE539BBFA6A8113CA975AC9C4CDD43",
+        "source": {
+          "path": "temp/qa/result-reward-area-20260907/victory-720.png"
+        },
+        "verdict": "PENDING_TARGETED_FIX",
+        "p0": [],
+        "p1": [
+          {
+            "id": "RESULT-UNDERLAY-01",
+            "issue": "Reference style master 1V1 diamond battlefield replaces source battle map/ownership regions.",
+            "fix": "Use actual result source as geometry target; retain visible cross/6-color battlefield and source bottom instructions; master contributes only finish."
+          },
+          {
+            "id": "RESULT-SCRIM-02",
+            "issue": "Source42percent uniform underlay scrim absent.",
+            "fix": "Dim the entire nonmodal layer only; preserve modal brightness."
+          },
+          {
+            "id": "RESOURCE-TICKET-03",
+            "issue": "Reward ticket is horizontal hourglass cutout with hole markings instead of same blue paw-ticket identity used in HUD.",
+            "fix": "Use identical smaller paw-stamped notched ticket in existing reward slot."
+          }
+        ],
+        "checks": [
+          "Own and opponent names/rank transitions/star+1/-1 exact",
+          "Gold+12/ticket+3 rewards and146/16 HUD counters readable",
+          "Quiet empty others region retained"
+        ]
+      },
+      {
+        "path": "root_pages/08_defeat.png",
+        "sha256": "6C11E56643E65335109B9C2C558FEDA8A41FED0CF8D0F40FD7D2C26856686704",
+        "source": {
+          "path": "temp/qa/result-reward-area-20260907/team-loss-top-720.png"
+        },
+        "verdict": "PENDING_TARGETED_FIX",
+        "p0": [],
+        "p1": [
+          {
+            "id": "RESULT-UNDERLAY-01",
+            "issue": "Reference style master 1V1 diamond battlefield replaces source battle map/ownership regions.",
+            "fix": "Use actual result source as geometry target; retain visible cross/6-color battlefield and source bottom instructions; master contributes only finish."
+          },
+          {
+            "id": "RESULT-SCRIM-02",
+            "issue": "Source42percent uniform underlay scrim absent.",
+            "fix": "Dim complete nonmodal scene and HUD."
+          },
+          {
+            "id": "RESULT-GEOMETRY-04",
+            "issue": "Defeat panel shifted lower and larger; fixed bottom instructions deleted.",
+            "fix": "Restore source panel60,176,600,824 with original rows/reward/close geometry and source instruction panel."
+          }
+        ],
+        "checks": [
+          "Exact three visible other-player rows and scrollbar",
+          "Local/other rank deltas andstar-1/ticket+1 rewards correct",
+          "146/17 and129tile A/B scoreboard data correct"
+        ]
+      },
+      {
+        "path": "root_pages/09_ffa_result.png",
+        "sha256": "BCBF335C80B7E010E4264217AAC04FD62C92A11A1F4D2C8753AF697D606B89C2",
+        "source": {
+          "path": "temp/qa/result-reward-area-20260907/ffa-720.png"
+        },
+        "verdict": "PENDING_TARGETED_FIX",
+        "p0": [],
+        "p1": [
+          {
+            "id": "RESULT-UNDERLAY-01",
+            "issue": "Reference style master 1V1 diamond battlefield replaces source battle map/ownership regions.",
+            "fix": "Use actual result source as geometry target; retain visible cross/6-color battlefield and source bottom instructions; master contributes only finish."
+          },
+          {
+            "id": "RESULT-SCRIM-02",
+            "issue": "Source42percent uniform underlay scrim absent.",
+            "fix": "Dim complete nonmodal scene and HUD."
+          },
+          {
+            "id": "RESULT-HEADER-05",
+            "issue": "New ribbon/laurel structure replaces shared plain navy title strip and extends original header region.",
+            "fix": "Use common navy title region with gold第1名, no new ribbon/portrait."
+          }
+        ],
+        "checks": [
+          "Self and three other visible rank rows/deltas exact",
+          "star+3/ticket+5,146/22 and06:00第6/6 retained",
+          "Source bottom instruction text retained"
+        ]
+      }
+    ],
+    "unresolved_batch_items": "Pause, battle result variants, loading and multiplayer HUD previews await separate review.",
+    "acceptance": "Preview art quality only; zero runtime or release gate claims."
+  },
+  "acceptance": "Zero open static-previewP0/P1. No runtime, release, asset-set or deployment approval."
+}

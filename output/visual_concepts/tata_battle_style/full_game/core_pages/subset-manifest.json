@@ -1,0 +1,1740 @@
+{
+  "schema_version": 1,
+  "request_id": "REQ-20261011-TATA-FULL-GAME-PREVIEW",
+  "owner": "project_ui_audit",
+  "producer": "root",
+  "client_date": "2026-10-12",
+  "scope": "PREVIEW_ONLY_CORE_9_NO_RUNTIME",
+  "design_resolution": [
+    720,
+    1280
+  ],
+  "style_master": "D:/AI/zhanchengdashi/output/visual_concepts/tata_battle_style/full_game/style_master.png",
+  "nav_master": "D:/AI/zhanchengdashi/output/visual_concepts/tata_battle_style/full_game/root_pages/01_lobby.png",
+  "rag_receipt": "D:/AI/zhanchengdashi/temp/rag/receipts/tasks/REQ-20261011-TATA-FULL-GAME-PREVIEW.json",
+  "status": "CORE_NINE_PREVIEW_PASS_NO_RUNTIME",
+  "recency_warning": "Historical synthetic runtime fixture inputs are not fresh current-engine proof. 01/02/04/05 remain accepted legacy 941x1672 AI style previews without pixel-coordinate parity. Native 03/06/07/08/09 outputs are exactly720x1280; 03 uniform-scale icon repair, GACHA current-source component coordinates. No implementation, real account, ownership or device behavior claim.",
+  "source_overrides": {
+    "bear_Lv1": {
+      "attack": 3,
+      "max_hp": 23,
+      "skill_text": "攻击造成溅射效果"
+    },
+    "duck_Lv3": {
+      "attack": 1,
+      "max_hp": 2,
+      "skill_text": "出生时，数量+1；远程",
+      "level_formula": "floor(base + (level - 1) * growth)"
+    },
+    "sheep": {
+      "rarity": "rare",
+      "color": "blue"
+    },
+    "nav": {
+      "order": [
+        "家园",
+        "编组",
+        "战斗",
+        "抽卡",
+        "房间"
+      ],
+      "no_shop": true
+    }
+  },
+  "tool_policy": {
+    "mode": "BUILTIN_IMAGEGEN_EXISTING_ART_PLUS_USER_AUTHORIZED_NATIVE_CANVAS",
+    "new_imagegen_calls": 0,
+    "native_renderer": "render_core.cjs",
+    "canonical_native_kit": "../native_components/common.cjs"
+  },
+  "generation_failures": [
+    {
+      "batch": [
+        "01_home_selected",
+        "04_deck_main"
+      ],
+      "error": "connection failed",
+      "result": "No artifact"
+    },
+    {
+      "id": "05_deck_upgrade_strip_correction",
+      "error": "network error after prolonged request",
+      "result": "No artifact; keep prior successful generation; independent severity review pending"
+    }
+  ],
+  "jobs": [
+    {
+      "id": "01_home_selected",
+      "source": "D:/AI/zhanchengdashi/temp/qa/home-readability-20260925/home/candidate/720x1280-detail-value-14.png",
+      "prompt": "Use case: style-transfer / ui-mockup. Create ONE complete portrait mobile game effect mockup, 9:16 framing, design canvas 720x1280. Reference image 1 is EXACT EXISTING PAGE GEOMETRY and functional content. Image 2 is APPROVED STYLE MASTER only. Repaint image 1 into image 2's coherent flat hand-drawn cartoon style: thick near-black/navy outlines, matte saturated color blocks, minimal 2-tone shading, cute clean chibi silhouettes, dark olive/teal pine forest corners and sparse foliage. Keep all existing controls, card counts, UI positions and world placements stable. ALL Chinese text must be sharp, complete, comfortably readable. Shared top left bar (46,18,186,44): the master's LARGE round gold coin icon and numeric balance; shared top right bar (488,18,186,44): the master's LARGE blue rectangular paw-stamped ticket icon and numeric balance. Dark navy bar fill, white outlined numerals. Currency bars have NO progress fill, NO diagonal yellow wedge, NO plus button, NO resource-name text. The bottom nav has EXACTLY 5 items at (i*144+3,1148,138,122): 家园 with HOUSE icon; 编组 with CARDS icon; 战斗 with CROSSED SWORDS icon; 抽卡 with TICKET/CARD icon; 房间 with DOOR icon. Idle navy, selected lime green, white/cream icons and readable labels. NO locked shop, NO additional nav item. This is original 丛林法则 game art, not reference-game characters/logos. No phone shell, captions outside UI, watermark, or runtime implementation. PAGE HOME: title 动物家园 at (26,81,236,50), 白天 11:00 at (487,84,201,43), summary 8 位居民 · 4 座建筑 at (28,136,348,36). Four compact type legend icons/shortnames 居住 吃饭 娱乐 运动 on upper right. Preserve the SOURCE's full visible home hex placements and all 7 currently visible plot prices including partial edge crops; replace gray type glyphs with clean original drawn house/bowl/music/ball icons. Existing owned purple theater, center blue-roof castle, right blue small house, selected orange-roof 森林餐厅 must remain in identical hexes. Map stays (0,194,720,756), forest decoration only in already empty/off-map boundaries, not on hex targets. Bottom owned-building details exactly (24,967,672,155): illustration left, 森林餐厅 centered left, 每日产出 right, original woven meal-basket formal icon in green quality cell and ×1. No extra rate/name prose. Keep balances9914 and13. Selected bottom nav is 家园. No construction confirmation, upgrade button, shops, dialogue, battle health bars, battle VS text, or new residents beyond the source.",
+      "generated_source": "C:/Users/76398/.codex/generated_images/01a12ae8-e0b1-7283-b9eb-711ff560c36b/exec-0f555088-6933-4eba-9405-dfc22e62d5c8.png",
+      "output": "D:/AI/zhanchengdashi/output/visual_concepts/tata_battle_style/full_game/core_pages/01_home_selected.png",
+      "status": "PREVIEW_ART_DIRECTOR_PASS",
+      "edits": [
+        {
+          "prompt": "Use case: precise-object-edit. Image1 exact edit target; Image2 supplies ONLY bottom navigation icons. Change ONLY Image1's bottom 家园 icon from a castle to Image2's SIMPLE orange-roof WHITE HOUSE, and 抽卡 icon from BLUE ticket to Image2's GOLD paw-stamped NOTCHED ticket. Other three icons must visually match Image2: doublecards, simplecrossedswords, roundedwooddoor. Keep5buttonbounds/labels, 家园active limegreen and restnavy. Absolutely keep all scenery, homehexmap/buildings/prices, resourcebars9914/13, title/time/8residents4buildings, and 森林餐厅/每日产出/basket×1 details unchanged. No edits above bottomnav. No wedge/progress/plus in currency. One9:16image.",
+          "generated": "C:/Users/76398/.codex/generated_images/01a12ae8-e0b1-7283-b9eb-711ff560c36b/exec-16e5cf6d-c477-45f6-b8d8-11e5525d9e1d.png"
+        },
+        {
+          "prompt": "Use case: precise-object-edit. Image1 exact edit target, Image2 supplies ONLY the fixed HOME UI component SKIN. Make Image1's HOME header and bottom building-details panel match Image2's calm cream panel system: one broad cream rounded dark-navy-contour header behind title/time/resident-count/type-legend, plain cream resident text area replacing woodstrip, darknavytitle ratherthan whitefloatingposter; bottomdetails plaincream withsubtlebeigerim, NOwoodframe/grain. Do NOT moveanytext/control orchangeanycontent: keep动物家园,白天11:00,8位居民·4座建筑,balances9914/13; selected森林餐厅/每日产出/basket×1 exactly. Nevercopy Image2's6buildingnumber,温馨小屋orworldmap. Preserve allImage1hexes/prices/buildings/positions and final5navicons(active家园). Limit edits to header/details skins; rest unchanged. No newcontrols, progressbar/wedge/plus, no phoneframe. 9:16.",
+          "generated": "C:/Users/76398/.codex/generated_images/01a12ae8-e0b1-7283-b9eb-711ff560c36b/exec-0f555088-6933-4eba-9405-dfc22e62d5c8.png"
+        }
+      ],
+      "references": [
+        "D:/AI/zhanchengdashi/temp/qa/home-readability-20260925/home/candidate/720x1280-detail-value-14.png",
+        "D:/AI/zhanchengdashi/output/visual_concepts/tata_battle_style/full_game/style_master.png"
+      ],
+      "source_sha256": "BF50366C1C8CC4B20E8DF7F287FABFCE2FBECDDDC91A002B251482A23C0F0798",
+      "source_pixels": [
+        720,
+        1280
+      ],
+      "reference_sha256": [
+        {
+          "path": "D:/AI/zhanchengdashi/temp/qa/home-readability-20260925/home/candidate/720x1280-detail-value-14.png",
+          "sha256": "BF50366C1C8CC4B20E8DF7F287FABFCE2FBECDDDC91A002B251482A23C0F0798"
+        },
+        {
+          "path": "D:/AI/zhanchengdashi/output/visual_concepts/tata_battle_style/full_game/style_master.png",
+          "sha256": "BBE3FD3A58369D7ACC66808C7ADBCD7FE39BDC373E27D5B2C76EEB366516405A"
+        }
+      ],
+      "output_sha256": "0A1AA4678A950D190CB3D96FE5E53BBDA132333E29D627E8EB32061A59EC8EC0",
+      "output_pixels": [
+        941,
+        1672
+      ],
+      "prompt_file": "prompts/01_home_selected.prompt.txt",
+      "resolution_class": "ACCEPTED_LEGACY_941x1672_UNCHANGED",
+      "protection_check": "SHA256_UNCHANGED_FROM_ART_DIRECTOR_PASS",
+      "independent_review": {
+        "path": "../reviews/core_pages.json",
+        "sha256": "2031F9F0DB82B9F693B599DCC9C422ADF27B093C32065B8EBFBB27FBACD155BC",
+        "verdict": "PREVIEW_PASS",
+        "output_sha256": "0A1AA4678A950D190CB3D96FE5E53BBDA132333E29D627E8EB32061A59EC8EC0"
+      },
+      "design_canvas": [
+        720,
+        1280
+      ],
+      "raster_size": [
+        941,
+        1672
+      ],
+      "coordinate_evidence": "Unchanged accepted AI legacy preview; relative layout inspected, source-pixel exactness not established"
+    },
+    {
+      "id": "04_deck_main",
+      "source": "D:/AI/zhanchengdashi/output/runtime_ui_dot_corner_20260906/deck_corner_badges.png",
+      "prompt": "Use case: style-transfer / ui-mockup. Create ONE complete portrait mobile game effect mockup, 9:16 framing, design canvas 720x1280. Reference image 1 is EXACT EXISTING PAGE GEOMETRY and functional content. Image 2 is APPROVED STYLE MASTER only. Repaint image 1 into image 2's coherent flat hand-drawn cartoon style: thick near-black/navy outlines, matte saturated color blocks, minimal 2-tone shading, cute clean chibi silhouettes, dark olive/teal pine forest corners and sparse foliage. Keep all existing controls, card counts, UI positions and world placements stable. ALL Chinese text must be sharp, complete, comfortably readable. Shared top left bar (46,18,186,44): the master's LARGE round gold coin icon and numeric balance; shared top right bar (488,18,186,44): the master's LARGE blue rectangular paw-stamped ticket icon and numeric balance. Dark navy bar fill, white outlined numerals. Currency bars have NO progress fill, NO diagonal yellow wedge, NO plus button, NO resource-name text. The bottom nav has EXACTLY 5 items at (i*144+3,1148,138,122): 家园 with HOUSE icon; 编组 with CARDS icon; 战斗 with CROSSED SWORDS icon; 抽卡 with TICKET/CARD icon; 房间 with DOOR icon. Idle navy, selected lime green, white/cream icons and readable labels. NO locked shop, NO additional nav item. This is original 丛林法则 game art, not reference-game characters/logos. No phone shell, captions outside UI, watermark, or runtime implementation. PAGE DECK: keep all SOURCE rows/columns and 8 equipped cards exactly 4×2, all animal/tower identities and stable level/progress numbers. Title 出战编组 at(40,68,640,58); deck panel(34,140,652,360); slots (64+150col,202+142row,124,132). Eight equipped names, row1 金矿,兔子哨塔,仓鼠,野猪重弩塔; row2 狐狸,熊,老鼠,羊. Keep existing card identities matching the source but redraw their art to master's chibi style. Selected 熊 keeps gold/orange legendary quality, portrait/detail rows stay at(34,520,652,128). IMPORTANT current formal CSV OVERRIDES SOURCE OLD BEAR DATA: 熊 Lv.1 attack icon 3, heart icon 23, exact skill 攻击造成溅射效果. Keep current upgrade progress0/1 and disabled 升级 button. Remove SOURCE old5/28 and old self-damage skill. All other fixture level/progress numbers remain. 所有卡牌 heading at y670, source collection stays FOUR columns in (34,714,652,414), card132x158 with gap24x18. Keep common green, rare blue, epic purple, legendary orange quality consistently on all cards. Red upgrade dots only where source shows them. Source inventory includes clipped next row at bottom, preserve ordinary viewport crop not fades. Currency60/10. Bottom nav first must be HOUSE 家园 not locked商店; second 编组 active limegreen; rest idle. No gacha-style enlarged-card overlay.",
+      "generated_source": "C:/Users/76398/.codex/generated_images/01a12ae8-e0b1-7283-b9eb-711ff560c36b/exec-927f644f-220a-45a2-a700-ffbaf1c93302.png",
+      "output": "D:/AI/zhanchengdashi/output/visual_concepts/tata_battle_style/full_game/core_pages/04_deck_main.png",
+      "status": "PREVIEW_ART_DIRECTOR_PASS",
+      "edits": [
+        {
+          "prompt": "Use case: precise-object-edit. Edit ONLY the equipped 羊 card, second row fourth column. Its formal rarity is rare/blue, not common/green. Replace ONLY that card's pale green background and green rim with the same pale BLUE background/rim treatment as the nearby equipped 野猪重弩塔 rare card. Preserve the 羊 character, name, level1 badge,0/1progress, exact geometry and everything else pixel-stable. Do not recolor any other card; do not alter any UI, Chinese text, bear stats3/23 or skill, world, currency bars, bottom navigation, layout or proportions. Keep image 9:16. No extra elements.",
+          "generated": "C:/Users/76398/.codex/generated_images/01a12ae8-e0b1-7283-b9eb-711ff560c36b/exec-de2dfb48-9aed-4b2e-9d5b-3817df52f760.png"
+        },
+        {
+          "prompt": "Use case: precise-object-edit. Image1 is exact edit target. Image2 supplies ONLY bottom navigation ICON STYLE. Change ONLY Image1's five bottom icons to match Image2 exactly: orange-roof simple小屋 for家园, purple/yellow双卡 for编组, simplewhitecrossed双剑 for战斗, GOLD YELLOW paw-stamped notched ticket for抽卡 (NOT BLUE), roundedwooddoor for房间. Keep five equal button bounds, positions, labels and active 编组 limegreen state. Keep all cards/data/animals/text/forest/currency untouched. Particularly 羊 card must remain BLUE rare, 熊 card orange selected; bear attack3/HP23/攻击造成溅射效果. NO edits above nav. No extra controls/progress/wedges. 9:16 output.",
+          "generated": "C:/Users/76398/.codex/generated_images/01a12ae8-e0b1-7283-b9eb-711ff560c36b/exec-927f644f-220a-45a2-a700-ffbaf1c93302.png"
+        }
+      ],
+      "references": [
+        "D:/AI/zhanchengdashi/output/runtime_ui_dot_corner_20260906/deck_corner_badges.png",
+        "D:/AI/zhanchengdashi/output/visual_concepts/tata_battle_style/full_game/style_master.png"
+      ],
+      "source_sha256": "1A03C2FF0D2AE91F748B05FA9586228DEF3CAEA293EBEC7A2EA221130A8741EF",
+      "source_pixels": [
+        720,
+        1280
+      ],
+      "reference_sha256": [
+        {
+          "path": "D:/AI/zhanchengdashi/output/runtime_ui_dot_corner_20260906/deck_corner_badges.png",
+          "sha256": "1A03C2FF0D2AE91F748B05FA9586228DEF3CAEA293EBEC7A2EA221130A8741EF"
+        },
+        {
+          "path": "D:/AI/zhanchengdashi/output/visual_concepts/tata_battle_style/full_game/style_master.png",
+          "sha256": "BBE3FD3A58369D7ACC66808C7ADBCD7FE39BDC373E27D5B2C76EEB366516405A"
+        }
+      ],
+      "output_sha256": "F3B6A8496703FCE12754AF18BE67C2DCA4E90F6CD5359AB07E9BAE0F134E889B",
+      "output_pixels": [
+        941,
+        1672
+      ],
+      "prompt_file": "prompts/04_deck_main.prompt.txt",
+      "resolution_class": "ACCEPTED_LEGACY_941x1672_UNCHANGED",
+      "protection_check": "SHA256_UNCHANGED_FROM_ART_DIRECTOR_PASS",
+      "independent_review": {
+        "path": "../reviews/core_pages.json",
+        "sha256": "2031F9F0DB82B9F693B599DCC9C422ADF27B093C32065B8EBFBB27FBACD155BC",
+        "verdict": "PREVIEW_PASS",
+        "output_sha256": "F3B6A8496703FCE12754AF18BE67C2DCA4E90F6CD5359AB07E9BAE0F134E889B"
+      },
+      "design_canvas": [
+        720,
+        1280
+      ],
+      "raster_size": [
+        941,
+        1672
+      ],
+      "coordinate_evidence": "Unchanged accepted AI legacy preview; relative layout inspected, source-pixel exactness not established"
+    },
+    {
+      "id": "02_home_new_tomorrow",
+      "source": "D:/AI/zhanchengdashi/temp/qa/home-readability-20260925/home/candidate/720x1280-tomorrow.png",
+      "prompt": "Use case: style-transfer / ui-mockup. ONE complete9:16 portrait720x1280design game effect screen. Image1 owns all source geometry, controls, data and original identities. Image2 supplies approved flat matte cartoon craft: near-black bold contours, quiet dark olive/teal forest, cream info panels, large simple shapes, minimal two-tone shading. Image3 supplies ONLY five bottom-nav ICONS/style: orange-roof HOUSE 家园, purple/yellow doubleCARDS 编组, white crossedSWORDS 战斗, GOLD paw-stamped ticket 抽卡, roundedWOOD DOOR 房间. Five equal source slots(i×144+3,1148,138,122); idle navy/thispageactive lime. Shared currencyplainNAVYpills with largeprotrudinggoldcoin/blueNOTCHEDticket, largewhite outlined values, nofill/progress/yellowwedge/plus/resource-name text. Preserve exact text and page layout, readable Chinese. No new features/shop/buttons/control regions, no watermarks or phoneframes. PREVIEWonly. HOME exactsourcepositions: balances9914/13,title动物家园,白天11:00,8位居民·6座建筑,world map y194..950. Same6ownedbuildings/worldhex topology and visibleprices; redclaimdotand领取收益 at(466,876,224,56). Selectednew 温馨小屋 bottomdetail(24,967,672,155): blue-roofsmallhouse,left; name温馨小屋; 明日开始产出; 每日产出; formalbluewhitepillowqualitygreen×1. Keep 领取收益 enabled, red dot on nav家园. Nav家园active. No construction/upgradeconfirmation modal, no新增建筑按钮. Repaint gray typeglyphs into originalhouse/bowl/music/ballillustrations.",
+      "output": "D:/AI/zhanchengdashi/output/visual_concepts/tata_battle_style/full_game/core_pages/02_home_new_tomorrow.png",
+      "status": "PREVIEW_ART_DIRECTOR_PASS",
+      "reference_kind": "HISTORICAL_LOCAL_RUNTIME_FIXTURE",
+      "references": [
+        "D:/AI/zhanchengdashi/temp/qa/home-readability-20260925/home/candidate/720x1280-tomorrow.png",
+        "D:/AI/zhanchengdashi/output/visual_concepts/tata_battle_style/full_game/style_master.png",
+        "D:/AI/zhanchengdashi/output/visual_concepts/tata_battle_style/full_game/root_pages/01_lobby.png"
+      ],
+      "generated_source": "C:/Users/76398/.codex/generated_images/01a12ae8-e0b1-7283-b9eb-711ff560c36b/exec-ddb99c67-4f58-47fc-9927-48d734659a15.png",
+      "source_sha256": "44BB860FDEEF02236E2808C89180056845EE33F691B3647EDB9C334AB8E97C6F",
+      "source_pixels": [
+        720,
+        1280
+      ],
+      "reference_sha256": [
+        {
+          "path": "D:/AI/zhanchengdashi/temp/qa/home-readability-20260925/home/candidate/720x1280-tomorrow.png",
+          "sha256": "44BB860FDEEF02236E2808C89180056845EE33F691B3647EDB9C334AB8E97C6F"
+        },
+        {
+          "path": "D:/AI/zhanchengdashi/output/visual_concepts/tata_battle_style/full_game/style_master.png",
+          "sha256": "BBE3FD3A58369D7ACC66808C7ADBCD7FE39BDC373E27D5B2C76EEB366516405A"
+        },
+        {
+          "path": "D:/AI/zhanchengdashi/output/visual_concepts/tata_battle_style/full_game/root_pages/01_lobby.png",
+          "sha256": "02F5797542CBE52A290C8287C6D92938500A9E97CCB8B8938D3555E7C92004B1"
+        }
+      ],
+      "output_sha256": "A519F1D6320BB62573016BBD780000AFDA9DE719DBE6813AE1E02B2D84D3C9BB",
+      "output_pixels": [
+        941,
+        1672
+      ],
+      "prompt_file": "prompts/02_home_new_tomorrow.prompt.txt",
+      "resolution_class": "ACCEPTED_LEGACY_941x1672_UNCHANGED",
+      "protection_check": "SHA256_UNCHANGED_FROM_ART_DIRECTOR_PASS",
+      "independent_review": {
+        "path": "../reviews/core_pages.json",
+        "sha256": "2031F9F0DB82B9F693B599DCC9C422ADF27B093C32065B8EBFBB27FBACD155BC",
+        "verdict": "PREVIEW_PASS",
+        "output_sha256": "A519F1D6320BB62573016BBD780000AFDA9DE719DBE6813AE1E02B2D84D3C9BB"
+      },
+      "design_canvas": [
+        720,
+        1280
+      ],
+      "raster_size": [
+        941,
+        1672
+      ],
+      "coordinate_evidence": "Unchanged accepted AI legacy preview; relative layout inspected, source-pixel exactness not established"
+    },
+    {
+      "id": "03_home_daily_rewards",
+      "source": "D:/AI/zhanchengdashi/temp/qa/home-readability-20260925/home/candidate/720x1280-four-quality-rewards.png",
+      "prompt": "Native exact icon repair only. Load the retained generated-source image, remove only incorrect reward ticket in original ROI663,607,67,54 using adjacent untouched same-row cream pixels730,607,10,54. Replace with canonical blue paw ticket, uniformly fitted, preserving count2. Uniform contain-scale the full legacy941x1672 page to720x1280. All other pixels/data/geometry unchanged.",
+      "output": "D:/AI/zhanchengdashi/output/visual_concepts/tata_battle_style/full_game/core_pages/03_home_daily_rewards.png",
+      "status": "PREVIEW_ART_DIRECTOR_PASS",
+      "reference_kind": "HISTORICAL_LOCAL_RUNTIME_FIXTURE",
+      "references": [
+        "D:/AI/zhanchengdashi/temp/qa/home-readability-20260925/home/candidate/720x1280-four-quality-rewards.png",
+        "D:/AI/zhanchengdashi/output/visual_concepts/tata_battle_style/full_game/style_master.png",
+        "D:/AI/zhanchengdashi/output/visual_concepts/tata_battle_style/full_game/root_pages/01_lobby.png",
+        "D:/AI/zhanchengdashi/output/visual_concepts/tata_battle_style/full_game/core_pages/02_home_new_tomorrow.png"
+      ],
+      "generated_source": "C:/Users/76398/.codex/generated_images/01a12ae8-e0b1-7283-b9eb-711ff560c36b/exec-105697f1-9636-4c6a-8361-edaa4736411c.png",
+      "edits": [
+        {
+          "prompt": "Use case: precise-object-edit. Image1 exact CLAIM MODAL edit target. Image2 ONLY supplies actualHOME backdrop. Fix ONLY backdrop outside modal: replace Image1's mistakenBATTLE red/greenhexes, battleanimals, darklockedcamps and pairedbases with Image2's HOME beigehexmap, bluecastle and ownedblue-roofhouses/treeperimeter. Do NOTcopyImage2'sselecteddetails/6buildingnumber: preserveImage1 header8位居民·5座建筑,9914/13,白天11:00. Apply a uniform dark translucent modal-backdrop treatment to ALL content outside the modal INCLUDING currency/header/nav so underlyingcontrols look inactive. Preserve Image1 modal EXACT: samebounds,今日家园收益,累计2天·最多保留3天,主城堡coin200/ticket2,fourpillowicons×1green/blue/purple/gold,close×,footer道具随机兑换金币，有机会获得抽卡券,CTA兑换并领取. No edits INSIDEmodal/no newelements. Keep5navicons and家园active-under-dim. 9:16.",
+          "generated": "C:/Users/76398/.codex/generated_images/01a12ae8-e0b1-7283-b9eb-711ff560c36b/exec-105697f1-9636-4c6a-8361-edaa4736411c.png"
+        }
+      ],
+      "pending_repair": {
+        "reason": "P1_same_ticket_resource_id_missing_paw_stamp",
+        "prompt": "Use case: precise-object-edit. Change ONLY the small blue ticket icon before the number 2 in the 主城堡 rewards row. Replace its current horizontal hourglass-shaped symbol with a scaled-down copy of this same image's TOP-RIGHT formal BLUE NOTCHED TICKET with PAW STAMP, same silhouette, diagonal angle and dark outline. Fit inside the existing small reward-icon slot; keep the number 2 exactly where it is. Do not change gold200, any pillow ×1, colors, text, panel, close button, CTA, HOME backdrop, dimming, header, navigation, data, layout or anything else. One 9:16 image, no added elements.",
+        "references": [
+          "D:/AI/zhanchengdashi/output/visual_concepts/tata_battle_style/full_game/core_pages/03_home_daily_rewards.png"
+        ],
+        "status": "WAITING_GLOBAL_RENDER_WINDOW"
+      },
+      "source_sha256": "F45472A05C20B78780FCF4D6DE5222F7C2131BE4E43FC72050173508CC67B90E",
+      "source_pixels": [
+        720,
+        1280
+      ],
+      "reference_sha256": [
+        {
+          "path": "D:/AI/zhanchengdashi/temp/qa/home-readability-20260925/home/candidate/720x1280-four-quality-rewards.png",
+          "sha256": "F45472A05C20B78780FCF4D6DE5222F7C2131BE4E43FC72050173508CC67B90E"
+        },
+        {
+          "path": "D:/AI/zhanchengdashi/output/visual_concepts/tata_battle_style/full_game/style_master.png",
+          "sha256": "BBE3FD3A58369D7ACC66808C7ADBCD7FE39BDC373E27D5B2C76EEB366516405A"
+        },
+        {
+          "path": "D:/AI/zhanchengdashi/output/visual_concepts/tata_battle_style/full_game/root_pages/01_lobby.png",
+          "sha256": "02F5797542CBE52A290C8287C6D92938500A9E97CCB8B8938D3555E7C92004B1"
+        },
+        {
+          "path": "D:/AI/zhanchengdashi/output/visual_concepts/tata_battle_style/full_game/core_pages/02_home_new_tomorrow.png",
+          "sha256": "A519F1D6320BB62573016BBD780000AFDA9DE719DBE6813AE1E02B2D84D3C9BB"
+        }
+      ],
+      "output_sha256": "0A0658C865399CBC299FA63EC6A04C997F9B240ACB8CC95FCC04E3C1FBAF5BED",
+      "output_pixels": [
+        720,
+        1280
+      ],
+      "prompt_file": "prompts/03_home_daily_rewards.native-instruction.txt",
+      "render_method": "USER_AUTHORIZED_NATIVE_CANVAS_COMPONENTS",
+      "repair": {
+        "input": "C:/Users/76398/.codex/generated_images/01a12ae8-e0b1-7283-b9eb-711ff560c36b/exec-105697f1-9636-4c6a-8361-edaa4736411c.png",
+        "input_sha256": "1E98B1F936AB15A1E59E4C74193AA9063CACC2940355D8B28429014B5B3DDC96",
+        "old_pixels": [
+          941,
+          1672
+        ],
+        "uniform_scale": 0.7651434643995749,
+        "y_offset": 0.34006376195532084,
+        "cleared_old_roi": [
+          663,
+          607,
+          67,
+          54
+        ],
+        "background_sample_roi": [
+          730,
+          607,
+          10,
+          54
+        ],
+        "native_icon": "ticket",
+        "new_icon_rect": [
+          512.2635494155154,
+          464.7821466524973,
+          41.317747077577046,
+          41.317747077577046
+        ],
+        "unchanged": "All page pixels outside original reward-ticket slot undergo uniform scale only; digit 2, all modal text, pillows, backdrop and nav preserved."
+      },
+      "native_receipt": "native-render-receipt.json",
+      "historical_imagegen_planning_prompt": "Use case: style-transfer / ui-mockup. ONE complete9:16 portrait720x1280design game effect screen. Image1 owns all source geometry, controls, data and original identities. Image2 supplies approved flat matte cartoon craft: near-black bold contours, quiet dark olive/teal forest, cream info panels, large simple shapes, minimal two-tone shading. Image3 supplies ONLY five bottom-nav ICONS/style: orange-roof HOUSE 家园, purple/yellow doubleCARDS 编组, white crossedSWORDS 战斗, GOLD paw-stamped ticket 抽卡, roundedWOOD DOOR 房间. Five equal source slots(i×144+3,1148,138,122); idle navy/thispageactive lime. Shared currencyplainNAVYpills with largeprotrudinggoldcoin/blueNOTCHEDticket, largewhite outlined values, nofill/progress/yellowwedge/plus/resource-name text. Preserve exact text and page layout, readable Chinese. No new features/shop/buttons/control regions, no watermarks or phoneframes. PREVIEWonly. HOME claimmodal over dimmedHOME. Preserve panel(48,235,624,808),title今日家园收益, close×(612,247,50,50),subtitle累计2天·最多保留3天. Castle row(84,394,552,106) shows主城堡, coin200,ticket2. EXACTfourbluewhitepillowicons in2×2 rewardcells(152+272col,522+160row,144,144), each×1, qualityfillsGREEN/BLUE/PURPLE/GOLD respectively; sameitemdifferentquality fixture is intentional. Noitemnameprose. Exactfooter道具随机兑换金币，有机会获得抽卡券. CTA兑换并领取(116,950,488,60),navdimmed家园active. Keep9914/13behindoverlay. Sourceis localtestfixture, no actualaccountvalues. Image4 supplies ONLY the fixed HOME creamheader/detailpanel/forest/legend skin shared across HOME states; keep Image1 claimoverlay data,8residents5buildings and other sourcecontent ratherthan Image4's6buildings state. Overlayprimarycreamform has thicknavycontour and limeCTA, notwoodgrain. Rewardcells andmodal remainexactsourcepositions.",
+      "source_kind": "ACCEPTED_AI_PREVIEW_WITH_NATIVE_ICON_REPAIR",
+      "portrait_source_kind": "NONE",
+      "self_check": {
+        "status": "STATIC_PNG_VISUALLY_INSPECTED",
+        "target_pixels": [
+          720,
+          1280
+        ],
+        "text_width_guard": "@napi-rs/canvas measureText; overflow throws, no font shrinking/ellipsis",
+        "current_sources_unchanged": true,
+        "no_runtime_claim": true
+      },
+      "design_canvas": [
+        720,
+        1280
+      ],
+      "raster_size": [
+        720,
+        1280
+      ],
+      "coordinate_evidence": "Legacy AI preview uniformly scaled with one native icon replacement; full-page exact source-coordinate parity not claimed",
+      "independent_review": {
+        "path": "../reviews/core_pages.json",
+        "sha256": "2031F9F0DB82B9F693B599DCC9C422ADF27B093C32065B8EBFBB27FBACD155BC",
+        "verdict": "PREVIEW_PASS",
+        "output_sha256": "0A0658C865399CBC299FA63EC6A04C997F9B240ACB8CC95FCC04E3C1FBAF5BED"
+      }
+    },
+    {
+      "id": "05_deck_upgrade",
+      "source": "D:/AI/zhanchengdashi/output/runtime_ui_states_20260906/04_after_upgrade.png",
+      "prompt": "Use case: style-transfer / ui-mockup. ONE complete9:16 portrait720x1280design game effect screen. Image1 owns all source geometry, controls, data and original identities. Image2 supplies approved flat matte cartoon craft: near-black bold contours, quiet dark olive/teal forest, cream info panels, large simple shapes, minimal two-tone shading. Image3 supplies ONLY five bottom-nav ICONS/style: orange-roof HOUSE 家园, purple/yellow doubleCARDS 编组, white crossedSWORDS 战斗, GOLD paw-stamped ticket 抽卡, roundedWOOD DOOR 房间. Five equal source slots(i×144+3,1148,138,122); idle navy/thispageactive lime. Shared currencyplainNAVYpills with largeprotrudinggoldcoin/blueNOTCHEDticket, largewhite outlined values, nofill/progress/yellowwedge/plus/resource-name text. Preserve exact text and page layout, readable Chinese. No new features/shop/buttons/control regions, no watermarks or phoneframes. PREVIEWonly. DECK afterupgrade state. Preserve source8equippedcards4×2 + fourcolscrollcollection, level/countfixtureexact. CurrentformalCSVoverrides: 羊cardrareBLUE（sourcegreenwrong）. Selected 鸭 Lv.3 bottomdetail: ATK1,HP2 (SOURCEoldHP6wrong), exactskill出生时，数量+1；远程; progress0/5; 上阵active,升级disabled. 鸭collectioncardLv3progress0/5. Allotherfixturelevels/countsunchanged. Gold60,ticket10. No successmodal or extra Upgradebutton; thisexisting afterupgrade restingstate. Nav编组active. If Image4 supplied use ONLY its coherent deckpanel/animal/headerforeststyle, not selectedbearcontent.",
+      "output": "D:/AI/zhanchengdashi/output/visual_concepts/tata_battle_style/full_game/core_pages/05_deck_upgrade.png",
+      "status": "PREVIEW_ART_DIRECTOR_PASS",
+      "reference_kind": "HISTORICAL_LOCAL_RUNTIME_FIXTURE",
+      "references": [
+        "D:/AI/zhanchengdashi/output/runtime_ui_states_20260906/04_after_upgrade.png",
+        "D:/AI/zhanchengdashi/output/visual_concepts/tata_battle_style/full_game/style_master.png",
+        "D:/AI/zhanchengdashi/output/visual_concepts/tata_battle_style/full_game/root_pages/01_lobby.png",
+        "D:/AI/zhanchengdashi/output/visual_concepts/tata_battle_style/full_game/core_pages/04_deck_main.png"
+      ],
+      "generated_source": "C:/Users/76398/.codex/generated_images/01a12ae8-e0b1-7283-b9eb-711ff560c36b/exec-fb0b69c1-4d38-4849-b2ca-aa62e01d807d.png",
+      "edits": [
+        {
+          "prompt": "Use case: precise-object-edit. Image1 exact target, Image2 APPROVED DECK identity/style reference. Fix ONLY: (1) equipped row1col3 仓鼠 illustration must match Image2's cute ROUND ORANGE/WHITE hamster exactly; same cardname/greenquality/level4/3/10. (2) equipped row2col1 狐狸 illustration must match Image2's ORANGE FOX in sameclothes exactly; keep name狐狸,purplequality,level1,0/1. Same itemID mustshare appearance acrossbothpages. (3) restore the cropped TOP STRIPS of the next FOUR-column collection row along the inside BOTTOM of existing collection viewport as visible in Image2/source. Do notresize/movecollectionframe orothercards/nav. Preserveselected鸭Lv3 attack1/HP2,skill出生时，数量+1；远程,progress0/5,上阵enabled/升级disabled, sourcefixturecounts,71-card scrollcollection, allothercontrols andtop60/10. No newcontrols or changeselsewhere. One9:16image.",
+          "generated": "C:/Users/76398/.codex/generated_images/01a12ae8-e0b1-7283-b9eb-711ff560c36b/exec-fb0b69c1-4d38-4849-b2ca-aa62e01d807d.png"
+        },
+        {
+          "prompt": "Use case: precise-object-edit. Edit ONLY the tiny partially visible THIRD collectionrow at the verybottomjustabove navigation. Keep its4croppedcardtops as scrollcue, but remove all recognizable partial animal/tower heads from thatthirdrow: show ONLY plain upper cardbackground strips, croppedbefore any portrait or text. Thisavoidsfake duplicate IDs; the fullvisiblecollectionrows alreadyshoweachcardonce. Do NOTtouch twofullcollectionrows, equippedcards, selectedDuckLv3ATK1HP2,skill出生时，数量+1；远程,0/5,上阵/disabled升级, currencies60/10, nav, frames or scenery. Keep hamsterorange/foxorange identities from currentimage. No newcontrols or moving/resizingviewport. One9:16image.",
+          "status": "NETWORK_FAILED_NO_ARTIFACT"
+        }
+      ],
+      "source_sha256": "E0D0907856F8DF05F6B1AD614E49548BFA35EA4E63FFA5FF9631E0F8B298F55D",
+      "source_pixels": [
+        720,
+        1280
+      ],
+      "reference_sha256": [
+        {
+          "path": "D:/AI/zhanchengdashi/output/runtime_ui_states_20260906/04_after_upgrade.png",
+          "sha256": "E0D0907856F8DF05F6B1AD614E49548BFA35EA4E63FFA5FF9631E0F8B298F55D"
+        },
+        {
+          "path": "D:/AI/zhanchengdashi/output/visual_concepts/tata_battle_style/full_game/style_master.png",
+          "sha256": "BBE3FD3A58369D7ACC66808C7ADBCD7FE39BDC373E27D5B2C76EEB366516405A"
+        },
+        {
+          "path": "D:/AI/zhanchengdashi/output/visual_concepts/tata_battle_style/full_game/root_pages/01_lobby.png",
+          "sha256": "02F5797542CBE52A290C8287C6D92938500A9E97CCB8B8938D3555E7C92004B1"
+        },
+        {
+          "path": "D:/AI/zhanchengdashi/output/visual_concepts/tata_battle_style/full_game/core_pages/04_deck_main.png",
+          "sha256": "F3B6A8496703FCE12754AF18BE67C2DCA4E90F6CD5359AB07E9BAE0F134E889B"
+        }
+      ],
+      "output_sha256": "3ECFFCD6F88757763CCAA245D4BE5EF18FC86EEAFF95254A1BE1071893BD6648",
+      "output_pixels": [
+        941,
+        1672
+      ],
+      "prompt_file": "prompts/05_deck_upgrade.prompt.txt",
+      "review_note": "No open P0/P1. Cropped next-row partial portraits do not prove duplicate IDs; retained as scroll cue. Fox epic/purple quality, hamster common/green quality; orange refers only to character fur appearance.",
+      "minor": "Next collection row only partially visible; full list not accepted as formal asset evidence.",
+      "failed_strip_edit_retry": "NOT_REQUESTED_BY_ART_DIRECTOR; no further render",
+      "resolution_class": "ACCEPTED_LEGACY_941x1672_UNCHANGED",
+      "protection_check": "SHA256_UNCHANGED_FROM_ART_DIRECTOR_PASS",
+      "independent_review": {
+        "path": "../reviews/core_pages.json",
+        "sha256": "2031F9F0DB82B9F693B599DCC9C422ADF27B093C32065B8EBFBB27FBACD155BC",
+        "verdict": "PREVIEW_PASS",
+        "output_sha256": "3ECFFCD6F88757763CCAA245D4BE5EF18FC86EEAFF95254A1BE1071893BD6648"
+      },
+      "design_canvas": [
+        720,
+        1280
+      ],
+      "raster_size": [
+        941,
+        1672
+      ],
+      "coordinate_evidence": "Unchanged accepted AI legacy preview; relative layout inspected, source-pixel exactness not established"
+    },
+    {
+      "id": "06_gacha_empty",
+      "source": "D:/AI/zhanchengdashi/temp/qa/gacha-spaced-20260925/candidate-finished-10.png",
+      "prompt": "Native720x1280 static empty fixture:60coin,0bluepawticket in both source slots; current title抽卡/最近获得/暂无记录; source blank rewardpanel; both draw actions disabled gray; standard five nav active抽卡. No art/results/toast/account data. Exact current source rectangles in native-scene-data.json.",
+      "output": "D:/AI/zhanchengdashi/output/visual_concepts/tata_battle_style/full_game/core_pages/06_gacha_empty.png",
+      "status": "PREVIEW_ART_DIRECTOR_PASS",
+      "reference_kind": "SOURCE_CONFIRMED_STATE_DERIVED_FROM_RUNTIME_FIXTURE",
+      "references": [
+        "D:/AI/zhanchengdashi/temp/qa/gacha-spaced-20260925/candidate-finished-10.png",
+        "D:/AI/zhanchengdashi/output/visual_concepts/tata_battle_style/full_game/style_master.png",
+        "D:/AI/zhanchengdashi/output/visual_concepts/tata_battle_style/full_game/root_pages/01_lobby.png"
+      ],
+      "source_sha256": "6484C52271524CDD90FAF077851F949267B4F94DB04D415D4D752EB970FDA02A",
+      "source_pixels": [
+        360,
+        640
+      ],
+      "reference_sha256": [
+        {
+          "path": "D:/AI/zhanchengdashi/temp/qa/gacha-spaced-20260925/candidate-finished-10.png",
+          "sha256": "6484C52271524CDD90FAF077851F949267B4F94DB04D415D4D752EB970FDA02A"
+        },
+        {
+          "path": "D:/AI/zhanchengdashi/output/visual_concepts/tata_battle_style/full_game/style_master.png",
+          "sha256": "BBE3FD3A58369D7ACC66808C7ADBCD7FE39BDC373E27D5B2C76EEB366516405A"
+        },
+        {
+          "path": "D:/AI/zhanchengdashi/output/visual_concepts/tata_battle_style/full_game/root_pages/01_lobby.png",
+          "sha256": "02F5797542CBE52A290C8287C6D92938500A9E97CCB8B8938D3555E7C92004B1"
+        }
+      ],
+      "prompt_file": "prompts/06_gacha_empty.native-instruction.txt",
+      "output_sha256": "88F0B53F9531F5A102AF933701F9F8451FFC048D70CAAE2B1A68D9D695C1F46E",
+      "output_pixels": [
+        720,
+        1280
+      ],
+      "render_method": "USER_AUTHORIZED_NATIVE_CANVAS_COMPONENTS",
+      "state": {
+        "id": "06_gacha_empty",
+        "gold": 60,
+        "tickets": 0,
+        "heading": "抽卡",
+        "record_heading": "最近获得",
+        "record_empty": "暂无记录",
+        "buttons": [
+          "抽1次",
+          "抽10次"
+        ],
+        "buttons_enabled": [
+          false,
+          false
+        ],
+        "nav_active": 3,
+        "source_evidence": "SOURCE_CONFIRMED_STATE_DERIVED_FROM_HISTORICAL_FIXTURE",
+        "new_features": false
+      },
+      "geometry": {
+        "currency_left": [
+          46,
+          18,
+          186,
+          44
+        ],
+        "currency_right": [
+          488,
+          18,
+          186,
+          44
+        ],
+        "title": [
+          40,
+          68,
+          640,
+          58
+        ],
+        "gacha_tickets": [
+          238,
+          130,
+          244,
+          48
+        ],
+        "reward_panel": [
+          46,
+          208,
+          628,
+          822
+        ],
+        "reward_heading": [
+          46,
+          236,
+          628,
+          42
+        ],
+        "empty_text": [
+          46,
+          446,
+          628,
+          42
+        ],
+        "single_card": [
+          228,
+          460,
+          264,
+          316
+        ],
+        "one_cta": [
+          104,
+          1050,
+          240,
+          76
+        ],
+        "ten_cta": [
+          376,
+          1050,
+          240,
+          76
+        ],
+        "toast": [
+          130,
+          1018,
+          460,
+          58
+        ],
+        "nav_slots": [
+          [
+            3,
+            1148,
+            138,
+            122
+          ],
+          [
+            147,
+            1148,
+            138,
+            122
+          ],
+          [
+            291,
+            1148,
+            138,
+            122
+          ],
+          [
+            435,
+            1148,
+            138,
+            122
+          ],
+          [
+            579,
+            1148,
+            138,
+            122
+          ]
+        ],
+        "ten_card_size": [
+          132,
+          158
+        ],
+        "ten_gap": [
+          40,
+          28
+        ],
+        "ten_row_counts": [
+          2,
+          3,
+          3,
+          2
+        ],
+        "hero_portrait": [
+          96,
+          260,
+          528,
+          528
+        ],
+        "hero_name": [
+          64,
+          840,
+          592,
+          64
+        ],
+        "hero_slogan": [
+          64,
+          936,
+          592,
+          128
+        ],
+        "hero_continue": [
+          138,
+          1112,
+          444,
+          76
+        ]
+      },
+      "animal_assets": [],
+      "native_receipt": "native-render-receipt.json",
+      "historical_imagegen_planning_prompt": "Use case: style-transfer / ui-mockup. ONE complete9:16 portrait720x1280design game effect screen. Image1 owns all source geometry, controls, data and original identities. Image2 supplies approved flat matte cartoon craft: near-black bold contours, quiet dark olive/teal forest, cream info panels, large simple shapes, minimal two-tone shading. Image3 supplies ONLY five bottom-nav ICONS/style: orange-roof HOUSE 家园, purple/yellow doubleCARDS 编组, white crossedSWORDS 战斗, GOLD paw-stamped ticket 抽卡, roundedWOOD DOOR 房间. Five equal source slots(i×144+3,1148,138,122); idle navy/thispageactive lime. Shared currencyplainNAVYpills with largeprotrudinggoldcoin/blueNOTCHEDticket, largewhite outlined values, nofill/progress/yellowwedge/plus/resource-name text. Preserve exact text and page layout, readable Chinese. No new features/shop/buttons/control regions, no watermarks or phoneframes. PREVIEWonly. GACHA emptyrecordscreen: derive empty EXISTINGstatefrom currentresultlayout. Title抽卡(40,68,640,58),gold60,ticket0;centerblue-ticketcounter0 at(238,130,244,48). Rewardpanel(46,208,628,822) with最近获得 heading and ONLY 暂无记录 centered; remove ALL10resultsand获得10张卡牌toast. Keepexact2bottom CTAs抽1次(104,1050,240,76),抽10次(376,1050,240,76), BOTHdisabledGRAY due0tickets. Nav抽卡active. No collectioncards/management/upgradelevels/newmenus. Thisempty state is source-confirmed, balancesarepreviewfixture.",
+      "source_kind": "CURRENT_SOURCE_STATE_DERIVED_FROM_HISTORICAL_SYNTHETIC_FIXTURE",
+      "portrait_source_kind": "NONE",
+      "self_check": {
+        "status": "STATIC_PNG_VISUALLY_INSPECTED",
+        "target_pixels": [
+          720,
+          1280
+        ],
+        "text_width_guard": "@napi-rs/canvas measureText; overflow throws, no font shrinking/ellipsis",
+        "current_sources_unchanged": true,
+        "no_runtime_claim": true
+      },
+      "design_canvas": [
+        720,
+        1280
+      ],
+      "raster_size": [
+        720,
+        1280
+      ],
+      "coordinate_evidence": "Current-source fixed component rectangles rendered natively; no engine/device behavior proof",
+      "independent_review": {
+        "path": "../reviews/core_pages.json",
+        "sha256": "2031F9F0DB82B9F693B599DCC9C422ADF27B093C32065B8EBFBB27FBACD155BC",
+        "verdict": "PREVIEW_PASS",
+        "output_sha256": "88F0B53F9531F5A102AF933701F9F8451FFC048D70CAAE2B1A68D9D695C1F46E"
+      }
+    },
+    {
+      "id": "07_gacha_opening",
+      "source": "D:/AI/zhanchengdashi/temp/qa/gacha-spaced-20260925/candidate-opening-1.png",
+      "prompt": "Native720x1280 static normal flip-card fixture:60coin,29bluepawticket top and center. Single current normal cardback228,460,264,316:bluepurple border/yellow inner frame/fivepoint star. Both CTAs disabled. Toast获得1张卡牌 at CURRENT generic toast130,1018,460,58. Standard five nav active抽卡. This is not the distinct new-hero paw-card reveal.",
+      "output": "D:/AI/zhanchengdashi/output/visual_concepts/tata_battle_style/full_game/core_pages/07_gacha_opening.png",
+      "status": "PREVIEW_ART_DIRECTOR_PASS",
+      "reference_kind": "HISTORICAL_LOCAL_RUNTIME_FIXTURE",
+      "references": [
+        "D:/AI/zhanchengdashi/temp/qa/gacha-spaced-20260925/candidate-opening-1.png",
+        "D:/AI/zhanchengdashi/output/visual_concepts/tata_battle_style/full_game/style_master.png",
+        "D:/AI/zhanchengdashi/output/visual_concepts/tata_battle_style/full_game/root_pages/01_lobby.png"
+      ],
+      "source_sha256": "E1B1138A12B2E8AA000636C995CE84239728FE8B9C7965FC6A63B49329FA88DA",
+      "source_pixels": [
+        720,
+        1280
+      ],
+      "reference_sha256": [
+        {
+          "path": "D:/AI/zhanchengdashi/temp/qa/gacha-spaced-20260925/candidate-opening-1.png",
+          "sha256": "E1B1138A12B2E8AA000636C995CE84239728FE8B9C7965FC6A63B49329FA88DA"
+        },
+        {
+          "path": "D:/AI/zhanchengdashi/output/visual_concepts/tata_battle_style/full_game/style_master.png",
+          "sha256": "BBE3FD3A58369D7ACC66808C7ADBCD7FE39BDC373E27D5B2C76EEB366516405A"
+        },
+        {
+          "path": "D:/AI/zhanchengdashi/output/visual_concepts/tata_battle_style/full_game/root_pages/01_lobby.png",
+          "sha256": "02F5797542CBE52A290C8287C6D92938500A9E97CCB8B8938D3555E7C92004B1"
+        }
+      ],
+      "prompt_file": "prompts/07_gacha_opening.native-instruction.txt",
+      "output_sha256": "C8859DB8D989E832D84B9D8D97A1D195F0F25902E507A0B32074EC0148106A71",
+      "output_pixels": [
+        720,
+        1280
+      ],
+      "render_method": "USER_AUTHORIZED_NATIVE_CANVAS_COMPONENTS",
+      "state": {
+        "id": "07_gacha_opening",
+        "gold": 60,
+        "tickets": 29,
+        "card_back": "existing normal result blue-purple framed star card",
+        "toast": "获得1张卡牌",
+        "buttons_enabled": [
+          false,
+          false
+        ],
+        "nav_active": 3,
+        "source_evidence": "HISTORICAL_LOCAL_RUNTIME_FIXTURE",
+        "no_new_hero_overlay": true
+      },
+      "geometry": {
+        "currency_left": [
+          46,
+          18,
+          186,
+          44
+        ],
+        "currency_right": [
+          488,
+          18,
+          186,
+          44
+        ],
+        "title": [
+          40,
+          68,
+          640,
+          58
+        ],
+        "gacha_tickets": [
+          238,
+          130,
+          244,
+          48
+        ],
+        "reward_panel": [
+          46,
+          208,
+          628,
+          822
+        ],
+        "reward_heading": [
+          46,
+          236,
+          628,
+          42
+        ],
+        "empty_text": [
+          46,
+          446,
+          628,
+          42
+        ],
+        "single_card": [
+          228,
+          460,
+          264,
+          316
+        ],
+        "one_cta": [
+          104,
+          1050,
+          240,
+          76
+        ],
+        "ten_cta": [
+          376,
+          1050,
+          240,
+          76
+        ],
+        "toast": [
+          130,
+          1018,
+          460,
+          58
+        ],
+        "nav_slots": [
+          [
+            3,
+            1148,
+            138,
+            122
+          ],
+          [
+            147,
+            1148,
+            138,
+            122
+          ],
+          [
+            291,
+            1148,
+            138,
+            122
+          ],
+          [
+            435,
+            1148,
+            138,
+            122
+          ],
+          [
+            579,
+            1148,
+            138,
+            122
+          ]
+        ],
+        "ten_card_size": [
+          132,
+          158
+        ],
+        "ten_gap": [
+          40,
+          28
+        ],
+        "ten_row_counts": [
+          2,
+          3,
+          3,
+          2
+        ],
+        "hero_portrait": [
+          96,
+          260,
+          528,
+          528
+        ],
+        "hero_name": [
+          64,
+          840,
+          592,
+          64
+        ],
+        "hero_slogan": [
+          64,
+          936,
+          592,
+          128
+        ],
+        "hero_continue": [
+          138,
+          1112,
+          444,
+          76
+        ]
+      },
+      "animal_assets": [],
+      "animation_boundary": "Single static normal result flip-card back; not proof of animation or first-ownership reveal.",
+      "native_receipt": "native-render-receipt.json",
+      "historical_imagegen_planning_prompt": "Use case: style-transfer / ui-mockup. ONE complete9:16 portrait720x1280design game effect screen. Image1 owns all source geometry, controls, data and original identities. Image2 supplies approved flat matte cartoon craft: near-black bold contours, quiet dark olive/teal forest, cream info panels, large simple shapes, minimal two-tone shading. Image3 supplies ONLY five bottom-nav ICONS/style: orange-roof HOUSE 家园, purple/yellow doubleCARDS 编组, white crossedSWORDS 战斗, GOLD paw-stamped ticket 抽卡, roundedWOOD DOOR 房间. Five equal source slots(i×144+3,1148,138,122); idle navy/thispageactive lime. Shared currencyplainNAVYpills with largeprotrudinggoldcoin/blueNOTCHEDticket, largewhite outlined values, nofill/progress/yellowwedge/plus/resource-name text. Preserve exact text and page layout, readable Chinese. No new features/shop/buttons/control regions, no watermarks or phoneframes. PREVIEWonly. GACHA onecardopening EXISTINGstate. Exacttitle抽卡,最近获得, gold60,tickets29topright andcenter. Onecardbackat(228,460,264,316) withSOURCEsimpleyellowstar, NO revealedanimal/name/stats; softbriefglowallowed. Both抽1次/抽10次 buttonsdisabledgraywhileflip. Toast获得1张卡牌 atsourcey1018, no movingtoptitle/toast. Samepanelgeometryandnav抽卡active. Do notturnitintonewhero pawcard/fullscreenoverlay: thisis normalgacharesultcardflip.",
+      "source_kind": "HISTORICAL_SYNTHETIC_FIXTURE_WITH_CURRENT_SOURCE_GEOMETRY_AND_CONFIG",
+      "portrait_source_kind": "NONE",
+      "self_check": {
+        "status": "STATIC_PNG_VISUALLY_INSPECTED",
+        "target_pixels": [
+          720,
+          1280
+        ],
+        "text_width_guard": "@napi-rs/canvas measureText; overflow throws, no font shrinking/ellipsis",
+        "current_sources_unchanged": true,
+        "no_runtime_claim": true
+      },
+      "design_canvas": [
+        720,
+        1280
+      ],
+      "raster_size": [
+        720,
+        1280
+      ],
+      "coordinate_evidence": "Current-source fixed component rectangles rendered natively; no engine/device behavior proof",
+      "independent_review": {
+        "path": "../reviews/core_pages.json",
+        "sha256": "2031F9F0DB82B9F693B599DCC9C422ADF27B093C32065B8EBFBB27FBACD155BC",
+        "verdict": "PREVIEW_PASS",
+        "output_sha256": "C8859DB8D989E832D84B9D8D97A1D195F0F25902E507A0B32074EC0148106A71"
+      }
+    },
+    {
+      "id": "08_gacha_ten_result",
+      "source": "D:/AI/zhanchengdashi/temp/qa/gacha-spaced-20260925/candidate-finished-10.png",
+      "prompt": "Native720x1280 static result:60coin,20ticket top and center. Current source132x158 cards,gaps40x28,rows2/3/3/2 with row2 x-12,row3 x+12. Exact IDsfrog,ant,sparrow,rabbit,duck,snail,hamster,pigeon,parrot,rabbit; current formal names/rarities;duck andparrot blue,othersgreen. Formal original art_pathPNG uniformly visible-alpha fitted at0.78. Only names, no added stats/levels. Both CTAs enabled, toast获得10张卡牌 source130,1018,460,58. Standard five nav active抽卡.",
+      "output": "D:/AI/zhanchengdashi/output/visual_concepts/tata_battle_style/full_game/core_pages/08_gacha_ten_result.png",
+      "status": "PREVIEW_ART_DIRECTOR_PASS",
+      "reference_kind": "HISTORICAL_LOCAL_RUNTIME_FIXTURE",
+      "references": [
+        "D:/AI/zhanchengdashi/temp/qa/gacha-spaced-20260925/candidate-finished-10.png",
+        "D:/AI/zhanchengdashi/output/visual_concepts/tata_battle_style/full_game/style_master.png",
+        "D:/AI/zhanchengdashi/output/visual_concepts/tata_battle_style/full_game/root_pages/01_lobby.png"
+      ],
+      "source_sha256": "6484C52271524CDD90FAF077851F949267B4F94DB04D415D4D752EB970FDA02A",
+      "source_pixels": [
+        360,
+        640
+      ],
+      "reference_sha256": [
+        {
+          "path": "D:/AI/zhanchengdashi/temp/qa/gacha-spaced-20260925/candidate-finished-10.png",
+          "sha256": "6484C52271524CDD90FAF077851F949267B4F94DB04D415D4D752EB970FDA02A"
+        },
+        {
+          "path": "D:/AI/zhanchengdashi/output/visual_concepts/tata_battle_style/full_game/style_master.png",
+          "sha256": "BBE3FD3A58369D7ACC66808C7ADBCD7FE39BDC373E27D5B2C76EEB366516405A"
+        },
+        {
+          "path": "D:/AI/zhanchengdashi/output/visual_concepts/tata_battle_style/full_game/root_pages/01_lobby.png",
+          "sha256": "02F5797542CBE52A290C8287C6D92938500A9E97CCB8B8938D3555E7C92004B1"
+        }
+      ],
+      "prompt_file": "prompts/08_gacha_ten_result.native-instruction.txt",
+      "output_sha256": "1C34FFFA67145E1DD6A75D7E19E79E5E879322BAFCF80D792AD2BBDBC3C179BC",
+      "output_pixels": [
+        720,
+        1280
+      ],
+      "render_method": "USER_AUTHORIZED_NATIVE_CANVAS_COMPONENTS",
+      "state": {
+        "id": "08_gacha_ten_result",
+        "gold": 60,
+        "tickets": 20,
+        "card_ids": [
+          "frog",
+          "ant",
+          "sparrow",
+          "rabbit",
+          "duck",
+          "snail",
+          "hamster",
+          "pigeon",
+          "parrot",
+          "rabbit"
+        ],
+        "toast": "获得10张卡牌",
+        "buttons_enabled": [
+          true,
+          true
+        ],
+        "nav_active": 3,
+        "read_names_rarity_art_from_current_config": true,
+        "source_evidence": "HISTORICAL_LOCAL_RUNTIME_FIXTURE_WITH_CURRENT_CSV_OVERRIDE"
+      },
+      "geometry": {
+        "currency_left": [
+          46,
+          18,
+          186,
+          44
+        ],
+        "currency_right": [
+          488,
+          18,
+          186,
+          44
+        ],
+        "title": [
+          40,
+          68,
+          640,
+          58
+        ],
+        "gacha_tickets": [
+          238,
+          130,
+          244,
+          48
+        ],
+        "reward_panel": [
+          46,
+          208,
+          628,
+          822
+        ],
+        "reward_heading": [
+          46,
+          236,
+          628,
+          42
+        ],
+        "empty_text": [
+          46,
+          446,
+          628,
+          42
+        ],
+        "single_card": [
+          228,
+          460,
+          264,
+          316
+        ],
+        "one_cta": [
+          104,
+          1050,
+          240,
+          76
+        ],
+        "ten_cta": [
+          376,
+          1050,
+          240,
+          76
+        ],
+        "toast": [
+          130,
+          1018,
+          460,
+          58
+        ],
+        "nav_slots": [
+          [
+            3,
+            1148,
+            138,
+            122
+          ],
+          [
+            147,
+            1148,
+            138,
+            122
+          ],
+          [
+            291,
+            1148,
+            138,
+            122
+          ],
+          [
+            435,
+            1148,
+            138,
+            122
+          ],
+          [
+            579,
+            1148,
+            138,
+            122
+          ]
+        ],
+        "ten_card_size": [
+          132,
+          158
+        ],
+        "ten_gap": [
+          40,
+          28
+        ],
+        "ten_row_counts": [
+          2,
+          3,
+          3,
+          2
+        ],
+        "hero_portrait": [
+          96,
+          260,
+          528,
+          528
+        ],
+        "hero_name": [
+          64,
+          840,
+          592,
+          64
+        ],
+        "hero_slogan": [
+          64,
+          936,
+          592,
+          128
+        ],
+        "hero_continue": [
+          138,
+          1112,
+          444,
+          76
+        ]
+      },
+      "cards": [
+        {
+          "id": "frog",
+          "name": "青蛙",
+          "rarity": "common",
+          "rect": [
+            208,
+            298,
+            132,
+            158
+          ]
+        },
+        {
+          "id": "ant",
+          "name": "蚂蚁",
+          "rarity": "common",
+          "rect": [
+            380,
+            298,
+            132,
+            158
+          ]
+        },
+        {
+          "id": "sparrow",
+          "name": "麻雀",
+          "rarity": "common",
+          "rect": [
+            110,
+            484,
+            132,
+            158
+          ]
+        },
+        {
+          "id": "rabbit",
+          "name": "兔子",
+          "rarity": "common",
+          "rect": [
+            282,
+            484,
+            132,
+            158
+          ]
+        },
+        {
+          "id": "duck",
+          "name": "鸭",
+          "rarity": "rare",
+          "rect": [
+            454,
+            484,
+            132,
+            158
+          ]
+        },
+        {
+          "id": "snail",
+          "name": "蜗牛",
+          "rarity": "common",
+          "rect": [
+            134,
+            670,
+            132,
+            158
+          ]
+        },
+        {
+          "id": "hamster",
+          "name": "仓鼠",
+          "rarity": "common",
+          "rect": [
+            306,
+            670,
+            132,
+            158
+          ]
+        },
+        {
+          "id": "pigeon",
+          "name": "鸽子",
+          "rarity": "common",
+          "rect": [
+            478,
+            670,
+            132,
+            158
+          ]
+        },
+        {
+          "id": "parrot",
+          "name": "鹦鹉",
+          "rarity": "rare",
+          "rect": [
+            208,
+            856,
+            132,
+            158
+          ]
+        },
+        {
+          "id": "rabbit",
+          "name": "兔子",
+          "rarity": "common",
+          "rect": [
+            380,
+            856,
+            132,
+            158
+          ]
+        }
+      ],
+      "animal_assets": [
+        {
+          "id": "frog",
+          "name": "青蛙",
+          "rarity": "common",
+          "path": "D:\\AI\\zhanchengdashi\\assets\\card_art\\animals\\frog.png",
+          "sha256": "AF4E1A44E00C1477865795544BCFDE4EA9FCA256B1D88F9EA0F45CEFE167CF6B",
+          "size": [
+            480,
+            480
+          ],
+          "alpha_visible_bbox": [
+            110,
+            133,
+            369,
+            346
+          ],
+          "fit_rule": "Uniform visible-alpha fit; preserve original pixels and proportions; no silhouette edit"
+        },
+        {
+          "id": "ant",
+          "name": "蚂蚁",
+          "rarity": "common",
+          "path": "D:\\AI\\zhanchengdashi\\assets\\card_art\\animals\\ant.png",
+          "sha256": "D489AF6743CD14DF6536519223F79270EEBB628245CDB9FA331FE88E2E9EF319",
+          "size": [
+            480,
+            480
+          ],
+          "alpha_visible_bbox": [
+            157,
+            112,
+            323,
+            368
+          ],
+          "fit_rule": "Uniform visible-alpha fit; preserve original pixels and proportions; no silhouette edit"
+        },
+        {
+          "id": "sparrow",
+          "name": "麻雀",
+          "rarity": "common",
+          "path": "D:\\AI\\zhanchengdashi\\assets\\card_art\\animals\\sparrow.png",
+          "sha256": "7F1B48D235FF249BE2D3BEFD3DEEB23AD1F2FDB9645D01BBFF28189260B16E39",
+          "size": [
+            480,
+            480
+          ],
+          "alpha_visible_bbox": [
+            118,
+            137,
+            361,
+            343
+          ],
+          "fit_rule": "Uniform visible-alpha fit; preserve original pixels and proportions; no silhouette edit"
+        },
+        {
+          "id": "rabbit",
+          "name": "兔子",
+          "rarity": "common",
+          "path": "D:\\AI\\zhanchengdashi\\assets\\card_art\\animals\\rabbit.png",
+          "sha256": "1EBC2DEE3F29B6E41465720AEB1FF565BBFA155CD08DE93B83AEEF3B68B5A11C",
+          "size": [
+            480,
+            480
+          ],
+          "alpha_visible_bbox": [
+            138,
+            106,
+            341,
+            374
+          ],
+          "fit_rule": "Uniform visible-alpha fit; preserve original pixels and proportions; no silhouette edit"
+        },
+        {
+          "id": "duck",
+          "name": "鸭",
+          "rarity": "rare",
+          "path": "D:\\AI\\zhanchengdashi\\assets\\card_art\\animals\\duck.png",
+          "sha256": "74FEBE8569D95AFEBBFEBF93E2E9B8E2DFCBA353F945E8AAC4907DE7BE164853",
+          "size": [
+            480,
+            480
+          ],
+          "alpha_visible_bbox": [
+            97,
+            107,
+            383,
+            373
+          ],
+          "fit_rule": "Uniform visible-alpha fit; preserve original pixels and proportions; no silhouette edit"
+        },
+        {
+          "id": "snail",
+          "name": "蜗牛",
+          "rarity": "common",
+          "path": "D:\\AI\\zhanchengdashi\\assets\\card_art\\animals\\snail.png",
+          "sha256": "4B973F2A16FA7583125A437AA7CF6479CCEC4277A706EADFD0F7A572FA2D13FF",
+          "size": [
+            480,
+            480
+          ],
+          "alpha_visible_bbox": [
+            133,
+            138,
+            346,
+            342
+          ],
+          "fit_rule": "Uniform visible-alpha fit; preserve original pixels and proportions; no silhouette edit"
+        },
+        {
+          "id": "hamster",
+          "name": "仓鼠",
+          "rarity": "common",
+          "path": "D:\\AI\\zhanchengdashi\\assets\\card_art\\animals\\hamster.png",
+          "sha256": "C58F85BBD6ADFB39110C6F102428B9D7AA930EF72A1B5B376AF5F2F91FC9A42A",
+          "size": [
+            480,
+            480
+          ],
+          "alpha_visible_bbox": [
+            90,
+            119,
+            390,
+            361
+          ],
+          "fit_rule": "Uniform visible-alpha fit; preserve original pixels and proportions; no silhouette edit"
+        },
+        {
+          "id": "pigeon",
+          "name": "鸽子",
+          "rarity": "common",
+          "path": "D:\\AI\\zhanchengdashi\\assets\\card_art\\animals\\pigeon.png",
+          "sha256": "092792157EAEB84D5CF1E39466E1051ACB668994BC36DD2AD53A6FE0D005626B",
+          "size": [
+            480,
+            480
+          ],
+          "alpha_visible_bbox": [
+            109,
+            145,
+            370,
+            333
+          ],
+          "fit_rule": "Uniform visible-alpha fit; preserve original pixels and proportions; no silhouette edit"
+        },
+        {
+          "id": "parrot",
+          "name": "鹦鹉",
+          "rarity": "rare",
+          "path": "D:\\AI\\zhanchengdashi\\assets\\card_art\\animals\\parrot.png",
+          "sha256": "7EC7B09A151FBDB2B2E00B973A08B79B58785180FCAB7AF88207890E7469F53E",
+          "size": [
+            480,
+            480
+          ],
+          "alpha_visible_bbox": [
+            47,
+            59,
+            386,
+            353
+          ],
+          "fit_rule": "Uniform visible-alpha fit; preserve original pixels and proportions; no silhouette edit"
+        }
+      ],
+      "current_config_override": "Duck uses current formal rare-blue rarity; source fixture duck common-green is stale.",
+      "native_receipt": "native-render-receipt.json",
+      "historical_imagegen_planning_prompt": "Use case: style-transfer / ui-mockup. ONE complete9:16 portrait720x1280design game effect screen. Image1 owns all source geometry, controls, data and original identities. Image2 supplies approved flat matte cartoon craft: near-black bold contours, quiet dark olive/teal forest, cream info panels, large simple shapes, minimal two-tone shading. Image3 supplies ONLY five bottom-nav ICONS/style: orange-roof HOUSE 家园, purple/yellow doubleCARDS 编组, white crossedSWORDS 战斗, GOLD paw-stamped ticket 抽卡, roundedWOOD DOOR 房间. Five equal source slots(i×144+3,1148,138,122); idle navy/thispageactive lime. Shared currencyplainNAVYpills with largeprotrudinggoldcoin/blueNOTCHEDticket, largewhite outlined values, nofill/progress/yellowwedge/plus/resource-name text. Preserve exact text and page layout, readable Chinese. No new features/shop/buttons/control regions, no watermarks or phoneframes. PREVIEWonly. GACHA10results: reproduce exact10cards/orderand FOUR rows2/3/3/2,132×158cards,gap40×28; row2leftoffset-12,row3rightoffset12. Row1青蛙、蚂蚁; row2麻雀、兔子、鸭; row3蜗牛、仓鼠、鸽子; row4鹦鹉、兔子. CommongreenALL except蓝rare鹦鹉. EachcardONLYart+fullname, NO level/stats/progress. Sourcegold60,tickets20toprightandcenter20; title抽卡,最近获得; toast获得10张卡牌 atsamey1018. ExacttwoCTAs抽1次/抽10次 enabled; nav抽卡active. Originalprojectanimalsrepaintchibimattewithboldcontours. No newgamecharactersand no extra raritywords.",
+      "source_kind": "HISTORICAL_SYNTHETIC_FIXTURE_WITH_CURRENT_SOURCE_GEOMETRY_AND_CONFIG",
+      "portrait_source_kind": "CURRENT_FORMAL_PROJECT_ART_PATH_PNG",
+      "self_check": {
+        "status": "STATIC_PNG_VISUALLY_INSPECTED",
+        "target_pixels": [
+          720,
+          1280
+        ],
+        "text_width_guard": "@napi-rs/canvas measureText; overflow throws, no font shrinking/ellipsis",
+        "current_sources_unchanged": true,
+        "no_runtime_claim": true
+      },
+      "design_canvas": [
+        720,
+        1280
+      ],
+      "raster_size": [
+        720,
+        1280
+      ],
+      "coordinate_evidence": "Current-source fixed component rectangles rendered natively; no engine/device behavior proof",
+      "independent_review": {
+        "path": "../reviews/core_pages.json",
+        "sha256": "2031F9F0DB82B9F693B599DCC9C422ADF27B093C32065B8EBFBB27FBACD155BC",
+        "verdict": "PREVIEW_PASS",
+        "output_sha256": "1C34FFFA67145E1DD6A75D7E19E79E5E879322BAFCF80D792AD2BBDBC3C179BC"
+      }
+    },
+    {
+      "id": "09_gacha_new_hero",
+      "source": "D:/AI/zhanchengdashi/temp/qa/gacha-spaced-20260925/candidate-slogan-mouse-720.png",
+      "prompt": "Native720x1280 static settled mouse hero:current formal identity/name/common rarity/slogan. Use art-director approved high-resolution transparent illustration D:/AI/zhanchengdashi/output/visual_concepts/tata_battle_style/full_game/native_components/illustrations/gray-mouse-hero.png SHAFF7AB1A58EBA99BE08F2649FF05431CFF8F356DB5E4A6123BDFCC375E1539335. Uniform alpha-visible fit into unchanged portrait96,260,528,528, never upscale. Keep exact old09circles/rays,name64,840,592,64,slogan bubble64,936,592,128,exact鼠鼠我呀，主打一个人多。 fontsize30,ONLY继续138,1112,444,76. Pixel equality outside portrait required against sole retained low-resolution09iteration. No currency/nav/stats/level/new features or runtime grant.",
+      "output": "D:/AI/zhanchengdashi/output/visual_concepts/tata_battle_style/full_game/core_pages/09_gacha_new_hero.png",
+      "status": "PREVIEW_ART_DIRECTOR_PASS",
+      "reference_kind": "HISTORICAL_LOCAL_RUNTIME_FIXTURE",
+      "references": [
+        "D:/AI/zhanchengdashi/temp/qa/gacha-spaced-20260925/candidate-slogan-mouse-720.png",
+        "D:/AI/zhanchengdashi/output/visual_concepts/tata_battle_style/full_game/style_master.png"
+      ],
+      "source_sha256": "E38060E89C9B99AA98EB1BEBEC9D62C287166B3160515414C0466AED55F6E5DA",
+      "source_pixels": [
+        720,
+        1280
+      ],
+      "reference_sha256": [
+        {
+          "path": "D:/AI/zhanchengdashi/temp/qa/gacha-spaced-20260925/candidate-slogan-mouse-720.png",
+          "sha256": "E38060E89C9B99AA98EB1BEBEC9D62C287166B3160515414C0466AED55F6E5DA"
+        },
+        {
+          "path": "D:/AI/zhanchengdashi/output/visual_concepts/tata_battle_style/full_game/style_master.png",
+          "sha256": "BBE3FD3A58369D7ACC66808C7ADBCD7FE39BDC373E27D5B2C76EEB366516405A"
+        }
+      ],
+      "prompt_file": "prompts/09_gacha_new_hero.native-instruction.txt",
+      "output_sha256": "2D51C12B30B64805DC592F93F4E92125CBEDDF509825AABCF8ECC4FC688E7258",
+      "output_pixels": [
+        720,
+        1280
+      ],
+      "render_method": "USER_AUTHORIZED_NATIVE_CANVAS_COMPONENTS",
+      "state": {
+        "id": "09_gacha_new_hero",
+        "card_id": "mouse",
+        "name": "老鼠",
+        "slogan": "鼠鼠我呀，主打一个人多。",
+        "only_button": "继续",
+        "hide_currency": true,
+        "hide_nav": true,
+        "hide_stats": true,
+        "source_evidence": "HISTORICAL_LOCAL_RUNTIME_FIXTURE"
+      },
+      "geometry": {
+        "portrait": [
+          96,
+          260,
+          528,
+          528
+        ],
+        "name": [
+          64,
+          840,
+          592,
+          64
+        ],
+        "slogan": [
+          64,
+          936,
+          592,
+          128
+        ],
+        "continue": [
+          138,
+          1112,
+          444,
+          76
+        ]
+      },
+      "animal_assets": [
+        {
+          "id": "mouse",
+          "identity": "Same approved04gray mouse identity/pose; current formal name/common rarity/slogan authoritative.",
+          "source": "D:/AI/zhanchengdashi/output/visual_concepts/tata_battle_style/full_game/native_components/illustrations/gray-mouse-hero.png",
+          "source_sha256": "FF7AB1A58EBA99BE08F2649FF05431CFF8F356DB5E4A6123BDFCC375E1539335",
+          "source_pixels": [
+            1254,
+            1254
+          ],
+          "alpha_visible_bbox": [
+            0,
+            29,
+            1206,
+            1207
+          ],
+          "visible_to_target_scale": 0.43781094527363185,
+          "source_kind": "ART_DIRECTOR_HIGH_RESOLUTION_TRANSPARENT_AI_ILLUSTRATION",
+          "fit_rule": "Uniform visible-alpha fit into fixed528x528portrait rect; no enlargement, silhouette/color editing or UI reflow",
+          "generated_by": "art_director built-in imagegen; no core-agent imagegen call",
+          "role": "Preview illustration only; not runtime animal asset replacement"
+        }
+      ],
+      "animation_boundary": "Static settled hero stage only; no card grant, ownership or animation claim.",
+      "native_receipt": "native-render-receipt.json",
+      "historical_imagegen_planning_prompt": "Use case: style-transfer/ui-mockup. Image1 exact NEW HERO existingoverlay ownsALLgeometry/textand originalmouse identity; Image2 approvedflatmattecartoonstyle only. Complete9:16screen720x1280design. A verylargecutegraymouse in creamclothes blackline, drawingheldcrisp(96,260,528,528); sameears, muzzle, pose and ordinarygraymouse identity. Quietcream/olivecommon-qualityradialbackdropwithfewlargeforestshapesperimeter; darkerboldcharacteroutline/matte2tone. Exactname 老鼠 at(64,840,592,64); speechbubble(64,936,592,128) exactslogan 鼠鼠我呀，主打一个人多。; large继续button(138,1112,444,76). ALLtextsharpcompletefont30minimumforslogan. NOcurrencybars/nav/raritylabels/新英雄title/stats/level/progress/buttons except继续 because existingherostage is fullscreenoverlay. Thisis preview-sourcefixture, not ownershipaward.",
+      "source_kind": "HISTORICAL_SYNTHETIC_FIXTURE_WITH_CURRENT_SOURCE_GEOMETRY_AND_CONFIG",
+      "portrait_source_kind": "ART_DIRECTOR_HIGH_RESOLUTION_TRANSPARENT_AI_ILLUSTRATION",
+      "self_check": {
+        "status": "STATIC_PNG_VISUALLY_INSPECTED",
+        "target_pixels": [
+          720,
+          1280
+        ],
+        "text_width_guard": "@napi-rs/canvas measureText; overflow throws, no font shrinking/ellipsis",
+        "current_sources_unchanged": true,
+        "no_runtime_claim": true
+      },
+      "formal_identity_source": {
+        "id": "mouse",
+        "name": "老鼠",
+        "rarity": "common",
+        "path": "D:\\AI\\zhanchengdashi\\assets\\card_art\\animals\\mouse.png",
+        "sha256": "CFE79C829A2B9F707C7E4CE5387BEA12DABE8131B3B7E1BAEEE1BC001D3873F5",
+        "size": [
+          480,
+          480
+        ],
+        "alpha_visible_bbox": [
+          111,
+          111,
+          369,
+          368
+        ],
+        "fit_rule": "Uniform visible-alpha fit; preserve original pixels and proportions; no silhouette edit"
+      },
+      "design_canvas": [
+        720,
+        1280
+      ],
+      "raster_size": [
+        720,
+        1280
+      ],
+      "coordinate_evidence": "Current-source fixed component rectangles rendered natively; no engine/device behavior proof",
+      "quality_reopen": {
+        "finding_id": "CORE-HERO-HIGH-RES-09",
+        "status": "P1_CLOSED_HIGH_RES_HERO_ART_DIRECTOR_PASS",
+        "producer": "root",
+        "reviewer": "lead_art_director",
+        "reason": "The122x112 approved card crop is visibly pixelated as a528portrait; MINOR acceptance was reopened asP1 by producer and art-director agreement.",
+        "previous_output_sha256": "9AF2738763F605C3336F4D5521C1A1A6F3467808FD9D9950D6B823E3DE6194FA",
+        "scope": "Only09hero illustration and corresponding own metadata; preserve all UI/layout/state values and other8PNG",
+        "required_asset_owner": "art_director",
+        "preserve_single_low_resolution_iteration": true,
+        "guard": "RGBA differences outside96,260,528,528 must equal0",
+        "other_png_baseline": [
+          {
+            "path": "D:/AI/zhanchengdashi/output/visual_concepts/tata_battle_style/full_game/core_pages/01_home_selected.png",
+            "sha256": "0A1AA4678A950D190CB3D96FE5E53BBDA132333E29D627E8EB32061A59EC8EC0"
+          },
+          {
+            "path": "D:/AI/zhanchengdashi/output/visual_concepts/tata_battle_style/full_game/core_pages/04_deck_main.png",
+            "sha256": "F3B6A8496703FCE12754AF18BE67C2DCA4E90F6CD5359AB07E9BAE0F134E889B"
+          },
+          {
+            "path": "D:/AI/zhanchengdashi/output/visual_concepts/tata_battle_style/full_game/core_pages/02_home_new_tomorrow.png",
+            "sha256": "A519F1D6320BB62573016BBD780000AFDA9DE719DBE6813AE1E02B2D84D3C9BB"
+          },
+          {
+            "path": "D:/AI/zhanchengdashi/output/visual_concepts/tata_battle_style/full_game/core_pages/03_home_daily_rewards.png",
+            "sha256": "0A0658C865399CBC299FA63EC6A04C997F9B240ACB8CC95FCC04E3C1FBAF5BED"
+          },
+          {
+            "path": "D:/AI/zhanchengdashi/output/visual_concepts/tata_battle_style/full_game/core_pages/05_deck_upgrade.png",
+            "sha256": "3ECFFCD6F88757763CCAA245D4BE5EF18FC86EEAFF95254A1BE1071893BD6648"
+          },
+          {
+            "path": "D:/AI/zhanchengdashi/output/visual_concepts/tata_battle_style/full_game/core_pages/06_gacha_empty.png",
+            "sha256": "88F0B53F9531F5A102AF933701F9F8451FFC048D70CAAE2B1A68D9D695C1F46E"
+          },
+          {
+            "path": "D:/AI/zhanchengdashi/output/visual_concepts/tata_battle_style/full_game/core_pages/07_gacha_opening.png",
+            "sha256": "C8859DB8D989E832D84B9D8D97A1D195F0F25902E507A0B32074EC0148106A71"
+          },
+          {
+            "path": "D:/AI/zhanchengdashi/output/visual_concepts/tata_battle_style/full_game/core_pages/08_gacha_ten_result.png",
+            "sha256": "1C34FFFA67145E1DD6A75D7E19E79E5E879322BAFCF80D792AD2BBDBC3C179BC"
+          }
+        ],
+        "new_output_sha256": "2D51C12B30B64805DC592F93F4E92125CBEDDF509825AABCF8ECC4FC688E7258",
+        "replacement_asset": {
+          "id": "mouse",
+          "identity": "Same approved04gray mouse identity/pose; current formal name/common rarity/slogan authoritative.",
+          "source": "D:/AI/zhanchengdashi/output/visual_concepts/tata_battle_style/full_game/native_components/illustrations/gray-mouse-hero.png",
+          "source_sha256": "FF7AB1A58EBA99BE08F2649FF05431CFF8F356DB5E4A6123BDFCC375E1539335",
+          "source_pixels": [
+            1254,
+            1254
+          ],
+          "alpha_visible_bbox": [
+            0,
+            29,
+            1206,
+            1207
+          ],
+          "visible_to_target_scale": 0.43781094527363185,
+          "source_kind": "ART_DIRECTOR_HIGH_RESOLUTION_TRANSPARENT_AI_ILLUSTRATION",
+          "fit_rule": "Uniform visible-alpha fit into fixed528x528portrait rect; no enlargement, silhouette/color editing or UI reflow",
+          "generated_by": "art_director built-in imagegen; no core-agent imagegen call",
+          "role": "Preview illustration only; not runtime animal asset replacement"
+        }
+      },
+      "previous_independent_review": {
+        "path": "../reviews/core_pages.json",
+        "sha256": "B9A104CC32F32474D72366DFDD8E5695B9491B735682720BF7EB545E569CCE17",
+        "verdict": "PREVIEW_PASS",
+        "output_sha256": "9AF2738763F605C3336F4D5521C1A1A6F3467808FD9D9950D6B823E3DE6194FA"
+      },
+      "portrait_only_change": {
+        "method": "RGBA pixel equality outside Rect96,260,528,528 against retained prior09",
+        "outside_portrait_differences": 0,
+        "retained_old_iteration": "D:/AI/zhanchengdashi/output/visual_concepts/tata_battle_style/full_game/core_pages/iterations/09_gacha_new_hero_low_resolution.png",
+        "retained_sha256": "9AF2738763F605C3336F4D5521C1A1A6F3467808FD9D9950D6B823E3DE6194FA",
+        "old_iteration_count": 1
+      },
+      "independent_review": {
+        "path": "../reviews/core_pages.json",
+        "sha256": "2031F9F0DB82B9F693B599DCC9C422ADF27B093C32065B8EBFBB27FBACD155BC",
+        "verdict": "PREVIEW_PASS",
+        "output_sha256": "2D51C12B30B64805DC592F93F4E92125CBEDDF509825AABCF8ECC4FC688E7258"
+      }
+    }
+  ],
+  "source_hashes": [
+    {
+      "path": "D:/AI/zhanchengdashi/scripts/app/main.gd",
+      "sha256": "8C9E374F65A221AF7BB92A32470503166188A879562D5A1AE220A817D56359CA"
+    },
+    {
+      "path": "D:/AI/zhanchengdashi/scripts/app/ui/home_view.gd",
+      "sha256": "03F6097BCA1520B2BCB20757FADC18EFC5825DE5D535C3F5983D00C861E58362"
+    },
+    {
+      "path": "D:/AI/zhanchengdashi/scripts/app/ui/gacha_new_hero_reveal.gd",
+      "sha256": "1BD20EF0BBFC32AC2982AE1DE2D842F9AC78F9407AD91B0C3C953BFA5586BEB9"
+    },
+    {
+      "path": "D:/AI/zhanchengdashi/scripts/foundation/ui/main_page_layout.gd",
+      "sha256": "8847E4C4F1E80A7E5523720F890AF68AED94DCD9AC0D44BEDDA0DD122143405A"
+    },
+    {
+      "path": "D:/AI/zhanchengdashi/config/tables/cards.csv",
+      "sha256": "B8F7781B311423A57F2205D4A66C93D81E4F8EB0C15A03658FE20B52723D7FBC"
+    }
+  ],
+  "native_completion": {
+    "renderer": "render_core.cjs",
+    "renderer_sha256": "FBF61E32395F1ECFEC08A39126910C3656D07495B68DA8A6E5CF679413A8D75A",
+    "geometry": "native-scene-data.json",
+    "formal_art_mapping": "native-art-sources.json",
+    "receipt": "native-render-receipt.json",
+    "instructions": "prompts/*.native-instruction.txt",
+    "reproduction": "Bundled Node executable -> render_core.cjs 09 --hero-art=<approved native_components/illustrations/PNG> --hero-sha=<SHA256>. Requires referenced project originals/master and sole retained old09iteration. Reopened single-hero scope locks other8PNG; no download or new core-agent imagegen.",
+    "toolkit_read_only": true,
+    "new_imagegen_calls": 0,
+    "legacy_pages_protected": [
+      "01_home_selected",
+      "02_home_new_tomorrow",
+      "04_deck_main",
+      "05_deck_upgrade"
+    ],
+    "all_nine_png_present": true,
+    "write_boundary": "Only full_game/core_pages/**; no runtime/config/source writes."
+  },
+  "pending_review": [],
+  "cleanup": {
+    "status": "BOUNDED_OWN_TEMPORARY_CROP_STUDY_REMOVED",
+    "removed": [
+      {
+        "path": "D:\\AI\\zhanchengdashi\\output\\visual_concepts\\tata_battle_style\\full_game\\core_pages\\work\\mouse-crop-study.png",
+        "bytes": 176089
+      },
+      {
+        "path": "D:\\AI\\zhanchengdashi\\output\\visual_concepts\\tata_battle_style\\full_game\\core_pages\\inspect_mouse_crop.cjs",
+        "bytes": 908
+      }
+    ],
+    "logical_deleted_bytes": 176997,
+    "disk_space_delta": "Not independently measured",
+    "retained": "All nine finalPNG, reproducible renderer/instructions/receipts, original04source and all formal project art/source/user edits preserved."
+  },
+  "quality_reopen": {
+    "finding_id": "CORE-HERO-HIGH-RES-09",
+    "status": "P1_CLOSED_HIGH_RES_HERO_ART_DIRECTOR_PASS",
+    "producer": "root",
+    "reviewer": "lead_art_director",
+    "reason": "The122x112 approved card crop is visibly pixelated as a528portrait; MINOR acceptance was reopened asP1 by producer and art-director agreement.",
+    "previous_output_sha256": "9AF2738763F605C3336F4D5521C1A1A6F3467808FD9D9950D6B823E3DE6194FA",
+    "scope": "Only09hero illustration and corresponding own metadata; preserve all UI/layout/state values and other8PNG",
+    "required_asset_owner": "art_director",
+    "preserve_single_low_resolution_iteration": true,
+    "guard": "RGBA differences outside96,260,528,528 must equal0",
+    "other_png_baseline": [
+      {
+        "path": "D:/AI/zhanchengdashi/output/visual_concepts/tata_battle_style/full_game/core_pages/01_home_selected.png",
+        "sha256": "0A1AA4678A950D190CB3D96FE5E53BBDA132333E29D627E8EB32061A59EC8EC0"
+      },
+      {
+        "path": "D:/AI/zhanchengdashi/output/visual_concepts/tata_battle_style/full_game/core_pages/04_deck_main.png",
+        "sha256": "F3B6A8496703FCE12754AF18BE67C2DCA4E90F6CD5359AB07E9BAE0F134E889B"
+      },
+      {
+        "path": "D:/AI/zhanchengdashi/output/visual_concepts/tata_battle_style/full_game/core_pages/02_home_new_tomorrow.png",
+        "sha256": "A519F1D6320BB62573016BBD780000AFDA9DE719DBE6813AE1E02B2D84D3C9BB"
+      },
+      {
+        "path": "D:/AI/zhanchengdashi/output/visual_concepts/tata_battle_style/full_game/core_pages/03_home_daily_rewards.png",
+        "sha256": "0A0658C865399CBC299FA63EC6A04C997F9B240ACB8CC95FCC04E3C1FBAF5BED"
+      },
+      {
+        "path": "D:/AI/zhanchengdashi/output/visual_concepts/tata_battle_style/full_game/core_pages/05_deck_upgrade.png",
+        "sha256": "3ECFFCD6F88757763CCAA245D4BE5EF18FC86EEAFF95254A1BE1071893BD6648"
+      },
+      {
+        "path": "D:/AI/zhanchengdashi/output/visual_concepts/tata_battle_style/full_game/core_pages/06_gacha_empty.png",
+        "sha256": "88F0B53F9531F5A102AF933701F9F8451FFC048D70CAAE2B1A68D9D695C1F46E"
+      },
+      {
+        "path": "D:/AI/zhanchengdashi/output/visual_concepts/tata_battle_style/full_game/core_pages/07_gacha_opening.png",
+        "sha256": "C8859DB8D989E832D84B9D8D97A1D195F0F25902E507A0B32074EC0148106A71"
+      },
+      {
+        "path": "D:/AI/zhanchengdashi/output/visual_concepts/tata_battle_style/full_game/core_pages/08_gacha_ten_result.png",
+        "sha256": "1C34FFFA67145E1DD6A75D7E19E79E5E879322BAFCF80D792AD2BBDBC3C179BC"
+      }
+    ],
+    "new_output_sha256": "2D51C12B30B64805DC592F93F4E92125CBEDDF509825AABCF8ECC4FC688E7258",
+    "replacement_asset": {
+      "id": "mouse",
+      "identity": "Same approved04gray mouse identity/pose; current formal name/common rarity/slogan authoritative.",
+      "source": "D:/AI/zhanchengdashi/output/visual_concepts/tata_battle_style/full_game/native_components/illustrations/gray-mouse-hero.png",
+      "source_sha256": "FF7AB1A58EBA99BE08F2649FF05431CFF8F356DB5E4A6123BDFCC375E1539335",
+      "source_pixels": [
+        1254,
+        1254
+      ],
+      "alpha_visible_bbox": [
+        0,
+        29,
+        1206,
+        1207
+      ],
+      "visible_to_target_scale": 0.43781094527363185,
+      "source_kind": "ART_DIRECTOR_HIGH_RESOLUTION_TRANSPARENT_AI_ILLUSTRATION",
+      "fit_rule": "Uniform visible-alpha fit into fixed528x528portrait rect; no enlargement, silhouette/color editing or UI reflow",
+      "generated_by": "art_director built-in imagegen; no core-agent imagegen call",
+      "role": "Preview illustration only; not runtime animal asset replacement"
+    }
+  }
+}

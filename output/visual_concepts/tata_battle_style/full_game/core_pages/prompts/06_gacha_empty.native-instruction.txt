@@ -1,0 +1,1 @@
+Native720x1280 static empty fixture:60coin,0bluepawticket in both source slots; current title抽卡/最近获得/暂无记录; source blank rewardpanel; both draw actions disabled gray; standard five nav active抽卡. No art/results/toast/account data. Exact current source rectangles in native-scene-data.json.

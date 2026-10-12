@@ -1,0 +1,20 @@
+const kit=require('./common.cjs');
+(async()=>{
+ await kit.initAssets({build:true});const {canvas,ctx}=kit.scene('#5b7a50');
+ kit.currency(ctx,46,18,186,44,9914,'coin');
+ kit.currency(ctx,488,18,186,44,13,'ticket');
+ kit.header(ctx,'原生组件校验',40,88,640,58);
+ kit.panel(ctx,60,176,600,650);
+ kit.text(ctx,'奶油面板 · 深色描边',80,192,560,44,30,{align:'center'});
+ kit.button(ctx,104,264,512,68,'继续战斗',{kind:'primary'});
+ kit.button(ctx,104,350,512,68,'退出战斗',{kind:'secondary'});
+ kit.button(ctx,104,436,512,68,'升级',{enabled:false});
+ kit.reward(ctx,128,530,204,48,'+12','coin');
+ kit.reward(ctx,388,530,204,48,'+3','ticket');
+ kit.text(ctx,'蓝券图标在所有位置使用同一实体',84,602,552,40,24,{align:'center'});
+ kit.icon(ctx,'star',116,668,52,52);kit.icon(ctx,'heart',230,668,52,52);kit.icon(ctx,'paw',344,668,52,52);
+ kit.toggle(ctx,478,674,92,40,true);
+ kit.nav(ctx,'battle');
+ kit.exportPng(canvas,kit.KIT_ROOT+'/component-board.png');
+ console.log(JSON.stringify({status:'NATIVE_KIT_READY',canvas:[720,1280],icons:kit.icons,output:kit.KIT_ROOT+'/component-board.png'}));
+})();

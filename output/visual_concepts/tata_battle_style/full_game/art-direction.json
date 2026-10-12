@@ -1,0 +1,130 @@
+{
+  "schema_version": 1,
+  "request_id": "REQ-20261011-TATA-FULL-GAME-PREVIEW",
+  "reviewer_role": "lead_art_director",
+  "producer": "root",
+  "reviewed_on": "2026-10-11 Asia/Hong_Kong",
+  "status": "PREVIEW_STYLE_READY",
+  "scope": "Preview-only style master and visual contract for the existing six routes; NO_RUNTIME",
+  "target_resolution": [
+    720,
+    1280
+  ],
+  "mode": "built-in image_gen art plus user-authorized native SVG/canvas UI composition",
+  "generation_attempts": [
+    {
+      "attempt": 1,
+      "result": "connection failed; no artifact"
+    },
+    {
+      "attempt": 2,
+      "result": "success"
+    }
+  ],
+  "artifact": {
+    "path": "output/visual_concepts/tata_battle_style/full_game/style_master.png",
+    "sha256": "BBE3FD3A58369D7ACC66808C7ADBCD7FE39BDC373E27D5B2C76EEB366516405A"
+  },
+  "edit_target": {
+    "path": "output/visual_concepts/tata_battle_style/01_battle_default.png",
+    "sha256": "3A05E0116E951868B03785CC1A89B1447B4BF0D91C51D3C5CB1D279F95605994",
+    "role": "preview geometry, UI, original animals and state"
+  },
+  "reference": {
+    "path": "C:/Users/76398/.agent-reach/research/zhanchengdashi-tata/tata_battle_grass.jpg",
+    "sha256": "33EDD0EDFEE709A4C8B3C4C302E9A9498F317B9D52E67BF25E23C521921AE818",
+    "role": "style principles only; no copied characters or composition"
+  },
+  "task_grounding_receipt": "temp/rag/receipts/tasks/REQ-20261011-TATA-FULL-GAME-PREVIEW.json",
+  "art_contract": {
+    "player_memory_point": "Original expressive animals with bold silhouettes on a quiet matte forest board.",
+    "focal_hierarchy": [
+      "Immediate decision or battle target",
+      "Original animal faces and silhouette",
+      "Primary CTA and state feedback",
+      "Persistent resources",
+      "Terrain and scenery"
+    ],
+    "line_language": "Near-black character silhouettes strongest, UI contour next, environment contours subordinate; rounded hand-drawn comic forms.",
+    "material_language": "Flat matte 2D broad value groups; no glossy 3D bevels, photorealistic lighting or noisy painterly textures.",
+    "palette_roles": {
+      "environment": "dark olive and teal forest shapes",
+      "terrain": "quiet salmon-red ally and sage-green enemy fill with neutral sandy center",
+      "ui": "deep charcoal/navy shells and cream information surface",
+      "feedback": "restrained yellow selection/purchasable outlines with existing red/blue health identity"
+    },
+    "currency_component": "Uniform plain dark charcoal/navy rounded pill; the original gold coin or blue notched ticket protrudes at left; large white numeric count with black outline; NO yellow wedge, fill, progress or plus/shop shortcut.",
+    "identities": "Maintain the same project-owned animal, building, coin and notched ticket identities across every route.",
+    "background_density": "Few broad vegetation/rock/log groups, low small-detail contrast; scenery does not compete with animals or P0 text.",
+    "interaction": "Use the existing selection, availability, disabled, feedback and overlay meanings and regions. Reinforce existing marks without inventing controls, actions or states.",
+    "routes": [
+      "home",
+      "deck",
+      "lobby",
+      "gacha",
+      "room",
+      "battle"
+    ],
+    "non_goals": [
+      "Runtime integration",
+      "UI/UE changes",
+      "New features",
+      "New characters",
+      "Formal asset approval",
+      "Runtime visual approval"
+    ]
+  },
+  "visual_review": {
+    "method": "Direct image inspection against current preview target and actual reference. No engine/device behavior was executed by this reviewer.",
+    "identity_and_animal_counts": "PASS: Same six original animal species, two of each, twelve animals total, positions and red/blue bars visually continuous.",
+    "currency": "PASS: gold60 and ticket10; protruding original icons; plain dark pills; white outlined digits; no fill/progress/plus.",
+    "ui_text": "PASS: top versus, pause and bottom instructions retain the preview content.",
+    "board_ownership": "PASS: red/green territories, neutral center, locked locations and50/50/250 cost displays retain their meanings.",
+    "texture_density": "PASS: reduced flowers and flecks, coherent flat matte shapes, quieter scenery.",
+    "focal_hierarchy": "PASS for preview: animal silhouettes readable and stronger than terrain detail.",
+    "precise_coordinate_parity": "Not measured; topology and relative regions visually compared. Pixel-perfect runtime parity is not established.",
+    "remaining_p0": [],
+    "remaining_p1": [],
+    "minor": "The large ownership fields still occupy much of the frame; retained to protect approved gameplay meaning.",
+    "motion_audio": "N/A: static preview; no timing or sound claims.",
+    "performance_device_import": "N/A: preview-only; no runtime/export claims."
+  },
+  "generation_prompt": "Use case: style-transfer. Asset type: preview-only full-game art direction master, portrait 9:16 mobile battle screen for 占城大师. Image 1 is the exact EDIT TARGET and owns ALL geometry, controls, text, data, character identities, teams and placements. Image 2 is a professional STYLE REFERENCE only; borrow its matte flat cartoon craft and visual hierarchy, NEVER its characters, names, symbols, gameplay or UI layout. Refine Image 1 with the following strictly limited professional art pass: make the forest perimeter calmer and simpler using fewer broad dark olive/teal value groups, lower tiny decorative contrast, reduce repeated flower/leaf clutter, retain broad trees, rocks, log and ground placement. Make the HEX BOARD flat, matte, low-noise with understated surface texture; slightly mute salmon-red ally terrain and sage-green enemy terrain so original animals are the main focus; preserve red versus green ownership, ALL exact hex geometry, visible hex edges, the central neutral sand region, and current yellow purchasable-tile outlines. Keep original cute squirrel, rabbit with carrot, reading parrot, gray wolf, purple hippo and monkey identities EXACT, same number, positions, orientations, black silhouette contours and red/blue health bars. Do not redesign or add animals. Preserve original village/locked sites and prices 50, 50, 250. Tighten flat 2D comic matte surfaces, no photorealism, no glossy 3D, no painterly gradients. UI INVARIANTS: top-left GOLD COIN ICON plus 60 in a plain DARK CHARCOAL/NAVY rounded pill, top-right original blue notched TICKET ICON plus 10 in same plain pill, icons protrude left and white large numbers with black stroke. Absolutely NO yellow diagonal wedges, progress fill, progress indicators, plus signs or shop shortcuts in resource pills. Center top text EXACT '黄金3星 VS 黄金3星'; pause button same exact location/size. Bottom exact same cream information panel and EXACT text '1V1 菱形战场 · 拖动查看地图' and '点击己方可连接地块购买；防御塔价格随本局购买次数递增。'. Preserve every UI coordinate, click region, page region, padding, character/board location and meaningful state. Improve only quietness, flatness, contour consistency and focal hierarchy. No titles, frames, watermarks or extra controls. Output one polished 9:16 image matching Image 1 aspect ratio.",
+  "write_scope": [
+    "output/visual_concepts/tata_battle_style/full_game/native_components/**",
+    "output/visual_concepts/tata_battle_style/full_game/reviews/**",
+    "output/visual_concepts/tata_battle_style/full_game/art-direction.json"
+  ],
+  "cleanup": "One formal PNG per artifact; identical builtin working copies removed after size/SHA verification, unique task evidence retained on D. Original tool-path to retained-path mapping: ../cleanup.json.",
+  "native_composition": {
+    "status": "NATIVE_KIT_READY",
+    "authorized_by": "Human user",
+    "authorization": "允许原生组件精确排版（推荐）",
+    "date": "2026-10-12 Asia/Hong_Kong",
+    "entry": "native_components/common.cjs",
+    "renderer": "Bundled @napi-rs/canvas",
+    "font": "Microsoft YaHei",
+    "canvas": [
+      720,
+      1280
+    ],
+    "icon_ids": [
+      "coin",
+      "ticket",
+      "nav_home",
+      "nav_deck",
+      "nav_battle",
+      "nav_gacha",
+      "nav_room",
+      "star",
+      "heart",
+      "paw"
+    ],
+    "assets": "native_components/icons/",
+    "api": "native_components/api.json",
+    "qa_board": "native_components/component-board.png",
+    "overflow_policy": "Measured text overflow throws; no shrink/truncate/ellipsis",
+    "state_policy": "Original source rects and data own layout; reusable native skin owns appearance",
+    "runtime_approved": false
+  }
+}

@@ -1,0 +1,63 @@
+{
+  "request_id": "REQ-20261011-TATA-FULL-GAME-PREVIEW",
+  "status": "PASS_NATIVE_PNG_SCOPED",
+  "checked_pages": [
+    {
+      "id": "01_room_entry",
+      "dimensions": "PASS",
+      "hash": "PASS"
+    },
+    {
+      "id": "02_room_error",
+      "dimensions": "PASS",
+      "hash": "PASS"
+    },
+    {
+      "id": "03_room_host",
+      "dimensions": "PASS",
+      "hash": "PASS"
+    },
+    {
+      "id": "04_room_guest",
+      "dimensions": "PASS",
+      "hash": "PASS"
+    },
+    {
+      "id": "05_account",
+      "dimensions": "PASS",
+      "hash": "PASS"
+    },
+    {
+      "id": "06_login",
+      "dimensions": "PASS",
+      "hash": "PASS"
+    },
+    {
+      "id": "07_account_switch",
+      "dimensions": "PASS",
+      "hash": "PASS"
+    },
+    {
+      "id": "08_avatar",
+      "dimensions": "PASS",
+      "hash": "PASS"
+    },
+    {
+      "id": "09_agreement",
+      "dimensions": "PASS",
+      "hash": "PASS"
+    }
+  ],
+  "formal_source_rectangles": "PASS direct extraction from current main.gd",
+  "source_hash": "PASS",
+  "kit_hash": "PASS",
+  "host_guest_state_regions": {
+    "changed_pixels": 28330,
+    "outside_allowed_regions": 0,
+    "status": "PASS"
+  },
+  "limitations": [
+    "Retained accepted entry and its error variant preserve accepted AI geometry; native exact-source-coordinate claims apply to host/guest and account forms.",
+    "Static PNG and pixel-region verification only; no actual input, engine rendering, network/account behavior or runtime UI parity was executed."
+  ]
+}

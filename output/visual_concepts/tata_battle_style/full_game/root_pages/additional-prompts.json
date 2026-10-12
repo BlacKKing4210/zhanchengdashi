@@ -1,0 +1,78 @@
+[
+  {
+    "id": "06_pause",
+    "title": "战斗·暂停",
+    "group": "战斗与结算",
+    "file": "06_pause.png",
+    "inputs": [
+      "D:\\AI\\zhanchengdashi\\output\\visual_concepts\\tata_battle_style\\full_game\\style_master.png"
+    ],
+    "prompt": "Usecase: precise-object-edit/UI-mockup. Image1 is finalbattleSTYLEMASTERandactualbattlebackground. Make pause state only: same battlefield/units/counters/render, source0.48blackfullscreen dimscrim. Add actualpausepanel logical(120,430,480,330) warmivoryface+chunkydeepnavyoutline; title'战斗暂停' atlogical(120,468,480,52), darknavybold38px. ExactlyTWOsourcebuttons: (184,552,352,68) limegreen '继续战斗', (184,644,352,68) deepnavy '退出战斗' whitelettering. Darkboldlines, flatmattemasterstyle, samepositions. No extra X/gear/title/character/medal/newaction. No bottomnavigation. Keepcurrencies60/10plainnoprogressnoplus. Sameportraitfullcanvas,noframeorannotations."
+  },
+  {
+    "id": "07_victory",
+    "title": "结算·胜利",
+    "group": "战斗与结算",
+    "file": "07_victory.png",
+    "inputs": [
+      "D:\\AI\\zhanchengdashi\\temp\\qa\\result-reward-area-20260907\\victory-720.png",
+      "D:\\AI\\zhanchengdashi\\output\\visual_concepts\\tata_battle_style\\full_game\\style_master.png"
+    ],
+    "prompt": "Usecase: style-transfer/UI-mockup. Image1 is ONLY PAGE LAYOUT target, Image2 is PROFESSIONAL STYLEMASTER. Retain target's exact full portrait720x1280 layout, every control/text/data/slot position and state; take ONLY style from master. Thick near-black graphic outlines, flat matte2D original animal illustrations, restrained deepnavyUI + readablewarmivorypanels, mutedlargeblock olive/teal environment where source has background. No newfeatures, no newcontent, no newcontrols or phoneframe. Topcurrencies plainDARKSLATE capsules, own goldcoin/notched bluepawticket oversizedprotrudeleft, whiteboldblackoutlineddigits with SOURCEVALUES. NO progress/yellowwedge/plus/buttonaddition. Result reward + and - numeric signs are meaningful deltas, retain them. Bold clean complete Chinese.\nTargetVICTORYresult. Exactsourcepanel(60,176,600,824),selfrow(92,298,536,112),othersscroll(92,468,536,276),rewards(92,764,536,116),close(190,900,340,64). Preserve0.42scrim/battlegeometry underpanel. Clean warmivory raisedrowcards withboldnavyoutline, heading'胜利'goldyellowonnavyheaderstripwithinexistingtitlearea; '我的结算'; self '第1名 神秘玩家 自己', '青铜2星 → 青铜3星', STAR+1; other '第2名 松果队长', '青铜1星 → 青铜1星',STAR-1. Sourceemptyothersarea keptquietnotfilledwithcharacters. Rewards exact '本场奖励', goldcoin+12, bluepawticket+3. '关闭' limegreenmainbuttonsamebounds. Top146gold/16ticket retained. No celebratorynewtrophies/portraits/banners obscuringrows. Retain source2linebottominstruction, existingpauseposition."
+  },
+  {
+    "id": "08_defeat",
+    "title": "结算·团队失败",
+    "group": "战斗与结算",
+    "file": "08_defeat.png",
+    "inputs": [
+      "D:\\AI\\zhanchengdashi\\temp\\qa\\result-reward-area-20260907\\team-loss-top-720.png",
+      "D:\\AI\\zhanchengdashi\\output\\visual_concepts\\tata_battle_style\\full_game\\style_master.png"
+    ],
+    "prompt": "Usecase: style-transfer/UI-mockup. Image1 is ONLY PAGE LAYOUT target, Image2 is PROFESSIONAL STYLEMASTER. Retain target's exact full portrait720x1280 layout, every control/text/data/slot position and state; take ONLY style from master. Thick near-black graphic outlines, flat matte2D original animal illustrations, restrained deepnavyUI + readablewarmivorypanels, mutedlargeblock olive/teal environment where source has background. No newfeatures, no newcontent, no newcontrols or phoneframe. Topcurrencies plainDARKSLATE capsules, own goldcoin/notched bluepawticket oversizedprotrudeleft, whiteboldblackoutlineddigits with SOURCEVALUES. NO progress/yellowwedge/plus/buttonaddition. Result reward + and - numeric signs are meaningful deltas, retain them. Bold clean complete Chinese.\nTarget TEAMLOSSresult. Keep source6team battlefield/scoresbehind0.42scrim, notmaster1v1scene. Panel(60,176,600,824),selfrow298,othersscroll468height276 withVISIBLEscrollbar,rewards764h116,close900h64. Heading'失败' redonnavy; ivoryrowcards+navyoutlines. Preserve ALL exactsourceplayerdata: 自己林间信使、第1名, 青铜3星 → 青铜2星,star-1; visibleother 第2名青柠苏打 3→2星 -1, 第3名晚风放映机 3→2星 -1, 第4名雾岛来客 3→6星 +3; keep3visibleothersandscrolltrack. Exactreward star-1 + bluepawticket+1, '本场奖励'. Closebuttonlimegreen'关闭'. Topgold146/ticket17; team's A/B score108? SOURCE129格each—retain source129格data, nevercopymaster rankplate. No extraanimals/logos/fullscreenredwash."
+  },
+  {
+    "id": "09_ffa_result",
+    "title": "结算·六人排名",
+    "group": "战斗与结算",
+    "file": "09_ffa_result.png",
+    "inputs": [
+      "D:\\AI\\zhanchengdashi\\temp\\qa\\result-reward-area-20260907\\ffa-720.png",
+      "D:\\AI\\zhanchengdashi\\output\\visual_concepts\\tata_battle_style\\full_game\\style_master.png"
+    ],
+    "prompt": "Usecase: style-transfer/UI-mockup. Image1 is ONLY PAGE LAYOUT target, Image2 is PROFESSIONAL STYLEMASTER. Retain target's exact full portrait720x1280 layout, every control/text/data/slot position and state; take ONLY style from master. Thick near-black graphic outlines, flat matte2D original animal illustrations, restrained deepnavyUI + readablewarmivorypanels, mutedlargeblock olive/teal environment where source has background. No newfeatures, no newcontent, no newcontrols or phoneframe. Topcurrencies plainDARKSLATE capsules, own goldcoin/notched bluepawticket oversizedprotrudeleft, whiteboldblackoutlineddigits with SOURCEVALUES. NO progress/yellowwedge/plus/buttonaddition. Result reward + and - numeric signs are meaningful deltas, retain them. Bold clean complete Chinese.\nTarget6PLAYERFFA rankingresult. Sourcepanel60,176,600,824with0.42scrim; header'第1名', '我的结算'; self'第1名 我 自己',青铜2星 → 青铜5星,star+3. Keepothersscroll+visible3rows: 第1名青柠苏打 2→5星 +3;第2名晚风放映机 2→4星 +2;第3名雾岛来客 2→4星 +2. Preserve visible scrollbar andoriginal blankspace,rowgeometry. Rewardstar+3,bluepawticket+5,heading本场奖励,close'关闭' limegreen. SourceTOPcoins146/ticket22, timer'06:00 第6/6', existing地块排名panelbehindmodal. Keep source battlefielddifferent6colorregionsunderlaid notmasterdiamond. No invented leaderboardnames/numbers/newiconrows."
+  },
+  {
+    "id": "10_loading",
+    "title": "启动·狮王主题",
+    "group": "启动",
+    "file": "10_loading.png",
+    "inputs": [
+      "D:\\AI\\zhanchengdashi\\assets\\ui\\handdrawn\\loading.png",
+      "D:\\AI\\zhanchengdashi\\output\\visual_concepts\\tata_battle_style\\full_game\\style_master.png"
+    ],
+    "prompt": "Usecase: style-transfer/UI-mockup. Image1 is ONLY PAGE LAYOUT target, Image2 is PROFESSIONAL STYLEMASTER. Retain target's exact full portrait720x1280 layout, every control/text/data/slot position and state; take ONLY style from master. Thick near-black graphic outlines, flat matte2D original animal illustrations, restrained deepnavyUI + readablewarmivorypanels, mutedlargeblock olive/teal environment where source has background. No newfeatures, no newcontent, no newcontrols or phoneframe. Topcurrencies plainDARKSLATE capsules, own goldcoin/notched bluepawticket oversizedprotrudeleft, whiteboldblackoutlineddigits with SOURCEVALUES. NO progress/yellowwedge/plus/buttonaddition. Result reward + and - numeric signs are meaningful deltas, retain them. Bold clean complete Chinese.\nImage1actualLOADINGillustrationhasNOinterface controls. Preserve EXACT original LIONKINGpose/proportions/crownredgreenjewels/redflag/greencoat silhouette/locationandhexgeometry. Change ONLY artfinish toImage2 bold near-black cartooncontours, flatmatte2tone blocks, restrainedcolorwithoutwatercolorgrainorsoftshine. Lionexpressionscheekyoriginal, NOT Tatacharacters. Hexesquietlowdetailoriginalfriendlycolorregions. Retainoriginalcleancreamnegativeareaonupperhalf. NO currencybars, no title/logo, no loadingpercent/progress, no buttons/navigation/extraanimals. Completeportraitsameaspectnoframe."
+  },
+  {
+    "id": "11_team_battle",
+    "title": "战斗·3V3 团队",
+    "group": "战斗模式",
+    "file": "11_team_battle.png",
+    "inputs": [
+      "D:\\AI\\zhanchengdashi\\temp\\qa\\all-animals-audit-20260906\\hex-3v3-720.png",
+      "D:\\AI\\zhanchengdashi\\output\\visual_concepts\\tata_battle_style\\full_game\\style_master.png"
+    ],
+    "prompt": "Usecase: style-transfer/UI-mockup. Image1 is ONLY PAGE LAYOUT target, Image2 is PROFESSIONAL STYLEMASTER. Retain target's exact full portrait720x1280 layout, every control/text/data/slot position and state; take ONLY style from master. Thick near-black graphic outlines, flat matte2D original animal illustrations, restrained deepnavyUI + readablewarmivorypanels, mutedlargeblock olive/teal environment where source has background. No newfeatures, no newcontent, no newcontrols or phoneframe. Topcurrencies plainDARKSLATE capsules, own goldcoin/notched bluepawticket oversizedprotrudeleft, whiteboldblackoutlineddigits with SOURCEVALUES. NO progress/yellowwedge/plus/buttonaddition. Result reward + and - numeric signs are meaningful deltas, retain them. Bold clean complete Chinese.\nTarget3V3game. Preserve SOURCE sixdistinctownershipcolorregions/cells/buildings/unitsandexactoriginalcastlenumber/placement; source2onlystylenotcopyits12animalsorredgreenlayout. Wallet72/ticket10. Actualscorebars atlogical(46,70,300,34)/(374,70,300,34), each3color dots, 'A方 · 我方 108格' localyellowoutline / 'B方 · 敌方 108格'. Keeporiginalpauserect(610,116,62,56), NO central1v1rankplate. Retainallbottominstructionexactsource. Flatquiethexfillswithoriginal6ownershiphues, strongoutlinedunitssameidentities/sizes andactualsmallhealthbars. Environmentalforestonlyexistingoutofmapblankspacesneverovercells. AllHUDcriticaltextclear, no newnav/speed/manualreleasecontrols."
+  },
+  {
+    "id": "12_ffa_battle",
+    "title": "战斗·六人混战",
+    "group": "战斗模式",
+    "file": "12_ffa_battle.png",
+    "inputs": [
+      "D:\\AI\\zhanchengdashi\\temp\\qa\\all-animals-audit-20260906\\hex-ffa-720.png",
+      "D:\\AI\\zhanchengdashi\\output\\visual_concepts\\tata_battle_style\\full_game\\style_master.png"
+    ],
+    "prompt": "Usecase: style-transfer/UI-mockup. Image1 is ONLY PAGE LAYOUT target, Image2 is PROFESSIONAL STYLEMASTER. Retain target's exact full portrait720x1280 layout, every control/text/data/slot position and state; take ONLY style from master. Thick near-black graphic outlines, flat matte2D original animal illustrations, restrained deepnavyUI + readablewarmivorypanels, mutedlargeblock olive/teal environment where source has background. No newfeatures, no newcontent, no newcontrols or phoneframe. Topcurrencies plainDARKSLATE capsules, own goldcoin/notched bluepawticket oversizedprotrudeleft, whiteboldblackoutlineddigits with SOURCEVALUES. NO progress/yellowwedge/plus/buttonaddition. Result reward + and - numeric signs are meaningful deltas, retain them. Bold clean complete Chinese.\nTarget6PLAYERFFA battle. Preserve EXACTsourcehexmap6ownershipcolors, originalunits/buildings/allpositions, notmaster1v1map. Wallet72/ticket10, middletimer'06:00 第5/6'. Source地块排名panel logical(500,148,148,184) retains6visible rows1号to6号each55格,5号localhighlightyellowframe, no-rowclipping. Keep source兔子哨塔0/1 bottomdetailcontext, pauseposition,no bottomnav. Quietmattehexfield+chunkyoutlinedsourceanimalartmatchingmasteridentities butdon'taddmissinganimals. LargewhiteoutlinedHUDtype/plaincounterbar, no starwheel/extracontrols. Forestbordersonlyexistingblankmapouterarea."
+  }
+]

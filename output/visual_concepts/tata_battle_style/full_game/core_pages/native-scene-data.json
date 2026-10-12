@@ -1,0 +1,233 @@
+{
+  "schema_version": 1,
+  "request_id": "REQ-20261011-TATA-FULL-GAME-PREVIEW",
+  "resumed_on_client_date": "2026-10-12",
+  "mode": "USER_AUTHORIZED_NATIVE_COMPONENT_PREVIEW",
+  "design_resolution": [
+    720,
+    1280
+  ],
+  "formal_sources": [
+    "D:/AI/zhanchengdashi/scripts/app/main.gd",
+    "D:/AI/zhanchengdashi/scripts/app/ui/gacha_new_hero_reveal.gd",
+    "D:/AI/zhanchengdashi/config/tables/cards.csv",
+    "D:/AI/zhanchengdashi/runtime/config/cards.json"
+  ],
+  "geometry": {
+    "currency_left": [
+      46,
+      18,
+      186,
+      44
+    ],
+    "currency_right": [
+      488,
+      18,
+      186,
+      44
+    ],
+    "title": [
+      40,
+      68,
+      640,
+      58
+    ],
+    "gacha_tickets": [
+      238,
+      130,
+      244,
+      48
+    ],
+    "reward_panel": [
+      46,
+      208,
+      628,
+      822
+    ],
+    "reward_heading": [
+      46,
+      236,
+      628,
+      42
+    ],
+    "empty_text": [
+      46,
+      446,
+      628,
+      42
+    ],
+    "single_card": [
+      228,
+      460,
+      264,
+      316
+    ],
+    "one_cta": [
+      104,
+      1050,
+      240,
+      76
+    ],
+    "ten_cta": [
+      376,
+      1050,
+      240,
+      76
+    ],
+    "toast": [
+      130,
+      1018,
+      460,
+      58
+    ],
+    "nav_slots": [
+      [
+        3,
+        1148,
+        138,
+        122
+      ],
+      [
+        147,
+        1148,
+        138,
+        122
+      ],
+      [
+        291,
+        1148,
+        138,
+        122
+      ],
+      [
+        435,
+        1148,
+        138,
+        122
+      ],
+      [
+        579,
+        1148,
+        138,
+        122
+      ]
+    ],
+    "ten_card_size": [
+      132,
+      158
+    ],
+    "ten_gap": [
+      40,
+      28
+    ],
+    "ten_row_counts": [
+      2,
+      3,
+      3,
+      2
+    ],
+    "hero_portrait": [
+      96,
+      260,
+      528,
+      528
+    ],
+    "hero_name": [
+      64,
+      840,
+      592,
+      64
+    ],
+    "hero_slogan": [
+      64,
+      936,
+      592,
+      128
+    ],
+    "hero_continue": [
+      138,
+      1112,
+      444,
+      76
+    ]
+  },
+  "states": [
+    {
+      "id": "06_gacha_empty",
+      "gold": 60,
+      "tickets": 0,
+      "heading": "抽卡",
+      "record_heading": "最近获得",
+      "record_empty": "暂无记录",
+      "buttons": [
+        "抽1次",
+        "抽10次"
+      ],
+      "buttons_enabled": [
+        false,
+        false
+      ],
+      "nav_active": 3,
+      "source_evidence": "SOURCE_CONFIRMED_STATE_DERIVED_FROM_HISTORICAL_FIXTURE",
+      "new_features": false
+    },
+    {
+      "id": "07_gacha_opening",
+      "gold": 60,
+      "tickets": 29,
+      "card_back": "existing normal result blue-purple framed star card",
+      "toast": "获得1张卡牌",
+      "buttons_enabled": [
+        false,
+        false
+      ],
+      "nav_active": 3,
+      "source_evidence": "HISTORICAL_LOCAL_RUNTIME_FIXTURE",
+      "no_new_hero_overlay": true
+    },
+    {
+      "id": "08_gacha_ten_result",
+      "gold": 60,
+      "tickets": 20,
+      "card_ids": [
+        "frog",
+        "ant",
+        "sparrow",
+        "rabbit",
+        "duck",
+        "snail",
+        "hamster",
+        "pigeon",
+        "parrot",
+        "rabbit"
+      ],
+      "toast": "获得10张卡牌",
+      "buttons_enabled": [
+        true,
+        true
+      ],
+      "nav_active": 3,
+      "read_names_rarity_art_from_current_config": true,
+      "source_evidence": "HISTORICAL_LOCAL_RUNTIME_FIXTURE_WITH_CURRENT_CSV_OVERRIDE"
+    },
+    {
+      "id": "09_gacha_new_hero",
+      "card_id": "mouse",
+      "name": "老鼠",
+      "slogan": "鼠鼠我呀，主打一个人多。",
+      "only_button": "继续",
+      "hide_currency": true,
+      "hide_nav": true,
+      "hide_stats": true,
+      "source_evidence": "HISTORICAL_LOCAL_RUNTIME_FIXTURE"
+    }
+  ],
+  "identity_rule": "All animal portraits resolved through their current formal art_path; no fabricated characters. Same coin/ticket/nav components from art-director native kit. A duplicated rabbit reward is intentional fixture content, not a duplicate source file.",
+  "boundaries": [
+    "Static exact-layout art preview only",
+    "No engine/UI/source/runtime bindings writes",
+    "No real-account or ownership state used",
+    "Historical fixture values are illustrative",
+    "Exact native geometry does not prove engine or device behavior"
+  ]
+}

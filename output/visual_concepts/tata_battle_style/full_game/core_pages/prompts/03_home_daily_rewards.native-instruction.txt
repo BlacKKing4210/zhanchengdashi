@@ -1,0 +1,1 @@
+Native exact icon repair only. Load the retained generated-source image, remove only incorrect reward ticket in original ROI663,607,67,54 using adjacent untouched same-row cream pixels730,607,10,54. Replace with canonical blue paw ticket, uniformly fitted, preserving count2. Uniform contain-scale the full legacy941x1672 page to720x1280. All other pixels/data/geometry unchanged.
